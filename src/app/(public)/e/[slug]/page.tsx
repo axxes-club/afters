@@ -10,13 +10,17 @@ import { Header } from "@/components/layout/header"
 import { CalendarDays, MapPin, Clock, Users } from "lucide-react"
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+  const { slug: combinedSlug } = await params
 
-  // Find event by exact slug match
-  const event = await prisma.event.findFirst({
+  // URL format is {organizer-slug}-{event-slug}
+  // Find the organizer by trying different split points
+  let event = null
+  
+  // First try: find by exact event slug (in case someone uses just the event slug)
+  event = await prisma.event.findFirst({
     where: {
       isPublished: true,
-      slug: slug,
+      slug: combinedSlug,
     },
     include: {
       organizer: {
@@ -31,6 +35,40 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       },
     },
   })
+
+  // Second try: parse combined slug (organizer-slug + event-slug)
+  if (!event) {
+    // Try to find by matching organizer slug prefix
+    const organizers = await prisma.organizerProfile.findMany({
+      select: { slug: true },
+    })
+    
+    for (const org of organizers) {
+      if (combinedSlug.startsWith(org.slug + '-')) {
+        const eventSlug = combinedSlug.slice(org.slug.length + 1)
+        event = await prisma.event.findFirst({
+          where: {
+            isPublished: true,
+            slug: eventSlug,
+            organizer: { slug: org.slug },
+          },
+          include: {
+            organizer: {
+              select: {
+                displayName: true,
+                slug: true,
+              },
+            },
+            ticketTiers: {
+              where: { isVisible: true },
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+        })
+        if (event) break
+      }
+    }
+  }
 
   if (!event) {
     notFound()
