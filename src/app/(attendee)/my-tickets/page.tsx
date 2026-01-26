@@ -3,9 +3,8 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { QRCodeSVG } from "qrcode.react"
 import { CalendarDays, MapPin } from "lucide-react"
+import { TicketCard } from "./TicketCard"
 
 export default async function MyTicketsPage() {
   const { userId } = await auth()
@@ -97,49 +96,22 @@ export default async function MyTicketsPage() {
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {group.tickets.map((ticket: TicketWithRelations) => (
-                    <Card key={ticket.id} className="overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <p className="font-medium">{ticket.ticketTier.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {ticket.ticketNumber}
-                            </p>
-                          </div>
-                          <Badge
-                            variant={
-                              ticket.status === "CHECKED_IN"
-                                ? "secondary"
-                                : ticket.status === "VALID"
-                                ? "default"
-                                : "destructive"
-                            }
-                          >
-                            {ticket.status === "CHECKED_IN"
-                              ? "Used"
-                              : ticket.status === "VALID"
-                              ? "Valid"
-                              : ticket.status}
-                          </Badge>
-                        </div>
-
-                        <div className="flex justify-center p-4 bg-white rounded-lg">
-                          <QRCodeSVG
-                            value={ticket.id}
-                            size={150}
-                            level="H"
-                            includeMargin
-                          />
-                        </div>
-
-                        {ticket.status === "CHECKED_IN" && ticket.checkedInAt && (
-                          <p className="text-xs text-center text-muted-foreground mt-4">
-                            Checked in at{" "}
-                            {new Date(ticket.checkedInAt).toLocaleTimeString()}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                    <TicketCard
+                      key={ticket.id}
+                      ticket={{
+                        id: ticket.id,
+                        ticketNumber: ticket.ticketNumber,
+                        status: ticket.status,
+                        checkedInAt: ticket.checkedInAt,
+                        ticketTier: ticket.ticketTier,
+                      }}
+                      event={{
+                        title: group.event.title,
+                        startsAt: group.event.startsAt,
+                        venueName: group.event.venueName,
+                        city: group.event.city,
+                      }}
+                    />
                   ))}
                 </div>
               </div>
