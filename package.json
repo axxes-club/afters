@@ -12,6 +12,8 @@
   "dependencies": {
     "@clerk/nextjs": "^6.36.10",
     "@hookform/resolvers": "^5.2.2",
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-neon": "^7.3.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -41,6 +43,7 @@
     "stripe": "^20.2.0",
     "svix": "^1.84.1",
     "tailwind-merge": "^3.4.0",
+    "ws": "^8.19.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -49,6 +52,7 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
     "tailwindcss": "^4",
