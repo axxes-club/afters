@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, use } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,8 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { ArrowLeft, Plus, Trash2, ExternalLink, QrCode } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
+import { FlyerUpload } from "@/components/FlyerUpload"
 
 interface TicketTier {
   id: string
@@ -31,6 +33,7 @@ interface Event {
   startsAt: string
   venueName: string
   city: string
+  flyerUrl: string | null
   ticketTiers: TicketTier[]
   organizer: {
     slug: string
@@ -43,13 +46,18 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
   const [loading, setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
   const [showTierDialog, setShowTierDialog] = useState(false)
+  const [showFlyerDialog, setShowFlyerDialog] = useState(false)
   const [tierLoading, setTierLoading] = useState(false)
+  const [flyerLoading, setFlyerLoading] = useState(false)
+  const [tempFlyerUrl, setTempFlyerUrl] = useState<string | null>(null)
 
   const fetchEvent = useCallback(async () => {
     try {
       const res = await fetch(`/api/events/${eventId}`)
       if (res.ok) {
-        setEvent(await res.json())
+        const data = await res.json()
+        setEvent(data)
+        setTempFlyerUrl(data.flyerUrl)
       }
     } catch (error) {
       console.error(error)
@@ -80,6 +88,30 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
       toast.error(error instanceof Error ? error.message : "Failed to publish")
     } finally {
       setPublishing(false)
+    }
+  }
+
+  async function updateFlyer() {
+    setFlyerLoading(true)
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ flyerUrl: tempFlyerUrl }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.message)
+      }
+
+      toast.success("Flyer updated!")
+      setShowFlyerDialog(false)
+      fetchEvent()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update flyer")
+    } finally {
+      setFlyerLoading(false)
     }
   }
 
@@ -179,41 +211,112 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Event Flyer & Quick Actions */}
+      <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+        {/* Flyer Card */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Capacity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {event.ticketTiers.reduce((sum, t) => sum + t.quantity, 0)}
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Event Flyer</CardTitle>
+              <Dialog open={showFlyerDialog} onOpenChange={(open) => {
+                setShowFlyerDialog(open)
+                if (open) setTempFlyerUrl(event.flyerUrl)
+              }}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Update Event Flyer</DialogTitle>
+                    <DialogDescription>
+                      Upload a new flyer image for your event
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <FlyerUpload
+                      value={tempFlyerUrl}
+                      onChange={setTempFlyerUrl}
+                      disabled={flyerLoading}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowFlyerDialog(false)}
+                        disabled={flyerLoading}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={updateFlyer} disabled={flyerLoading}>
+                        {flyerLoading ? "Saving..." : "Save Flyer"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {event.ticketTiers.reduce((sum, t) => sum + t.quantitySold, 0)}
-            </div>
+            {event.flyerUrl ? (
+              <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden border border-border">
+                <Image
+                  src={event.flyerUrl}
+                  alt={event.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div 
+                className="relative aspect-[3/4] w-full rounded-lg border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => setShowFlyerDialog(true)}
+              >
+                <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground text-center px-4">
+                  Click to add event flyer
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Check-in</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" asChild>
-              <Link href={`/dashboard/events/${eventId}/check-in`}>
-                <QrCode className="mr-2 h-4 w-4" />
-                Open Scanner
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Capacity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {event.ticketTiers.reduce((sum, t) => sum + t.quantity, 0)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {event.ticketTiers.reduce((sum, t) => sum + t.quantitySold, 0)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Check-in</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href={`/dashboard/events/${eventId}/check-in`}>
+                  <QrCode className="mr-2 h-4 w-4" />
+                  Open Scanner
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Ticket Tiers */}

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { FlyerUpload } from "@/components/FlyerUpload"
 
 const US_CITIES = [
   "New York",
@@ -28,6 +29,7 @@ const US_CITIES = [
 export default function NewEventPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [flyerUrl, setFlyerUrl] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -46,6 +48,7 @@ export default function NewEventPage() {
       city: formData.get("city"),
       state: formData.get("state"),
       ageRestriction: formData.get("ageRestriction") || null,
+      flyerUrl: flyerUrl,
     }
 
     try {
@@ -90,6 +93,15 @@ export default function NewEventPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-6">
+            {/* Event Flyer Upload */}
+            <div className="space-y-2">
+              <Label>Event Flyer</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Upload a poster or flyer for your event (recommended 3:4 ratio)
+              </p>
+              <FlyerUpload value={flyerUrl} onChange={setFlyerUrl} disabled={loading} />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="title">Event Title</Label>
               <Input
