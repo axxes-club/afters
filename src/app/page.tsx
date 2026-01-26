@@ -10,30 +10,39 @@ export const revalidate = 0
 
 export default async function HomePage() {
   // Get upcoming events
-  const events = await prisma.event.findMany({
-    where: {
-      isPublished: true,
-      status: "PUBLISHED",
-      startsAt: {
-        gte: new Date(),
-      },
-    },
-    include: {
-      organizer: {
-        select: {
-          displayName: true,
-          slug: true,
+  console.log('[HomePage] Fetching events, DATABASE_URL exists:', !!process.env.DATABASE_URL)
+  
+  let events: Awaited<ReturnType<typeof prisma.event.findMany>> = []
+  
+  try {
+    events = await prisma.event.findMany({
+      where: {
+        isPublished: true,
+        status: "PUBLISHED",
+        startsAt: {
+          gte: new Date(),
         },
       },
-      ticketTiers: {
-        where: { isVisible: true },
-        orderBy: { price: "asc" },
-        take: 1,
+      include: {
+        organizer: {
+          select: {
+            displayName: true,
+            slug: true,
+          },
+        },
+        ticketTiers: {
+          where: { isVisible: true },
+          orderBy: { price: "asc" },
+          take: 1,
+        },
       },
-    },
-    orderBy: { startsAt: "asc" },
-    take: 6,
-  })
+      orderBy: { startsAt: "asc" },
+      take: 6,
+    })
+    console.log('[HomePage] Found events:', events.length, events.map(e => e.title))
+  } catch (error) {
+    console.error('[HomePage] Error fetching events:', error)
+  }
 
   type EventType = typeof events[number]
 
