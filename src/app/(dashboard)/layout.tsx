@@ -11,7 +11,8 @@ export default function DashboardLayout({
       <Header />
       <div className="flex pt-16">
         <DashboardSidebar />
-        <main className="flex-1 p-6">{children}</main>
+        {/* Add padding-bottom on mobile for bottom nav */}
+        <main className="flex-1 p-4 md:p-6 pb-20 lg:pb-6">{children}</main>
       </div>
     </div>
   )

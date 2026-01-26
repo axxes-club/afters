@@ -125,7 +125,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               <p className="text-sm text-muted-foreground mb-2">
                 Presented by {event.organizer.displayName}
               </p>
-              <h1 className="text-4xl font-bold">{event.title}</h1>
+              <h1 className="text-2xl md:text-4xl font-bold">{event.title}</h1>
             </div>
 
             <div className="flex flex-wrap gap-4">
