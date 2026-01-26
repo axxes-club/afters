@@ -29,6 +29,8 @@ export default async function DashboardPage() {
     redirect("/dashboard/onboarding")
   }
 
+  type EventType = typeof organizerProfile.events[number]
+
   // Get stats
   const totalEvents = await prisma.event.count({
     where: { organizerId: organizerProfile.id },
@@ -136,7 +138,7 @@ export default async function DashboardPage() {
             </p>
           ) : (
             <div className="space-y-4">
-              {organizerProfile.events.map((event) => (
+              {organizerProfile.events.map((event: EventType) => (
                 <Link
                   key={event.id}
                   href={`/dashboard/events/${event.id}`}

@@ -38,28 +38,32 @@ export default async function MyTicketsPage() {
     },
   })
 
+  type TicketWithRelations = typeof tickets[number]
+  type EventGroup = { event: TicketWithRelations["event"]; tickets: TicketWithRelations[] }
+
   // Group tickets by event
-  type TicketGroup = Record<string, { event: typeof tickets[0]["event"]; tickets: typeof tickets }>
-  const ticketsByEvent = tickets.reduce<TicketGroup>((acc, ticket) => {
+  const ticketsByEvent: Record<string, EventGroup> = {}
+  for (const ticket of tickets) {
     const eventId = ticket.eventId
-    if (!acc[eventId]) {
-      acc[eventId] = {
+    if (!ticketsByEvent[eventId]) {
+      ticketsByEvent[eventId] = {
         event: ticket.event,
         tickets: [],
       }
     }
-    acc[eventId].tickets.push(ticket)
-    return acc
-  }, {})
+    ticketsByEvent[eventId].tickets.push(ticket)
+  }
+
+  const eventGroups = Object.values(ticketsByEvent)
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pt-24">
         <h1 className="text-3xl font-bold mb-6">My Tickets</h1>
 
-        {Object.keys(ticketsByEvent).length === 0 ? (
+        {eventGroups.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
@@ -69,14 +73,14 @@ export default async function MyTicketsPage() {
           </Card>
         ) : (
           <div className="space-y-8">
-            {Object.values(ticketsByEvent).map(({ event, tickets }) => (
-              <div key={tickets[0].eventId}>
+            {eventGroups.map((group: EventGroup) => (
+              <div key={group.tickets[0].eventId}>
                 <div className="mb-4">
-                  <h2 className="text-xl font-semibold">{event.title}</h2>
+                  <h2 className="text-xl font-semibold">{group.event.title}</h2>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <CalendarDays className="h-4 w-4" />
-                      {new Date(event.startsAt).toLocaleDateString("en-US", {
+                      {new Date(group.event.startsAt).toLocaleDateString("en-US", {
                         weekday: "short",
                         month: "short",
                         day: "numeric",
@@ -86,13 +90,13 @@ export default async function MyTicketsPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      {event.venueName}, {event.city}
+                      {group.event.venueName}, {group.event.city}
                     </span>
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {tickets.map((ticket) => (
+                  {group.tickets.map((ticket: TicketWithRelations) => (
                     <Card key={ticket.id} className="overflow-hidden">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
