@@ -5,6 +5,7 @@ import { formatCents } from "@/lib/stripe"
 import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { EventFilters } from "@/components/events/EventFilters"
 import { CalendarDays, MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react"
 
 // Ensure dynamic rendering for fresh city filters
@@ -170,47 +171,13 @@ export default async function EventsPage({
           </div>
         </form>
 
-        {/* Filters */}
-        <div className="space-y-4 mb-8">
-          {/* Date Filter */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <span className="text-sm text-muted-foreground self-center mr-2">When:</span>
-            {DATE_FILTERS.map((df) => (
-              <Button
-                key={df.value}
-                variant={dateFilter === df.value || (!dateFilter && df.value === "") ? "default" : "outline"}
-                size="sm"
-                asChild
-              >
-                <Link href={buildUrl({ date: df.value || undefined, page: undefined })}>
-                  {df.label}
-                </Link>
-              </Button>
-            ))}
-          </div>
-
-          {/* City Filter */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <span className="text-sm text-muted-foreground self-center mr-2">Where:</span>
-            <Button
-              variant={!selectedCity ? "default" : "outline"}
-              size="sm"
-              asChild
-            >
-              <Link href={buildUrl({ city: undefined, page: undefined })}>All Cities</Link>
-            </Button>
-            {cities.map((c) => (
-              <Button
-                key={c}
-                variant={c === selectedCity ? "default" : "outline"}
-                size="sm"
-                asChild
-              >
-                <Link href={buildUrl({ city: c, page: undefined })}>{c}</Link>
-              </Button>
-            ))}
-          </div>
-        </div>
+        {/* Filters - Client component for instant feedback */}
+        <EventFilters
+          cities={cities}
+          selectedCity={selectedCity}
+          dateFilter={dateFilter}
+          searchQuery={searchQuery}
+        />
 
         {/* Results summary */}
         {(searchQuery || selectedCity || dateFilter) && (

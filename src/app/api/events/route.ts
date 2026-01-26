@@ -11,7 +11,8 @@ export async function GET(req: Request) {
 
     // If slug is provided, return single event (for checkout page)
     if (slug) {
-      const event = await prisma.event.findFirst({
+      // First try: exact event slug match
+      let event = await prisma.event.findFirst({
         where: {
           isPublished: true,
           slug: slug,
@@ -29,6 +30,39 @@ export async function GET(req: Request) {
           },
         },
       })
+
+      // Second try: parse combined slug (organizer-slug + event-slug)
+      if (!event) {
+        const organizers = await prisma.organizerProfile.findMany({
+          select: { slug: true, id: true },
+        })
+        
+        for (const org of organizers) {
+          if (slug.startsWith(org.slug + '-')) {
+            const eventSlug = slug.slice(org.slug.length + 1)
+            event = await prisma.event.findFirst({
+              where: {
+                isPublished: true,
+                slug: eventSlug,
+                organizerId: org.id,
+              },
+              include: {
+                organizer: {
+                  select: {
+                    displayName: true,
+                    slug: true,
+                  },
+                },
+                ticketTiers: {
+                  where: { isVisible: true },
+                  orderBy: { sortOrder: "asc" },
+                },
+              },
+            })
+            if (event) break
+          }
+        }
+      }
 
       if (!event) {
         return NextResponse.json([], { status: 200 })

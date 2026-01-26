@@ -23,10 +23,11 @@ function PayoutsContent() {
   const [connecting, setConnecting] = useState(false)
 
   useEffect(() => {
-    fetchProfile()
-
+    // If returning from Stripe, sync status first
     if (searchParams.get("success") === "true") {
-      toast.success("Stripe setup completed! Refreshing status...")
+      toast.success("Stripe setup completed! Syncing status...")
+      syncAndFetch()
+    } else {
       fetchProfile()
     }
 
@@ -34,6 +35,18 @@ function PayoutsContent() {
       toast.info("Please complete your Stripe setup")
     }
   }, [searchParams])
+
+  async function syncAndFetch() {
+    try {
+      // First sync status from Stripe
+      await fetch("/api/stripe/connect/status", { method: "POST" })
+      // Then fetch updated profile
+      await fetchProfile()
+    } catch (error) {
+      console.error("Error syncing:", error)
+      await fetchProfile()
+    }
+  }
 
   async function fetchProfile() {
     try {

@@ -11,21 +11,53 @@ export async function POST() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const profile = await prisma.organizerProfile.findUnique({
+    let profile = await prisma.organizerProfile.findUnique({
       where: { userId },
+      include: { user: { select: { email: true } } },
     })
 
-    if (!profile?.stripeAccountId) {
+    if (!profile) {
       return NextResponse.json(
-        { message: "No Stripe account found" },
-        { status: 400 }
+        { message: "Organizer profile not found" },
+        { status: 404 }
       )
+    }
+
+    // Create Stripe account if it doesn't exist
+    let stripeAccountId = profile.stripeAccountId
+    if (!stripeAccountId) {
+      const stripeAccount = await stripe.accounts.create({
+        type: "express",
+        country: "US",
+        email: profile.user.email,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        business_type: "individual",
+        settings: {
+          payouts: {
+            schedule: {
+              interval: "daily",
+            },
+          },
+        },
+      })
+      
+      stripeAccountId = stripeAccount.id
+      
+      // Update profile with the new Stripe account ID
+      profile = await prisma.organizerProfile.update({
+        where: { userId },
+        data: { stripeAccountId },
+        include: { user: { select: { email: true } } },
+      })
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
     const accountLink = await stripe.accountLinks.create({
-      account: profile.stripeAccountId,
+      account: stripeAccountId,
       refresh_url: `${baseUrl}/dashboard/settings/payouts?refresh=true`,
       return_url: `${baseUrl}/dashboard/settings/payouts?success=true`,
       type: "account_onboarding",
