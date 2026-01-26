@@ -9,8 +9,14 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { CalendarDays, MapPin, Clock, Users } from "lucide-react"
 
+// Force dynamic rendering - no caching
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug: combinedSlug } = await params
+  
+  console.log('[EventPage] Looking for event with slug:', combinedSlug)
 
   // URL format is {organizer-slug}-{event-slug}
   // Find the organizer by trying different split points
@@ -36,6 +42,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     },
   })
 
+  console.log('[EventPage] Exact match result:', event?.title || 'not found')
+
   // Second try: parse combined slug (organizer-slug + event-slug)
   if (!event) {
     // Try to find by matching organizer slug prefix
@@ -43,9 +51,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       select: { slug: true },
     })
     
+    console.log('[EventPage] Trying organizer prefixes:', organizers.map(o => o.slug))
+    
     for (const org of organizers) {
       if (combinedSlug.startsWith(org.slug + '-')) {
         const eventSlug = combinedSlug.slice(org.slug.length + 1)
+        console.log('[EventPage] Trying org:', org.slug, 'event slug:', eventSlug)
+        
         event = await prisma.event.findFirst({
           where: {
             isPublished: true,
@@ -65,11 +77,15 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             },
           },
         })
-        if (event) break
+        if (event) {
+          console.log('[EventPage] Found via org prefix:', event.title)
+          break
+        }
       }
     }
   }
 
+  console.log('[EventPage] Final result:', event?.title || 'NOT FOUND')
   if (!event) {
     notFound()
   }
