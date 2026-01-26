@@ -256,7 +256,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                   appearance: { theme: "stripe" },
                 }}
               >
-                <CheckoutForm orderId={orderId!} onSuccess={() => {}} />
+                <CheckoutForm orderId={orderId!} />
               </Elements>
             </CardContent>
           </Card>
