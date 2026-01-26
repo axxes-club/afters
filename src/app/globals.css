@@ -68,6 +68,7 @@
 /* Dark mode as default - edgy nightlife vibe */
 :root {
   --radius: 0.5rem;
+  --spacing: 0.25rem;
   /* Dark theme - black background */
   --background: #000000;
   --foreground: #ffffff;
