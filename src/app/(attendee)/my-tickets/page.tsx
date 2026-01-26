@@ -39,7 +39,8 @@ export default async function MyTicketsPage() {
   })
 
   // Group tickets by event
-  const ticketsByEvent = tickets.reduce((acc, ticket) => {
+  type TicketGroup = Record<string, { event: typeof tickets[0]["event"]; tickets: typeof tickets }>
+  const ticketsByEvent = tickets.reduce<TicketGroup>((acc, ticket) => {
     const eventId = ticket.eventId
     if (!acc[eventId]) {
       acc[eventId] = {
@@ -49,7 +50,7 @@ export default async function MyTicketsPage() {
     }
     acc[eventId].tickets.push(ticket)
     return acc
-  }, {} as Record<string, { event: typeof tickets[0]["event"]; tickets: typeof tickets }>)
+  }, {})
 
   return (
     <div className="min-h-screen bg-background">
