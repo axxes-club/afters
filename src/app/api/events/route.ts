@@ -7,6 +7,35 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const city = searchParams.get("city")
     const organizerId = searchParams.get("organizerId")
+    const slug = searchParams.get("slug")
+
+    // If slug is provided, return single event (for checkout page)
+    if (slug) {
+      const event = await prisma.event.findFirst({
+        where: {
+          isPublished: true,
+          slug: slug,
+        },
+        include: {
+          organizer: {
+            select: {
+              displayName: true,
+              slug: true,
+            },
+          },
+          ticketTiers: {
+            where: { isVisible: true },
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+      })
+
+      if (!event) {
+        return NextResponse.json([], { status: 200 })
+      }
+
+      return NextResponse.json([event])
+    }
 
     const events = await prisma.event.findMany({
       where: {

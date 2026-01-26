@@ -11,21 +11,11 @@ import { CalendarDays, MapPin, Clock, Users } from "lucide-react"
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
-  // Slug format: organizer-slug-event-slug
-  // We need to find the event by matching
+  // Find event by exact slug match
   const event = await prisma.event.findFirst({
     where: {
       isPublished: true,
-      OR: [
-        { slug: slug },
-        {
-          organizer: {
-            slug: {
-              startsWith: slug.split("-")[0],
-            },
-          },
-        },
-      ],
+      slug: slug,
     },
     include: {
       organizer: {

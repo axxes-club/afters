@@ -48,15 +48,20 @@ export async function POST(req: Request) {
       where: { userId },
     })
 
-    // For now, only organizer can scan. Later: add door staff roles
+    // Only the event organizer can check in tickets
     if (!profile || ticket.event.organizerId !== profile.id) {
-      // Check if eventId matches (for direct link access)
-      if (eventId && ticket.eventId !== eventId) {
-        return NextResponse.json(
-          { message: "Ticket is for a different event", valid: false },
-          { status: 403 }
-        )
-      }
+      return NextResponse.json(
+        { message: "You are not authorized to check in tickets for this event", valid: false },
+        { status: 403 }
+      )
+    }
+
+    // If eventId is provided, verify ticket belongs to that event
+    if (eventId && ticket.eventId !== eventId) {
+      return NextResponse.json(
+        { message: "Ticket is for a different event", valid: false },
+        { status: 403 }
+      )
     }
 
     // Check ticket status
