@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState, useCallback, use } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,18 +39,13 @@ interface Event {
 
 export default function EventDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params)
-  const router = useRouter()
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
   const [showTierDialog, setShowTierDialog] = useState(false)
   const [tierLoading, setTierLoading] = useState(false)
 
-  useEffect(() => {
-    fetchEvent()
-  }, [eventId])
-
-  async function fetchEvent() {
+  const fetchEvent = useCallback(async () => {
     try {
       const res = await fetch(`/api/events/${eventId}`)
       if (res.ok) {
@@ -62,7 +56,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchEvent()
+  }, [fetchEvent])
 
   async function publishEvent() {
     setPublishing(true)

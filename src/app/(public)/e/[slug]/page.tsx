@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { Button } from "@/components/ui/button"
@@ -56,11 +57,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           {/* Event Info */}
           <div className="lg:col-span-2 space-y-6">
             {event.flyerUrl && (
-              <img
-                src={event.flyerUrl}
-                alt={event.title}
-                className="w-full aspect-video object-cover rounded-lg"
-              />
+              <div className="relative w-full aspect-video">
+                <Image
+                  src={event.flyerUrl}
+                  alt={event.title}
+                  fill
+                  className="object-cover rounded-lg"
+                />
+              </div>
             )}
 
             <div>

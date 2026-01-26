@@ -1,18 +1,26 @@
 #!/bin/bash
 
-# Start hook to update PLANKA board when Claude session starts
+# Start hook - only runs once per session using a marker file
+SESSION_MARKER="/tmp/claude-session-active"
 BOARD_URL="http://localhost:3030"
 CARD_ID="1696362940220835484"
 USERNAME="claude"
 PASSWORD="claude123@"
-
 LOG_FILE="/tmp/claude-board-hook.log"
+
+# Check if session already started
+if [ -f "$SESSION_MARKER" ]; then
+    exit 0
+fi
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
 }
 
 log "=== Start hook triggered ==="
+
+# Create session marker
+echo "$$" > "$SESSION_MARKER"
 
 # Login
 LOGIN_RESPONSE=$(curl -s -X POST "$BOARD_URL/api/access-tokens" \
@@ -23,7 +31,7 @@ ACCESS_TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"item":"[^"]*"' | sed 's/"item"
 
 if [ -z "$ACCESS_TOKEN" ]; then
     log "Failed to login"
-    exit 1
+    exit 0
 fi
 
 log "Logged in successfully"

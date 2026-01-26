@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, ArrowRight, Sparkles } from "lucide-react"
@@ -160,10 +161,11 @@ export default async function HomePage() {
                     {/* Event Image */}
                     <div className="relative aspect-[4/5] overflow-hidden">
                       {event.flyerUrl ? (
-                        <img
+                        <Image
                           src={event.flyerUrl}
                           alt={event.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-[#ff1493]/20 to-black flex items-center justify-center">

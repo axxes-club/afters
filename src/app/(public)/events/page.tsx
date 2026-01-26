@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { Header } from "@/components/layout/header"
@@ -94,11 +95,14 @@ export default async function EventsPage({
                   className="group block rounded-lg border bg-card overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   {event.flyerUrl ? (
-                    <img
-                      src={event.flyerUrl}
-                      alt={event.title}
-                      className="w-full aspect-[4/3] object-cover"
-                    />
+                    <div className="relative w-full aspect-[4/3]">
+                      <Image
+                        src={event.flyerUrl}
+                        alt={event.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   ) : (
                     <div className="w-full aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                       <CalendarDays className="h-12 w-12 text-primary/40" />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
+import { useEffect, useState, useCallback, use } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { loadStripe } from "@stripe/stripe-js"
@@ -38,7 +38,7 @@ interface Event {
   }
 }
 
-function CheckoutForm({ orderId, onSuccess }: { orderId: string; onSuccess: () => void }) {
+function CheckoutForm({ orderId }: { orderId: string }) {
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
@@ -85,11 +85,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
   const [orderId, setOrderId] = useState<string | null>(null)
   const [checkingOut, setCheckingOut] = useState(false)
 
-  useEffect(() => {
-    fetchEvent()
-  }, [slug])
-
-  async function fetchEvent() {
+  const fetchEvent = useCallback(async () => {
     try {
       // Need to find event by slug - for now use a search
       const res = await fetch(`/api/events?slug=${slug}`)
@@ -104,7 +100,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
     } finally {
       setLoading(false)
     }
-  }
+  }, [slug])
+
+  useEffect(() => {
+    fetchEvent()
+  }, [fetchEvent])
 
   function updateQuantity(tierId: string, delta: number) {
     setQuantities((prev) => {

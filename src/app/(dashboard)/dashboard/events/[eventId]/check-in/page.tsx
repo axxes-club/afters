@@ -46,7 +46,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
       } else {
         toast.error(data.message)
       }
-    } catch (error) {
+    } catch {
       toast.error("Check-in failed")
       setResult({ message: "Check-in failed", valid: false })
     } finally {

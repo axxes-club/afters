@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Settings,
   CreditCard,
-  Ticket,
 } from "lucide-react"
 
 const navItems = [

@@ -62,7 +62,7 @@ function PayoutsContent() {
 
       const { url } = await res.json()
       window.location.href = url
-    } catch (error) {
+    } catch {
       toast.error("Failed to start Stripe setup")
       setConnecting(false)
     }
