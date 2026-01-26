@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil, BarChart3 } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
 import { FlyerUpload } from "@/components/FlyerUpload"
 
@@ -312,6 +312,19 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
                 <Link href={`/dashboard/events/${eventId}/check-in`}>
                   <QrCode className="mr-2 h-4 w-4" />
                   Open Scanner
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href={`/dashboard/events/${eventId}/analytics`}>
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  View Analytics
                 </Link>
               </Button>
             </CardContent>

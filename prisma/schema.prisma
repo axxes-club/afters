@@ -98,6 +98,7 @@ model Event {
   ticketTiers TicketTier[]
   orders      Order[]
   tickets     Ticket[]
+  views       EventView[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -235,4 +236,23 @@ enum TicketStatus {
   CHECKED_IN
   CANCELLED
   REFUNDED
+}
+
+// Analytics - track event page views
+model EventView {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  // Visitor info (anonymous tracking)
+  visitorId String?  // fingerprint or session ID
+  userAgent String?
+  referrer  String?
+  country   String?
+  city      String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([eventId, createdAt])
+  @@index([eventId])
 }

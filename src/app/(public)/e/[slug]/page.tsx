@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { CalendarDays, MapPin, Clock, Users } from "lucide-react"
+import { ViewTracker } from "@/components/ViewTracker"
 
 // Force dynamic rendering - no caching
 export const dynamic = "force-dynamic"
@@ -104,6 +105,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="min-h-screen bg-background">
+      <ViewTracker eventId={event.id} />
       <Header />
 
       <main className="container mx-auto px-4 pt-24 pb-8">
