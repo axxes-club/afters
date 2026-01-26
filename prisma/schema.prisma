@@ -32,8 +32,21 @@ model OrganizerProfile {
   // Business info
   displayName String
   slug        String  @unique // for URLs: afters.xxx/o/slug
-  bio         String?
+  bio         String? @db.Text
   logoUrl     String?
+  coverUrl    String?
+  
+  // Social links
+  instagramUrl  String?
+  twitterUrl    String?
+  soundcloudUrl String?
+  youtubeUrl    String?
+  spotifyUrl    String?
+  websiteUrl    String?
+  
+  // Artist type
+  artistType    String?  // DJ, Producer, Promoter, Venue, etc.
+  genres        String?  // JSON array of genres
 
   // Stripe Connect
   stripeAccountId          String?  @unique
