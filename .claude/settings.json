@@ -2,8 +2,14 @@
   "hooks": {
     "PreToolUse": [
       {
-        "command": ".claude/hooks/start-session.sh",
-        "description": "Update PLANKA board on first tool use (session start)"
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/start-session.sh",
+            "description": "Update PLANKA board on first tool use (session start)"
+          }
+        ]
       }
     ]
   }
