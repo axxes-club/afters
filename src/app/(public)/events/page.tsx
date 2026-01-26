@@ -146,7 +146,7 @@ export default async function EventsPage({
     <div className="min-h-screen">
       <Header />
 
-      <main className="container mx-auto px-4" style={{ paddingBlock: 'calc(var(--spacing)*20)' }}>
+      <main className="container mx-auto px-4 pb-8" style={{ marginTop: 60 }}>
         <h1 className="text-3xl font-bold mb-6">Discover Events</h1>
 
         {/* Search Bar */}
