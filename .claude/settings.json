@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "stop": [
+      {
+        "command": ".claude/hooks/update-board-tasks.sh",
+        "description": "Update tasks assigned to @claude on the board when session ends"
+      }
+    ]
+  }
+}

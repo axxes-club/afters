@@ -1,0 +1,132 @@
+import { auth } from "@clerk/nextjs/server"
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const city = searchParams.get("city")
+    const organizerId = searchParams.get("organizerId")
+
+    const events = await prisma.event.findMany({
+      where: {
+        isPublished: true,
+        status: "PUBLISHED",
+        ...(city && { city }),
+        ...(organizerId && { organizerId }),
+        startsAt: {
+          gte: new Date(),
+        },
+      },
+      include: {
+        organizer: {
+          select: {
+            displayName: true,
+            slug: true,
+          },
+        },
+        ticketTiers: {
+          where: { isVisible: true },
+          orderBy: { price: "asc" },
+          take: 1,
+        },
+      },
+      orderBy: { startsAt: "asc" },
+    })
+
+    return NextResponse.json(events)
+  } catch (error) {
+    console.error("Error fetching events:", error)
+    return NextResponse.json(
+      { message: "Failed to fetch events" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    const profile = await prisma.organizerProfile.findUnique({
+      where: { userId },
+    })
+
+    if (!profile) {
+      return NextResponse.json(
+        { message: "Organizer profile required" },
+        { status: 400 }
+      )
+    }
+
+    const body = await req.json()
+    const {
+      title,
+      description,
+      startsAt,
+      endsAt,
+      timezone,
+      venueName,
+      venueAddress,
+      city,
+      state,
+      flyerUrl,
+      ageRestriction,
+    } = body
+
+    if (!title || !startsAt || !venueName || !venueAddress || !city) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      )
+    }
+
+    // Generate slug from title
+    const baseSlug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+
+    // Check for existing slugs and make unique
+    let slug = baseSlug
+    let counter = 1
+    while (true) {
+      const existing = await prisma.event.findFirst({
+        where: { organizerId: profile.id, slug },
+      })
+      if (!existing) break
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+
+    const event = await prisma.event.create({
+      data: {
+        organizerId: profile.id,
+        title,
+        slug,
+        description,
+        startsAt: new Date(startsAt),
+        endsAt: endsAt ? new Date(endsAt) : null,
+        timezone: timezone || "America/New_York",
+        venueName,
+        venueAddress,
+        city,
+        state,
+        flyerUrl,
+        ageRestriction: ageRestriction ? parseInt(ageRestriction) : null,
+      },
+    })
+
+    return NextResponse.json(event)
+  } catch (error) {
+    console.error("Error creating event:", error)
+    return NextResponse.json(
+      { message: "Failed to create event" },
+      { status: 500 }
+    )
+  }
+}
