@@ -215,7 +215,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
                 {totalAvailable > 0 ? (
                   <Button className="w-full" size="lg" asChild>
-                    <Link href={`/e/${slug}/checkout`}>
+                    <Link href={`/e/${combinedSlug}/checkout`}>
                       Select Tickets
                     </Link>
                   </Button>

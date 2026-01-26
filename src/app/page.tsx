@@ -12,7 +12,17 @@ export default async function HomePage() {
   // Get upcoming events
   console.log('[HomePage] Fetching events, DATABASE_URL exists:', !!process.env.DATABASE_URL)
   
-  let events: Awaited<ReturnType<typeof prisma.event.findMany>> = []
+  let events: Array<{
+    id: string
+    slug: string
+    title: string
+    startsAt: Date
+    venueName: string
+    city: string
+    flyerUrl: string | null
+    organizer: { displayName: string; slug: string }
+    ticketTiers: Array<{ price: number }>
+  }> = []
   
   try {
     events = await prisma.event.findMany({
