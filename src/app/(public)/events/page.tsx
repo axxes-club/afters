@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CalendarDays, MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react"
 
+// Ensure dynamic rendering for fresh city filters
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 const ITEMS_PER_PAGE = 12
 
 const DATE_FILTERS = [
