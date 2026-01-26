@@ -1,9 +1,15 @@
 {
   "hooks": {
+    "start": [
+      {
+        "command": ".claude/hooks/start-session.sh",
+        "description": "Update PLANKA board when Claude session starts"
+      }
+    ],
     "stop": [
       {
         "command": ".claude/hooks/update-board-tasks.sh",
-        "description": "Update tasks assigned to @claude on the board when session ends"
+        "description": "Update PLANKA board when Claude session ends"
       }
     ]
   }

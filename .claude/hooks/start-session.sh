@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Stop hook to update PLANKA board when Claude session ends
+# Start hook to update PLANKA board when Claude session starts
 BOARD_URL="http://localhost:3030"
 CARD_ID="1696362940220835484"
 USERNAME="claude"
@@ -12,7 +12,7 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
 }
 
-log "=== Stop hook triggered ==="
+log "=== Start hook triggered ==="
 
 # Login
 LOGIN_RESPONSE=$(curl -s -X POST "$BOARD_URL/api/access-tokens" \
@@ -28,22 +28,22 @@ fi
 
 log "Logged in successfully"
 
-# Stop stopwatch on the card
-curl -s -X PATCH "$BOARD_URL/api/cards/$CARD_ID" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d '{"stopwatch":null}' >> "$LOG_FILE" 2>&1
-
-# Add comment that session ended
+# Add comment that session started
 curl -s -X POST "$BOARD_URL/api/cards/$CARD_ID/comments" \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "{\"text\":\"🔴 Claude Code session ended at $(date '+%Y-%m-%d %H:%M:%S')\"}" >> "$LOG_FILE" 2>&1
+    -d "{\"text\":\"🟢 Claude Code session started at $(date '+%Y-%m-%d %H:%M:%S')\"}" >> "$LOG_FILE" 2>&1
 
-log "Stopped stopwatch and added comment"
+# Start stopwatch on the card
+curl -s -X PATCH "$BOARD_URL/api/cards/$CARD_ID" \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"stopwatch\":{\"startedAt\":\"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)\",\"total\":0}}" >> "$LOG_FILE" 2>&1
+
+log "Started stopwatch and added comment"
 
 # Logout
 curl -s -X DELETE "$BOARD_URL/api/access-tokens/me" \
     -H "Authorization: Bearer $ACCESS_TOKEN" >> "$LOG_FILE" 2>&1
 
-log "=== Stop hook completed ==="
+log "=== Start hook completed ==="
