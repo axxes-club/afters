@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,7 +16,7 @@ interface OrganizerProfile {
   stripePayoutsEnabled: boolean
 }
 
-export default function PayoutsPage() {
+function PayoutsContent() {
   const searchParams = useSearchParams()
   const [profile, setProfile] = useState<OrganizerProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -70,23 +70,18 @@ export default function PayoutsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Payouts</h1>
-        <Card>
-          <CardContent className="py-8">
-            <p className="text-center text-muted-foreground">Loading...</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-center text-muted-foreground">Loading...</p>
+        </CardContent>
+      </Card>
     )
   }
 
   const isFullySetup = profile?.stripeChargesEnabled && profile?.stripePayoutsEnabled
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Payouts</h1>
-
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Stripe Connect</CardTitle>
@@ -169,6 +164,23 @@ export default function PayoutsPage() {
           </ul>
         </CardContent>
       </Card>
+    </>
+  )
+}
+
+export default function PayoutsPage() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Payouts</h1>
+      <Suspense fallback={
+        <Card>
+          <CardContent className="py-8">
+            <p className="text-center text-muted-foreground">Loading...</p>
+          </CardContent>
+        </Card>
+      }>
+        <PayoutsContent />
+      </Suspense>
     </div>
   )
 }

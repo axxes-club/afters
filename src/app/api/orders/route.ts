@@ -34,13 +34,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Event not found" }, { status: 404 })
     }
 
+    type TierType = typeof event.ticketTiers[number]
+
     // Validate items and calculate totals
     let subtotal = 0
     let ticketCount = 0
     const orderItems: { ticketTierId: string; quantity: number; unitPrice: number }[] = []
 
     for (const item of items) {
-      const tier = event.ticketTiers.find((t) => t.id === item.ticketTierId)
+      const tier = event.ticketTiers.find((t: TierType) => t.id === item.ticketTierId)
       if (!tier) {
         return NextResponse.json(
           { message: `Ticket tier ${item.ticketTierId} not found` },

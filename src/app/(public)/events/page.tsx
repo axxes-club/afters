@@ -48,6 +48,8 @@ export default async function EventsPage({
     orderBy: { startsAt: "asc" },
   })
 
+  type EventType = typeof events[number]
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -82,7 +84,7 @@ export default async function EventsPage({
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => {
+            {events.map((event: EventType) => {
               const lowestPrice = event.ticketTiers[0]?.price || 0
 
               return (

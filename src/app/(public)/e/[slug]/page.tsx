@@ -45,13 +45,15 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     notFound()
   }
 
+  type TierType = typeof event.ticketTiers[number]
+
   const lowestPrice = event.ticketTiers.reduce(
-    (min, tier) => (tier.price < min ? tier.price : min),
+    (min: number, tier: TierType) => (tier.price < min ? tier.price : min),
     event.ticketTiers[0]?.price || 0
   )
 
   const totalAvailable = event.ticketTiers.reduce(
-    (sum, tier) => sum + (tier.quantity - tier.quantitySold),
+    (sum: number, tier: TierType) => sum + (tier.quantity - tier.quantitySold),
     0
   )
 
@@ -135,7 +137,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {event.ticketTiers.map((tier) => {
+                {event.ticketTiers.map((tier: TierType) => {
                   const available = tier.quantity - tier.quantitySold
                   const soldOut = available <= 0
 

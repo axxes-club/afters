@@ -30,6 +30,8 @@ export default async function HomePage() {
     take: 6,
   })
 
+  type EventType = typeof events[number]
+
   const marqueeText = "AFTERS • AFTER PARTIES • NIGHTLIFE • UNDERGROUND • EXCLUSIVE EVENTS • "
 
   return (
@@ -146,7 +148,7 @@ export default async function HomePage() {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {events.map((event) => {
+              {events.map((event: EventType) => {
                 const lowestPrice = event.ticketTiers[0]?.price || 0
 
                 return (
