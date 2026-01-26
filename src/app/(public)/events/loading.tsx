@@ -7,7 +7,7 @@ export default function EventsLoading() {
     <div className="min-h-screen">
       <Header />
 
-      <main className="container mx-auto px-4 pb-8" style={{ marginTop: 60 }}>
+      <main className="container mx-auto px-4 pb-8 pt-24">
         <h1 className="text-3xl font-bold mb-6">Discover Events</h1>
 
         {/* Search skeleton */}
