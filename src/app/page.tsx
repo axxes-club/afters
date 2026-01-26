@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, ArrowRight, Sparkles } from "lucide-react"
 
+// Ensure this page is not cached
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function HomePage() {
   // Get upcoming events
   const events = await prisma.event.findMany({
@@ -271,6 +275,18 @@ export default async function HomePage() {
               <Link href="/dashboard" className="hover:text-[#ff1493] transition-colors">Host</Link>
               <span>&copy; {new Date().getFullYear()}</span>
             </div>
+          </div>
+          <div className="mt-8 text-center text-sm text-white/30">
+            from{" "}
+            <a 
+              href="https://crativo.xyz" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#ff1493] hover:text-[#ff69b4] transition-colors"
+            >
+              jose
+            </a>
+            {" "}with love
           </div>
         </div>
       </footer>
