@@ -189,7 +189,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 pt-24 pb-8">
           <p className="text-center">Loading...</p>
         </main>
       </div>
@@ -200,7 +200,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 pt-24 pb-8">
           <p className="text-center">Event not found</p>
         </main>
       </div>
@@ -214,7 +214,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
+      <main className="container mx-auto px-4 pt-24 pb-8 max-w-2xl">
         <div className="mb-6">
           <Link href={`/e/${slug}`} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />

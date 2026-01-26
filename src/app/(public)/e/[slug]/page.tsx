@@ -52,7 +52,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pt-24 pb-8">
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Event Info */}
           <div className="lg:col-span-2 space-y-6">
