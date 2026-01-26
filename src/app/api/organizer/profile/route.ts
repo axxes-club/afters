@@ -129,3 +129,84 @@ export async function GET() {
     )
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    const existingProfile = await prisma.organizerProfile.findUnique({
+      where: { userId },
+    })
+
+    if (!existingProfile) {
+      return NextResponse.json({ message: "Profile not found" }, { status: 404 })
+    }
+
+    const body = await req.json()
+    const { displayName, bio, logoUrl, coverUrl, artistType, genres, instagramUrl, twitterUrl, soundcloudUrl, youtubeUrl, spotifyUrl, websiteUrl } = body
+
+    // If displayName provided, must be non-empty
+    if (displayName !== undefined && !displayName.trim()) {
+      return NextResponse.json(
+        { message: "Display name cannot be empty" },
+        { status: 400 }
+      )
+    }
+
+    const profile = await prisma.organizerProfile.update({
+      where: { userId },
+      data: {
+        ...(displayName !== undefined && { displayName: displayName.trim() }),
+        ...(bio !== undefined && { bio: bio || null }),
+        ...(logoUrl !== undefined && { logoUrl: logoUrl || null }),
+        ...(coverUrl !== undefined && { coverUrl: coverUrl || null }),
+        ...(artistType !== undefined && { artistType: artistType || null }),
+        ...(genres !== undefined && { genres: genres || null }),
+        ...(instagramUrl !== undefined && { instagramUrl: instagramUrl || null }),
+        ...(twitterUrl !== undefined && { twitterUrl: twitterUrl || null }),
+        ...(soundcloudUrl !== undefined && { soundcloudUrl: soundcloudUrl || null }),
+        ...(youtubeUrl !== undefined && { youtubeUrl: youtubeUrl || null }),
+        ...(spotifyUrl !== undefined && { spotifyUrl: spotifyUrl || null }),
+        ...(websiteUrl !== undefined && { websiteUrl: websiteUrl || null }),
+      },
+    })
+
+    return NextResponse.json(profile)
+  } catch (error) {
+    console.error("Error updating organizer profile:", error)
+    return NextResponse.json(
+      { message: "Failed to update profile" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE() {
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Delete organizer profile (cascades to events due to schema)
+    await prisma.organizerProfile.delete({
+      where: { userId },
+    })
+
+    // Note: The actual Clerk user account should be deleted separately
+    // This just removes the organizer profile from our database
+
+    return NextResponse.json({ message: "Profile deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting organizer profile:", error)
+    return NextResponse.json(
+      { message: "Failed to delete profile" },
+      { status: 500 }
+    )
+  }
+}
