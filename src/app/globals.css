@@ -146,7 +146,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased pb-20;
   }
 }
 
@@ -172,6 +172,16 @@
 
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Music Pulse Animation */
+@keyframes music-pulse {
+  0%, 100% { height: 20%; }
+  50% { height: 100%; }
+}
+
+.animate-music-pulse {
+  animation: music-pulse 0.8s ease-in-out infinite;
 }
 
 /* Glow effects */
