@@ -44,6 +44,7 @@
         "npm:lucide-react@0.563",
         "npm:next-themes@~0.4.6",
         "npm:next@16.1.4",
+        "npm:passkit-generator@^3.5.7",
         "npm:pg@^8.17.2",
         "npm:prisma@^7.3.0",
         "npm:qrcode.react@^4.2.0",
