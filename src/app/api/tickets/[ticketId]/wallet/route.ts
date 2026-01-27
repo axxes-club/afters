@@ -170,7 +170,7 @@ export async function GET(
         ],
 
         relevantDate: ticket.event.startsAt.toISOString(),
-      }
+      } as any
     )
 
     // Add icon (required)
