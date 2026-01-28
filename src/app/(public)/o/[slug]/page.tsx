@@ -6,6 +6,9 @@ import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { CalendarDays, MapPin, Instagram, Youtube, Globe, Music2, Twitter } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
+import { auth } from "@clerk/nextjs/server"
+import { FollowButton } from "@/components/FollowButton"
+import { SaveEventButton } from "@/components/SaveEventButton"
 
 // SoundCloud icon component
 function SoundCloudIcon({ className }: { className?: string }) {
@@ -48,6 +51,7 @@ export default async function ArtistProfilePage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const { userId } = await auth()
 
   const profile = await prisma.organizerProfile.findUnique({
     where: { slug },
@@ -68,12 +72,31 @@ export default async function ArtistProfilePage({
         orderBy: { startsAt: "asc" },
         take: 12,
       },
+      _count: {
+        select: { followers: true }
+      }
     },
   })
 
   if (!profile) {
     notFound()
   }
+
+  const isFollowing = userId ? !!(await prisma.follow.findUnique({
+    where: {
+      followerId_followingId: {
+        followerId: userId,
+        followingId: profile.id,
+      },
+    },
+  })) : false
+
+  const savedEventIds = userId 
+    ? (await prisma.savedEvent.findMany({
+        where: { userId },
+        select: { eventId: true }
+      })).map(s => s.eventId)
+    : []
 
   const pastEventsCount = await prisma.event.count({
     where: {
@@ -132,14 +155,22 @@ export default async function ArtistProfilePage({
                 </span>
               )}
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-              {profile.displayName}
-            </h1>
-            {genres.length > 0 && (
-              <p className="text-gray-400 mb-4">
-                {genres.join(" • ")}
-              </p>
-            )}
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
+              <h1 className="text-4xl md:text-5xl font-bold text-white">
+                {profile.displayName}
+              </h1>
+              <FollowButton 
+                organizerId={profile.id} 
+                initialIsFollowing={isFollowing}
+                className="w-fit"
+              />
+            </div>
+            <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
+              {genres.length > 0 && (
+                <span>{genres.join(" • ")}</span>
+              )}
+              <span>{profile._count.followers} followers</span>
+            </div>
             {profile.bio && (
               <p className="text-gray-300 max-w-2xl">{profile.bio}</p>
             )}
@@ -253,10 +284,22 @@ export default async function ArtistProfilePage({
                           fill
                           className="object-cover"
                         />
+                        <div className="absolute top-2 right-2">
+                          <SaveEventButton 
+                            eventId={event.id} 
+                            initialIsSaved={savedEventIds.includes(event.id)}
+                          />
+                        </div>
                       </div>
                     ) : (
-                      <div className="w-full aspect-square bg-gradient-to-br from-[#ff1493]/20 to-[#ff1493]/5 flex items-center justify-center">
+                      <div className="relative w-full aspect-square bg-gradient-to-br from-[#ff1493]/20 to-[#ff1493]/5 flex items-center justify-center">
                         <CalendarDays className="h-16 w-16 text-[#ff1493]/40" />
+                        <div className="absolute top-2 right-2">
+                          <SaveEventButton 
+                            eventId={event.id} 
+                            initialIsSaved={savedEventIds.includes(event.id)}
+                          />
+                        </div>
                       </div>
                     )}
                     <div className="p-4">

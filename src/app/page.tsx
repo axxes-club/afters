@@ -3,12 +3,16 @@ import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, ArrowRight, Sparkles } from "lucide-react"
+import { auth } from "@clerk/nextjs/server"
+import { SaveEventButton } from "@/components/SaveEventButton"
 
 // Ensure this page is not cached
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function HomePage() {
+  const { userId } = await auth()
+  
   // Get upcoming events
   console.log('[HomePage] Fetching events, DATABASE_URL exists:', !!process.env.DATABASE_URL)
   
@@ -20,7 +24,7 @@ export default async function HomePage() {
     venueName: string
     city: string
     flyerUrl: string | null
-    organizer: { displayName: string; slug: string }
+    organizer: { id: string; displayName: string; slug: string }
     ticketTiers: Array<{ price: number }>
   }> = []
   
@@ -36,6 +40,7 @@ export default async function HomePage() {
       include: {
         organizer: {
           select: {
+            id: true,
             displayName: true,
             slug: true,
           },
@@ -53,6 +58,13 @@ export default async function HomePage() {
   } catch (error) {
     console.error('[HomePage] Error fetching events:', error)
   }
+
+  const savedEventIds = userId 
+    ? (await prisma.savedEvent.findMany({
+        where: { userId },
+        select: { eventId: true }
+      })).map(s => s.eventId)
+    : []
 
   type EventType = typeof events[number]
 
@@ -198,9 +210,17 @@ export default async function HomePage() {
                       {/* Gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
-                      {/* Price tag */}
-                      <div className="absolute top-4 right-4 px-3 py-1 bg-[#ff1493] text-black text-sm font-bold">
-                        FROM {formatCents(lowestPrice)}
+                      {/* Action buttons */}
+                      <div className="absolute top-4 right-4 flex flex-col gap-2">
+                        {/* Price tag */}
+                        <div className="px-3 py-1 bg-[#ff1493] text-black text-sm font-bold">
+                          FROM {formatCents(lowestPrice)}
+                        </div>
+                        <SaveEventButton 
+                          eventId={event.id} 
+                          initialIsSaved={savedEventIds.includes(event.id)}
+                          className="self-end"
+                        />
                       </div>
                     </div>
 

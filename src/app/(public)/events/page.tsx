@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { EventFilters } from "@/components/events/EventFilters"
 import { CalendarDays, MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { auth } from "@clerk/nextjs/server"
+import { SaveEventButton } from "@/components/SaveEventButton"
 
 // Ensure dynamic rendering for fresh city filters
 export const dynamic = "force-dynamic"
@@ -102,6 +104,14 @@ export default async function EventsPage({
   // Get total count for pagination
   const totalCount = await prisma.event.count({ where })
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
+
+  const { userId } = await auth()
+  const savedEventIds = userId 
+    ? (await prisma.savedEvent.findMany({
+        where: { userId },
+        select: { eventId: true }
+      })).map(s => s.eventId)
+    : []
 
   // Fetch events with pagination
   const events = await prisma.event.findMany({
@@ -221,10 +231,22 @@ export default async function EventsPage({
                         fill
                         className="object-cover"
                       />
+                      <div className="absolute top-2 right-2">
+                        <SaveEventButton 
+                          eventId={event.id} 
+                          initialIsSaved={savedEventIds.includes(event.id)}
+                        />
+                      </div>
                     </div>
                   ) : (
-                    <div className="w-full aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                       <CalendarDays className="h-12 w-12 text-primary/40" />
+                      <div className="absolute top-2 right-2">
+                        <SaveEventButton 
+                          eventId={event.id} 
+                          initialIsSaved={savedEventIds.includes(event.id)}
+                        />
+                      </div>
                     </div>
                   )}
                   <div className="p-4">

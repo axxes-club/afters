@@ -41,6 +41,18 @@ export function Header() {
               DASHBOARD
             </Link>
             <Link
+              href="/saved-events"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+            >
+              WATCH LIST
+            </Link>
+            <Link
+              href="/following"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+            >
+              FOLLOWING
+            </Link>
+            <Link
               href="/my-tickets"
               className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
             >
@@ -107,6 +119,20 @@ export function Header() {
                     className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
                   >
                     DASHBOARD
+                  </Link>
+                  <Link
+                    href="/saved-events"
+                    onClick={closeMenu}
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
+                  >
+                    WATCH LIST
+                  </Link>
+                  <Link
+                    href="/following"
+                    onClick={closeMenu}
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
+                  >
+                    FOLLOWING
                   </Link>
                   <Link
                     href="/my-tickets"

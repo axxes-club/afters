@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { FlyerUpload } from "@/components/FlyerUpload"
+import { AuthGuard } from "@/components/AuthGuard"
 
 const US_CITIES = [
   "New York",
@@ -26,7 +27,7 @@ const US_CITIES = [
   "San Francisco",
 ]
 
-export default function NewEventPage() {
+function NewEventForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [flyerUrl, setFlyerUrl] = useState<string | null>(null)
@@ -224,5 +225,13 @@ export default function NewEventPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function NewEventPage() {
+  return (
+    <AuthGuard>
+      <NewEventForm />
+    </AuthGuard>
   )
 }

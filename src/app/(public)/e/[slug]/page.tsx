@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { CalendarDays, MapPin, Clock, Users } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
+import { auth } from "@clerk/nextjs/server"
+import { SaveEventButton } from "@/components/SaveEventButton"
 
 // Force dynamic rendering - no caching
 export const dynamic = "force-dynamic"
@@ -91,6 +93,16 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     notFound()
   }
 
+  const { userId } = await auth()
+  const isSaved = userId ? !!(await prisma.savedEvent.findUnique({
+    where: {
+      userId_eventId: {
+        userId,
+        eventId: event.id,
+      },
+    },
+  })) : false
+
   type TierType = typeof event.ticketTiers[number]
 
   const lowestPrice = event.ticketTiers.reduce(
@@ -123,11 +135,19 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               </div>
             )}
 
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Presented by {event.organizer.displayName}
-              </p>
-              <h1 className="text-2xl md:text-4xl font-bold">{event.title}</h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Presented by {event.organizer.displayName}
+                </p>
+                <h1 className="text-2xl md:text-4xl font-bold">{event.title}</h1>
+              </div>
+              <SaveEventButton 
+                eventId={event.id} 
+                initialIsSaved={isSaved} 
+                variant="button"
+                className="w-fit"
+              />
             </div>
 
             <div className="flex flex-wrap gap-4">

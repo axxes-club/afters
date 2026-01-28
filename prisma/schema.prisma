@@ -21,6 +21,8 @@ model User {
   organizerProfile OrganizerProfile?
   orders           Order[]
   tickets          Ticket[]
+  follows          Follow[]
+  savedEvents      SavedEvent[]
 }
 
 // Organizer profile for Stripe Connect
@@ -58,7 +60,8 @@ model OrganizerProfile {
   updatedAt DateTime @updatedAt
 
   // Relations
-  events Event[]
+  events    Event[]
+  followers Follow[]
 }
 
 model Event {
@@ -99,6 +102,7 @@ model Event {
   orders      Order[]
   tickets     Ticket[]
   views       EventView[]
+  savedBy     SavedEvent[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -255,4 +259,29 @@ model EventView {
   
   @@index([eventId, createdAt])
   @@index([eventId])
+}
+
+model Follow {
+  id          String           @id @default(cuid())
+  followerId  String
+  follower    User             @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   OrganizerProfile @relation(fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model SavedEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@index([userId])
 }
