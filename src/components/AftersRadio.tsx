@@ -240,7 +240,7 @@ export function AftersRadio() {
                     <Radio className="h-6 w-6 text-[#ff1493]" />
                   </div>
                 )}
-                {isPlaying && !isMuted && (
+                {isPlaying && (
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <div className="flex items-end gap-[2px] h-4">
                       {[1, 2, 3, 4].map((i) => (
