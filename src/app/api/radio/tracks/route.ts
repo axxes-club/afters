@@ -4,9 +4,12 @@ import { prisma } from "@/lib/prisma"
 // Get the current radio state - synchronized across all clients
 export async function GET() {
   try {
-    // Get all approved tracks
+    // Get all tracks in the queue (approved + has queue position)
     const tracks = await prisma.radioTrack.findMany({
-      where: { status: "APPROVED" },
+      where: { 
+        status: "APPROVED",
+        queuePosition: { not: null }
+      },
       include: {
         artist: {
           select: {
@@ -16,7 +19,7 @@ export async function GET() {
           }
         }
       },
-      orderBy: { approvedAt: "asc" }
+      orderBy: { queuePosition: "asc" }
     })
 
     if (tracks.length === 0) {
@@ -73,6 +76,10 @@ export async function GET() {
       })
     }
 
+    // Determine artist name (from profile or direct field)
+    const artistName = currentTrack.artist?.artistName || currentTrack.artistName || "Unknown Artist"
+    const artistSlug = currentTrack.artist?.slug || "unknown"
+
     return NextResponse.json({
       tracks: tracks.map(t => ({
         id: t.id,
@@ -80,9 +87,9 @@ export async function GET() {
         fileUrl: t.fileUrl,
         duration: t.duration,
         artworkUrl: t.artworkUrl,
-        artistName: t.artist.artistName,
-        artistSlug: t.artist.slug,
-        artistAvatar: t.artist.avatarUrl,
+        artistName: t.artist?.artistName || t.artistName || "Unknown Artist",
+        artistSlug: t.artist?.slug || "unknown",
+        artistAvatar: t.artist?.avatarUrl,
       })),
       currentTrack: {
         id: currentTrack.id,
@@ -90,8 +97,8 @@ export async function GET() {
         fileUrl: currentTrack.fileUrl,
         duration: currentTrack.duration,
         artworkUrl: currentTrack.artworkUrl,
-        artistName: currentTrack.artist.artistName,
-        artistSlug: currentTrack.artist.slug,
+        artistName,
+        artistSlug,
       },
       currentIndex: currentTrackIndex,
       currentPosition, // Position in seconds within the current track

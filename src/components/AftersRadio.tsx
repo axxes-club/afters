@@ -178,13 +178,20 @@ export function AftersRadio() {
             <span className="truncate text-sm font-medium text-white/90">
               {radioState.currentTrack.title}
             </span>
-            <Link 
-              href={`/a/${radioState.currentTrack.artistSlug}`}
-              className="truncate text-xs text-white/50 hover:text-white/70 transition-colors flex items-center gap-1"
-            >
-              <User className="h-3 w-3" />
-              {radioState.currentTrack.artistName}
-            </Link>
+            {radioState.currentTrack.artistSlug !== "unknown" ? (
+              <Link 
+                href={`/a/${radioState.currentTrack.artistSlug}`}
+                className="truncate text-xs text-white/50 hover:text-white/70 transition-colors flex items-center gap-1"
+              >
+                <User className="h-3 w-3" />
+                {radioState.currentTrack.artistName}
+              </Link>
+            ) : (
+              <span className="truncate text-xs text-white/50 flex items-center gap-1">
+                <User className="h-3 w-3" />
+                {radioState.currentTrack.artistName}
+              </span>
+            )}
           </div>
         </div>
 

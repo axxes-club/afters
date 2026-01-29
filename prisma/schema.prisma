@@ -104,26 +104,30 @@ enum RadioTrackStatus {
 }
 
 model RadioTrack {
-  id             String           @id @default(cuid())
-  artistId       String
-  title          String
-  fileUrl        String
-  duration       Int              // Duration in seconds
-  artworkUrl     String?
-  genre          String?
-  bpm            Int?
-  status         RadioTrackStatus @default(PENDING)
+  id              String           @id @default(cuid())
+  artistId        String?
+  title           String
+  artistName      String?          // For admin-uploaded tracks without artist profile
+  fileUrl         String
+  duration        Int              // Duration in seconds
+  artworkUrl      String?
+  genre           String?
+  bpm             Int?
+  status          RadioTrackStatus @default(PENDING)
+  queuePosition   Int?             // Position in the radio queue (null = not in queue)
   rejectionReason String?
-  submittedAt    DateTime         @default(now())
-  approvedAt     DateTime?
-  approvedBy     String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  artist         ArtistProfile    @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  plays          RadioPlay[]
+  submittedAt     DateTime         @default(now())
+  approvedAt      DateTime?
+  approvedBy      String?
+  uploadedBy      String?          // Admin who uploaded the track
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  artist          ArtistProfile?   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  plays           RadioPlay[]
 
   @@index([status])
   @@index([artistId])
+  @@index([queuePosition])
 }
 
 model RadioPlay {
