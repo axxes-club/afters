@@ -37,16 +37,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // External packages for serverless compatibility
-  serverExternalPackages: [
-    "pg",
-    "@prisma/client",
-    ".prisma/client",
-    "@prisma/adapter-pg",
-    "@prisma/adapter-neon",
-    "@prisma/client-runtime-utils",
-    "@prisma/driver-adapter-utils",
-  ],
+  // Moved from experimental.serverComponentsExternalPackages (deprecated in Next.js 16)
+  serverExternalPackages: ["pg"],
 };
 
 export default nextConfig;
