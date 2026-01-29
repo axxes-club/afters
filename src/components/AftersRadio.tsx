@@ -13,6 +13,7 @@ export function AftersRadio() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
+    console.log("AFTERS VERSION 0.0.1")
     async function fetchTracks() {
       try {
         const response = await fetch("/api/radio/tracks")
