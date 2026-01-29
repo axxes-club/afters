@@ -121,6 +121,143 @@ function DroppableList({ id, title, icon: Icon, children, count }: {
   )
 }
 
+// Calculate EST time for a given timestamp
+function formatESTTime(timestamp: number): string {
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    timeZone: 'America/New_York'
+  })
+}
+
+// Timeline component showing when each track plays
+function QueueTimeline({ tracks }: { tracks: RadioTrack[] }) {
+  if (tracks.length === 0) return null
+  
+  // Calculate total duration and start time
+  const totalDuration = tracks.reduce((sum, t) => sum + t.duration, 0)
+  const radioEpoch = new Date("2026-01-01T00:00:00Z").getTime()
+  const now = Date.now()
+  const elapsedSeconds = Math.floor((now - radioEpoch) / 1000)
+  const positionInPlaylist = elapsedSeconds % totalDuration
+  
+  // Find current track and calculate timeline
+  let accumulated = 0
+  let currentTrackIndex = 0
+  let currentPosition = 0
+  
+  for (let i = 0; i < tracks.length; i++) {
+    if (accumulated + tracks[i].duration > positionInPlaylist) {
+      currentTrackIndex = i
+      currentPosition = positionInPlaylist - accumulated
+      break
+    }
+    accumulated += tracks[i].duration
+  }
+  
+  // Build timeline starting from now
+  const timeline: { track: RadioTrack; startTime: number; endTime: number; isPlaying: boolean }[] = []
+  let timeOffset = -currentPosition * 1000 // Start from when current track began
+  
+  for (let i = 0; i < tracks.length; i++) {
+    const trackIndex = (currentTrackIndex + i) % tracks.length
+    const track = tracks[trackIndex]
+    const startTime = now + timeOffset
+    const endTime = startTime + (track.duration * 1000)
+    
+    timeline.push({
+      track,
+      startTime,
+      endTime,
+      isPlaying: i === 0
+    })
+    
+    timeOffset += track.duration * 1000
+  }
+  
+  const formatDuration = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`
+  
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Clock className="h-5 w-5 text-[#ff1493]" />
+          Schedule Timeline (EST)
+          <Badge variant="outline" className="ml-auto">
+            Total: {formatDuration(totalDuration)}
+          </Badge>
+        </CardTitle>
+        <CardDescription>When each track will play (times shown in Eastern Time)</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="relative">
+          {/* Timeline line */}
+          <div className="absolute left-[72px] top-0 bottom-0 w-0.5 bg-border" />
+          
+          <div className="space-y-1">
+            {timeline.map((item, i) => (
+              <div key={`${item.track.id}-${i}`} className="flex items-center gap-3 relative">
+                {/* Time */}
+                <div className="w-[60px] text-right flex-shrink-0">
+                  <span className={`text-xs font-mono ${item.isPlaying ? 'text-[#ff1493] font-bold' : 'text-muted-foreground'}`}>
+                    {formatESTTime(item.startTime)}
+                  </span>
+                </div>
+                
+                {/* Dot on timeline */}
+                <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 z-10 ${
+                  item.isPlaying 
+                    ? 'bg-[#ff1493] border-[#ff1493] animate-pulse' 
+                    : 'bg-background border-border'
+                }`} />
+                
+                {/* Track info */}
+                <div className={`flex-1 flex items-center gap-2 p-2 rounded-lg ${
+                  item.isPlaying ? 'bg-[#ff1493]/10 border border-[#ff1493]/30' : 'hover:bg-muted/50'
+                }`}>
+                  <div className="w-8 h-8 rounded bg-[#ff1493]/10 flex items-center justify-center flex-shrink-0">
+                    {item.track.artworkUrl ? (
+                      <img src={item.track.artworkUrl} alt="" className="w-full h-full object-cover rounded" />
+                    ) : (
+                      <Music className="h-4 w-4 text-[#ff1493]/50" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm truncate ${item.isPlaying ? 'font-semibold text-[#ff1493]' : ''}`}>
+                      {item.track.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {item.track.artistName || item.track.artist?.artistName || 'Unknown'}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {formatDuration(item.track.duration)}
+                  </span>
+                  {item.isPlaying && (
+                    <Badge className="bg-[#ff1493] text-white text-[10px]">NOW</Badge>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Loop indicator */}
+          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-dashed">
+            <div className="w-[60px] text-right">
+              <span className="text-xs text-muted-foreground font-mono">
+                {formatESTTime(now + timeOffset)}
+              </span>
+            </div>
+            <div className="w-3 h-3 rounded-full border-2 border-dashed border-muted-foreground flex-shrink-0" />
+            <span className="text-xs text-muted-foreground italic">↻ Queue loops continuously</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function RadioManagementPage() {
   const [queueTracks, setQueueTracks] = useState<RadioTrack[]>([])
   const [approvedTracks, setApprovedTracks] = useState<RadioTrack[]>([])
@@ -133,6 +270,13 @@ export default function RadioManagementPage() {
   const [uploading, setUploading] = useState(false)
   const [editTrack, setEditTrack] = useState<RadioTrack | null>(null)
   const [editForm, setEditForm] = useState({ title: '', artistName: '', genre: '', bpm: '' })
+  const [currentTime, setCurrentTime] = useState(Date.now())
+  
+  // Update current time every second for timeline refresh
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -309,6 +453,9 @@ export default function RadioManagementPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Visual Timeline */}
+      {queueTracks.length > 0 && <QueueTimeline tracks={queueTracks} key={currentTime} />}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={handleDragEnd}>
         <div className="grid gap-6 lg:grid-cols-2">

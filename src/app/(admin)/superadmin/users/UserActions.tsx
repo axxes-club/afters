@@ -49,8 +49,7 @@ import {
   unbanUser, 
   sendPasswordResetEmail, 
   updateUserMetadata,
-  getUserDetails,
-  impersonateUser
+  getUserDetails
 } from "./actions"
 
 interface UserActionsProps {
@@ -63,9 +62,11 @@ interface UserActionsProps {
 
 export function UserActions({ userId, email, firstName, lastName, username }: UserActionsProps) {
   const [loading, setLoading] = useState(false)
+  const [detailsLoading, setDetailsLoading] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+  const [showGhostDialog, setShowGhostDialog] = useState(false)
   const [userDetails, setUserDetails] = useState<any>(null)
   const [editForm, setEditForm] = useState({
     firstName,
@@ -75,11 +76,17 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
   const [copied, setCopied] = useState(false)
 
   const handleViewDetails = async () => {
-    setLoading(true)
-    const details = await getUserDetails(userId)
-    setUserDetails(details)
     setShowDetailsDialog(true)
-    setLoading(false)
+    setDetailsLoading(true)
+    setUserDetails(null)
+    try {
+      const details = await getUserDetails(userId)
+      setUserDetails(details)
+    } catch (error) {
+      toast.error("Failed to load user details")
+      setShowDetailsDialog(false)
+    }
+    setDetailsLoading(false)
   }
 
   const handleEdit = async () => {
@@ -142,16 +149,8 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
     setLoading(false)
   }
 
-  const handleImpersonate = async () => {
-    setLoading(true)
-    const result = await impersonateUser(userId)
-    if (result.success && result.url) {
-      toast.success("Opening impersonation session...")
-      window.open(result.url, '_blank')
-    } else {
-      toast.error(result.error || "Failed to impersonate user")
-    }
-    setLoading(false)
+  const handleGhost = () => {
+    setShowGhostDialog(true)
   }
 
   const copyUserId = () => {
@@ -188,9 +187,9 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
             <Key className="h-4 w-4 mr-2" />
             Password Reset
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleImpersonate} className="text-purple-600">
+          <DropdownMenuItem onClick={handleGhost} className="text-purple-600">
             <Ghost className="h-4 w-4 mr-2" />
-            Impersonate User
+            Ghost
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleBan} className="text-yellow-600">
@@ -269,7 +268,11 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
               Complete information for {email}
             </DialogDescription>
           </DialogHeader>
-          {userDetails ? (
+          {detailsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : userDetails ? (
             <div className="grid gap-4 py-4 text-sm">
               {/* User ID */}
               <div className="flex items-center gap-2 p-2 bg-muted rounded">
@@ -372,10 +375,51 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
               )}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              Failed to load user details
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Ghost Dialog */}
+      <Dialog open={showGhostDialog} onOpenChange={setShowGhostDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ghost className="h-5 w-5 text-purple-500" />
+              Ghost as User
+            </DialogTitle>
+            <DialogDescription>
+              Sign in as this user to see the app from their perspective
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <p className="text-sm font-medium">User: {email}</p>
+              <p className="text-xs text-muted-foreground">ID: {userId}</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              To ghost as this user, use the Clerk Dashboard impersonation feature:
+            </p>
+            <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
+              <li>Go to Clerk Dashboard → Users</li>
+              <li>Find this user by email or ID</li>
+              <li>Click "Impersonate" in user actions</li>
+            </ol>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGhostDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => window.open(`https://dashboard.clerk.com/apps/app_default/users/${userId}`, '_blank')}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <Ghost className="h-4 w-4 mr-2" />
+              Open in Clerk
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
