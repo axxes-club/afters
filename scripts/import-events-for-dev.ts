@@ -121,7 +121,7 @@ async function importEventsToDevDb() {
 
         console.log(`✅ Imported: ${eventData.title}`);
         importedCount++;
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Failed to import ${eventData.title}:`, error.message);
       }
     }
@@ -131,7 +131,7 @@ async function importEventsToDevDb() {
     console.log(`- Skipped: ${skippedCount} events`);
     console.log(`- Total events in DB now: ${await prisma.event.count({ where: { organizerId: organizer.id } })}`);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error during import:', error);
   } finally {
     await prisma.$disconnect();

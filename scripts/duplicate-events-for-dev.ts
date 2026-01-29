@@ -92,7 +92,7 @@ async function duplicateEvents() {
 
         console.log(`✅ Duplicated: ${eventData.title}`);
         duplicatedCount++;
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Failed to duplicate ${eventData.title}:`, error.message);
       }
     }

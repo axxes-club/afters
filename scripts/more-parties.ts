@@ -99,7 +99,7 @@ async function migrateFlyer(url: string, eventId: string): Promise<string | null
 
     const uploadResult = await utapi.uploadFiles([file]);
     return uploadResult[0]?.data?.ufsUrl || uploadResult[0]?.data?.url || url;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`  ⚠️ Failed to migrate flyer:`, error);
     return url;
   }
@@ -174,7 +174,7 @@ async function main() {
         console.log(`  ✅ Synced to ${db.name}`);
         
         await pool.end();
-      } catch (e) {
+      } catch (e: any) {
         console.error(`  ❌ Failed to sync to ${db.name}:`, e.message);
       }
     }

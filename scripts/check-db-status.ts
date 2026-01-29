@@ -13,7 +13,7 @@ const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('Checking database status...')
-  console.log('URL:', connectionString.replace(/:[^:@]*@/, ':****@')) // Log masked URL
+  console.log('URL:', connectionString!.replace(/:[^:@]*@/, ':****@')) // Log masked URL
 
   try {
     const eventCount = await prisma.event.count()

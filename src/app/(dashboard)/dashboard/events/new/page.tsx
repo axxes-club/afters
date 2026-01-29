@@ -211,7 +211,7 @@ function NewEventForm() {
 
             <div className="space-y-2">
               <Label htmlFor="ageRestriction">Age Restriction</Label>
-              <Select name="ageRestriction">
+              <Select name="ageRestriction" defaultValue="">
                 <SelectTrigger>
                   <SelectValue placeholder="All ages" />
                 </SelectTrigger>

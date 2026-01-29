@@ -1,0 +1,113 @@
+{
+  "orgs": [
+    {
+      "id": "cmkyoqg8g0000wv4ud8elrpiv",
+      "userId": "user_seed_123",
+      "displayName": "Afters Curated",
+      "slug": "afters-curated",
+      "bio": "The best events in NYC, curated by Afters.",
+      "logoUrl": "https://api.dice.fm/venues/62/34/06/17/30/16/91/98/50/22/02/06/61/13/44/22/06/06/00/01/00/00/00/01/logo.jpg",
+      "stripeAccountId": null,
+      "stripeOnboardingComplete": false,
+      "stripeChargesEnabled": false,
+      "stripePayoutsEnabled": false,
+      "createdAt": "2026-01-29T04:57:31.696Z",
+      "updatedAt": "2026-01-29T04:57:31.696Z",
+      "artistType": "Promoter",
+      "coverUrl": null,
+      "genres": null,
+      "instagramUrl": null,
+      "soundcloudUrl": null,
+      "spotifyUrl": null,
+      "twitterUrl": null,
+      "websiteUrl": null,
+      "youtubeUrl": null
+    },
+    {
+      "id": "cmkyosu2w000009jon1pmve88",
+      "userId": "user_38mrqnxm4e6AJkSYD6Wr5BVRwhS",
+      "displayName": "Jose",
+      "slug": "jose",
+      "bio": null,
+      "logoUrl": null,
+      "stripeAccountId": "acct_1SuidnPjP266tTsm",
+      "stripeOnboardingComplete": false,
+      "stripeChargesEnabled": false,
+      "stripePayoutsEnabled": false,
+      "createdAt": "2026-01-29T04:59:22.951Z",
+      "updatedAt": "2026-01-29T05:03:29.473Z",
+      "artistType": null,
+      "coverUrl": null,
+      "genres": null,
+      "instagramUrl": null,
+      "soundcloudUrl": null,
+      "spotifyUrl": null,
+      "twitterUrl": null,
+      "websiteUrl": null,
+      "youtubeUrl": null
+    }
+  ],
+  "eventCount": 136,
+  "sampleEvents": [
+    {
+      "title": "Danny L Harle",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Steen + Transmute",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Fox Stevenson",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Machinedrum",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "LAERZ",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Signal x Infra: Dustin Zahn",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Platonic Romance Tour: DRAMA",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Body Hack",
+      "city": "Queens",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Turbz",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    },
+    {
+      "title": "Techno Thursdays: Lourdes",
+      "city": "Brooklyn",
+      "orgId": "cmkyoqg8g0000wv4ud8elrpiv"
+    }
+  ],
+  "users": [
+    {
+      "id": "user_seed_123",
+      "email": "seed@afters.xxx"
+    },
+    {
+      "id": "user_38mrqnxm4e6AJkSYD6Wr5BVRwhS",
+      "email": "jose.viscasillas@gmail.com"
+    }
+  ]
+}
