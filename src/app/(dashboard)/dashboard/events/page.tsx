@@ -1,8 +1,8 @@
-import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { prisma } from "@/lib/prisma"
+import { getEffectiveUserId } from "@/lib/auth-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -16,7 +16,7 @@ import {
 import { formatCents } from "@/lib/stripe"
 
 export default async function DashboardEventsPage() {
-  const { userId } = await auth()
+  const userId = await getEffectiveUserId()
 
   if (!userId) {
     redirect("/sign-in")

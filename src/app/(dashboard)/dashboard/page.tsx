@@ -1,13 +1,13 @@
-import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { getEffectiveUserId } from "@/lib/auth-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarDays, Plus, Ticket, DollarSign } from "lucide-react"
 
 export default async function DashboardPage() {
-  const { userId } = await auth()
+  const userId = await getEffectiveUserId()
 
   if (!userId) {
     redirect("/sign-in")

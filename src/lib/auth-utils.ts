@@ -33,6 +33,16 @@ export async function getRealAdminId(): Promise<string | null> {
   }
 }
 
+// Get the effective user ID (ghost user if ghosting, real user otherwise)
+export async function getEffectiveUserId(): Promise<string | null> {
+  const { userId } = await auth()
+  if (!userId) return null
+
+  // Check if ghosting - if so, return the ghost user instead
+  const ghostUserId = await getGhostUserId()
+  return ghostUserId || userId
+}
+
 export async function getSessionUser() {
   const { userId } = await auth()
   if (!userId) return null

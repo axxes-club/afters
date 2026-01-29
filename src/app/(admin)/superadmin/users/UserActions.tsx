@@ -160,7 +160,7 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
       
       if (data.success) {
         toast.success(`Now ghosting as ${data.ghosting.name || data.ghosting.email}`)
-        // Redirect to dashboard to see the app as this user
+        // Redirect to the ghosted user's dashboard
         window.location.href = '/dashboard'
       } else {
         toast.error(data.error || 'Failed to start ghost session')

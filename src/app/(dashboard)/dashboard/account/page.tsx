@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveUserId } from "@/lib/auth-utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default async function AccountPage() {
-  const { userId } = await auth();
+  const userId = await getEffectiveUserId();
 
   if (!userId) {
     redirect("/sign-in");

@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { getEffectiveUserId } from "@/lib/auth-utils"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ import { ArtistProfileForm } from "./ArtistProfileForm"
 import { TrackSubmissionForm } from "./TrackSubmissionForm"
 
 export default async function ArtistPage() {
-  const { userId } = await auth()
+  const userId = await getEffectiveUserId()
 
   if (!userId) {
     redirect("/sign-in")
