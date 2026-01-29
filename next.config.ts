@@ -37,13 +37,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Moved from experimental.serverComponentsExternalPackages (deprecated in Next.js 16)
-  serverExternalPackages: ["pg"],
-  turbopack: {
-    root: ".",
-  },
-  experimental: {
-  },
+  // External packages for serverless compatibility
+  serverExternalPackages: [
+    "pg",
+    "@prisma/client",
+    ".prisma/client",
+    "@prisma/adapter-pg",
+    "@prisma/adapter-neon",
+  ],
 };
 
 export default nextConfig;
