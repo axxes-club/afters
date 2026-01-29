@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { SystemHealth, FeatureType } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -34,10 +33,17 @@ import { Plus, Edit2, Trash2 } from "lucide-react"
 import { upsertStatus, deleteStatus } from "./actions"
 import { toast } from "sonner"
 
+// Define the enums as constants to avoid importing from Prisma client in browser
+const SYSTEM_HEALTH_VALUES = ["OPERATIONAL", "MAINTENANCE", "DEPRECATED", "CONSTRUCTION", "DEPLOYING", "DOWN"] as const;
+const FEATURE_TYPE_VALUES = ["EVENTS", "DASHBOARD", "LOGIN", "REGISTRATION", "TICKETING", "PROFILE", "PAYMENTS", "API"] as const;
+
+type SystemHealth = typeof SYSTEM_HEALTH_VALUES[number];
+type FeatureType = typeof FEATURE_TYPE_VALUES[number];
+
 const formSchema = z.object({
   feature: z.string().min(2, "Feature name must be at least 2 characters"),
-  featureType: z.nativeEnum(FeatureType),
-  status: z.nativeEnum(SystemHealth),
+  featureType: z.enum(FEATURE_TYPE_VALUES),
+  status: z.enum(SYSTEM_HEALTH_VALUES),
   message: z.string().optional(),
 })
 
@@ -138,7 +144,7 @@ export function StatusForm({ initialData }: StatusFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(FeatureType).map((featureType) => (
+                      {FEATURE_TYPE_VALUES.map((featureType) => (
                         <SelectItem key={featureType} value={featureType}>
                           {featureType}
                         </SelectItem>
@@ -162,7 +168,7 @@ export function StatusForm({ initialData }: StatusFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(SystemHealth).map((health) => (
+                      {SYSTEM_HEALTH_VALUES.map((health) => (
                         <SelectItem key={health} value={health}>
                           {health}
                         </SelectItem>

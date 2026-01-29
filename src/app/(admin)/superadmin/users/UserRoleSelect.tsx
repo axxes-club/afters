@@ -1,6 +1,5 @@
 "use client"
 
-import { UserRole } from "@prisma/client"
 import {
   Select,
   SelectContent,
@@ -12,6 +11,10 @@ import { updateUserRole } from "./actions"
 import { toast } from "sonner"
 import { useState } from "react"
 
+// Define the enum as constants to avoid importing from Prisma client in browser
+const USER_ROLE_VALUES = ["USER", "SUPERADMIN", "ORGANIZER", "ARTIST", "PERSONAL"] as const;
+type UserRole = typeof USER_ROLE_VALUES[number];
+
 interface UserRoleSelectProps {
   userId: string
   initialRole: UserRole
@@ -19,11 +22,11 @@ interface UserRoleSelectProps {
 
 // Define role labels for better display
 const ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.USER]: "Personal",
-  [UserRole.SUPERADMIN]: "Superadmin",
-  [UserRole.ORGANIZER]: "Organizer",
-  [UserRole.ARTIST]: "Artist",
-  [UserRole.PERSONAL]: "Personal"
+  "USER": "Personal",
+  "SUPERADMIN": "Superadmin",
+  "ORGANIZER": "Organizer",
+  "ARTIST": "Artist",
+  "PERSONAL": "Personal"
 };
 
 export function UserRoleSelect({ userId, initialRole }: UserRoleSelectProps) {
@@ -56,7 +59,7 @@ export function UserRoleSelect({ userId, initialRole }: UserRoleSelectProps) {
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {Object.values(UserRole).map((r) => (
+        {USER_ROLE_VALUES.map((r) => (
           <SelectItem key={r} value={r} className="text-xs">
             {ROLE_LABELS[r] || r}
           </SelectItem>
