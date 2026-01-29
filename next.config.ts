@@ -44,6 +44,8 @@ const nextConfig: NextConfig = {
     ".prisma/client",
     "@prisma/adapter-pg",
     "@prisma/adapter-neon",
+    "@prisma/client-runtime-utils",
+    "@prisma/driver-adapter-utils",
   ],
 };
 
