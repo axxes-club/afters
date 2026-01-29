@@ -37,10 +37,18 @@ interface RadioState {
   timeline: TimelineTrack[]
 }
 
+// Storage keys for persistence
+const STORAGE_KEY_MUTED = 'afters-radio-muted'
+
 export function AftersRadio() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [radioState, setRadioState] = useState<RadioState | null>(null)
-  const [isMuted, setIsMuted] = useState(true) // Start muted by default
+  // Initialize muted state from localStorage, default to true
+  const [isMuted, setIsMuted] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const stored = localStorage.getItem(STORAGE_KEY_MUTED)
+    return stored === null ? true : stored === 'true'
+  })
   const [volume] = useState(0.8)
   const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
@@ -70,7 +78,13 @@ export function AftersRadio() {
     }
   }, [])
 
-  // Auto-start playback (muted) when component loads
+  // Persist muted state to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_MUTED, String(isMuted))
+  }, [isMuted])
+
+  // Auto-start playback when component loads
+  // If user previously unmuted, continue playing unmuted
   useEffect(() => {
     const startPlayback = async () => {
       if (hasStartedRef.current) return
@@ -80,7 +94,13 @@ export function AftersRadio() {
         audioRef.current.src = state.currentTrack.fileUrl
         audioRef.current.currentTime = state.currentPosition
         audioRef.current.volume = volume
-        audioRef.current.muted = true // Start muted
+        
+        // Check stored mute preference - if user previously unmuted, start unmuted
+        const storedMuted = localStorage.getItem(STORAGE_KEY_MUTED)
+        const shouldBeMuted = storedMuted === null ? true : storedMuted === 'true'
+        audioRef.current.muted = shouldBeMuted
+        setIsMuted(shouldBeMuted)
+        
         audioRef.current.play().catch(console.error)
         setIsPlaying(true)
       }
@@ -189,7 +209,7 @@ export function AftersRadio() {
       <audio ref={audioRef} onEnded={handleTrackEnd} className="hidden" />
       
       {/* Always-open floating player */}
-      <div className="fixed bottom-4 right-4 z-50 w-80">
+      <div className="fixed bottom-4 right-4 z-50 w-80 select-none">
         <div className="bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
           {/* Main Player */}
           <div className="p-4">

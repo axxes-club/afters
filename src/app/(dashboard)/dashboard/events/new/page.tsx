@@ -41,6 +41,7 @@ function NewEventForm() {
 
     const formData = new FormData(e.currentTarget)
 
+    const ageRestriction = formData.get("ageRestriction")
     const data = {
       title: formData.get("title"),
       description: formData.get("description"),
@@ -51,7 +52,7 @@ function NewEventForm() {
       venueAddress: formData.get("venueAddress"),
       city: formData.get("city"),
       state: formData.get("state"),
-      ageRestriction: formData.get("ageRestriction") || null,
+      ageRestriction: ageRestriction === "all" ? null : ageRestriction,
       flyerUrl: flyerUrl,
       ticketingType: formData.get("ticketingType"),
       externalTicketingUrl: formData.get("externalTicketingUrl") || null,
@@ -211,12 +212,12 @@ function NewEventForm() {
 
             <div className="space-y-2">
               <Label htmlFor="ageRestriction">Age Restriction</Label>
-              <Select name="ageRestriction" defaultValue="">
+              <Select name="ageRestriction" defaultValue="all">
                 <SelectTrigger>
                   <SelectValue placeholder="All ages" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Ages</SelectItem>
+                  <SelectItem value="all">All Ages</SelectItem>
                   <SelectItem value="18">18+</SelectItem>
                   <SelectItem value="21">21+</SelectItem>
                 </SelectContent>
