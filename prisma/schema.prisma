@@ -445,3 +445,36 @@ model Translation {
   @@index([locale])
   @@index([namespace])
 }
+
+// Verification request for artists/organizations
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model VerificationRequest {
+  id              String             @id @default(cuid())
+  artistProfileId String?
+  organizationId  String?
+  userId          String
+  status          VerificationStatus @default(PENDING)
+  
+  // Verification evidence
+  realName        String?            // Legal name
+  socialProof     String?            // Links to verified social accounts
+  pressLinks      String?            // Links to press coverage
+  additionalInfo  String?            @db.Text
+  
+  // Review
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([status])
+  @@index([artistProfileId])
+  @@index([userId])
+}

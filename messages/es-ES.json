@@ -319,5 +319,29 @@
     "translationsCount": "{count} traducciones",
     "syncSuccess": "Traducciones sincronizadas correctamente",
     "syncError": "Error al sincronizar traducciones"
+  },
+  "verification": {
+    "title": "Verificación",
+    "getVerified": "Verificarse",
+    "requestVerification": "Solicitar Verificación",
+    "verifiedArtist": "Artista Verificado",
+    "verificationPending": "Verificación Pendiente",
+    "verificationDeclined": "Verificación Rechazada",
+    "submitRequest": "Enviar Solicitud",
+    "submitNewRequest": "Enviar Nueva Solicitud",
+    "underReview": "En Revisión",
+    "reviewUsuallyTakes": "Esto suele tardar 1-3 días laborables",
+    "legalName": "Nombre Legal",
+    "legalNameHint": "Esto nos ayuda a verificar tu identidad. No se mostrará públicamente.",
+    "socialProof": "Cuentas Sociales Verificadas",
+    "socialProofHint": "Incluye enlaces a tus cuentas oficiales de artista con seguidores significativos.",
+    "pressLinks": "Prensa y Cobertura Mediática",
+    "pressLinksOptional": "Prensa y Cobertura Mediática (Opcional)",
+    "additionalInfo": "Información Adicional",
+    "verificationBenefits": {
+      "badge": "Muestra una insignia de verificado en tu perfil",
+      "trust": "Genera confianza con fans y organizadores de eventos",
+      "priority": "Posición prioritaria en resultados de búsqueda"
+    }
   }
 }

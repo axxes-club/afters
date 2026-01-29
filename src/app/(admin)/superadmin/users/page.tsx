@@ -58,102 +58,152 @@ export default async function UserManagement({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">Manage users, roles, and permissions.</p>
-        </div>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">User Management</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Manage users, roles, and permissions.</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{roleStats.total}</div>
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{roleStats.total}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Superadmins</CardTitle>
-            <Shield className="h-4 w-4 text-red-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Admins</CardTitle>
+            <Shield className="h-4 w-4 text-red-500 hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{roleStats.SUPERADMIN}</div>
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{roleStats.SUPERADMIN}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Organizers</CardTitle>
-            <Building2 className="h-4 w-4 text-blue-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Organizers</CardTitle>
+            <Building2 className="h-4 w-4 text-blue-500 hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{roleStats.ORGANIZER}</div>
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{roleStats.ORGANIZER}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Artists</CardTitle>
-            <Music className="h-4 w-4 text-[#ff1493]" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Artists</CardTitle>
+            <Music className="h-4 w-4 text-[#ff1493] hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{roleStats.ARTIST}</div>
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{roleStats.ARTIST}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Regular Users</CardTitle>
-            <UserCircle className="h-4 w-4 text-muted-foreground" />
+        <Card className="col-span-2 sm:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Users</CardTitle>
+            <UserCircle className="h-4 w-4 text-muted-foreground hidden sm:block" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{roleStats.USER}</div>
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{roleStats.USER}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <form className="flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <form className="flex-1">
           <Input 
             name="search" 
-            placeholder="Search by name, email, or username..." 
+            placeholder="Search users..." 
             defaultValue={search}
+            className="w-full"
           />
         </form>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <a 
             href="/superadmin/users" 
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${!roleFilter ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+            className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${!roleFilter ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
           >
             All
           </a>
           <a 
             href="/superadmin/users?role=SUPERADMIN" 
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${roleFilter === 'SUPERADMIN' ? 'bg-red-500 text-white' : 'bg-muted hover:bg-muted/80'}`}
+            className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${roleFilter === 'SUPERADMIN' ? 'bg-red-500 text-white' : 'bg-muted hover:bg-muted/80'}`}
           >
-            Superadmins
+            Admins
           </a>
           <a 
             href="/superadmin/users?role=ORGANIZER" 
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${roleFilter === 'ORGANIZER' ? 'bg-blue-500 text-white' : 'bg-muted hover:bg-muted/80'}`}
+            className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${roleFilter === 'ORGANIZER' ? 'bg-blue-500 text-white' : 'bg-muted hover:bg-muted/80'}`}
           >
-            Organizers
+            Orgs
           </a>
           <a 
             href="/superadmin/users?role=ARTIST" 
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${roleFilter === 'ARTIST' ? 'bg-[#ff1493] text-white' : 'bg-muted hover:bg-muted/80'}`}
+            className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${roleFilter === 'ARTIST' ? 'bg-[#ff1493] text-white' : 'bg-muted hover:bg-muted/80'}`}
           >
             Artists
           </a>
         </div>
       </div>
 
-      {/* Users Table */}
-      <Card>
+      {/* Users List - Mobile Cards / Desktop Table */}
+      {/* Mobile View */}
+      <div className="space-y-3 lg:hidden">
+        {users.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center text-muted-foreground">
+              No users found
+            </CardContent>
+          </Card>
+        ) : (
+          users.map((user) => (
+            <Card key={user.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Avatar className="h-10 w-10 shrink-0">
+                      <AvatarImage src={user.imageUrl || ""} />
+                      <AvatarFallback>{user.firstName?.[0] || user.email[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">
+                        {user.firstName} {user.lastName}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        <Badge variant="outline" className="text-[10px]">
+                          {user.role}
+                        </Badge>
+                        {user.artistProfile && (
+                          <Badge variant="secondary" className="text-[10px] bg-[#ff1493]/10 text-[#ff1493]">
+                            <Music className="h-3 w-3 mr-1" />
+                            Artist
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <UserActions 
+                    userId={user.id} 
+                    email={user.email}
+                    firstName={user.firstName || ""}
+                    lastName={user.lastName || ""}
+                    username={user.username || ""}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="hidden lg:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

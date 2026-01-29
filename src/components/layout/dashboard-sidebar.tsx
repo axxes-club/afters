@@ -133,23 +133,23 @@ export function DashboardSidebar({
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border">
-        <div className="flex items-center justify-around h-16 px-2">
-          {items.map((item) => {
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom">
+        <div className="flex items-center justify-around h-16 px-1 overflow-x-auto scrollbar-hide">
+          {items.slice(0, 5).map((item) => {
             const isActive = isNavItemActive(pathname, item)
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs transition-colors min-w-[4rem]",
+                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg text-[10px] transition-colors min-w-[3.5rem]",
                   isActive
                     ? "text-[#ff1493]"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <item.icon className={cn("h-5 w-5", isActive && "text-[#ff1493]")} />
-                <span className="truncate">{item.title}</span>
+                <span className="truncate max-w-[3.5rem]">{item.title.split(" ")[0]}</span>
               </Link>
             )
           })}

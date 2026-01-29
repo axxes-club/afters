@@ -14,6 +14,7 @@ import {
   Receipt,
   Ticket,
   Languages,
+  BadgeCheck,
 } from "lucide-react"
 
 const navItems = [
@@ -52,6 +53,11 @@ const navItems = [
     title: "AFTERS RADIO",
     href: "/superadmin/radio",
     icon: Radio,
+  },
+  {
+    title: "Verification",
+    href: "/superadmin/verification",
+    icon: BadgeCheck,
   },
   {
     title: "Translations",
@@ -105,26 +111,35 @@ export function SuperadminSidebar() {
         </nav>
       </aside>
 
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border">
-        <div className="flex items-center justify-around h-16 px-2 overflow-x-auto">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom">
+        <div className="flex items-center h-16 px-1 overflow-x-auto scrollbar-hide">
           {navItems.map((item) => {
             const isActive = item.exact 
               ? pathname === item.href 
               : pathname.startsWith(item.href)
+
+            // Shorten long titles for mobile
+            const shortTitle = item.title === "AFTERS RADIO" ? "Radio" :
+                              item.title === "Organizations" ? "Orgs" :
+                              item.title === "Translations" ? "i18n" :
+                              item.title === "Roles & Perms" ? "Roles" :
+                              item.title === "System Status" ? "Status" :
+                              item.title === "Verification" ? "Verify" :
+                              item.title
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg text-[10px] transition-colors min-w-[3.5rem]",
+                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg text-[9px] transition-colors min-w-[3rem] shrink-0",
                   isActive
                     ? "text-[#ff1493]"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <item.icon className={cn("h-5 w-5", isActive && "text-[#ff1493]")} />
-                <span className="truncate">{item.title}</span>
+                <span className="truncate">{shortTitle}</span>
               </Link>
             )
           })}
