@@ -7,7 +7,8 @@ function createStripe() {
     return null
   }
   return new Stripe(key, {
-    apiVersion: '2026-01-28.clover',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    apiVersion: '2025-12-18.acacia' as any,
     typescript: true,
   })
 }
