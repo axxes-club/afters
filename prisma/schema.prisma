@@ -7,12 +7,21 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  SUPERADMIN
+  ORGANIZER
+  ARTIST
+  PERSONAL
+}
+
 model User {
   id               String            @id
   email            String            @unique
   firstName        String?
   lastName         String?
   imageUrl         String?
+  role             UserRole          @default(USER)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   follows          Follow[]
@@ -20,6 +29,25 @@ model User {
   organizerProfile OrganizerProfile?
   savedEvents      SavedEvent[]
   tickets          Ticket[]
+}
+
+model SystemStatus {
+  id          String       @id @default(cuid())
+  feature     String       @unique
+  status      SystemHealth @default(OPERATIONAL)
+  message     String?
+  plannedEnd  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum SystemHealth {
+  OPERATIONAL
+  MAINTENANCE
+  DEPRECATED
+  CONSTRUCTION
+  DEPLOYING
+  DOWN
 }
 
 model OrganizerProfile {

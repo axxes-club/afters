@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
-import { Menu, X } from "lucide-react"
+import { Menu, X, ShieldCheck } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -15,6 +15,18 @@ import { Button } from "@/components/ui/button"
 
 export function Header() {
   const [open, setOpen] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/user/role")
+      .then(res => res.json())
+      .then(data => {
+        if (data.role === "SUPERADMIN") {
+          setIsSuperAdmin(true)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const closeMenu = () => setOpen(false)
 
@@ -34,6 +46,15 @@ export function Header() {
             EVENTS
           </Link>
           <SignedIn>
+            {isSuperAdmin && (
+              <Link
+                href="/superadmin"
+                className="text-sm tracking-widest text-[#ff1493] hover:text-[#ff69b4] transition-colors flex items-center gap-1"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                ADMIN
+              </Link>
+            )}
             <Link
               href="/dashboard"
               className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
@@ -59,6 +80,12 @@ export function Header() {
               TICKETS
             </Link>
           </SignedIn>
+          <Link
+            href="/status"
+            className="text-xs tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+          >
+            STATUS
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3 md:gap-4">
@@ -113,6 +140,16 @@ export function Header() {
                 </Link>
                 
                 <SignedIn>
+                  {isSuperAdmin && (
+                    <Link
+                      href="/superadmin"
+                      onClick={closeMenu}
+                      className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest text-[#ff1493] hover:bg-[#ff1493]/10 transition-colors gap-2"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      SUPERADMIN
+                    </Link>
+                  )}
                   <Link
                     href="/dashboard"
                     onClick={closeMenu}
@@ -142,6 +179,14 @@ export function Header() {
                     MY TICKETS
                   </Link>
                 </SignedIn>
+
+                <Link
+                  href="/status"
+                  onClick={closeMenu}
+                  className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-white/5 text-muted-foreground transition-colors"
+                >
+                  SYSTEM STATUS
+                </Link>
 
                 <SignedOut>
                   <div className="border-t border-[#ff1493]/20 mt-4 pt-4 space-y-2">

@@ -8,9 +8,13 @@ import {
   LayoutDashboard,
   Settings,
   CreditCard,
+  ShieldCheck,
+  Users,
+  Music,
+  Building2,
 } from "lucide-react"
 
-const navItems = [
+const baseNavItems = [
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -35,26 +39,83 @@ const navItems = [
   },
 ]
 
-function isNavItemActive(pathname: string, item: typeof navItems[0]) {
+function isNavItemActive(pathname: string, item: typeof baseNavItems[0]) {
   // Exact match
   if (pathname === item.href) return true
-  
+
   // For items marked as exact, don't check startsWith
   if (item.exact) return false
-  
+
   // Check if path starts with this href (for nested routes)
   return pathname.startsWith(item.href + "/")
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({
+  isSuperAdmin,
+  isOrganizer,
+  isArtist,
+  isPersonal
+}: {
+  isSuperAdmin?: boolean
+  isOrganizer?: boolean
+  isArtist?: boolean
+  isPersonal?: boolean
+}) {
   const pathname = usePathname()
+
+  let items = [...baseNavItems]
+
+  // Add role-specific items
+  if (isSuperAdmin) {
+    items = [
+      ...items,
+      {
+        title: "Superadmin",
+        href: "/superadmin",
+        icon: ShieldCheck,
+      }
+    ]
+  }
+
+  if (isOrganizer) {
+    items = [
+      ...items,
+      {
+        title: "Organizer",
+        href: "/dashboard/organizer",
+        icon: Building2,
+      }
+    ]
+  }
+
+  if (isArtist) {
+    items = [
+      ...items,
+      {
+        title: "Artist Profile",
+        href: "/dashboard/artist",
+        icon: Music,
+      }
+    ]
+  }
+
+  if (isPersonal) {
+    items = [
+      ...items,
+      {
+        title: "My Account",
+        href: "/dashboard/account",
+        icon: Users,
+      }
+    ]
+  }
 
   return (
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-64 border-r bg-muted/30 min-h-[calc(100vh-4rem)]">
         <nav className="flex flex-col gap-2 p-4">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive = isNavItemActive(pathname, item)
             return (
               <Link
@@ -78,7 +139,7 @@ export function DashboardSidebar() {
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border">
         <div className="flex items-center justify-around h-16 px-2">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive = isNavItemActive(pathname, item)
             return (
               <Link
