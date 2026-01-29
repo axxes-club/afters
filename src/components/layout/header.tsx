@@ -13,8 +13,10 @@ import {
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
+import { useTranslations } from "next-intl"
 
 export function Header() {
+  const t = useTranslations('nav')
   const [open, setOpen] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
 
@@ -42,9 +44,9 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-8">
           <Link
             href="/events"
-            className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+            className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
           >
-            EVENTS
+            {t('events')}
           </Link>
           <SignedIn>
             {isSuperAdmin && (
@@ -58,52 +60,51 @@ export function Header() {
             )}
             <Link
               href="/dashboard"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              DASHBOARD
+              {t('dashboard')}
             </Link>
             <Link
               href="/saved-events"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              WATCH LIST
+              {t('savedEvents')}
             </Link>
             <Link
               href="/following"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              FOLLOWING
+              {t('following')}
             </Link>
             <Link
               href="/my-tickets"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              TICKETS
+              {t('myTickets')}
             </Link>
           </SignedIn>
-          <Link
-            href="/status"
-            className="text-xs tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-          >
-            STATUS
-          </Link>
           <LanguageSwitcher />
         </nav>
 
         <div className="flex items-center gap-3 md:gap-4">
+          {/* Mobile Language Switcher */}
+          <div className="md:hidden">
+            <LanguageSwitcher />
+          </div>
+          
           <SignedOut>
             {/* Desktop auth buttons */}
             <Link
               href="/sign-in"
-              className="hidden md:block text-sm tracking-widest hover:text-[#ff1493] transition-colors"
+              className="hidden md:block text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              SIGN IN
+              {t('signIn')}
             </Link>
             <Link
               href="/sign-up"
               className="hidden md:block text-sm px-4 py-2 bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors"
             >
-              GET STARTED
+              {t('signUp')}
             </Link>
           </SignedOut>
           <SignedIn>
@@ -136,9 +137,9 @@ export function Header() {
                 <Link
                   href="/events"
                   onClick={closeMenu}
-                  className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
+                  className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                 >
-                  EVENTS
+                  {t('events')}
                 </Link>
                 
                 <SignedIn>
@@ -155,56 +156,48 @@ export function Header() {
                   <Link
                     href="/dashboard"
                     onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                   >
-                    DASHBOARD
+                    {t('dashboard')}
                   </Link>
                   <Link
                     href="/saved-events"
                     onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                   >
-                    WATCH LIST
+                    {t('savedEvents')}
                   </Link>
                   <Link
                     href="/following"
                     onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                   >
-                    FOLLOWING
+                    {t('following')}
                   </Link>
                   <Link
                     href="/my-tickets"
                     onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors"
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                   >
-                    MY TICKETS
+                    {t('myTickets')}
                   </Link>
                 </SignedIn>
-
-                <Link
-                  href="/status"
-                  onClick={closeMenu}
-                  className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-white/5 text-muted-foreground transition-colors"
-                >
-                  SYSTEM STATUS
-                </Link>
 
                 <SignedOut>
                   <div className="border-t border-[#ff1493]/20 mt-4 pt-4 space-y-2">
                     <Link
                       href="/sign-in"
                       onClick={closeMenu}
-                      className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest border border-[#ff1493]/30 hover:bg-[#ff1493]/10 transition-colors"
+                      className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest border border-[#ff1493]/30 hover:bg-[#ff1493]/10 transition-colors uppercase"
                     >
-                      SIGN IN
+                      {t('signIn')}
                     </Link>
                     <Link
                       href="/sign-up"
                       onClick={closeMenu}
-                      className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors"
+                      className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase"
                     >
-                      GET STARTED
+                      {t('signUp')}
                     </Link>
                   </div>
                 </SignedOut>

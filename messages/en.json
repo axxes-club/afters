@@ -23,20 +23,36 @@
     "seeMore": "See More",
     "seeLess": "See Less",
     "showMore": "Show More",
-    "showLess": "Show Less"
+    "showLess": "Show Less",
+    "creating": "Creating...",
+    "saving": "Saving...",
+    "uploading": "Uploading...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info"
   },
   "nav": {
     "home": "Home",
     "events": "Events",
     "myTickets": "My Tickets",
-    "savedEvents": "Saved Events",
+    "savedEvents": "Watch List",
     "following": "Following",
     "dashboard": "Dashboard",
     "settings": "Settings",
     "signIn": "Sign In",
-    "signUp": "Sign Up",
+    "signUp": "Get Started",
     "signOut": "Sign Out",
-    "profile": "Profile"
+    "profile": "Profile",
+    "status": "Status"
+  },
+  "home": {
+    "hero": "The after party starts here",
+    "subtitle": "Find events happening after dark",
+    "exploreEvents": "Explore Events",
+    "featuredEvents": "Featured Events",
+    "upcomingEvents": "Upcoming Events",
+    "allCities": "All Cities"
   },
   "events": {
     "title": "Events",
@@ -60,7 +76,21 @@
     "unsaveEvent": "Unsave Event",
     "shareEvent": "Share Event",
     "interestedCount": "{count} interested",
-    "attendingCount": "{count} attending"
+    "attendingCount": "{count} attending",
+    "eventTitle": "Event Title",
+    "description": "Description",
+    "startDateTime": "Start Date & Time",
+    "endDateTime": "End Date & Time",
+    "timezone": "Timezone",
+    "venueName": "Venue Name",
+    "venueAddress": "Venue Address",
+    "city": "City",
+    "state": "State",
+    "ageRestriction": "Age Restriction",
+    "allAges": "All Ages",
+    "ticketing": "Ticketing",
+    "ticketingPlatform": "Ticketing Platform",
+    "externalTicketingUrl": "External Ticketing URL"
   },
   "tickets": {
     "title": "Tickets",
@@ -76,7 +106,12 @@
     "downloadTicket": "Download Ticket",
     "addToWallet": "Add to Wallet",
     "qrCode": "QR Code",
-    "scanAtDoor": "Scan this code at the door"
+    "scanAtDoor": "Scan this code at the door",
+    "ticketTiers": "Ticket Tiers",
+    "addTicketTier": "Add Ticket Tier",
+    "tierName": "Tier Name",
+    "tierPrice": "Price",
+    "tierQuantity": "Quantity Available"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -88,7 +123,12 @@
     "totalRevenue": "Total Revenue",
     "ticketsSold": "Tickets Sold",
     "upcomingEvents": "Upcoming Events",
-    "recentOrders": "Recent Orders"
+    "recentOrders": "Recent Orders",
+    "noEventsYet": "You haven't created any events yet",
+    "createFirstEvent": "Create your first event",
+    "artistProfile": "Artist Profile",
+    "personalProfile": "Personal Profile",
+    "organizerProfile": "Organizer Profile"
   },
   "settings": {
     "title": "Settings",
@@ -104,7 +144,11 @@
     "dangerZone": "Danger Zone",
     "deleteProfile": "Delete Profile",
     "language": "Language",
-    "selectLanguage": "Select Language"
+    "selectLanguage": "Select Language",
+    "organizer": "Organizer",
+    "artist": "Artist",
+    "personal": "Personal",
+    "saveChanges": "Save Changes"
   },
   "radio": {
     "title": "AFTERS RADIO",
@@ -118,7 +162,9 @@
     "trackSubmitted": "Track submitted for review",
     "pending": "Pending Review",
     "approved": "Approved",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "clickToListen": "Click to listen",
+    "playing": "Playing"
   },
   "profiles": {
     "artist": "Artist Profile",
@@ -129,7 +175,8 @@
     "following": "Following",
     "unfollow": "Unfollow",
     "followers": "{count} followers",
-    "events": "{count} events"
+    "events": "{count} events",
+    "viewProfile": "View Profile"
   },
   "auth": {
     "signIn": "Sign In",

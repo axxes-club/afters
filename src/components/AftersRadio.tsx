@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
-import { Volume2, VolumeX, Radio, ChevronUp, ChevronDown, Clock } from "lucide-react"
+import { Volume2, VolumeX, Radio, ChevronUp, ChevronDown, Clock, GripHorizontal } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 interface RadioTrack {
   id: string
@@ -39,8 +40,10 @@ interface RadioState {
 
 // Storage keys for persistence
 const STORAGE_KEY_MUTED = 'afters-radio-muted'
+const STORAGE_KEY_POSITION = 'afters-radio-position'
 
 export function AftersRadio() {
+  const t = useTranslations('radio')
   const [isPlaying, setIsPlaying] = useState(false)
   const [radioState, setRadioState] = useState<RadioState | null>(null)
   // Initialize muted state from localStorage, default to true
@@ -54,9 +57,97 @@ export function AftersRadio() {
   const [showTimeline, setShowTimeline] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [trackProgress, setTrackProgress] = useState(0)
+  
+  // Drag state
+  const [position, setPosition] = useState(() => {
+    if (typeof window === 'undefined') return { x: 0, y: 0 }
+    const stored = localStorage.getItem(STORAGE_KEY_POSITION)
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch {
+        return { x: 0, y: 0 }
+      }
+    }
+    return { x: 0, y: 0 }
+  })
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStartRef = useRef({ x: 0, y: 0 })
+  const positionStartRef = useRef({ x: 0, y: 0 })
+  const playerRef = useRef<HTMLDivElement>(null)
+  
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const hasStartedRef = useRef(false)
+
+  // Handle drag start
+  const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    
+    dragStartRef.current = { x: clientX, y: clientY }
+    positionStartRef.current = { ...position }
+  }, [position])
+
+  // Handle drag move
+  useEffect(() => {
+    if (!isDragging) return
+
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+      
+      const deltaX = clientX - dragStartRef.current.x
+      const deltaY = clientY - dragStartRef.current.y
+      
+      let newX = positionStartRef.current.x + deltaX
+      let newY = positionStartRef.current.y + deltaY
+      
+      // Get viewport and player dimensions
+      const playerWidth = playerRef.current?.offsetWidth || 320
+      const playerHeight = playerRef.current?.offsetHeight || 200
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      
+      // Constrain to viewport (considering the player is positioned from bottom-right)
+      // x is offset from right edge, y is offset from bottom edge
+      const maxX = viewportWidth - playerWidth - 16 // 16px minimum from left edge
+      const maxY = viewportHeight - playerHeight - 16 // 16px minimum from top edge
+      
+      newX = Math.max(0, Math.min(newX, maxX))
+      newY = Math.max(0, Math.min(newY, maxY))
+      
+      setPosition({ x: newX, y: newY })
+    }
+
+    const handleEnd = () => {
+      setIsDragging(false)
+      // Save position to localStorage
+      localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify(position))
+    }
+
+    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('mouseup', handleEnd)
+    document.addEventListener('touchmove', handleMove, { passive: false })
+    document.addEventListener('touchend', handleEnd)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleEnd)
+      document.removeEventListener('touchmove', handleMove)
+      document.removeEventListener('touchend', handleEnd)
+    }
+  }, [isDragging, position])
+
+  // Save position when it changes
+  useEffect(() => {
+    if (!isDragging && position.x !== 0 || position.y !== 0) {
+      localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify(position))
+    }
+  }, [position, isDragging])
 
   const fetchRadioState = useCallback(async () => {
     try {
@@ -209,16 +300,35 @@ export function AftersRadio() {
       <audio ref={audioRef} onEnded={handleTrackEnd} className="hidden" />
       
       {/* Always-open floating player */}
-      <div className="fixed bottom-4 right-4 z-50 w-80 select-none">
+      <div 
+        ref={playerRef}
+        className={cn(
+          "fixed z-50 w-80 select-none touch-none",
+          isDragging && "cursor-grabbing"
+        )}
+        style={{
+          right: `${16 + position.x}px`,
+          bottom: `${16 + position.y}px`,
+        }}
+      >
         <div className="bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+          {/* Drag Handle */}
+          <div 
+            className="flex items-center justify-center py-1.5 cursor-grab active:cursor-grabbing bg-white/5 hover:bg-white/10 transition-colors"
+            onMouseDown={handleDragStart}
+            onTouchStart={handleDragStart}
+          >
+            <GripHorizontal className="h-4 w-4 text-white/30" />
+          </div>
+          
           {/* Main Player */}
-          <div className="p-4">
+          <div className="p-4 pt-2">
             {/* Header with time */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Radio className="h-4 w-4 text-[#ff1493]" />
-                <span className="text-xs font-bold text-[#ff1493]">AFTERS RADIO</span>
-                <span className="text-[8px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-medium animate-pulse">LIVE</span>
+                <span className="text-xs font-bold text-[#ff1493]">{t('title')}</span>
+                <span className="text-[8px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-medium animate-pulse">{t('live')}</span>
               </div>
               <div className="flex items-center gap-1 text-white/50 text-xs">
                 <Clock className="h-3 w-3" />
@@ -234,6 +344,7 @@ export function AftersRadio() {
                     src={radioState.currentTrack.artworkUrl}
                     alt=""
                     className="w-full h-full object-cover"
+                    draggable={false}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -307,7 +418,7 @@ export function AftersRadio() {
 
               <div className="flex items-center gap-3">
                 <span className="text-[10px] text-white/40">
-                  {isMuted ? "Click to listen" : "Playing"}
+                  {isMuted ? t('nowPlaying') : t('nowPlaying')}
                 </span>
                 <button
                   onClick={() => setShowTimeline(!showTimeline)}
@@ -323,7 +434,7 @@ export function AftersRadio() {
           {showTimeline && radioState.timeline && (
             <div className="border-t border-white/10 max-h-64 overflow-y-auto">
               <div className="p-3 pb-1">
-                <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Schedule</p>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{t('schedule')}</p>
               </div>
               <div className="px-3 pb-3 space-y-1">
                 {radioState.timeline.slice(0, 8).map((track, i) => (
@@ -339,7 +450,7 @@ export function AftersRadio() {
                     </span>
                     <div className="w-6 h-6 rounded bg-white/5 flex-shrink-0 overflow-hidden">
                       {track.artworkUrl ? (
-                        <img src={track.artworkUrl} alt="" className="w-full h-full object-cover" />
+                        <img src={track.artworkUrl} alt="" className="w-full h-full object-cover" draggable={false} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Radio className="h-2 w-2 text-white/30" />

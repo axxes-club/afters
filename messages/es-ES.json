@@ -7,7 +7,7 @@
     "edit": "Editar",
     "submit": "Enviar",
     "search": "Buscar",
-    "back": "Volver",
+    "back": "Atrás",
     "next": "Siguiente",
     "previous": "Anterior",
     "close": "Cerrar",
@@ -23,20 +23,36 @@
     "seeMore": "Ver Más",
     "seeLess": "Ver Menos",
     "showMore": "Mostrar Más",
-    "showLess": "Mostrar Menos"
+    "showLess": "Mostrar Menos",
+    "creating": "Creando...",
+    "saving": "Guardando...",
+    "uploading": "Subiendo...",
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información"
   },
   "nav": {
     "home": "Inicio",
     "events": "Eventos",
     "myTickets": "Mis Entradas",
-    "savedEvents": "Eventos Guardados",
+    "savedEvents": "Lista de Seguimiento",
     "following": "Siguiendo",
     "dashboard": "Panel",
     "settings": "Ajustes",
     "signIn": "Iniciar Sesión",
-    "signUp": "Registrarse",
+    "signUp": "Comenzar",
     "signOut": "Cerrar Sesión",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "status": "Estado"
+  },
+  "home": {
+    "hero": "La fiesta empieza aquí",
+    "subtitle": "Encuentra eventos nocturnos",
+    "exploreEvents": "Explorar Eventos",
+    "featuredEvents": "Eventos Destacados",
+    "upcomingEvents": "Próximos Eventos",
+    "allCities": "Todas las Ciudades"
   },
   "events": {
     "title": "Eventos",
@@ -60,23 +76,42 @@
     "unsaveEvent": "Quitar de Guardados",
     "shareEvent": "Compartir Evento",
     "interestedCount": "{count} interesados",
-    "attendingCount": "{count} asistirán"
+    "attendingCount": "{count} asistiendo",
+    "eventTitle": "Título del Evento",
+    "description": "Descripción",
+    "startDateTime": "Fecha y Hora de Inicio",
+    "endDateTime": "Fecha y Hora de Fin",
+    "timezone": "Zona Horaria",
+    "venueName": "Nombre del Lugar",
+    "venueAddress": "Dirección del Lugar",
+    "city": "Ciudad",
+    "state": "Provincia",
+    "ageRestriction": "Restricción de Edad",
+    "allAges": "Todas las Edades",
+    "ticketing": "Venta de Entradas",
+    "ticketingPlatform": "Plataforma de Entradas",
+    "externalTicketingUrl": "URL de Entradas Externa"
   },
   "tickets": {
     "title": "Entradas",
     "myTickets": "Mis Entradas",
     "noTickets": "Aún no tienes entradas",
-    "browseEvents": "Explora eventos para empezar",
+    "browseEvents": "Explora eventos para comenzar",
     "ticketType": "Tipo de Entrada",
     "quantity": "Cantidad",
     "total": "Total",
-    "checkout": "Finalizar Compra",
+    "checkout": "Pagar",
     "orderConfirmed": "¡Pedido Confirmado!",
     "orderNumber": "Pedido #{number}",
     "downloadTicket": "Descargar Entrada",
-    "addToWallet": "Añadir a Wallet",
+    "addToWallet": "Añadir a Cartera",
     "qrCode": "Código QR",
-    "scanAtDoor": "Escanea este código en la entrada"
+    "scanAtDoor": "Escanea este código en la entrada",
+    "ticketTiers": "Niveles de Entradas",
+    "addTicketTier": "Añadir Nivel",
+    "tierName": "Nombre del Nivel",
+    "tierPrice": "Precio",
+    "tierQuantity": "Cantidad Disponible"
   },
   "dashboard": {
     "title": "Panel",
@@ -88,7 +123,12 @@
     "totalRevenue": "Ingresos Totales",
     "ticketsSold": "Entradas Vendidas",
     "upcomingEvents": "Próximos Eventos",
-    "recentOrders": "Pedidos Recientes"
+    "recentOrders": "Pedidos Recientes",
+    "noEventsYet": "Aún no has creado ningún evento",
+    "createFirstEvent": "Crea tu primer evento",
+    "artistProfile": "Perfil de Artista",
+    "personalProfile": "Perfil Personal",
+    "organizerProfile": "Perfil de Organizador"
   },
   "settings": {
     "title": "Ajustes",
@@ -101,24 +141,30 @@
     "avatarUrl": "URL del Avatar",
     "socialLinks": "Redes Sociales",
     "connectedAccounts": "Cuentas Conectadas",
-    "dangerZone": "Zona Peligrosa",
+    "dangerZone": "Zona de Peligro",
     "deleteProfile": "Eliminar Perfil",
     "language": "Idioma",
-    "selectLanguage": "Seleccionar Idioma"
+    "selectLanguage": "Seleccionar Idioma",
+    "organizer": "Organizador",
+    "artist": "Artista",
+    "personal": "Personal",
+    "saveChanges": "Guardar Cambios"
   },
   "radio": {
     "title": "AFTERS RADIO",
-    "live": "EN DIRECTO",
-    "nowPlaying": "Sonando Ahora",
+    "live": "EN VIVO",
+    "nowPlaying": "Reproduciendo",
     "upNext": "A Continuación",
     "schedule": "Programación",
     "listeners": "{count} oyentes",
     "everyoneHears": "Todos escuchan lo mismo",
-    "submitTrack": "Enviar un Tema",
-    "trackSubmitted": "Tema enviado para revisión",
+    "submitTrack": "Enviar una Pista",
+    "trackSubmitted": "Pista enviada para revisión",
     "pending": "Pendiente de Revisión",
     "approved": "Aprobado",
-    "rejected": "Rechazado"
+    "rejected": "Rechazado",
+    "clickToListen": "Haz clic para escuchar",
+    "playing": "Reproduciendo"
   },
   "profiles": {
     "artist": "Perfil de Artista",
@@ -129,7 +175,8 @@
     "following": "Siguiendo",
     "unfollow": "Dejar de Seguir",
     "followers": "{count} seguidores",
-    "events": "{count} eventos"
+    "events": "{count} eventos",
+    "viewProfile": "Ver Perfil"
   },
   "auth": {
     "signIn": "Iniciar Sesión",
