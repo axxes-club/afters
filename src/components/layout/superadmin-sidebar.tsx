@@ -13,6 +13,7 @@ import {
   Radio,
   Receipt,
   Ticket,
+  Languages,
 } from "lucide-react"
 
 const navItems = [
@@ -51,6 +52,11 @@ const navItems = [
     title: "AFTERS RADIO",
     href: "/superadmin/radio",
     icon: Radio,
+  },
+  {
+    title: "Translations",
+    href: "/superadmin/translations",
+    icon: Languages,
   },
   {
     title: "Roles & Perms",

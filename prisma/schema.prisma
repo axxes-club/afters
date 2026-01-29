@@ -429,3 +429,19 @@ enum TicketStatus {
   CANCELLED
   REFUNDED
 }
+
+// Translation strings for CMS editing
+model Translation {
+  id        String   @id @default(cuid())
+  locale    String   // en, es-ES, es-LA, pt-BR
+  namespace String   // common, nav, events, tickets, etc.
+  key       String   // The translation key
+  value     String   @db.Text // The translated string
+  updatedBy String?  // User ID who last updated
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([locale, namespace, key])
+  @@index([locale])
+  @@index([namespace])
+}

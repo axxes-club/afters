@@ -36,10 +36,10 @@ export function LanguageSwitcher() {
         body: JSON.stringify({ locale }),
       })
       setCurrentLocale(locale)
-      router.refresh()
+      // Hard reload to ensure all server components get new locale
+      window.location.reload()
     } catch (error) {
       console.error('Failed to change locale:', error)
-    } finally {
       setIsLoading(false)
     }
   }
