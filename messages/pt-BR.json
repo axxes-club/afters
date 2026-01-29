@@ -57,6 +57,17 @@
     "profile": "Perfil",
     "status": "Status"
   },
+  "sidebar": {
+    "dashboard": "Painel",
+    "events": "Eventos",
+    "myTickets": "Meus Ingressos",
+    "payouts": "Pagamentos",
+    "settings": "Configurações",
+    "profiles": "Perfis",
+    "organizerProfile": "Perfil do Organizador",
+    "artistProfile": "Perfil do Artista",
+    "personalProfile": "Perfil Pessoal"
+  },
   "home": {
     "hero": "A festa começa aqui",
     "subtitle": "Encontre eventos noturnos",

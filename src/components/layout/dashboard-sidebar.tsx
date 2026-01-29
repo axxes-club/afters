@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -13,32 +14,40 @@ import {
   Building2,
   UserCircle,
   Ticket,
+  LucideIcon,
 } from "lucide-react"
 
-const mainNavItems = [
+interface NavItem {
+  titleKey: string
+  href: string
+  icon: LucideIcon
+  exact?: boolean
+}
+
+const mainNavItems: NavItem[] = [
   {
-    title: "Dashboard",
+    titleKey: "dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
     exact: true,
   },
   {
-    title: "Events",
+    titleKey: "events",
     href: "/dashboard/events",
     icon: CalendarDays,
   },
   {
-    title: "My Tickets",
+    titleKey: "myTickets",
     href: "/my-tickets",
     icon: Ticket,
   },
   {
-    title: "Payouts",
+    titleKey: "payouts",
     href: "/dashboard/settings/payouts",
     icon: CreditCard,
   },
   {
-    title: "Settings",
+    titleKey: "settings",
     href: "/dashboard/settings",
     icon: Settings,
     exact: true,
@@ -68,13 +77,14 @@ export function DashboardSidebar({
   isPersonal?: boolean
 }) {
   const pathname = usePathname()
+  const t = useTranslations('sidebar')
 
   // Build profile items based on user roles
-  const profileItems = []
+  const profileItems: NavItem[] = []
   
   if (isOrganizer) {
     profileItems.push({
-      title: "Organizer Profile",
+      titleKey: "organizerProfile",
       href: "/dashboard/organizer",
       icon: Building2,
     })
@@ -82,7 +92,7 @@ export function DashboardSidebar({
 
   if (isArtist) {
     profileItems.push({
-      title: "Artist Profile",
+      titleKey: "artistProfile",
       href: "/dashboard/artist",
       icon: Music,
     })
@@ -90,7 +100,7 @@ export function DashboardSidebar({
 
   // Always show personal profile option
   profileItems.push({
-    title: "Personal Profile",
+    titleKey: "personalProfile",
     href: "/dashboard/account",
     icon: UserCircle,
   })
@@ -118,7 +128,7 @@ export function DashboardSidebar({
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                {item.title}
+                {t(item.titleKey)}
               </Link>
             )
           })}
@@ -128,7 +138,7 @@ export function DashboardSidebar({
 
           {/* Profile Section Label */}
           <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Profiles
+            {t('profiles')}
           </p>
 
           {/* Profile Items */}
@@ -146,7 +156,7 @@ export function DashboardSidebar({
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                {item.title}
+                {t(item.titleKey)}
               </Link>
             )
           })}
@@ -158,6 +168,7 @@ export function DashboardSidebar({
         <div className="flex items-center justify-around h-16 px-1 overflow-x-auto scrollbar-hide">
           {allItems.slice(0, 5).map((item) => {
             const isActive = isNavItemActive(pathname, item)
+            const title = t(item.titleKey)
             return (
               <Link
                 key={item.href}
@@ -170,7 +181,7 @@ export function DashboardSidebar({
                 )}
               >
                 <item.icon className={cn("h-5 w-5", isActive && "text-[#ff1493]")} />
-                <span className="truncate max-w-[3.5rem]">{item.title.split(" ")[0]}</span>
+                <span className="truncate max-w-[3.5rem]">{title.split(" ")[0]}</span>
               </Link>
             )
           })}

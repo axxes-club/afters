@@ -57,6 +57,17 @@
     "profile": "Profile",
     "status": "Status"
   },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "events": "Events",
+    "myTickets": "My Tickets",
+    "payouts": "Payouts",
+    "settings": "Settings",
+    "profiles": "Profiles",
+    "organizerProfile": "Organizer Profile",
+    "artistProfile": "Artist Profile",
+    "personalProfile": "Personal Profile"
+  },
   "home": {
     "hero": "The after party starts here",
     "subtitle": "Find events happening after dark",

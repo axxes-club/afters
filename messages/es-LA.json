@@ -57,6 +57,17 @@
     "profile": "Perfil",
     "status": "Estado"
   },
+  "sidebar": {
+    "dashboard": "Panel",
+    "events": "Eventos",
+    "myTickets": "Mis Boletos",
+    "payouts": "Pagos",
+    "settings": "Configuración",
+    "profiles": "Perfiles",
+    "organizerProfile": "Perfil de Organizador",
+    "artistProfile": "Perfil de Artista",
+    "personalProfile": "Perfil Personal"
+  },
   "home": {
     "hero": "La fiesta empieza aquí",
     "subtitle": "Encuentra eventos nocturnos",
