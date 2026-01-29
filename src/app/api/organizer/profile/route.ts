@@ -147,7 +147,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json()
-    const { displayName, bio, logoUrl, coverUrl, artistType, genres, instagramUrl, twitterUrl, soundcloudUrl, youtubeUrl, spotifyUrl, websiteUrl } = body
+    const { displayName, slug, bio, logoUrl, coverUrl, artistType, genres, instagramUrl, twitterUrl, soundcloudUrl, youtubeUrl, spotifyUrl, websiteUrl } = body
 
     // If displayName provided, must be non-empty
     if (displayName !== undefined && !displayName.trim()) {
@@ -157,10 +157,33 @@ export async function PATCH(req: Request) {
       )
     }
 
+    // If slug provided, check if valid and not taken
+    if (slug !== undefined) {
+      if (!slug.trim() || !/^[a-z0-9-]+$/.test(slug)) {
+        return NextResponse.json(
+          { message: "Invalid profile URL. Use lowercase letters, numbers, and hyphens only." },
+          { status: 400 }
+        )
+      }
+
+      if (slug !== existingProfile.slug) {
+        const slugTaken = await prisma.organizerProfile.findUnique({
+          where: { slug },
+        })
+        if (slugTaken) {
+          return NextResponse.json(
+            { message: "This profile URL is already taken" },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
     const profile = await prisma.organizerProfile.update({
       where: { userId },
       data: {
         ...(displayName !== undefined && { displayName: displayName.trim() }),
+        ...(slug !== undefined && { slug: slug.trim() }),
         ...(bio !== undefined && { bio: bio || null }),
         ...(logoUrl !== undefined && { logoUrl: logoUrl || null }),
         ...(coverUrl !== undefined && { coverUrl: coverUrl || null }),

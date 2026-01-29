@@ -203,8 +203,33 @@ async function main() {
   let organizer = await prisma.organizerProfile.findFirst()
   
   if (!organizer) {
-    console.log('❌ No organizer profile found. Please create one first.')
-    return
+    console.log('⚠️ No organizer profile found. Creating default seed user and organizer...')
+    
+    // Create default user
+    const user = await prisma.user.upsert({
+      where: { email: "seed@afters.xxx" },
+      update: {},
+      create: {
+        id: "user_seed_123",
+        email: "seed@afters.xxx",
+        firstName: "Seed",
+        lastName: "User",
+      }
+    })
+
+    // Create default organizer
+    organizer = await prisma.organizerProfile.create({
+      data: {
+        userId: user.id,
+        displayName: "Afters Curated",
+        slug: "afters-curated",
+        bio: "The best events in NYC, curated by Afters.",
+        artistType: "Promoter",
+        logoUrl: "https://api.dice.fm/venues/62/34/06/17/30/16/91/98/50/22/02/06/61/13/44/22/06/06/00/01/00/00/00/01/logo.jpg", // Placeholder
+      }
+    })
+    
+    console.log('✅ Created default organizer: Afters Curated')
   }
 
   console.log(`📋 Using organizer: ${organizer.displayName}\n`)

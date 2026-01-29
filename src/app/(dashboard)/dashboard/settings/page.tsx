@@ -66,6 +66,7 @@ export default function SettingsPage() {
 
   // Form state
   const [displayName, setDisplayName] = useState("")
+  const [slug, setSlug] = useState("")
   const [bio, setBio] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
   const [artistType, setArtistType] = useState("")
@@ -88,6 +89,7 @@ export default function SettingsPage() {
         setProfile(data)
         // Populate form fields
         setDisplayName(data.displayName || "")
+        setSlug(data.slug || "")
         setBio(data.bio || "")
         setLogoUrl(data.logoUrl || "")
         setArtistType(data.artistType || "")
@@ -118,6 +120,7 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName,
+          slug,
           bio,
           logoUrl,
           artistType,
@@ -221,17 +224,22 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="profileUrl">Profile URL</Label>
+              <Label htmlFor="slug">Profile URL</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">afters.xxx/o/</span>
                 <Input
-                  id="profileUrl"
-                  value={profile.slug}
-                  disabled
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="yourname"
+                  pattern="^[a-z0-9-]+$"
+                  title="Only lowercase letters, numbers, and hyphens"
                   className="max-w-[200px]"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Profile URL cannot be changed</p>
+              <p className="text-xs text-muted-foreground">
+                Only lowercase letters, numbers, and hyphens are allowed.
+              </p>
             </div>
 
             <div className="space-y-2">
