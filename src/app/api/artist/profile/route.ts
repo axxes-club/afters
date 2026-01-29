@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 // Get current user's artist profile
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const profile = await prisma.artistProfile.findUnique({
@@ -15,39 +15,42 @@ export async function GET() {
       include: {
         radioTracks: {
           include: {
-            _count: { select: { plays: true } }
+            _count: { select: { plays: true } },
           },
-          orderBy: { createdAt: "desc" }
-        }
-      }
-    })
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
 
-    return NextResponse.json({ profile })
+    return NextResponse.json({ profile });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch profile" },
+      { status: 500 },
+    );
   }
 }
 
 // Create or update artist profile
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json()
-    const { 
-      artistName, 
-      slug, 
-      bio, 
-      avatarUrl, 
-      coverUrl, 
+    const body = await request.json();
+    const {
+      artistName,
+      slug,
+      bio,
+      avatarUrl,
+      coverUrl,
       genres,
       tagline,
       location,
       // Social links
-      spotifyUrl, 
+      spotifyUrl,
       soundcloudUrl,
       instagramUrl,
       twitterUrl,
@@ -69,20 +72,26 @@ export async function POST(request: NextRequest) {
       label,
       management,
       agency,
-    } = body
+    } = body;
 
     if (!artistName || !slug) {
-      return NextResponse.json({ 
-        error: "Artist name and slug are required" 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Artist name and slug are required",
+        },
+        { status: 400 },
+      );
     }
 
     // Check slug uniqueness
-    const existing = await prisma.artistProfile.findUnique({ where: { slug } })
+    const existing = await prisma.artistProfile.findUnique({ where: { slug } });
     if (existing && existing.userId !== userId) {
-      return NextResponse.json({ 
-        error: "This slug is already taken" 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "This slug is already taken",
+        },
+        { status: 400 },
+      );
     }
 
     const profileData = {
@@ -117,7 +126,7 @@ export async function POST(request: NextRequest) {
       label: label || null,
       management: management || null,
       agency: agency || null,
-    }
+    };
 
     const profile = await prisma.artistProfile.upsert({
       where: { userId },
@@ -125,18 +134,81 @@ export async function POST(request: NextRequest) {
       create: {
         userId,
         ...profileData,
-      }
-    })
+      },
+    });
 
     // Update user role to ARTIST if not already
     await prisma.user.update({
       where: { id: userId },
-      data: { role: "ARTIST" }
-    })
+      data: { role: "ARTIST" },
+    });
 
-    return NextResponse.json({ success: true, profile })
+    return NextResponse.json({ success: true, profile });
   } catch (error) {
-    console.error("Error creating artist profile:", error)
-    return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
+    console.error("Error creating artist profile:", error);
+    return NextResponse.json(
+      { error: "Failed to create profile" },
+      { status: 500 },
+    );
+  }
+}
+
+// Delete artist profile
+export async function DELETE() {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user has artist profile
+    const profile = await prisma.artistProfile.findUnique({
+      where: { userId },
+      include: {
+        radioTracks: {
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: "Artist profile not found" },
+        { status: 404 },
+      );
+    }
+
+    // Check if they have any radio tracks (prevent deletion if they do)
+    if (profile.radioTracks.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Cannot delete profile with existing radio tracks. Please delete your tracks first.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Delete the artist profile (this will cascade delete related data)
+    await prisma.artistProfile.delete({
+      where: { userId },
+    });
+
+    // Reset user role to USER
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: "USER" },
+    });
+
+    return NextResponse.json(
+      { message: "Profile deleted successfully" },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("Error deleting artist profile:", error);
+    return NextResponse.json(
+      { error: "Failed to delete profile" },
+      { status: 500 },
+    );
   }
 }

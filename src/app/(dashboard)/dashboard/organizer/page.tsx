@@ -56,7 +56,7 @@ export default async function OrganizerPage() {
   })
 
   if (!profile) {
-    redirect("/dashboard/onboarding")
+    redirect("/onboarding")
   }
 
   // Calculate stats

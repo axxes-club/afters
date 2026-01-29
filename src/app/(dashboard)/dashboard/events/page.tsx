@@ -15,7 +15,7 @@ export default async function DashboardEventsPage() {
   })
 
   if (!organizerProfile) {
-    redirect("/dashboard/onboarding")
+    redirect("/onboarding")
   }
 
   const events = await prisma.event.findMany({

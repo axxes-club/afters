@@ -23,7 +23,7 @@ export default async function DashboardPage() {
 
   // If no organizer profile, redirect to onboarding
   if (!organizerProfile) {
-    redirect("/dashboard/onboarding")
+    redirect("/onboarding")
   }
 
   // Get stats

@@ -25,17 +25,17 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           setHasOrganizerProfile(hasProfile);
 
           if (!hasProfile) {
-            router.push('/dashboard/onboarding');
+            router.push('/onboarding');
           } else {
             setCheckingProfile(false);
           }
         } else {
           // If there's an error checking profile, redirect to onboarding anyway
-          router.push('/dashboard/onboarding');
+          router.push('/onboarding');
         }
       } catch (error) {
         console.error('Error checking organizer profile:', error);
-        router.push('/dashboard/onboarding');
+        router.push('/onboarding');
       }
     };
 
