@@ -87,19 +87,22 @@ export function DashboardContent({
 
       {/* Stripe Connect Status */}
       {!stripeChargesEnabled && (
-        <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-          <CardHeader>
-            <CardTitle className="text-yellow-800 dark:text-yellow-200">
-              {t('completePayoutSetup')}
-            </CardTitle>
-            <CardDescription className="text-yellow-700 dark:text-yellow-300">
-              {t('payoutSetupHint')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/settings/payouts">{t('setUpPayouts')}</Link>
-            </Button>
+        <Card className="border-[#ff1493]/30 bg-[#ff1493]/5">
+          <CardContent className="py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#ff1493]/10 rounded-full">
+                  <DollarSign className="h-5 w-5 text-[#ff1493]" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">{t('completePayoutSetup')}</p>
+                  <p className="text-xs text-muted-foreground">{t('payoutSetupHint')}</p>
+                </div>
+              </div>
+              <Button asChild size="sm" className="shrink-0">
+                <Link href="/dashboard/settings/payouts">{t('setUpPayouts')}</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

@@ -34,27 +34,36 @@ function NewEventForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [flyerUrl, setFlyerUrl] = useState<string | null>(null)
+  const [city, setCity] = useState<string>("")
+  const [timezone, setTimezone] = useState<string>("America/New_York")
+  const [ageRestriction, setAgeRestriction] = useState<string>("all")
+  const [ticketingType, setTicketingType] = useState<string>("AFTERS")
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    
+    if (!city) {
+      toast.error("Please select a city")
+      return
+    }
+    
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
 
-    const ageRestriction = formData.get("ageRestriction")
     const data = {
       title: formData.get("title"),
       description: formData.get("description"),
       startsAt: formData.get("startsAt"),
       endsAt: formData.get("endsAt") || null,
-      timezone: formData.get("timezone"),
+      timezone: timezone,
       venueName: formData.get("venueName"),
       venueAddress: formData.get("venueAddress"),
-      city: formData.get("city"),
+      city: city,
       state: formData.get("state"),
       ageRestriction: ageRestriction === "all" ? null : ageRestriction,
       flyerUrl: flyerUrl,
-      ticketingType: formData.get("ticketingType"),
+      ticketingType: ticketingType,
       externalTicketingUrl: formData.get("externalTicketingUrl") || null,
     }
 
@@ -151,7 +160,7 @@ function NewEventForm() {
 
             <div className="space-y-2">
               <Label htmlFor="timezone">Timezone</Label>
-              <Select name="timezone" defaultValue="America/New_York">
+              <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -186,15 +195,15 @@ function NewEventForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Select name="city" required>
+                <Label htmlFor="city">City *</Label>
+                <Select value={city} onValueChange={setCity}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select city" />
                   </SelectTrigger>
                   <SelectContent>
-                    {US_CITIES.map((city) => (
-                      <SelectItem key={city} value={city}>
-                        {city}
+                    {US_CITIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -212,7 +221,7 @@ function NewEventForm() {
 
             <div className="space-y-2">
               <Label htmlFor="ageRestriction">Age Restriction</Label>
-              <Select name="ageRestriction" defaultValue="all">
+              <Select value={ageRestriction} onValueChange={setAgeRestriction}>
                 <SelectTrigger>
                   <SelectValue placeholder="All ages" />
                 </SelectTrigger>
@@ -228,12 +237,12 @@ function NewEventForm() {
               <h3 className="font-semibold">Ticketing</h3>
               <div className="space-y-2">
                 <Label htmlFor="ticketingType">Ticketing Platform</Label>
-                <Select name="ticketingType" defaultValue="AFTERS">
+                <Select value={ticketingType} onValueChange={setTicketingType}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="AFTERS">Afterz (Default)</SelectItem>
+                    <SelectItem value="AFTERS">Afters Direct (Default)</SelectItem>
                     <SelectItem value="POSH">Posh.vip</SelectItem>
                     <SelectItem value="DICE">Dice.fm</SelectItem>
                     <SelectItem value="TICKETMASTER">Ticketmaster</SelectItem>
