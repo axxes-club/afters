@@ -40,9 +40,12 @@ import {
   Loader2,
   Copy,
   Check,
-  Ghost
+  Ghost,
+  Flag,
+  FlagOff
 } from "lucide-react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 import { 
   deleteUser, 
   banUser, 
@@ -58,20 +61,25 @@ interface UserActionsProps {
   firstName: string
   lastName: string
   username: string
+  isFlagged?: boolean
+  flagReason?: string | null
 }
 
-export function UserActions({ userId, email, firstName, lastName, username }: UserActionsProps) {
+export function UserActions({ userId, email, firstName, lastName, username, isFlagged = false, flagReason }: UserActionsProps) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [detailsLoading, setDetailsLoading] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+  const [showFlagDialog, setShowFlagDialog] = useState(false)
   const [userDetails, setUserDetails] = useState<any>(null)
   const [editForm, setEditForm] = useState({
     firstName,
     lastName,
     username
   })
+  const [flagReasonInput, setFlagReasonInput] = useState(flagReason || "")
   const [copied, setCopied] = useState(false)
 
   const handleViewDetails = async () => {
@@ -177,6 +185,60 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleFlag = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/flag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entityType: "user",
+          entityId: userId,
+          flag: true,
+          reason: flagReasonInput.trim() || null,
+        })
+      })
+
+      if (res.ok) {
+        toast.success("User flagged")
+        setShowFlagDialog(false)
+        router.refresh()
+      } else {
+        toast.error("Failed to flag user")
+      }
+    } catch (error) {
+      toast.error("Failed to flag user")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUnflag = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/flag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entityType: "user",
+          entityId: userId,
+          flag: false,
+        })
+      })
+
+      if (res.ok) {
+        toast.success("Flag removed")
+        router.refresh()
+      } else {
+        toast.error("Failed to remove flag")
+      }
+    } catch (error) {
+      toast.error("Failed to remove flag")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -209,6 +271,18 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
             <Ghost className="h-4 w-4 mr-2" />
             Ghost
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {isFlagged ? (
+            <DropdownMenuItem onClick={handleUnflag} disabled={loading}>
+              <FlagOff className="h-4 w-4 mr-2" />
+              Remove Flag
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={() => setShowFlagDialog(true)} className="text-red-500">
+              <Flag className="h-4 w-4 mr-2" />
+              Flag User
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleBan} className="text-yellow-600">
             <Ban className="h-4 w-4 mr-2" />
@@ -423,6 +497,44 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Flag Dialog */}
+      <Dialog open={showFlagDialog} onOpenChange={setShowFlagDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Flag className="h-5 w-5 text-red-500" />
+              Flag User
+            </DialogTitle>
+            <DialogDescription>
+              Flag this user for internal review. This is not visible to the user.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="flagReason">Reason (optional)</Label>
+              <Input
+                id="flagReason"
+                value={flagReasonInput}
+                onChange={(e) => setFlagReasonInput(e.target.value)}
+                placeholder="Why are you flagging this user?"
+              />
+              <p className="text-xs text-muted-foreground">
+                This note is only visible to superadmins.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFlagDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleFlag} disabled={loading} variant="destructive">
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Flag className="h-4 w-4 mr-2" />}
+              Flag User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

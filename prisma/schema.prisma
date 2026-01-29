@@ -25,6 +25,10 @@ model User {
   bio              String?
   role             UserRole          @default(USER)
   isFaux           Boolean           @default(false) // Fake users for demo/testing
+  isFlagged        Boolean           @default(false) // Superadmin internal flag (not visible to user)
+  flaggedAt        DateTime?
+  flaggedBy        String?
+  flagReason       String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   follows          Follow[]
@@ -34,6 +38,8 @@ model User {
   personalProfile  PersonalProfile?
   savedEvents      SavedEvent[]
   tickets          Ticket[]
+
+  @@index([isFlagged])
 }
 
 // Personal profile for regular users (/p/<username>)
@@ -271,6 +277,10 @@ model Event {
   ageRestriction       Int?
   ticketingType        TicketingType    @default(AFTERS)
   externalTicketingUrl String?
+  isFlagged            Boolean          @default(false) // Superadmin internal flag (not visible to organizer)
+  flaggedAt            DateTime?
+  flaggedBy            String?
+  flagReason           String?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   organizer            OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
@@ -282,6 +292,7 @@ model Event {
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
+  @@index([isFlagged])
   @@index([status, isPublished])
 }
 
