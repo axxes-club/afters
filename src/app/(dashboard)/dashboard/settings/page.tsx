@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -64,6 +65,11 @@ interface OrganizerProfile {
 
 export default function SettingsPage() {
   const router = useRouter()
+  const t = useTranslations('settings')
+  const tCommon = useTranslations('common')
+  const tSocial = useTranslations('social')
+  const tDashboard = useTranslations('dashboard')
+  
   const [profile, setProfile] = useState<OrganizerProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -111,7 +117,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error("Error fetching profile:", error)
-      toast.error("Failed to load profile")
+      toast.error(t('failedToLoad'))
     } finally {
       setLoading(false)
     }
@@ -143,14 +149,14 @@ export default function SettingsPage() {
       if (res.ok) {
         const updatedProfile = await res.json()
         setProfile(updatedProfile)
-        toast.success("Profile updated successfully")
+        toast.success(t('profileUpdated'))
       } else {
         const error = await res.json()
-        toast.error(error.message || "Failed to update profile")
+        toast.error(error.message || t('failedToUpdate'))
       }
     } catch (error) {
       console.error("Error updating profile:", error)
-      toast.error("Failed to update profile")
+      toast.error(t('failedToUpdate'))
     } finally {
       setSaving(false)
     }
@@ -158,7 +164,7 @@ export default function SettingsPage() {
 
   async function handleDeleteAccount() {
     if (deleteConfirmText !== "DELETE") {
-      toast.error("Please type DELETE to confirm")
+      toast.error(t('pleaseTypeDelete'))
       return
     }
 
@@ -170,15 +176,15 @@ export default function SettingsPage() {
       })
 
       if (res.ok) {
-        toast.success("Account deleted successfully")
+        toast.success(t('profileDeleted'))
         router.push("/")
       } else {
         const error = await res.json()
-        toast.error(error.message || "Failed to delete account")
+        toast.error(error.message || t('failedToDelete'))
       }
     } catch (error) {
       console.error("Error deleting account:", error)
-      toast.error("Failed to delete account")
+      toast.error(t('failedToDelete'))
     } finally {
       setDeleting(false)
       setDeleteDialogOpen(false)
@@ -202,8 +208,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your organizer profile and account settings</p>
+        <h1 className="text-3xl font-bold">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       {/* Profile Section */}
@@ -211,27 +217,27 @@ export default function SettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            <CardTitle>Profile Information</CardTitle>
+            <CardTitle>{t('profile')}</CardTitle>
           </div>
           <CardDescription>
-            Update your public organizer profile. This information appears on your public page.
+            {t('profileDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name *</Label>
+              <Label htmlFor="displayName">{t('displayName')} *</Label>
               <Input
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your artist or brand name"
+                placeholder={t('displayNamePlaceholder')}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Profile URL</Label>
+              <Label htmlFor="slug">{t('profileUrl')}</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">afters.xxx/o/</span>
                 <Input
@@ -245,41 +251,41 @@ export default function SettingsPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Only lowercase letters, numbers, and hyphens are allowed.
+                {t('profileUrlHint')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="artistType">Account Type</Label>
+              <Label htmlFor="artistType">{t('accountType')}</Label>
               <Select value={artistType} onValueChange={setArtistType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select account type" />
+                  <SelectValue placeholder={t('selectAccountType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="organizer">Organizer</SelectItem>
-                  <SelectItem value="artist">Artist</SelectItem>
-                  <SelectItem value="personal">Personal</SelectItem>
+                  <SelectItem value="organizer">{t('organizer')}</SelectItem>
+                  <SelectItem value="artist">{t('artist')}</SelectItem>
+                  <SelectItem value="personal">{t('personal')}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Choose the type of profile that best describes you
+                {t('accountTypeHint')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
+              <Label htmlFor="bio">{t('bio')}</Label>
               <Textarea
                 id="bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell people about yourself..."
+                placeholder={t('bioPlaceholder')}
                 rows={4}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="logoUrl">
-                {artistType?.toLowerCase() === 'personal' ? 'Avatar URL' : 'Logo URL'}
+                {artistType?.toLowerCase() === 'personal' ? t('avatarUrl') : t('logoUrl')}
               </Label>
               <Input
                 id="logoUrl"
@@ -287,25 +293,25 @@ export default function SettingsPage() {
                 value={logoUrl}
                 onChange={(e) => setLogoUrl(e.target.value)}
                 placeholder={artistType?.toLowerCase() === 'personal' 
-                  ? "https://example.com/avatar.png" 
-                  : "https://example.com/logo.png"}
+                  ? t('avatarUrlPlaceholder')
+                  : t('logoUrlPlaceholder')}
               />
               <p className="text-xs text-muted-foreground">
                 {artistType?.toLowerCase() === 'personal' 
-                  ? "Your profile picture" 
-                  : "Your brand logo or profile image"}
+                  ? t('avatarUrlHint')
+                  : t('logoUrlHint')}
               </p>
             </div>
 
             <Separator />
 
             <div className="space-y-4">
-              <Label className="text-base font-semibold">Social Links</Label>
+              <Label className="text-base font-semibold">{t('socialLinks')}</Label>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="instagramUrl" className="flex items-center gap-2">
-                    <Instagram className="h-4 w-4" /> Instagram
+                    <Instagram className="h-4 w-4" /> {tSocial('instagram')}
                   </Label>
                   <Input
                     id="instagramUrl"
@@ -318,7 +324,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="twitterUrl" className="flex items-center gap-2">
-                    <Twitter className="h-4 w-4" /> Twitter/X
+                    <Twitter className="h-4 w-4" /> {tSocial('twitter')}
                   </Label>
                   <Input
                     id="twitterUrl"
@@ -331,7 +337,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="soundcloudUrl" className="flex items-center gap-2">
-                    <Music className="h-4 w-4" /> SoundCloud
+                    <Music className="h-4 w-4" /> {tSocial('soundcloud')}
                   </Label>
                   <Input
                     id="soundcloudUrl"
@@ -344,7 +350,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="spotifyUrl" className="flex items-center gap-2">
-                    <Music className="h-4 w-4" /> Spotify
+                    <Music className="h-4 w-4" /> {tSocial('spotify')}
                   </Label>
                   <Input
                     id="spotifyUrl"
@@ -357,7 +363,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="youtubeUrl" className="flex items-center gap-2">
-                    <Youtube className="h-4 w-4" /> YouTube
+                    <Youtube className="h-4 w-4" /> {tSocial('youtube')}
                   </Label>
                   <Input
                     id="youtubeUrl"
@@ -370,7 +376,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="websiteUrl" className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" /> Website
+                    <Globe className="h-4 w-4" /> {tSocial('website')}
                   </Label>
                   <Input
                     id="websiteUrl"
@@ -387,12 +393,12 @@ export default function SettingsPage() {
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {tCommon('saving')}
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Save Changes
+                  {t('saveChanges')}
                 </>
               )}
             </Button>
@@ -405,10 +411,10 @@ export default function SettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            <CardTitle>Connected Accounts</CardTitle>
+            <CardTitle>{t('connectedAccounts')}</CardTitle>
           </div>
           <CardDescription>
-            Manage your connected payment and social accounts
+            {t('connectedAccountsDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -418,18 +424,18 @@ export default function SettingsPage() {
                 <CreditCard className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <p className="font-medium">Stripe Connect</p>
-                <p className="text-sm text-muted-foreground">Accept payments for events</p>
+                <p className="font-medium">{tDashboard('stripeConnect')}</p>
+                <p className="text-sm text-muted-foreground">{tDashboard('acceptPayments')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant={isStripeSetup ? "default" : "secondary"}>
-                {isStripeSetup ? "Connected" : "Not Connected"}
+                {isStripeSetup ? tCommon('connected') : tCommon('notConnected')}
               </Badge>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/dashboard/settings/payouts">
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  Manage
+                  {tCommon('manage')}
                 </Link>
               </Button>
             </div>
@@ -437,7 +443,7 @@ export default function SettingsPage() {
 
           {!isStripeSetup && (
             <p className="text-sm text-muted-foreground">
-              Connect your Stripe account to start selling tickets and receiving payouts.
+              {tDashboard('connectStripeHint')}
             </p>
           )}
         </CardContent>
@@ -448,45 +454,44 @@ export default function SettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-2 text-red-600">
             <Trash2 className="h-5 w-5" />
-            <CardTitle className="text-red-600">Danger Zone</CardTitle>
+            <CardTitle className="text-red-600">{t('dangerZone')}</CardTitle>
           </div>
           <CardDescription>
-            Irreversible actions that affect your account
+            {t('dangerZoneDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-900 rounded-lg bg-red-50 dark:bg-red-950/20">
             <div>
-              <p className="font-medium">Delete Organizer Profile</p>
+              <p className="font-medium">{t('deleteOrganizerProfile')}</p>
               <p className="text-sm text-muted-foreground">
-                This will delete all your events and data. This action cannot be undone.
+                {t('deleteProfileWarning')}
               </p>
             </div>
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="destructive">Delete Profile</Button>
+                <Button variant="destructive">{t('deleteProfile')}</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Are you absolutely sure?</DialogTitle>
+                  <DialogTitle>{t('deleteConfirmTitle')}</DialogTitle>
                   <DialogDescription>
-                    This action cannot be undone. This will permanently delete your organizer
-                    profile, all events, and associated data.
+                    {t('deleteConfirmDescription')}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <p className="text-sm text-muted-foreground">
-                    To confirm, type <span className="font-mono font-bold">DELETE</span> below:
+                    {t('deleteConfirmInstruction')}
                   </p>
                   <Input
                     value={deleteConfirmText}
                     onChange={(e) => setDeleteConfirmText(e.target.value)}
-                    placeholder="Type DELETE to confirm"
+                    placeholder={t('deleteConfirmPlaceholder')}
                   />
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                    Cancel
+                    {tCommon('cancel')}
                   </Button>
                   <Button
                     variant="destructive"
@@ -496,10 +501,10 @@ export default function SettingsPage() {
                     {deleting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Deleting...
+                        {tCommon('deleting')}
                       </>
                     ) : (
-                      "Delete Profile"
+                      t('deleteProfile')
                     )}
                   </Button>
                 </DialogFooter>

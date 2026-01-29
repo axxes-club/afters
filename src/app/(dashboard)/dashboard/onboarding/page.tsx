@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +15,10 @@ export default function OnboardingPage() {
   const { user } = useUser()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const t = useTranslations('onboarding')
+  const tSettings = useTranslations('settings')
+  const tCommon = useTranslations('common')
+  const tErrors = useTranslations('errors')
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -33,14 +38,14 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        throw new Error(error.message || "Failed to create profile")
+        throw new Error(error.message || tErrors('generic'))
       }
 
-      toast.success("Profile created!")
+      toast.success(t('profileCreated'))
       router.push("/dashboard")
       router.refresh()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong")
+      toast.error(error instanceof Error ? error.message : tErrors('generic'))
     } finally {
       setLoading(false)
     }
@@ -52,26 +57,26 @@ export default function OnboardingPage() {
     <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle>Create Your Organizer Profile</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
           <CardDescription>
-            Set up your profile to start creating events and selling tickets.
+            {t('subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
+              <Label htmlFor="displayName">{t('displayNameLabel')}</Label>
               <Input
                 id="displayName"
                 name="displayName"
-                placeholder="Your name or brand"
+                placeholder={t('displayNamePlaceholder')}
                 defaultValue={user?.fullName || ""}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Profile URL</Label>
+              <Label htmlFor="slug">{t('profileUrlLabel')}</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">afters.xxx/o/</span>
                 <Input
@@ -80,24 +85,24 @@ export default function OnboardingPage() {
                   placeholder="yourname"
                   defaultValue={suggestedSlug}
                   pattern="^[a-z0-9-]+$"
-                  title="Only lowercase letters, numbers, and hyphens"
+                  title={tSettings('profileUrlHint')}
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio">Bio (optional)</Label>
+              <Label htmlFor="bio">{tSettings('bioOptional')}</Label>
               <Textarea
                 id="bio"
                 name="bio"
-                placeholder="Tell people about yourself or your brand"
+                placeholder={tSettings('bioOptionalPlaceholder')}
                 rows={3}
               />
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating..." : "Create Profile"}
+              {loading ? tCommon('creating') : t('createProfile')}
             </Button>
           </form>
         </CardContent>
