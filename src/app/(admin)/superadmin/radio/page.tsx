@@ -45,9 +45,11 @@ import {
   GripVertical,
   Plus,
   ListMusic,
-  Inbox
+  Inbox,
+  CheckCircle
 } from "lucide-react"
 import { toast } from "sonner"
+import { AudioUpload, ArtworkUpload } from "@/components/RadioTrackUpload"
 
 interface RadioTrack {
   id: string
@@ -334,12 +336,13 @@ export default function RadioManagementPage() {
     title: "",
     artistName: "",
     fileUrl: "",
-    duration: "",
+    duration: 0,
     artworkUrl: "",
     genre: "",
     bpm: ""
   })
   const [uploading, setUploading] = useState(false)
+  const [audioUploaded, setAudioUploaded] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -526,10 +529,16 @@ export default function RadioManagementPage() {
     }
   }
 
+  const handleAudioUpload = (data: { url: string; duration: number }) => {
+    setUploadForm(prev => ({ ...prev, fileUrl: data.url, duration: data.duration }))
+    setAudioUploaded(true)
+    toast.success("Audio file uploaded!")
+  }
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!uploadForm.title || !uploadForm.fileUrl || !uploadForm.duration) {
-      toast.error("Title, file URL, and duration are required")
+    if (!uploadForm.title || !uploadForm.fileUrl || !uploadForm.artistName) {
+      toast.error("Please fill in track title, artist name, and upload an audio file")
       return
     }
 
@@ -540,14 +549,15 @@ export default function RadioManagementPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...uploadForm,
-          duration: parseInt(uploadForm.duration),
+          duration: uploadForm.duration || 180, // Default to 3 min if duration detection failed
           bpm: uploadForm.bpm ? parseInt(uploadForm.bpm) : null
         })
       })
       
       if (res.ok) {
         toast.success("Track uploaded and added to queue!")
-        setUploadForm({ title: "", artistName: "", fileUrl: "", duration: "", artworkUrl: "", genre: "", bpm: "" })
+        setUploadForm({ title: "", artistName: "", fileUrl: "", duration: 0, artworkUrl: "", genre: "", bpm: "" })
+        setAudioUploaded(false)
         setShowUpload(false)
         fetchAllTracks()
       } else {
@@ -558,6 +568,12 @@ export default function RadioManagementPage() {
       toast.error("Failed to upload track")
     }
     setUploading(false)
+  }
+
+  const resetUploadForm = () => {
+    setUploadForm({ title: "", artistName: "", fileUrl: "", duration: 0, artworkUrl: "", genre: "", bpm: "" })
+    setAudioUploaded(false)
+    setShowUpload(false)
   }
 
   const activeTrack = activeId ? [...queueTracks, ...approvedTracks].find(t => t.id === activeId) : null
@@ -591,78 +607,104 @@ export default function RadioManagementPage() {
         <Card>
           <CardHeader>
             <CardTitle>Upload New Track</CardTitle>
-            <CardDescription>Add a track directly to AFTERS RADIO (auto-approved)</CardDescription>
+            <CardDescription>Add a track directly to AFTERS RADIO (auto-approved and added to queue)</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleUpload} className="grid gap-4 md:grid-cols-2">
+            <form onSubmit={handleUpload} className="space-y-6">
+              {/* Audio File Upload */}
               <div className="space-y-2">
-                <Label>Track Title *</Label>
-                <Input
-                  value={uploadForm.title}
-                  onChange={(e) => setUploadForm(p => ({ ...p, title: e.target.value }))}
-                  placeholder="Track name"
-                  required
-                />
+                <Label>Audio File *</Label>
+                {audioUploaded ? (
+                  <div className="flex items-center gap-3 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-green-500">Audio uploaded successfully!</p>
+                      <p className="text-xs text-muted-foreground">
+                        Duration: {Math.floor(uploadForm.duration / 60)}:{(uploadForm.duration % 60).toString().padStart(2, '0')}
+                      </p>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setUploadForm(prev => ({ ...prev, fileUrl: "", duration: 0 }))
+                        setAudioUploaded(false)
+                      }}
+                    >
+                      Change
+                    </Button>
+                  </div>
+                ) : (
+                  <AudioUpload onUploadComplete={handleAudioUpload} disabled={uploading} />
+                )}
               </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Track Info */}
+                <div className="space-y-2">
+                  <Label>Track Title *</Label>
+                  <Input
+                    value={uploadForm.title}
+                    onChange={(e) => setUploadForm(p => ({ ...p, title: e.target.value }))}
+                    placeholder="Track name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Artist Name *</Label>
+                  <Input
+                    value={uploadForm.artistName}
+                    onChange={(e) => setUploadForm(p => ({ ...p, artistName: e.target.value }))}
+                    placeholder="Artist or DJ name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Genre</Label>
+                  <Input
+                    value={uploadForm.genre}
+                    onChange={(e) => setUploadForm(p => ({ ...p, genre: e.target.value }))}
+                    placeholder="House, Techno, etc."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>BPM</Label>
+                  <Input
+                    type="number"
+                    value={uploadForm.bpm}
+                    onChange={(e) => setUploadForm(p => ({ ...p, bpm: e.target.value }))}
+                    placeholder="128"
+                  />
+                </div>
+              </div>
+
+              {/* Artwork Upload */}
               <div className="space-y-2">
-                <Label>Artist Name *</Label>
-                <Input
-                  value={uploadForm.artistName}
-                  onChange={(e) => setUploadForm(p => ({ ...p, artistName: e.target.value }))}
-                  placeholder="Artist or DJ name"
-                  required
-                />
+                <Label>Track Artwork (optional)</Label>
+                <div className="flex items-start gap-4">
+                  <ArtworkUpload 
+                    value={uploadForm.artworkUrl || null} 
+                    onChange={(url) => setUploadForm(p => ({ ...p, artworkUrl: url || "" }))}
+                    disabled={uploading}
+                  />
+                  <p className="text-xs text-muted-foreground pt-2">
+                    Square artwork recommended (500x500 or larger)
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label>Audio File URL *</Label>
-                <Input
-                  value={uploadForm.fileUrl}
-                  onChange={(e) => setUploadForm(p => ({ ...p, fileUrl: e.target.value }))}
-                  placeholder="https://... (direct link to MP3)"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Duration (seconds) *</Label>
-                <Input
-                  type="number"
-                  value={uploadForm.duration}
-                  onChange={(e) => setUploadForm(p => ({ ...p, duration: e.target.value }))}
-                  placeholder="180"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Artwork URL</Label>
-                <Input
-                  value={uploadForm.artworkUrl}
-                  onChange={(e) => setUploadForm(p => ({ ...p, artworkUrl: e.target.value }))}
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Genre</Label>
-                <Input
-                  value={uploadForm.genre}
-                  onChange={(e) => setUploadForm(p => ({ ...p, genre: e.target.value }))}
-                  placeholder="House, Techno, etc."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>BPM</Label>
-                <Input
-                  type="number"
-                  value={uploadForm.bpm}
-                  onChange={(e) => setUploadForm(p => ({ ...p, bpm: e.target.value }))}
-                  placeholder="128"
-                />
-              </div>
-              <div className="md:col-span-2 flex gap-2">
-                <Button type="submit" disabled={uploading}>
+
+              {/* Submit */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button 
+                  type="submit" 
+                  disabled={uploading || !audioUploaded || !uploadForm.title || !uploadForm.artistName}
+                  className="bg-[#ff1493] hover:bg-[#ff1493]/90"
+                >
                   {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
-                  Add to Radio
+                  Add to Radio Queue
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowUpload(false)}>
+                <Button type="button" variant="outline" onClick={resetUploadForm}>
                   Cancel
                 </Button>
               </div>
