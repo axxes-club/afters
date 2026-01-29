@@ -7,256 +7,187 @@ datasource db {
   provider = "postgresql"
 }
 
-// Users synced from Clerk via webhook
 model User {
-  id        String   @id // Clerk user ID
-  email     String   @unique
-  firstName String?
-  lastName  String?
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  organizerProfile OrganizerProfile?
-  orders           Order[]
-  tickets          Ticket[]
+  id               String            @id
+  email            String            @unique
+  firstName        String?
+  lastName         String?
+  imageUrl         String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   follows          Follow[]
+  orders           Order[]
+  organizerProfile OrganizerProfile?
   savedEvents      SavedEvent[]
+  tickets          Ticket[]
 }
 
-// Organizer profile for Stripe Connect
 model OrganizerProfile {
-  id       String  @id @default(cuid())
-  userId   String  @unique
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Business info
-  displayName String
-  slug        String  @unique // for URLs: afters.xxx/o/slug
-  bio         String? @db.Text
-  logoUrl     String?
-  coverUrl    String?
-  
-  // Social links
-  instagramUrl  String?
-  twitterUrl    String?
-  soundcloudUrl String?
-  youtubeUrl    String?
-  spotifyUrl    String?
-  websiteUrl    String?
-  
-  // Artist type
-  artistType    String?  // DJ, Producer, Promoter, Venue, etc.
-  genres        String?  // JSON array of genres
-
-  // Stripe Connect
+  id                       String   @id @default(cuid())
+  userId                   String   @unique
+  displayName              String
+  slug                     String   @unique
+  bio                      String?
+  logoUrl                  String?
   stripeAccountId          String?  @unique
   stripeOnboardingComplete Boolean  @default(false)
   stripeChargesEnabled     Boolean  @default(false)
   stripePayoutsEnabled     Boolean  @default(false)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  artistType               String?
+  coverUrl                 String?
+  genres                   String?
+  instagramUrl             String?
+  soundcloudUrl            String?
+  spotifyUrl               String?
+  twitterUrl               String?
+  websiteUrl               String?
+  youtubeUrl               String?
+  events                   Event[]
+  followers                Follow[]
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  events    Event[]
-  followers Follow[]
+enum TicketingType {
+  AFTERS
+  POSH
+  DICE
+  TICKETMASTER
+  LIVENATION
+  EVENTBRITE
+  OTHER
 }
 
 model Event {
-  id          String           @id @default(cuid())
-  organizerId String
-  organizer   OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
-
-  // Basic info
-  title       String
-  slug        String // for URLs: afters.xxx/e/slug
-  description String? @db.Text
-
-  // Date/time
-  startsAt DateTime
-  endsAt   DateTime?
-  timezone String    @default("America/New_York")
-
-  // Location
-  venueName    String
-  venueAddress String
-  city         String
-  state        String?
-  country      String  @default("US")
-
-  // Media
-  flyerUrl String?
-
-  // Settings
-  status         EventStatus @default(DRAFT)
-  isPublished    Boolean     @default(false)
-  ageRestriction Int? // 18, 21, null for all ages
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  ticketTiers TicketTier[]
-  orders      Order[]
-  tickets     Ticket[]
-  views       EventView[]
-  savedBy     SavedEvent[]
+  id                   String           @id @default(cuid())
+  organizerId          String
+  title                String
+  slug                 String
+  description          String?
+  startsAt             DateTime
+  endsAt               DateTime?
+  timezone             String           @default("America/New_York")
+  venueName            String
+  venueAddress         String
+  city                 String
+  state                String?
+  country              String           @default("US")
+  flyerUrl             String?
+  status               EventStatus      @default(DRAFT)
+  isPublished          Boolean          @default(false)
+  ageRestriction       Int?
+  ticketingType        TicketingType    @default(AFTERS)
+  externalTicketingUrl String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organizer            OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  views                EventView[]
+  orders               Order[]
+  savedBy              SavedEvent[]
+  tickets              Ticket[]
+  ticketTiers          TicketTier[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
   @@index([status, isPublished])
 }
 
-enum EventStatus {
-  DRAFT
-  PUBLISHED
-  CANCELLED
-  COMPLETED
-}
-
 model TicketTier {
-  id      String @id @default(cuid())
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  name         String // "General Admission", "VIP", "Early Bird"
+  id           String      @id @default(cuid())
+  eventId      String
+  name         String
   description  String?
-  price        Int // in cents (e.g., 2500 = $25.00)
-  quantity     Int // total available
-  quantitySold Int    @default(0)
-
-  // Sale window
+  price        Int
+  quantity     Int
+  quantitySold Int         @default(0)
   salesStartAt DateTime?
   salesEndAt   DateTime?
-
-  // Limits
-  minPerOrder Int @default(1)
-  maxPerOrder Int @default(10)
-
-  // Display
-  sortOrder Int     @default(0)
-  isVisible Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  orderItems OrderItem[]
-  tickets    Ticket[]
+  minPerOrder  Int         @default(1)
+  maxPerOrder  Int         @default(10)
+  sortOrder    Int         @default(0)
+  isVisible    Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  orderItems   OrderItem[]
+  tickets      Ticket[]
+  event        Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
 }
 
 model Order {
-  id          String @id @default(cuid())
-  orderNumber String @unique // human-readable: AFT-XXXX
-
-  userId  String
-  user    User   @relation(fields: [userId], references: [id])
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id])
-
-  // Pricing (all in cents)
-  subtotal    Int // ticket prices
-  platformFee Int // 10% + $0.99 per ticket
-  stripeFee   Int // Stripe's processing fee estimate
-  total       Int // what customer pays
-
-  // Stripe
-  stripePaymentIntentId String? @unique
+  id                    String      @id @default(cuid())
+  orderNumber           String      @unique
+  userId                String
+  eventId               String
+  subtotal              Int
+  platformFee           Int
+  stripeFee             Int
+  total                 Int
+  stripePaymentIntentId String?     @unique
   stripeChargeId        String?
-
-  status OrderStatus @default(PENDING)
-
-  // Contact info
-  email String
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  paidAt    DateTime?
-
-  // Relations
-  items   OrderItem[]
-  tickets Ticket[]
+  status                OrderStatus @default(PENDING)
+  email                 String
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  paidAt                DateTime?
+  event                 Event       @relation(fields: [eventId], references: [id])
+  user                  User        @relation(fields: [userId], references: [id])
+  items                 OrderItem[]
+  tickets               Ticket[]
 
   @@index([userId])
   @@index([eventId])
   @@index([stripePaymentIntentId])
 }
 
-enum OrderStatus {
-  PENDING
-  PAID
-  REFUNDED
-  CANCELLED
-}
-
 model OrderItem {
   id           String     @id @default(cuid())
   orderId      String
-  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   ticketTierId String
+  quantity     Int
+  unitPrice    Int
+  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   ticketTier   TicketTier @relation(fields: [ticketTierId], references: [id])
-
-  quantity  Int
-  unitPrice Int // price per ticket at time of purchase (cents)
 
   @@index([orderId])
 }
 
 model Ticket {
-  id           String @id @default(cuid())
-  ticketNumber String @unique // for display: TKT-XXXXXXXX
-
+  id           String       @id @default(cuid())
+  ticketNumber String       @unique
   orderId      String
-  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   eventId      String
-  event        Event      @relation(fields: [eventId], references: [id])
   ticketTierId String
-  ticketTier   TicketTier @relation(fields: [ticketTierId], references: [id])
   userId       String
-  user         User       @relation(fields: [userId], references: [id])
-
-  // QR code data (the ticket ID itself is the QR payload)
-  qrCodeUrl String?
-
-  // Check-in
-  status      TicketStatus @default(VALID)
-  checkedInAt DateTime?
-  checkedInBy String? // user ID of scanner
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  qrCodeUrl    String?
+  status       TicketStatus @default(VALID)
+  checkedInAt  DateTime?
+  checkedInBy  String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  event        Event        @relation(fields: [eventId], references: [id])
+  order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketTier   TicketTier   @relation(fields: [ticketTierId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
 
   @@index([eventId])
   @@index([orderId])
   @@index([ticketNumber])
 }
 
-enum TicketStatus {
-  VALID
-  CHECKED_IN
-  CANCELLED
-  REFUNDED
-}
-
-// Analytics - track event page views
 model EventView {
   id        String   @id @default(cuid())
   eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  // Visitor info (anonymous tracking)
-  visitorId String?  // fingerprint or session ID
+  visitorId String?
   userAgent String?
   referrer  String?
   country   String?
   city      String?
-  
   createdAt DateTime @default(now())
-  
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
   @@index([eventId, createdAt])
   @@index([eventId])
 }
@@ -264,10 +195,10 @@ model EventView {
 model Follow {
   id          String           @id @default(cuid())
   followerId  String
-  follower    User             @relation(fields: [followerId], references: [id], onDelete: Cascade)
   followingId String
-  following   OrganizerProfile @relation(fields: [followingId], references: [id], onDelete: Cascade)
   createdAt   DateTime         @default(now())
+  follower    User             @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  following   OrganizerProfile @relation(fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
   @@index([followerId])
@@ -277,11 +208,32 @@ model Follow {
 model SavedEvent {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@index([userId])
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  REFUNDED
+  CANCELLED
+}
+
+enum TicketStatus {
+  VALID
+  CHECKED_IN
+  CANCELLED
+  REFUNDED
 }

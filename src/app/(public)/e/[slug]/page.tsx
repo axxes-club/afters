@@ -235,7 +235,16 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   )
                 })}
 
-                {totalAvailable > 0 ? (
+                {event.externalTicketingUrl ? (
+                  <Button className="w-full" size="lg" asChild>
+                    <a href={event.externalTicketingUrl} target="_blank" rel="noopener noreferrer">
+                      Get Tickets on {event.ticketingType === 'OTHER' ? 'Official Site' : 
+                        event.ticketingType === 'POSH' ? 'posh.vip' :
+                        event.ticketingType === 'DICE' ? 'dice.fm' :
+                        event.ticketingType.toLowerCase()}
+                    </a>
+                  </Button>
+                ) : totalAvailable > 0 ? (
                   <Button className="w-full" size="lg" asChild>
                     <Link href={`/e/${combinedSlug}/checkout`}>
                       Select Tickets
