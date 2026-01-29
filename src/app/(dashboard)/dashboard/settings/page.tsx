@@ -11,6 +11,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -244,12 +251,19 @@ export default function SettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="artistType">Account Type</Label>
-              <Input
-                id="artistType"
-                value={artistType}
-                onChange={(e) => setArtistType(e.target.value)}
-                placeholder="DJ, Producer, Promoter, Venue, Personal..."
-              />
+              <Select value={artistType} onValueChange={setArtistType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="organizer">Organizer</SelectItem>
+                  <SelectItem value="artist">Artist</SelectItem>
+                  <SelectItem value="personal">Personal</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the type of profile that best describes you
+              </p>
             </div>
 
             <div className="space-y-2">

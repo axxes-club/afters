@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
-import { Play, Pause, Volume2, VolumeX, Radio, ChevronUp, ChevronDown, Clock } from "lucide-react"
+import { Volume2, VolumeX, Radio, ChevronUp, ChevronDown, Clock } from "lucide-react"
+import Link from "next/link"
 
 interface RadioTrack {
   id: string
@@ -39,7 +40,7 @@ interface RadioState {
 export function AftersRadio() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [radioState, setRadioState] = useState<RadioState | null>(null)
-  const [isMuted, setIsMuted] = useState(false)
+  const [isMuted, setIsMuted] = useState(true) // Start muted by default
   const [volume] = useState(0.8)
   const [isLoading, setIsLoading] = useState(true)
   const [showTimeline, setShowTimeline] = useState(false)
@@ -47,6 +48,7 @@ export function AftersRadio() {
   const [trackProgress, setTrackProgress] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const hasStartedRef = useRef(false)
 
   const fetchRadioState = useCallback(async () => {
     try {
@@ -68,6 +70,24 @@ export function AftersRadio() {
     }
   }, [])
 
+  // Auto-start playback (muted) when component loads
+  useEffect(() => {
+    const startPlayback = async () => {
+      if (hasStartedRef.current) return
+      const state = await fetchRadioState()
+      if (state && audioRef.current) {
+        hasStartedRef.current = true
+        audioRef.current.src = state.currentTrack.fileUrl
+        audioRef.current.currentTime = state.currentPosition
+        audioRef.current.volume = volume
+        audioRef.current.muted = true // Start muted
+        audioRef.current.play().catch(console.error)
+        setIsPlaying(true)
+      }
+    }
+    startPlayback()
+  }, [fetchRadioState, volume])
+
   // Update current time every second
   useEffect(() => {
     const timer = setInterval(() => {
@@ -88,7 +108,6 @@ export function AftersRadio() {
   }, [radioState, isPlaying, fetchRadioState])
 
   useEffect(() => {
-    fetchRadioState()
     const pollInterval = setInterval(fetchRadioState, 30000)
     return () => clearInterval(pollInterval)
   }, [fetchRadioState])
@@ -119,24 +138,6 @@ export function AftersRadio() {
     }
   }, [isPlaying, radioState, fetchRadioState])
 
-  const togglePlay = async () => {
-    if (!radioState?.currentTrack) return
-
-    if (!isPlaying) {
-      const freshState = await fetchRadioState()
-      if (freshState && audioRef.current) {
-        audioRef.current.src = freshState.currentTrack.fileUrl
-        audioRef.current.currentTime = freshState.currentPosition
-        audioRef.current.volume = volume
-        audioRef.current.play().catch(console.error)
-        setIsPlaying(true)
-      }
-    } else {
-      audioRef.current?.pause()
-      setIsPlaying(false)
-    }
-  }
-
   const handleTrackEnd = async () => {
     const freshState = await fetchRadioState()
     if (freshState && audioRef.current) {
@@ -146,8 +147,23 @@ export function AftersRadio() {
     }
   }
 
-  const toggleMute = () => {
-    if (audioRef.current) {
+  const toggleMute = async () => {
+    if (!audioRef.current) return
+    
+    // If not playing yet, start playback
+    if (!isPlaying) {
+      const freshState = await fetchRadioState()
+      if (freshState) {
+        audioRef.current.src = freshState.currentTrack.fileUrl
+        audioRef.current.currentTime = freshState.currentPosition
+        audioRef.current.volume = volume
+        audioRef.current.muted = false
+        audioRef.current.play().catch(console.error)
+        setIsPlaying(true)
+        setIsMuted(false)
+      }
+    } else {
+      // Toggle mute
       audioRef.current.muted = !isMuted
       setIsMuted(!isMuted)
     }
@@ -204,7 +220,7 @@ export function AftersRadio() {
                     <Radio className="h-6 w-6 text-[#ff1493]" />
                   </div>
                 )}
-                {isPlaying && (
+                {isPlaying && !isMuted && (
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <div className="flex items-end gap-[2px] h-4">
                       {[1, 2, 3, 4].map((i) => (
@@ -222,9 +238,18 @@ export function AftersRadio() {
                 <p className="text-sm font-semibold text-white truncate">
                   {radioState.currentTrack.title}
                 </p>
-                <p className="text-xs text-white/60 truncate">
-                  {radioState.currentTrack.artistName}
-                </p>
+                {radioState.currentTrack.artistSlug && radioState.currentTrack.artistSlug !== "unknown" ? (
+                  <Link 
+                    href={`/a/${radioState.currentTrack.artistSlug}`}
+                    className="text-xs text-white/60 hover:text-[#ff1493] transition-colors truncate block"
+                  >
+                    {radioState.currentTrack.artistName}
+                  </Link>
+                ) : (
+                  <p className="text-xs text-white/60 truncate">
+                    {radioState.currentTrack.artistName}
+                  </p>
+                )}
                 <div className="flex items-center gap-2 mt-1 text-[10px] text-white/40">
                   <span>{formatTime(trackProgress)}</span>
                   <span>/</span>
@@ -244,28 +269,26 @@ export function AftersRadio() {
             {/* Controls */}
             <div className="flex items-center justify-between">
               <button
-                onClick={togglePlay}
+                onClick={toggleMute}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full transition-all",
-                  isPlaying 
+                  !isMuted 
                     ? "bg-[#ff1493] shadow-lg shadow-[#ff1493]/30" 
-                    : "bg-[#ff1493]/80 hover:bg-[#ff1493]"
+                    : "bg-white/10 hover:bg-white/20"
                 )}
+                title={isMuted ? "Unmute" : "Mute"}
               >
-                {isPlaying ? (
-                  <Pause className="h-4 w-4 text-white fill-current" />
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4 text-white" />
                 ) : (
-                  <Play className="h-4 w-4 text-white fill-current ml-0.5" />
+                  <Volume2 className="h-4 w-4 text-white" />
                 )}
               </button>
 
               <div className="flex items-center gap-3">
-                <button
-                  onClick={toggleMute}
-                  className="text-white/50 hover:text-white transition-colors p-2"
-                >
-                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </button>
+                <span className="text-[10px] text-white/40">
+                  {isMuted ? "Click to listen" : "Playing"}
+                </span>
                 <button
                   onClick={() => setShowTimeline(!showTimeline)}
                   className="text-white/50 hover:text-white transition-colors p-2"
@@ -274,31 +297,6 @@ export function AftersRadio() {
                 </button>
               </div>
             </div>
-
-            {/* Up Next Preview */}
-            {radioState.nextTrack && (
-              <div className="mt-3 pt-3 border-t border-white/10">
-                <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Up Next</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded bg-white/5 flex-shrink-0 overflow-hidden">
-                    {radioState.nextTrack.artworkUrl ? (
-                      <img src={radioState.nextTrack.artworkUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Radio className="h-3 w-3 text-white/30" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-white/80 truncate">{radioState.nextTrack.title}</p>
-                    <p className="text-[10px] text-white/40 truncate">{radioState.nextTrack.artistName}</p>
-                  </div>
-                  <span className="text-[10px] text-white/30">
-                    {formatTime(radioState.currentTrack.duration - trackProgress)}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Timeline Dropdown */}
@@ -335,7 +333,16 @@ export function AftersRadio() {
                       )}>
                         {track.title}
                       </p>
-                      <p className="text-[10px] text-white/40 truncate">{track.artistName}</p>
+                      {track.artistSlug && track.artistSlug !== "unknown" ? (
+                        <Link 
+                          href={`/a/${track.artistSlug}`}
+                          className="text-[10px] text-white/40 hover:text-[#ff1493] transition-colors truncate block"
+                        >
+                          {track.artistName}
+                        </Link>
+                      ) : (
+                        <p className="text-[10px] text-white/40 truncate">{track.artistName}</p>
+                      )}
                     </div>
                     <span className="text-[10px] text-white/30">
                       {formatTime(track.duration)}
