@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
-import { Menu, X, ShieldCheck } from "lucide-react"
+import { SignedIn, SignedOut, useClerk, useUser } from "@clerk/nextjs"
+import { Menu, ShieldCheck, LogOut, Settings, User, LayoutDashboard } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -11,6 +11,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { useTranslations } from "next-intl"
@@ -19,6 +27,8 @@ export function Header() {
   const t = useTranslations('nav')
   const [open, setOpen] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const { signOut } = useClerk()
+  const { user } = useUser()
 
   useEffect(() => {
     fetch("/api/user/role")
@@ -42,6 +52,14 @@ export function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
+            >
+              {t('dashboard')}
+            </Link>
+          </SignedIn>
           <Link
             href="/events"
             className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
@@ -49,6 +67,12 @@ export function Header() {
             {t('events')}
           </Link>
           <SignedIn>
+            <Link
+              href="/my-tickets"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
+            >
+              {t('myTickets')}
+            </Link>
             {isSuperAdmin && (
               <Link
                 href="/superadmin"
@@ -58,30 +82,6 @@ export function Header() {
                 ADMIN
               </Link>
             )}
-            <Link
-              href="/dashboard"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
-            >
-              {t('dashboard')}
-            </Link>
-            <Link
-              href="/saved-events"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
-            >
-              {t('savedEvents')}
-            </Link>
-            <Link
-              href="/following"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
-            >
-              {t('following')}
-            </Link>
-            <Link
-              href="/my-tickets"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
-            >
-              {t('myTickets')}
-            </Link>
           </SignedIn>
           <LanguageSwitcher />
         </nav>
@@ -108,14 +108,64 @@ export function Header() {
             </Link>
           </SignedOut>
           <SignedIn>
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "w-8 h-8 md:w-9 md:h-9 border-2 border-[#ff1493]/50 hover:border-[#ff1493] transition-colors"
-                }
-              }}
-            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="focus:outline-none focus:ring-2 focus:ring-[#ff1493]/50 rounded-full">
+                  <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-[#ff1493]/50 hover:border-[#ff1493] transition-colors cursor-pointer">
+                    <AvatarImage src={user?.imageUrl} />
+                    <AvatarFallback className="bg-[#ff1493]/10 text-[#ff1493] text-sm">
+                      {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user?.emailAddresses?.[0]?.emailAddress}
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="cursor-pointer">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/account" className="cursor-pointer">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings" className="cursor-pointer">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                {isSuperAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/superadmin" className="cursor-pointer text-[#ff1493]">
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        Superadmin
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => signOut({ redirectUrl: "/" })}
+                  className="cursor-pointer text-red-500 focus:text-red-500"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SignedIn>
 
           {/* Mobile Menu */}
@@ -134,6 +184,15 @@ export function Header() {
               </SheetHeader>
               
               <nav className="flex flex-col gap-1 mt-6">
+                <SignedIn>
+                  <Link
+                    href="/dashboard"
+                    onClick={closeMenu}
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
+                  >
+                    {t('dashboard')}
+                  </Link>
+                </SignedIn>
                 <Link
                   href="/events"
                   onClick={closeMenu}
@@ -141,8 +200,14 @@ export function Header() {
                 >
                   {t('events')}
                 </Link>
-                
                 <SignedIn>
+                  <Link
+                    href="/my-tickets"
+                    onClick={closeMenu}
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
+                  >
+                    {t('myTickets')}
+                  </Link>
                   {isSuperAdmin && (
                     <Link
                       href="/superadmin"
@@ -153,34 +218,6 @@ export function Header() {
                       SUPERADMIN
                     </Link>
                   )}
-                  <Link
-                    href="/dashboard"
-                    onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
-                  >
-                    {t('dashboard')}
-                  </Link>
-                  <Link
-                    href="/saved-events"
-                    onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
-                  >
-                    {t('savedEvents')}
-                  </Link>
-                  <Link
-                    href="/following"
-                    onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
-                  >
-                    {t('following')}
-                  </Link>
-                  <Link
-                    href="/my-tickets"
-                    onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
-                  >
-                    {t('myTickets')}
-                  </Link>
                 </SignedIn>
 
                 <SignedOut>
