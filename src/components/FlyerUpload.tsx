@@ -2,13 +2,10 @@
 
 import { useState, useCallback } from "react"
 import { useDropzone } from "react-dropzone"
-import { generateReactHelpers } from "@uploadthing/react"
-import type { OurFileRouter } from "@/lib/uploadthing"
+import { useUploadThing } from "@/lib/uploadthing-client"
 import { Button } from "@/components/ui/button"
 import { Upload, X, Loader2, ImageIcon } from "lucide-react"
 import Image from "next/image"
-
-const { useUploadThing } = generateReactHelpers<OurFileRouter>()
 
 interface FlyerUploadProps {
   value?: string | null
@@ -51,7 +48,12 @@ export function FlyerUpload({ value, onChange, disabled }: FlyerUploadProps) {
       setIsUploading(true)
 
       // Upload
-      await startUpload([file])
+      try {
+        await startUpload([file])
+      } catch (err) {
+        setError("Upload failed. Please try again.")
+        setIsUploading(false)
+      }
     },
     [startUpload, disabled]
   )

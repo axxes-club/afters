@@ -1,13 +1,10 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { useDropzone } from "react-dropzone"
-import { generateReactHelpers } from "@uploadthing/react"
-import type { OurFileRouter } from "@/lib/uploadthing"
+import { useUploadThing } from "@/lib/uploadthing-client"
 import { Button } from "@/components/ui/button"
 import { Upload, X, Loader2, Music, Image as ImageIcon } from "lucide-react"
-
-const { useUploadThing } = generateReactHelpers<OurFileRouter>()
 
 interface AudioUploadProps {
   onUploadComplete: (data: { url: string; duration: number }) => void
