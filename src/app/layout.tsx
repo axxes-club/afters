@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getLocale } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { AftersRadio } from "@/components/AftersRadio";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
@@ -25,22 +27,27 @@ export const metadata: Metadata = {
     "Discover and book tickets to the best nightlife events and after-parties",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang={locale}>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-          <RedirectHandler />
-          {children}
-          <AftersRadio />
-          <Toaster />
+          <NextIntlClientProvider messages={messages}>
+            <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+            <RedirectHandler />
+            {children}
+            <AftersRadio />
+            <Toaster />
+          </NextIntlClientProvider>
         </body>
       </html>
     </ClerkProvider>

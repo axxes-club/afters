@@ -12,6 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 
 export function Header() {
   const [open, setOpen] = useState(false)
@@ -86,6 +87,7 @@ export function Header() {
           >
             STATUS
           </Link>
+          <LanguageSwitcher />
         </nav>
 
         <div className="flex items-center gap-3 md:gap-4">

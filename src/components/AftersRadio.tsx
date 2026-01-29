@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
-import { Play, Pause, Volume2, VolumeX, Radio } from "lucide-react"
+import { Play, Pause, Volume2, VolumeX, Radio, ChevronUp, ChevronDown, Clock } from "lucide-react"
 
 interface RadioTrack {
   id: string
@@ -14,13 +14,26 @@ interface RadioTrack {
   artistSlug: string
 }
 
+interface TimelineTrack {
+  id: string
+  title: string
+  artistName: string
+  artistSlug: string
+  duration: number
+  artworkUrl?: string
+  startTime: number
+  isPlaying: boolean
+}
+
 interface RadioState {
   tracks: RadioTrack[]
   currentTrack: RadioTrack | null
+  nextTrack: RadioTrack | null
   currentIndex: number
   currentPosition: number
   serverTime: number
   isLive: boolean
+  timeline: TimelineTrack[]
 }
 
 export function AftersRadio() {
@@ -29,8 +42,9 @@ export function AftersRadio() {
   const [isMuted, setIsMuted] = useState(false)
   const [volume] = useState(0.8)
   const [isLoading, setIsLoading] = useState(true)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [showPlayer, setShowPlayer] = useState(false)
+  const [showTimeline, setShowTimeline] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [trackProgress, setTrackProgress] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -41,11 +55,10 @@ export function AftersRadio() {
       
       if (data.isLive && data.currentTrack) {
         setRadioState(data)
-        setShowPlayer(true)
+        setTrackProgress(data.currentPosition)
         setIsLoading(false)
         return data
       }
-      setShowPlayer(false)
       setIsLoading(false)
       return null
     } catch (error) {
@@ -55,10 +68,28 @@ export function AftersRadio() {
     }
   }, [])
 
+  // Update current time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+      // Update track progress
+      if (radioState?.currentTrack && isPlaying) {
+        setTrackProgress(prev => {
+          const newProgress = prev + 1
+          if (newProgress >= radioState.currentTrack!.duration) {
+            fetchRadioState()
+            return 0
+          }
+          return newProgress
+        })
+      }
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [radioState, isPlaying, fetchRadioState])
+
   useEffect(() => {
     fetchRadioState()
-    // Poll every 60 seconds to check for new tracks
-    const pollInterval = setInterval(fetchRadioState, 60000)
+    const pollInterval = setInterval(fetchRadioState, 30000)
     return () => clearInterval(pollInterval)
   }, [fetchRadioState])
 
@@ -122,107 +153,197 @@ export function AftersRadio() {
     }
   }
 
-  if (isLoading || !showPlayer || !radioState?.currentTrack) return null
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
+
+  const formatScheduleTime = (timestamp: number) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  if (isLoading || !radioState?.currentTrack) return null
+
+  const progressPercent = (trackProgress / radioState.currentTrack.duration) * 100
 
   return (
     <>
       <audio ref={audioRef} onEnded={handleTrackEnd} className="hidden" />
       
-      {/* Minimal Floating Widget */}
-      <div 
-        className={cn(
-          "fixed z-50 transition-all duration-300 ease-in-out",
-          isExpanded 
-            ? "bottom-4 right-4 w-72" 
-            : "bottom-4 right-4"
-        )}
-      >
-        <div 
-          className={cn(
-            "bg-black/95 backdrop-blur-xl border border-white/10 shadow-2xl transition-all duration-300",
-            isExpanded ? "rounded-2xl p-4" : "rounded-full"
-          )}
-        >
-          {isExpanded ? (
-            // Expanded View
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Radio className="h-4 w-4 text-[#ff1493]" />
-                  <span className="text-xs font-bold text-[#ff1493]">AFTERS RADIO</span>
-                  <span className="text-[8px] px-1 py-0.5 rounded bg-red-500/20 text-red-400 font-medium animate-pulse">LIVE</span>
-                </div>
-                <button 
-                  onClick={() => setIsExpanded(false)}
-                  className="text-white/50 hover:text-white text-xs"
-                >
-                  ✕
-                </button>
+      {/* Always-open floating player */}
+      <div className="fixed bottom-4 right-4 z-50 w-80">
+        <div className="bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+          {/* Main Player */}
+          <div className="p-4">
+            {/* Header with time */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Radio className="h-4 w-4 text-[#ff1493]" />
+                <span className="text-xs font-bold text-[#ff1493]">AFTERS RADIO</span>
+                <span className="text-[8px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-medium animate-pulse">LIVE</span>
               </div>
-              
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 text-white/50 text-xs">
+                <Clock className="h-3 w-3" />
+                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </div>
+            </div>
+
+            {/* Current Track */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-[#ff1493]/10 flex-shrink-0">
                 {radioState.currentTrack.artworkUrl ? (
                   <img 
                     src={radioState.currentTrack.artworkUrl}
                     alt=""
-                    className="w-12 h-12 rounded-lg object-cover"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-lg bg-[#ff1493]/20 flex items-center justify-center">
-                    <Radio className="h-5 w-5 text-[#ff1493]" />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Radio className="h-6 w-6 text-[#ff1493]" />
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
-                    {radioState.currentTrack.title}
-                  </p>
-                  <p className="text-xs text-white/50 truncate">
-                    {radioState.currentTrack.artistName}
-                  </p>
+                {isPlaying && (
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <div className="flex items-end gap-[2px] h-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="w-[3px] bg-[#ff1493] rounded-t-[1px] animate-music-pulse"
+                          style={{ animationDelay: `${i * 0.1}s` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">
+                  {radioState.currentTrack.title}
+                </p>
+                <p className="text-xs text-white/60 truncate">
+                  {radioState.currentTrack.artistName}
+                </p>
+                <div className="flex items-center gap-2 mt-1 text-[10px] text-white/40">
+                  <span>{formatTime(trackProgress)}</span>
+                  <span>/</span>
+                  <span>{formatTime(radioState.currentTrack.duration)}</span>
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={togglePlay}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff1493] text-white hover:bg-[#ff1493]/90 transition-all"
-                >
-                  {isPlaying ? (
-                    <Pause className="h-4 w-4 fill-current" />
-                  ) : (
-                    <Play className="h-4 w-4 fill-current ml-0.5" />
-                  )}
-                </button>
+            {/* Progress Bar */}
+            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-3">
+              <div 
+                className="h-full bg-[#ff1493] transition-all duration-1000 ease-linear"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={togglePlay}
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center rounded-full transition-all",
+                  isPlaying 
+                    ? "bg-[#ff1493] shadow-lg shadow-[#ff1493]/30" 
+                    : "bg-[#ff1493]/80 hover:bg-[#ff1493]"
+                )}
+              >
+                {isPlaying ? (
+                  <Pause className="h-4 w-4 text-white fill-current" />
+                ) : (
+                  <Play className="h-4 w-4 text-white fill-current ml-0.5" />
+                )}
+              </button>
+
+              <div className="flex items-center gap-3">
                 <button
                   onClick={toggleMute}
                   className="text-white/50 hover:text-white transition-colors p-2"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </button>
+                <button
+                  onClick={() => setShowTimeline(!showTimeline)}
+                  className="text-white/50 hover:text-white transition-colors p-2"
+                >
+                  {showTimeline ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </button>
               </div>
             </div>
-          ) : (
-            // Minimal Collapsed View - Just a play button
-            <button
-              onClick={() => setIsExpanded(true)}
-              className={cn(
-                "flex items-center justify-center w-14 h-14 rounded-full transition-all",
-                isPlaying 
-                  ? "bg-[#ff1493] shadow-lg shadow-[#ff1493]/30" 
-                  : "bg-[#ff1493]/80 hover:bg-[#ff1493]"
-              )}
-            >
-              <div className="relative">
-                {isPlaying ? (
-                  <>
-                    <Radio className="h-6 w-6 text-white" />
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  </>
-                ) : (
-                  <Radio className="h-6 w-6 text-white" />
-                )}
+
+            {/* Up Next Preview */}
+            {radioState.nextTrack && (
+              <div className="mt-3 pt-3 border-t border-white/10">
+                <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Up Next</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded bg-white/5 flex-shrink-0 overflow-hidden">
+                    {radioState.nextTrack.artworkUrl ? (
+                      <img src={radioState.nextTrack.artworkUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Radio className="h-3 w-3 text-white/30" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-white/80 truncate">{radioState.nextTrack.title}</p>
+                    <p className="text-[10px] text-white/40 truncate">{radioState.nextTrack.artistName}</p>
+                  </div>
+                  <span className="text-[10px] text-white/30">
+                    {formatTime(radioState.currentTrack.duration - trackProgress)}
+                  </span>
+                </div>
               </div>
-            </button>
+            )}
+          </div>
+
+          {/* Timeline Dropdown */}
+          {showTimeline && radioState.timeline && (
+            <div className="border-t border-white/10 max-h-64 overflow-y-auto">
+              <div className="p-3 pb-1">
+                <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Schedule</p>
+              </div>
+              <div className="px-3 pb-3 space-y-1">
+                {radioState.timeline.slice(0, 8).map((track, i) => (
+                  <div 
+                    key={`${track.id}-${i}`}
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-lg transition-colors",
+                      track.isPlaying ? "bg-[#ff1493]/20" : "hover:bg-white/5"
+                    )}
+                  >
+                    <span className="text-[10px] text-white/40 w-12 flex-shrink-0">
+                      {formatScheduleTime(track.startTime)}
+                    </span>
+                    <div className="w-6 h-6 rounded bg-white/5 flex-shrink-0 overflow-hidden">
+                      {track.artworkUrl ? (
+                        <img src={track.artworkUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Radio className="h-2 w-2 text-white/30" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-xs truncate",
+                        track.isPlaying ? "text-[#ff1493] font-medium" : "text-white/70"
+                      )}>
+                        {track.title}
+                      </p>
+                      <p className="text-[10px] text-white/40 truncate">{track.artistName}</p>
+                    </div>
+                    <span className="text-[10px] text-white/30">
+                      {formatTime(track.duration)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

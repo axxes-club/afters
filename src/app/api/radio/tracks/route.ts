@@ -26,8 +26,10 @@ export async function GET() {
       return NextResponse.json({ 
         tracks: [], 
         currentTrack: null,
+        nextTrack: null,
         currentPosition: 0,
-        isLive: false 
+        isLive: false,
+        timeline: []
       })
     }
 
@@ -56,6 +58,32 @@ export async function GET() {
     }
 
     const currentTrack = tracks[currentTrackIndex]
+    const nextTrackIndex = (currentTrackIndex + 1) % tracks.length
+    const nextTrack = tracks[nextTrackIndex]
+
+    // Build timeline with actual start times
+    // Calculate when each track starts relative to current time
+    const timeline = []
+    let timeOffset = -currentPosition // Start from when current track began
+    
+    for (let i = 0; i < tracks.length; i++) {
+      const trackIndex = (currentTrackIndex + i) % tracks.length
+      const track = tracks[trackIndex]
+      const startTime = now + (timeOffset * 1000)
+      
+      timeline.push({
+        id: track.id,
+        title: track.title,
+        artistName: track.artist?.artistName || track.artistName || "Unknown Artist",
+        artistSlug: track.artist?.slug || "unknown",
+        duration: track.duration,
+        artworkUrl: track.artworkUrl,
+        startTime, // Unix timestamp when track starts
+        isPlaying: i === 0,
+      })
+      
+      timeOffset += track.duration
+    }
 
     // Log the play (debounced - only once per track per minute)
     const oneMinuteAgo = new Date(Date.now() - 60000)
@@ -79,6 +107,8 @@ export async function GET() {
     // Determine artist name (from profile or direct field)
     const artistName = currentTrack.artist?.artistName || currentTrack.artistName || "Unknown Artist"
     const artistSlug = currentTrack.artist?.slug || "unknown"
+    const nextArtistName = nextTrack.artist?.artistName || nextTrack.artistName || "Unknown Artist"
+    const nextArtistSlug = nextTrack.artist?.slug || "unknown"
 
     return NextResponse.json({
       tracks: tracks.map(t => ({
@@ -100,13 +130,22 @@ export async function GET() {
         artistName,
         artistSlug,
       },
+      nextTrack: {
+        id: nextTrack.id,
+        title: nextTrack.title,
+        duration: nextTrack.duration,
+        artworkUrl: nextTrack.artworkUrl,
+        artistName: nextArtistName,
+        artistSlug: nextArtistSlug,
+      },
       currentIndex: currentTrackIndex,
       currentPosition, // Position in seconds within the current track
       serverTime: Date.now(),
-      isLive: true
+      isLive: true,
+      timeline, // Full timeline with start times
     })
   } catch (error) {
     console.error("Error getting radio state:", error)
-    return NextResponse.json({ tracks: [], currentTrack: null, isLive: false }, { status: 500 })
+    return NextResponse.json({ tracks: [], currentTrack: null, nextTrack: null, isLive: false, timeline: [] }, { status: 500 })
   }
 }
