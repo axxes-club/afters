@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "uploadthing.com",
       },
+      {
+        protocol: "https",
+        hostname: "edmtrain.com",
+      },
     ],
   },
   // Moved from experimental.serverComponentsExternalPackages (deprecated in Next.js 16)

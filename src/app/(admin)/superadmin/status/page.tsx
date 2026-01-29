@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SystemHealth } from "@prisma/client"
+import { SystemHealth, FeatureType } from "@prisma/client"
 import { StatusForm } from "./StatusForm"
 
 export default async function StatusManagement() {
@@ -16,6 +16,17 @@ export default async function StatusManagement() {
     CONSTRUCTION: "bg-blue-500",
     DEPLOYING: "bg-purple-500",
     DOWN: "bg-red-500",
+  }
+
+  const featureTypeColors: Record<FeatureType, string> = {
+    EVENTS: "bg-blue-500",
+    DASHBOARD: "bg-purple-500",
+    LOGIN: "bg-green-500",
+    REGISTRATION: "bg-yellow-500",
+    TICKETING: "bg-orange-500",
+    PROFILE: "bg-pink-500",
+    PAYMENTS: "bg-indigo-500",
+    API: "bg-teal-500",
   }
 
   return (
@@ -44,6 +55,9 @@ export default async function StatusManagement() {
                     <h3 className="font-semibold text-lg">{status.feature}</h3>
                     <Badge className={healthColors[status.status]}>
                       {status.status}
+                    </Badge>
+                    <Badge className={featureTypeColors[status.featureType]}>
+                      {status.featureType}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{status.message || "No custom message set."}</p>

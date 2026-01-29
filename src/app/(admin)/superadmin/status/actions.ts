@@ -2,12 +2,13 @@
 
 import { prisma } from "@/lib/prisma"
 import { requireSuperAdmin } from "@/lib/auth-utils"
-import { SystemHealth } from "@prisma/client"
+import { SystemHealth, FeatureType } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 
 export async function upsertStatus(data: {
   id?: string
   feature: string
+  featureType: FeatureType
   status: SystemHealth
   message?: string
 }) {
@@ -18,6 +19,7 @@ export async function upsertStatus(data: {
       where: { id: data.id },
       data: {
         feature: data.feature,
+        featureType: data.featureType,
         status: data.status,
         message: data.message,
       },
@@ -26,6 +28,7 @@ export async function upsertStatus(data: {
     await prisma.systemStatus.create({
       data: {
         feature: data.feature,
+        featureType: data.featureType,
         status: data.status,
         message: data.message,
       },

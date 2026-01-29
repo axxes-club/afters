@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/prisma"
 import { Header } from "@/components/layout/header"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { SystemHealth } from "@prisma/client"
+import { SystemHealth, FeatureType } from "@prisma/client"
 import { Zap, HardHat, Sparkles, Trash2, AlertCircle, CheckCircle2, type LucideIcon } from "lucide-react"
+import { getAllStatuses, getOverallStatus } from "@/lib/status-utils"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -53,13 +53,8 @@ const STATUS_CONFIG: Record<SystemHealth, {
 }
 
 export default async function PublicStatusPage() {
-  const statuses = await prisma.systemStatus.findMany({
-    orderBy: { feature: "asc" }
-  })
-
-  const overallStatus = statuses.every(s => s.status === "OPERATIONAL") 
-    ? "All systems go. See you on the floor."
-    : "Some things are a bit wonky. We&apos;re sorting it."
+  const statuses = await getAllStatuses()
+  const overallStatus = await getOverallStatus()
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -96,9 +91,14 @@ export default async function PublicStatusPage() {
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
                         <h3 className="font-bold text-lg tracking-tight uppercase italic">{status.feature}</h3>
-                        <Badge variant="outline" className={`${config.color} border font-bold text-[10px] uppercase tracking-widest`}>
-                          {config.label}
-                        </Badge>
+                        <div className="flex gap-1">
+                          <Badge variant="outline" className={`${config.color} border font-bold text-[10px] uppercase tracking-widest`}>
+                            {config.label}
+                          </Badge>
+                          <Badge variant="outline" className="border font-bold text-[10px] uppercase tracking-widest bg-blue-500/10 border-blue-500/20 text-blue-500">
+                            {status.featureType}
+                          </Badge>
+                        </div>
                       </div>
                       <p className="text-zinc-400 font-medium">
                         {status.message || config.defaultMessage}

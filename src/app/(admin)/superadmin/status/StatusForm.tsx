@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { SystemHealth } from "@prisma/client"
+import { SystemHealth, FeatureType } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -36,6 +36,7 @@ import { toast } from "sonner"
 
 const formSchema = z.object({
   feature: z.string().min(2, "Feature name must be at least 2 characters"),
+  featureType: z.nativeEnum(FeatureType),
   status: z.nativeEnum(SystemHealth),
   message: z.string().optional(),
 })
@@ -44,6 +45,7 @@ interface StatusFormProps {
   initialData?: {
     id: string
     feature: string
+    featureType: FeatureType
     status: SystemHealth
     message: string | null
   }
@@ -57,6 +59,7 @@ export function StatusForm({ initialData }: StatusFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       feature: initialData?.feature || "",
+      featureType: initialData?.featureType || "EVENTS",
       status: initialData?.status || "OPERATIONAL",
       message: initialData?.message || "",
     },
@@ -124,6 +127,30 @@ export function StatusForm({ initialData }: StatusFormProps) {
             />
             <FormField
               control={form.control}
+              name="featureType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Feature Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a feature type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(FeatureType).map((featureType) => (
+                        <SelectItem key={featureType} value={featureType}>
+                          {featureType}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="status"
               render={({ field }) => (
                 <FormItem>
@@ -153,9 +180,9 @@ export function StatusForm({ initialData }: StatusFormProps) {
                 <FormItem>
                   <FormLabel>Clever Message</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="e.g. We're polishing the glitter. Back in a bit!" 
-                      {...field} 
+                    <Textarea
+                      placeholder="e.g. We're polishing the glitter. Back in a bit!"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -164,9 +191,9 @@ export function StatusForm({ initialData }: StatusFormProps) {
             />
             <div className="flex justify-between">
               {initialData && (
-                <Button 
-                  type="button" 
-                  variant="destructive" 
+                <Button
+                  type="button"
+                  variant="destructive"
                   onClick={onDelete}
                   disabled={isDeleting}
                 >
