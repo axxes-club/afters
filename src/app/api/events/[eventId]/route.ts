@@ -84,6 +84,8 @@ export async function PUT(
       state,
       flyerUrl,
       ageRestriction,
+      ticketingType,
+      externalTicketingUrl,
     } = body
 
     const event = await prisma.event.update({
@@ -92,14 +94,16 @@ export async function PUT(
         title,
         description,
         startsAt: startsAt ? new Date(startsAt) : undefined,
-        endsAt: endsAt ? new Date(endsAt) : null,
+        endsAt: endsAt !== undefined ? (endsAt ? new Date(endsAt) : null) : undefined,
         timezone,
         venueName,
         venueAddress,
         city,
         state,
         flyerUrl,
-        ageRestriction: ageRestriction ? parseInt(ageRestriction) : null,
+        ageRestriction: ageRestriction !== undefined ? (ageRestriction ? parseInt(ageRestriction) : null) : undefined,
+        ticketingType,
+        externalTicketingUrl,
       },
     })
 

@@ -16,6 +16,9 @@ import { AuthGuard } from "@/components/AuthGuard"
 
 const US_CITIES = [
   "New York",
+  "Brooklyn",
+  "Charlotte",
+  "Raleigh",
   "Los Angeles",
   "Miami",
   "Las Vegas",
@@ -50,6 +53,8 @@ function NewEventForm() {
       state: formData.get("state"),
       ageRestriction: formData.get("ageRestriction") || null,
       flyerUrl: flyerUrl,
+      ticketingType: formData.get("ticketingType"),
+      externalTicketingUrl: formData.get("externalTicketingUrl") || null,
     }
 
     try {
@@ -216,6 +221,39 @@ function NewEventForm() {
                   <SelectItem value="21">21+</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-4 border-t pt-6">
+              <h3 className="font-semibold">Ticketing</h3>
+              <div className="space-y-2">
+                <Label htmlFor="ticketingType">Ticketing Platform</Label>
+                <Select name="ticketingType" defaultValue="AFTERS">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AFTERS">Afterz (Default)</SelectItem>
+                    <SelectItem value="POSH">Posh.vip</SelectItem>
+                    <SelectItem value="DICE">Dice.fm</SelectItem>
+                    <SelectItem value="TICKETMASTER">Ticketmaster</SelectItem>
+                    <SelectItem value="LIVENATION">Live Nation</SelectItem>
+                    <SelectItem value="EVENTBRITE">Eventbrite</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="externalTicketingUrl">External Ticketing URL (Optional)</Label>
+                <Input
+                  id="externalTicketingUrl"
+                  name="externalTicketingUrl"
+                  placeholder="https://posh.vip/e/..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  If using a third-party platform, provide the link here.
+                </p>
+              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

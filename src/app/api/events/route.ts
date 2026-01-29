@@ -139,6 +139,8 @@ export async function POST(req: Request) {
       state,
       flyerUrl,
       ageRestriction,
+      ticketingType,
+      externalTicketingUrl,
     } = body
 
     if (!title || !startsAt || !venueName || !venueAddress || !city) {
@@ -181,6 +183,8 @@ export async function POST(req: Request) {
         state,
         flyerUrl,
         ageRestriction: ageRestriction ? parseInt(ageRestriction) : null,
+        ticketingType: ticketingType || 'AFTERS',
+        externalTicketingUrl,
       },
     })
 

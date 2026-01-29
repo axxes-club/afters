@@ -34,6 +34,8 @@ interface Event {
   venueName: string
   city: string
   flyerUrl: string | null
+  ticketingType: string
+  externalTicketingUrl: string | null
   ticketTiers: TicketTier[]
   organizer: {
     slug: string
@@ -47,8 +49,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
   const [publishing, setPublishing] = useState(false)
   const [showTierDialog, setShowTierDialog] = useState(false)
   const [showFlyerDialog, setShowFlyerDialog] = useState(false)
+  const [showTicketingDialog, setShowTicketingDialog] = useState(false)
   const [tierLoading, setTierLoading] = useState(false)
   const [flyerLoading, setFlyerLoading] = useState(false)
+  const [ticketingLoading, setTicketingLoading] = useState(false)
   const [tempFlyerUrl, setTempFlyerUrl] = useState<string | null>(null)
 
   const fetchEvent = useCallback(async () => {
@@ -112,6 +116,38 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
       toast.error(error instanceof Error ? error.message : "Failed to update flyer")
     } finally {
       setFlyerLoading(false)
+    }
+  }
+
+  async function updateTicketing(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setTicketingLoading(true)
+
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      ticketingType: formData.get("ticketingType"),
+      externalTicketingUrl: formData.get("externalTicketingUrl") || null,
+    }
+
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.message)
+      }
+
+      toast.success("Ticketing updated!")
+      setShowTicketingDialog(false)
+      fetchEvent()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update ticketing")
+    } finally {
+      setTicketingLoading(false)
     }
   }
 
@@ -327,6 +363,65 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
                   View Analytics
                 </Link>
               </Button>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">Ticketing</CardTitle>
+                <Dialog open={showTicketingDialog} onOpenChange={setShowTicketingDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Ticketing Settings</DialogTitle>
+                      <DialogDescription>
+                        Configure how users will get tickets for this event.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={updateTicketing} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="ticketingType">Ticketing Platform</Label>
+                        <select 
+                          name="ticketingType" 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          defaultValue={event.ticketingType}
+                        >
+                          <option value="AFTERS">Afterz (Default)</option>
+                          <option value="POSH">Posh.vip</option>
+                          <option value="DICE">Dice.fm</option>
+                          <option value="TICKETMASTER">Ticketmaster</option>
+                          <option value="LIVENATION">Live Nation</option>
+                          <option value="EVENTBRITE">Eventbrite</option>
+                          <option value="OTHER">Other</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="externalTicketingUrl">External URL (Optional)</Label>
+                        <Input
+                          id="externalTicketingUrl"
+                          name="externalTicketingUrl"
+                          defaultValue={event.externalTicketingUrl || ""}
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={ticketingLoading}>
+                        {ticketingLoading ? "Saving..." : "Save Settings"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm">
+                <p className="font-medium">{event.ticketingType === 'AFTERS' ? 'Internal (Afterz)' : 'External'}</p>
+                <p className="text-muted-foreground truncate">{event.externalTicketingUrl || 'No external URL'}</p>
+              </div>
             </CardContent>
           </Card>
         </div>
