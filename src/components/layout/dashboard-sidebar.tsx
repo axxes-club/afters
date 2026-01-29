@@ -13,6 +13,8 @@ import {
   Music,
   Building2,
   UserCircle,
+  Bookmark,
+  Ticket,
 } from "lucide-react"
 
 const baseNavItems = [
@@ -21,6 +23,16 @@ const baseNavItems = [
     href: "/dashboard",
     icon: LayoutDashboard,
     exact: true,
+  },
+  {
+    title: "Watch List",
+    href: "/saved-events",
+    icon: Bookmark,
+  },
+  {
+    title: "My Tickets",
+    href: "/my-tickets",
+    icon: Ticket,
   },
   {
     title: "Events",
