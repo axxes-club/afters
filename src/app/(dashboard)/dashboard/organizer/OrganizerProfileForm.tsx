@@ -90,7 +90,7 @@ export function OrganizerProfileForm({ profile }: Props) {
       {/* Basic Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Organization Profile</CardTitle>
+          <CardTitle>Organizer Profile</CardTitle>
           <CardDescription>
             This information will be displayed on your public organizer page.
           </CardDescription>
@@ -115,12 +115,12 @@ export function OrganizerProfileForm({ profile }: Props) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Organization Name *</Label>
+              <Label htmlFor="displayName">Organizer Name *</Label>
               <Input
                 id="displayName"
                 value={formData.displayName}
                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                placeholder="Your organization name"
+                placeholder="Your organizer or business name"
                 required
               />
             </div>
@@ -151,7 +151,7 @@ export function OrganizerProfileForm({ profile }: Props) {
               id="bio"
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              placeholder="Tell people about your organization, the events you produce, your mission..."
+              placeholder="Tell people about your event business, the events you produce, your mission..."
               rows={4}
             />
           </div>

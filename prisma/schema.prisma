@@ -71,7 +71,7 @@ model ArtistProfile {
   avatarUrl      String?
   coverUrl       String?
   genres         String?
-  
+
   // Social Links
   spotifyUrl     String?
   soundcloudUrl  String?
@@ -83,7 +83,7 @@ model ArtistProfile {
   bandcampUrl    String?
   beatportUrl    String?
   appleMusicUrl  String?
-  
+
   // Customization
   accentColor    String?       // Custom accent color (hex)
   headerStyle    String?       // 'default', 'gradient', 'image', 'minimal'
@@ -94,12 +94,12 @@ model ArtistProfile {
   bookingEmail   String?       // For booking inquiries
   pressKitUrl    String?       // Link to press kit
   riderUrl       String?       // Link to tech rider
-  
+
   // Additional Info
   label          String?       // Record label
   management     String?       // Management company
   agency         String?       // Booking agency
-  
+
   isVerified     Boolean       @default(false)
   isFaux         Boolean       @default(false) // Fake profile for demo/testing
   createdAt      DateTime      @default(now())
@@ -108,25 +108,7 @@ model ArtistProfile {
   radioTracks    RadioTrack[]
 }
 
-// Organization model (separate from OrganizerProfile for event companies)
-model Organization {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  logoUrl     String?
-  coverUrl    String?
-  websiteUrl  String?
-  email       String?
-  phone       String?
-  address     String?
-  city        String?
-  state       String?
-  country     String   @default("US")
-  isVerified  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+
 
 // AFTERS RADIO Models
 enum RadioTrackStatus {
@@ -470,18 +452,18 @@ model VerificationRequest {
   organizationId  String?
   userId          String
   status          VerificationStatus @default(PENDING)
-  
+
   // Verification evidence
   realName        String?            // Legal name
   socialProof     String?            // Links to verified social accounts
   pressLinks      String?            // Links to press coverage
   additionalInfo  String?            @db.Text
-  
+
   // Review
   reviewedBy      String?
   reviewedAt      DateTime?
   rejectionReason String?
-  
+
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 

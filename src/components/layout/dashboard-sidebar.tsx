@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useTranslations } from "next-intl"
-import { cn } from "@/lib/utils"
-import { Separator } from "@/components/ui/separator"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 import {
   CalendarDays,
   LayoutDashboard,
@@ -15,13 +15,13 @@ import {
   UserCircle,
   Ticket,
   LucideIcon,
-} from "lucide-react"
+} from "lucide-react";
 
 interface NavItem {
-  titleKey: string
-  href: string
-  icon: LucideIcon
-  exact?: boolean
+  titleKey: string;
+  href: string;
+  icon: LucideIcon;
+  exact?: boolean;
 }
 
 const mainNavItems: NavItem[] = [
@@ -52,61 +52,62 @@ const mainNavItems: NavItem[] = [
     icon: Settings,
     exact: true,
   },
-]
+];
 
-function isNavItemActive(pathname: string, item: { href: string; exact?: boolean }) {
+function isNavItemActive(
+  pathname: string,
+  item: { href: string; exact?: boolean },
+) {
   // Exact match
-  if (pathname === item.href) return true
+  if (pathname === item.href) return true;
 
   // For items marked as exact, don't check startsWith
-  if (item.exact) return false
+  if (item.exact) return false;
 
   // Check if path starts with this href (for nested routes)
-  return pathname.startsWith(item.href + "/")
+  return pathname.startsWith(item.href + "/");
 }
 
 export function DashboardSidebar({
   isSuperAdmin,
   isOrganizer,
   isArtist,
-  isPersonal
+  isPersonal,
 }: {
-  isSuperAdmin?: boolean
-  isOrganizer?: boolean
-  isArtist?: boolean
-  isPersonal?: boolean
+  isSuperAdmin?: boolean;
+  isOrganizer?: boolean;
+  isArtist?: boolean;
+  isPersonal?: boolean;
 }) {
-  const pathname = usePathname()
-  const t = useTranslations('sidebar')
+  const pathname = usePathname();
+  const t = useTranslations("sidebar");
 
-  // Build profile items based on user roles
-  const profileItems: NavItem[] = []
-  
+  // Users can only have ONE profile type at a time
+  // Show the appropriate profile link based on their type
+  const profileItems: NavItem[] = [];
+
   if (isOrganizer) {
     profileItems.push({
       titleKey: "organizerProfile",
       href: "/dashboard/organizer",
       icon: Building2,
-    })
-  }
-
-  if (isArtist) {
+    });
+  } else if (isArtist) {
     profileItems.push({
       titleKey: "artistProfile",
       href: "/dashboard/artist",
       icon: Music,
-    })
+    });
+  } else if (isPersonal) {
+    profileItems.push({
+      titleKey: "personalProfile",
+      href: "/dashboard/account",
+      icon: UserCircle,
+    });
   }
 
-  // Always show personal profile option
-  profileItems.push({
-    titleKey: "personalProfile",
-    href: "/dashboard/account",
-    icon: UserCircle,
-  })
-
   // Combined items for mobile nav (no divider there)
-  const allItems = [...mainNavItems, ...profileItems]
+  const allItems = [...mainNavItems, ...profileItems];
 
   return (
     <>
@@ -115,7 +116,7 @@ export function DashboardSidebar({
         <nav className="flex flex-col gap-2 p-4">
           {/* Main Navigation */}
           {mainNavItems.map((item) => {
-            const isActive = isNavItemActive(pathname, item)
+            const isActive = isNavItemActive(pathname, item);
             return (
               <Link
                 key={item.href}
@@ -124,13 +125,13 @@ export function DashboardSidebar({
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
+                    : "hover:bg-muted",
                 )}
               >
                 <item.icon className="h-4 w-4" />
                 {t(item.titleKey)}
               </Link>
-            )
+            );
           })}
 
           {/* Divider */}
@@ -138,12 +139,12 @@ export function DashboardSidebar({
 
           {/* Profile Section Label */}
           <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            {t('profiles')}
+            {t("profiles")}
           </p>
 
           {/* Profile Items */}
           {profileItems.map((item) => {
-            const isActive = isNavItemActive(pathname, item)
+            const isActive = isNavItemActive(pathname, item);
             return (
               <Link
                 key={item.href}
@@ -152,13 +153,13 @@ export function DashboardSidebar({
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
+                    : "hover:bg-muted",
                 )}
               >
                 <item.icon className="h-4 w-4" />
                 {t(item.titleKey)}
               </Link>
-            )
+            );
           })}
         </nav>
       </aside>
@@ -167,8 +168,8 @@ export function DashboardSidebar({
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-1 overflow-x-auto scrollbar-hide">
           {allItems.slice(0, 5).map((item) => {
-            const isActive = isNavItemActive(pathname, item)
-            const title = t(item.titleKey)
+            const isActive = isNavItemActive(pathname, item);
+            const title = t(item.titleKey);
             return (
               <Link
                 key={item.href}
@@ -177,16 +178,20 @@ export function DashboardSidebar({
                   "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg text-[10px] transition-colors min-w-[3.5rem]",
                   isActive
                     ? "text-[#ff1493]"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <item.icon className={cn("h-5 w-5", isActive && "text-[#ff1493]")} />
-                <span className="truncate max-w-[3.5rem]">{title.split(" ")[0]}</span>
+                <item.icon
+                  className={cn("h-5 w-5", isActive && "text-[#ff1493]")}
+                />
+                <span className="truncate max-w-[3.5rem]">
+                  {title.split(" ")[0]}
+                </span>
               </Link>
-            )
+            );
           })}
         </div>
       </nav>
     </>
-  )
+  );
 }

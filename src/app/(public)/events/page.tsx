@@ -1,65 +1,74 @@
-import Link from "next/link"
-import Image from "next/image"
-import { prisma } from "@/lib/prisma"
-import { formatCents } from "@/lib/stripe"
-import { Header } from "@/components/layout/header"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { EventFilters } from "@/components/events/EventFilters"
-import { CalendarDays, MapPin, Search, ChevronLeft, ChevronRight } from "lucide-react"
-import { auth } from "@clerk/nextjs/server"
-import { SaveEventButton } from "@/components/SaveEventButton"
+import Link from "next/link";
+import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { formatCents } from "@/lib/stripe";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EventFilters } from "@/components/events/EventFilters";
+import {
+  CalendarDays,
+  MapPin,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+} from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { SaveEventButton } from "@/components/SaveEventButton";
+import { isOrganizer } from "@/lib/auth-utils";
 
 // Ensure dynamic rendering for fresh city filters
-export const dynamic = "force-dynamic"
-export const revalidate = 0
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-const ITEMS_PER_PAGE = 12
+const ITEMS_PER_PAGE = 12;
 
 const DATE_FILTERS = [
   { label: "Any Date", value: "" },
   { label: "Today", value: "today" },
   { label: "This Week", value: "week" },
   { label: "This Month", value: "month" },
-]
+];
 
 function getDateRange(filter: string): { start: Date; end?: Date } {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   switch (filter) {
     case "today":
-      const endOfDay = new Date(start)
-      endOfDay.setDate(endOfDay.getDate() + 1)
-      return { start, end: endOfDay }
+      const endOfDay = new Date(start);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+      return { start, end: endOfDay };
     case "week":
-      const endOfWeek = new Date(start)
-      endOfWeek.setDate(endOfWeek.getDate() + 7)
-      return { start, end: endOfWeek }
+      const endOfWeek = new Date(start);
+      endOfWeek.setDate(endOfWeek.getDate() + 7);
+      return { start, end: endOfWeek };
     case "month":
-      const endOfMonth = new Date(start)
-      endOfMonth.setMonth(endOfMonth.getMonth() + 1)
-      return { start, end: endOfMonth }
+      const endOfMonth = new Date(start);
+      endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+      return { start, end: endOfMonth };
     default:
-      return { start }
+      return { start };
   }
 }
 
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ 
-    city?: string
-    search?: string
-    date?: string
-    page?: string 
-  }>
+  searchParams: Promise<{
+    city?: string;
+    search?: string;
+    date?: string;
+    page?: string;
+  }>;
 }) {
-  const params = await searchParams
-  const selectedCity = params.city && params.city !== "all" ? params.city : null
-  const searchQuery = params.search || ""
-  const dateFilter = params.date || ""
-  const currentPage = Math.max(1, parseInt(params.page || "1", 10))
+  const params = await searchParams;
+  const selectedCity =
+    params.city && params.city !== "all" ? params.city : null;
+  const searchQuery = params.search || "";
+  const dateFilter = params.date || "";
+  const currentPage = Math.max(1, parseInt(params.page || "1", 10));
 
   // Get unique cities from events
   const citiesResult = await prisma.event.groupBy({
@@ -70,11 +79,11 @@ export default async function EventsPage({
       startsAt: { gte: new Date() },
     },
     orderBy: { city: "asc" },
-  })
-  const cities = citiesResult.map((c) => c.city)
+  });
+  const cities = citiesResult.map((c) => c.city);
 
   // Build date filter
-  const dateRange = getDateRange(dateFilter)
+  const dateRange = getDateRange(dateFilter);
   const dateWhere = dateFilter
     ? {
         startsAt: {
@@ -84,7 +93,7 @@ export default async function EventsPage({
       }
     : {
         startsAt: { gte: new Date() },
-      }
+      };
 
   // Build where clause
   const where = {
@@ -96,22 +105,29 @@ export default async function EventsPage({
       OR: [
         { title: { contains: searchQuery, mode: "insensitive" as const } },
         { venueName: { contains: searchQuery, mode: "insensitive" as const } },
-        { description: { contains: searchQuery, mode: "insensitive" as const } },
+        {
+          description: { contains: searchQuery, mode: "insensitive" as const },
+        },
       ],
     }),
-  }
+  };
 
   // Get total count for pagination
-  const totalCount = await prisma.event.count({ where })
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
+  const totalCount = await prisma.event.count({ where });
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  const { userId } = await auth()
-  const savedEventIds = userId 
-    ? (await prisma.savedEvent.findMany({
-        where: { userId },
-        select: { eventId: true }
-      })).map(s => s.eventId)
-    : []
+  const { userId } = await auth();
+  const savedEventIds = userId
+    ? (
+        await prisma.savedEvent.findMany({
+          where: { userId },
+          select: { eventId: true },
+        })
+      ).map((s) => s.eventId)
+    : [];
+
+  // Check if user is an organizer
+  const userIsOrganizer = await isOrganizer();
 
   // Fetch events with pagination
   const events = await prisma.event.findMany({
@@ -132,29 +148,29 @@ export default async function EventsPage({
     orderBy: { startsAt: "asc" },
     skip: (currentPage - 1) * ITEMS_PER_PAGE,
     take: ITEMS_PER_PAGE,
-  })
+  });
 
-  type EventType = (typeof events)[number]
+  type EventType = (typeof events)[number];
 
   // Build URL with current filters
   function buildUrl(overrides: Record<string, string | undefined>) {
-    const newParams = new URLSearchParams()
-    const merged = { 
-      city: selectedCity || undefined, 
-      search: searchQuery || undefined, 
+    const newParams = new URLSearchParams();
+    const merged = {
+      city: selectedCity || undefined,
+      search: searchQuery || undefined,
       date: dateFilter || undefined,
       page: currentPage > 1 ? String(currentPage) : undefined,
-      ...overrides 
-    }
-    
+      ...overrides,
+    };
+
     for (const [key, value] of Object.entries(merged)) {
       if (value && value !== "1") {
-        newParams.set(key, value)
+        newParams.set(key, value);
       }
     }
-    
-    const qs = newParams.toString()
-    return `/events${qs ? `?${qs}` : ""}`
+
+    const qs = newParams.toString();
+    return `/events${qs ? `?${qs}` : ""}`;
   }
 
   return (
@@ -162,7 +178,17 @@ export default async function EventsPage({
       <Header />
 
       <main className="container mx-auto px-4 pb-8 pt-24">
-        <h1 className="text-3xl font-bold mb-6">Discover Events</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">Discover Events</h1>
+          {userIsOrganizer && (
+            <Button asChild>
+              <Link href="/dashboard/events/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Event
+              </Link>
+            </Button>
+          )}
+        </div>
 
         {/* Search Bar */}
         <form action="/events" method="GET" className="mb-6">
@@ -176,8 +202,12 @@ export default async function EventsPage({
               className="pl-10"
             />
             {/* Preserve other filters */}
-            {selectedCity && <input type="hidden" name="city" value={selectedCity} />}
-            {dateFilter && <input type="hidden" name="date" value={dateFilter} />}
+            {selectedCity && (
+              <input type="hidden" name="city" value={selectedCity} />
+            )}
+            {dateFilter && (
+              <input type="hidden" name="date" value={dateFilter} />
+            )}
           </div>
         </form>
 
@@ -196,7 +226,8 @@ export default async function EventsPage({
               {totalCount} event{totalCount !== 1 ? "s" : ""} found
               {searchQuery && ` for "${searchQuery}"`}
               {selectedCity && ` in ${selectedCity}`}
-              {dateFilter && ` (${DATE_FILTERS.find((d) => d.value === dateFilter)?.label.toLowerCase()})`}
+              {dateFilter &&
+                ` (${DATE_FILTERS.find((d) => d.value === dateFilter)?.label.toLowerCase()})`}
             </p>
             {(searchQuery || selectedCity || dateFilter) && (
               <Button variant="ghost" size="sm" asChild>
@@ -210,12 +241,14 @@ export default async function EventsPage({
         {events.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <p>No events found{selectedCity ? ` in ${selectedCity}` : ""}.</p>
-            <p className="mt-2 text-sm">Try adjusting your filters or search terms.</p>
+            <p className="mt-2 text-sm">
+              Try adjusting your filters or search terms.
+            </p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event: EventType) => {
-              const lowestPrice = event.ticketTiers[0]?.price || 0
+              const lowestPrice = event.ticketTiers[0]?.price || 0;
 
               return (
                 <Link
@@ -232,8 +265,8 @@ export default async function EventsPage({
                         className="object-cover"
                       />
                       <div className="absolute top-2 right-2">
-                        <SaveEventButton 
-                          eventId={event.id} 
+                        <SaveEventButton
+                          eventId={event.id}
                           initialIsSaved={savedEventIds.includes(event.id)}
                         />
                       </div>
@@ -242,8 +275,8 @@ export default async function EventsPage({
                     <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                       <CalendarDays className="h-12 w-12 text-primary/40" />
                       <div className="absolute top-2 right-2">
-                        <SaveEventButton 
-                          eventId={event.id} 
+                        <SaveEventButton
+                          eventId={event.id}
                           initialIsSaved={savedEventIds.includes(event.id)}
                         />
                       </div>
@@ -271,11 +304,13 @@ export default async function EventsPage({
                       </span>
                     </div>
                     <p className="mt-3 font-medium">
-                      {lowestPrice === 0 ? "Free" : `From ${formatCents(lowestPrice)}`}
+                      {lowestPrice === 0
+                        ? "Free"
+                        : `From ${formatCents(lowestPrice)}`}
                     </p>
                   </div>
                 </Link>
-              )
+              );
             })}
           </div>
         )}
@@ -305,15 +340,15 @@ export default async function EventsPage({
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 // Show pages around current page
-                let pageNum: number
+                let pageNum: number;
                 if (totalPages <= 5) {
-                  pageNum = i + 1
+                  pageNum = i + 1;
                 } else if (currentPage <= 3) {
-                  pageNum = i + 1
+                  pageNum = i + 1;
                 } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
+                  pageNum = totalPages - 4 + i;
                 } else {
-                  pageNum = currentPage - 2 + i
+                  pageNum = currentPage - 2 + i;
                 }
 
                 return (
@@ -325,12 +360,14 @@ export default async function EventsPage({
                     asChild={pageNum !== currentPage}
                   >
                     {pageNum !== currentPage ? (
-                      <Link href={buildUrl({ page: String(pageNum) })}>{pageNum}</Link>
+                      <Link href={buildUrl({ page: String(pageNum) })}>
+                        {pageNum}
+                      </Link>
                     ) : (
                       <span>{pageNum}</span>
                     )}
                   </Button>
-                )
+                );
               })}
             </div>
 
@@ -363,5 +400,5 @@ export default async function EventsPage({
         )}
       </main>
     </div>
-  )
+  );
 }

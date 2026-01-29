@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   Users,
   CalendarDays,
@@ -15,7 +15,7 @@ import {
   Ticket,
   Languages,
   BadgeCheck,
-} from "lucide-react"
+} from "lucide-react";
 
 const navItems = [
   {
@@ -44,11 +44,7 @@ const navItems = [
     href: "/superadmin/events",
     icon: CalendarDays,
   },
-  {
-    title: "Organizations",
-    href: "/superadmin/organizations",
-    icon: Building2,
-  },
+
   {
     title: "AFTERS RADIO",
     href: "/superadmin/radio",
@@ -74,23 +70,25 @@ const navItems = [
     href: "/superadmin/status",
     icon: Activity,
   },
-]
+];
 
 export function SuperadminSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <>
       <aside className="hidden lg:block w-64 border-r bg-muted/30 min-h-[calc(100vh-4rem)]">
         <div className="p-4 border-b">
           <h2 className="font-semibold text-lg tracking-tight">Superadmin</h2>
-          <p className="text-xs text-muted-foreground italic text-[#ff1493]">Power corrupts; absolute power is kind of fun.</p>
+          <p className="text-xs text-muted-foreground italic text-[#ff1493]">
+            Power corrupts; absolute power is kind of fun.
+          </p>
         </div>
         <nav className="flex flex-col gap-2 p-4">
           {navItems.map((item) => {
-            const isActive = item.exact 
-              ? pathname === item.href 
-              : pathname.startsWith(item.href)
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
 
             return (
               <Link
@@ -98,15 +96,13 @@ export function SuperadminSidebar() {
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors font-medium",
-                  isActive
-                    ? "bg-[#ff1493] text-white"
-                    : "hover:bg-muted"
+                  isActive ? "bg-[#ff1493] text-white" : "hover:bg-muted",
                 )}
               >
                 <item.icon className="h-4 w-4" />
                 {item.title}
               </Link>
-            )
+            );
           })}
         </nav>
       </aside>
@@ -114,18 +110,23 @@ export function SuperadminSidebar() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom">
         <div className="flex items-center h-16 px-1 overflow-x-auto scrollbar-hide">
           {navItems.map((item) => {
-            const isActive = item.exact 
-              ? pathname === item.href 
-              : pathname.startsWith(item.href)
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
 
             // Shorten long titles for mobile
-            const shortTitle = item.title === "AFTERS RADIO" ? "Radio" :
-                              item.title === "Organizations" ? "Orgs" :
-                              item.title === "Translations" ? "i18n" :
-                              item.title === "Roles & Perms" ? "Roles" :
-                              item.title === "System Status" ? "Status" :
-                              item.title === "Verification" ? "Verify" :
-                              item.title
+            const shortTitle =
+              item.title === "AFTERS RADIO"
+                ? "Radio"
+                : item.title === "Translations"
+                  ? "i18n"
+                  : item.title === "Roles & Perms"
+                    ? "Roles"
+                    : item.title === "System Status"
+                      ? "Status"
+                      : item.title === "Verification"
+                        ? "Verify"
+                        : item.title;
 
             return (
               <Link
@@ -135,16 +136,18 @@ export function SuperadminSidebar() {
                   "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg text-[9px] transition-colors min-w-[3rem] shrink-0",
                   isActive
                     ? "text-[#ff1493]"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <item.icon className={cn("h-5 w-5", isActive && "text-[#ff1493]")} />
+                <item.icon
+                  className={cn("h-5 w-5", isActive && "text-[#ff1493]")}
+                />
                 <span className="truncate">{shortTitle}</span>
               </Link>
-            )
+            );
           })}
         </div>
       </nav>
     </>
-  )
+  );
 }

@@ -230,7 +230,7 @@ export default function OnboardingPage() {
                         ? "Your name"
                         : profileType === "artist"
                           ? "Your artist name"
-                          : "Your organization name"
+                          : "Your name or business name"
                     }
                     defaultValue={user?.fullName || ""}
                     required
@@ -267,7 +267,7 @@ export default function OnboardingPage() {
                       ? "Bio (Optional)"
                       : profileType === "artist"
                         ? "Artist Bio (Optional)"
-                        : "Organization Bio (Optional)"}
+                        : "Organizer Bio (Optional)"}
                   </Label>
                   <Textarea
                     id="bio"
@@ -277,7 +277,7 @@ export default function OnboardingPage() {
                         ? "Tell us about yourself..."
                         : profileType === "artist"
                           ? "Tell fans about your music..."
-                          : "Tell us about your organization..."
+                          : "Tell us about what events you host..."
                     }
                     rows={3}
                   />
