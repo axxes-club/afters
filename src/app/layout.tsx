@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { AftersRadio } from "@/components/AftersRadio";
+import { GhostBanner } from "@/components/GhostBanner";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/lib/uploadthing";
@@ -43,6 +44,7 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider messages={messages}>
             <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+            <GhostBanner />
             <RedirectHandler />
             {children}
             <AftersRadio />

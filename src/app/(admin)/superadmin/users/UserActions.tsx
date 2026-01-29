@@ -66,7 +66,6 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
-  const [showGhostDialog, setShowGhostDialog] = useState(false)
   const [userDetails, setUserDetails] = useState<any>(null)
   const [editForm, setEditForm] = useState({
     firstName,
@@ -149,8 +148,27 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
     setLoading(false)
   }
 
-  const handleGhost = () => {
-    setShowGhostDialog(true)
+  const handleGhost = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/ghost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: userId })
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+        toast.success(`Now ghosting as ${data.ghosting.name || data.ghosting.email}`)
+        // Redirect to dashboard to see the app as this user
+        window.location.href = '/dashboard'
+      } else {
+        toast.error(data.error || 'Failed to start ghost session')
+      }
+    } catch (error) {
+      toast.error('Failed to start ghost session')
+    }
+    setLoading(false)
   }
 
   const copyUserId = () => {
@@ -379,47 +397,6 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
               Failed to load user details
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Ghost Dialog */}
-      <Dialog open={showGhostDialog} onOpenChange={setShowGhostDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Ghost className="h-5 w-5 text-purple-500" />
-              Ghost as User
-            </DialogTitle>
-            <DialogDescription>
-              Sign in as this user to see the app from their perspective
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="p-4 bg-muted rounded-lg space-y-2">
-              <p className="text-sm font-medium">User: {email}</p>
-              <p className="text-xs text-muted-foreground">ID: {userId}</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              To ghost as this user, use the Clerk Dashboard impersonation feature:
-            </p>
-            <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
-              <li>Go to Clerk Dashboard → Users</li>
-              <li>Find this user by email or ID</li>
-              <li>Click "Impersonate" in user actions</li>
-            </ol>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowGhostDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => window.open(`https://dashboard.clerk.com/apps/app_default/users/${userId}`, '_blank')}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              <Ghost className="h-4 w-4 mr-2" />
-              Open in Clerk
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

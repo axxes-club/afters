@@ -29,11 +29,6 @@ const navItems = [
     icon: Users,
   },
   {
-    title: "Events",
-    href: "/superadmin/events",
-    icon: CalendarDays,
-  },
-  {
     title: "Orders",
     href: "/superadmin/orders",
     icon: Receipt,
@@ -42,6 +37,11 @@ const navItems = [
     title: "Tickets",
     href: "/superadmin/tickets",
     icon: Ticket,
+  },
+  {
+    title: "Events",
+    href: "/superadmin/events",
+    icon: CalendarDays,
   },
   {
     title: "Organizations",
