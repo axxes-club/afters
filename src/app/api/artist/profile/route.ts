@@ -43,13 +43,32 @@ export async function POST(request: NextRequest) {
       bio, 
       avatarUrl, 
       coverUrl, 
-      genres, 
+      genres,
+      tagline,
+      location,
+      // Social links
       spotifyUrl, 
       soundcloudUrl,
       instagramUrl,
       twitterUrl,
       websiteUrl,
-      youtubeUrl
+      youtubeUrl,
+      tiktokUrl,
+      bandcampUrl,
+      beatportUrl,
+      appleMusicUrl,
+      // Customization
+      accentColor,
+      headerStyle,
+      showPlayCount,
+      showUpcoming,
+      // Professional
+      bookingEmail,
+      pressKitUrl,
+      riderUrl,
+      label,
+      management,
+      agency,
     } = body
 
     if (!artistName || !slug) {
@@ -66,36 +85,46 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    const profileData = {
+      artistName,
+      slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+      bio: bio || null,
+      avatarUrl: avatarUrl || null,
+      coverUrl: coverUrl || null,
+      genres: genres || null,
+      tagline: tagline || null,
+      location: location || null,
+      // Social links
+      spotifyUrl: spotifyUrl || null,
+      soundcloudUrl: soundcloudUrl || null,
+      instagramUrl: instagramUrl || null,
+      twitterUrl: twitterUrl || null,
+      websiteUrl: websiteUrl || null,
+      youtubeUrl: youtubeUrl || null,
+      tiktokUrl: tiktokUrl || null,
+      bandcampUrl: bandcampUrl || null,
+      beatportUrl: beatportUrl || null,
+      appleMusicUrl: appleMusicUrl || null,
+      // Customization
+      accentColor: accentColor || null,
+      headerStyle: headerStyle || null,
+      showPlayCount: showPlayCount ?? true,
+      showUpcoming: showUpcoming ?? true,
+      // Professional
+      bookingEmail: bookingEmail || null,
+      pressKitUrl: pressKitUrl || null,
+      riderUrl: riderUrl || null,
+      label: label || null,
+      management: management || null,
+      agency: agency || null,
+    }
+
     const profile = await prisma.artistProfile.upsert({
       where: { userId },
-      update: {
-        artistName,
-        slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-        bio,
-        avatarUrl,
-        coverUrl,
-        genres,
-        spotifyUrl,
-        soundcloudUrl,
-        instagramUrl,
-        twitterUrl,
-        websiteUrl,
-        youtubeUrl,
-      },
+      update: profileData,
       create: {
         userId,
-        artistName,
-        slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-        bio,
-        avatarUrl,
-        coverUrl,
-        genres,
-        spotifyUrl,
-        soundcloudUrl,
-        instagramUrl,
-        twitterUrl,
-        websiteUrl,
-        youtubeUrl,
+        ...profileData,
       }
     })
 

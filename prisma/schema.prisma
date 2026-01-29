@@ -65,12 +65,35 @@ model ArtistProfile {
   avatarUrl      String?
   coverUrl       String?
   genres         String?
+  
+  // Social Links
   spotifyUrl     String?
   soundcloudUrl  String?
   instagramUrl   String?
   twitterUrl     String?
   websiteUrl     String?
   youtubeUrl     String?
+  tiktokUrl      String?
+  bandcampUrl    String?
+  beatportUrl    String?
+  appleMusicUrl  String?
+  
+  // Customization
+  accentColor    String?       // Custom accent color (hex)
+  headerStyle    String?       // 'default', 'gradient', 'image', 'minimal'
+  showPlayCount  Boolean       @default(true)
+  showUpcoming   Boolean       @default(true)
+  tagline        String?       // Short tagline/quote
+  location       String?       // City, Country
+  bookingEmail   String?       // For booking inquiries
+  pressKitUrl    String?       // Link to press kit
+  riderUrl       String?       // Link to tech rider
+  
+  // Additional Info
+  label          String?       // Record label
+  management     String?       // Management company
+  agency         String?       // Booking agency
+  
   isVerified     Boolean       @default(false)
   isFaux         Boolean       @default(false) // Fake profile for demo/testing
   createdAt      DateTime      @default(now())

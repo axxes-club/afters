@@ -11,6 +11,8 @@ import {
   Activity,
   LayoutDashboard,
   Radio,
+  Receipt,
+  Ticket,
 } from "lucide-react"
 
 const navItems = [
@@ -29,6 +31,16 @@ const navItems = [
     title: "Events",
     href: "/superadmin/events",
     icon: CalendarDays,
+  },
+  {
+    title: "Orders",
+    href: "/superadmin/orders",
+    icon: Receipt,
+  },
+  {
+    title: "Tickets",
+    href: "/superadmin/tickets",
+    icon: Ticket,
   },
   {
     title: "Organizations",
