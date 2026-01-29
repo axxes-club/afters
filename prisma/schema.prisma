@@ -24,6 +24,7 @@ model User {
   imageUrl         String?
   bio              String?
   role             UserRole          @default(USER)
+  isFaux           Boolean           @default(false) // Fake users for demo/testing
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   follows          Follow[]
@@ -37,20 +38,21 @@ model User {
 
 // Personal profile for regular users (/p/<username>)
 model PersonalProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  displayName String
-  slug        String   @unique
-  bio         String?
-  avatarUrl   String?
-  coverUrl    String?
-  websiteUrl  String?
-  twitterUrl  String?
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  displayName  String
+  slug         String   @unique
+  bio          String?
+  avatarUrl    String?
+  coverUrl     String?
+  websiteUrl   String?
+  twitterUrl   String?
   instagramUrl String?
-  isPublic    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isPublic     Boolean  @default(true)
+  isFaux       Boolean  @default(false) // Fake profile for demo/testing
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Artist profile for DJs/producers (/a/<slug>)
@@ -70,6 +72,7 @@ model ArtistProfile {
   websiteUrl     String?
   youtubeUrl     String?
   isVerified     Boolean       @default(false)
+  isFaux         Boolean       @default(false) // Fake profile for demo/testing
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
