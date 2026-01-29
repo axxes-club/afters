@@ -39,6 +39,11 @@ const nextConfig: NextConfig = {
   },
   // Moved from experimental.serverComponentsExternalPackages (deprecated in Next.js 16)
   serverExternalPackages: ["pg"],
+  turbopack: {
+    root: ".",
+  },
+  experimental: {
+  },
 };
 
 export default nextConfig;

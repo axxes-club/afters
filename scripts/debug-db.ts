@@ -3,7 +3,7 @@ import fs from 'fs';
 import 'dotenv/config';
 
 async function main() {
-  const url = 'postgresql://neondb_owner:npg_6CG9YBgUPFpy@ep-steep-frost-aed2xpf8-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+  const url = 'postgresql://neondb_owner:npg_6CG9YBgUPFpy@ep-steep-frost-aed2xpf8-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require';
   const pool = new Pool({ connectionString: url });
 
   try {
