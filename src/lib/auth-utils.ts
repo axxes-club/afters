@@ -33,7 +33,8 @@ export async function isOrganizer() {
 
 export async function isArtist() {
   const user = await getSessionUser()
-  return user?.role === UserRole.ARTIST || user?.role === UserRole.SUPERADMIN;
+  // Allow all logged-in users to access artist features (to create profile)
+  return !!user;
 }
 
 export async function isPersonal() {

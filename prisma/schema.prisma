@@ -18,17 +18,137 @@ enum UserRole {
 model User {
   id               String            @id
   email            String            @unique
+  username         String?           @unique
   firstName        String?
   lastName         String?
   imageUrl         String?
+  bio              String?
   role             UserRole          @default(USER)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   follows          Follow[]
   orders           Order[]
   organizerProfile OrganizerProfile?
+  artistProfile    ArtistProfile?
+  personalProfile  PersonalProfile?
   savedEvents      SavedEvent[]
   tickets          Ticket[]
+}
+
+// Personal profile for regular users (/p/<username>)
+model PersonalProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  displayName String
+  slug        String   @unique
+  bio         String?
+  avatarUrl   String?
+  coverUrl    String?
+  websiteUrl  String?
+  twitterUrl  String?
+  instagramUrl String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Artist profile for DJs/producers (/a/<slug>)
+model ArtistProfile {
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  artistName     String
+  slug           String        @unique
+  bio            String?
+  avatarUrl      String?
+  coverUrl       String?
+  genres         String?
+  spotifyUrl     String?
+  soundcloudUrl  String?
+  instagramUrl   String?
+  twitterUrl     String?
+  websiteUrl     String?
+  youtubeUrl     String?
+  isVerified     Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  radioTracks    RadioTrack[]
+}
+
+// Organization model (separate from OrganizerProfile for event companies)
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logoUrl     String?
+  coverUrl    String?
+  websiteUrl  String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  country     String   @default("US")
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// AFTERS RADIO Models
+enum RadioTrackStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model RadioTrack {
+  id             String           @id @default(cuid())
+  artistId       String
+  title          String
+  fileUrl        String
+  duration       Int              // Duration in seconds
+  artworkUrl     String?
+  genre          String?
+  bpm            Int?
+  status         RadioTrackStatus @default(PENDING)
+  rejectionReason String?
+  submittedAt    DateTime         @default(now())
+  approvedAt     DateTime?
+  approvedBy     String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  artist         ArtistProfile    @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  plays          RadioPlay[]
+
+  @@index([status])
+  @@index([artistId])
+}
+
+model RadioPlay {
+  id        String     @id @default(cuid())
+  trackId   String
+  playedAt  DateTime
+  listeners Int        @default(1)
+  createdAt DateTime   @default(now())
+  track     RadioTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@index([trackId, playedAt])
+  @@index([playedAt])
+}
+
+// Radio schedule for synchronized playback
+model RadioSchedule {
+  id           String   @id @default(cuid())
+  dayOfWeek    Int      // 0-6 (Sunday-Saturday)
+  startTime    String   // HH:mm format
+  trackOrder   String[] // Array of track IDs in order
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([dayOfWeek, startTime])
 }
 
 enum FeatureType {

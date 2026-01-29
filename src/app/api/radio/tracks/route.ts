@@ -1,26 +1,105 @@
 import { NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import { prisma } from "@/lib/prisma"
 
+// Get the current radio state - synchronized across all clients
 export async function GET() {
   try {
-    const tracksDirectory = path.join(process.cwd(), "public", "afters-radio-tracks")
-    
-    // Check if directory exists
-    if (!fs.existsSync(tracksDirectory)) {
-      return NextResponse.json({ tracks: [] })
+    // Get all approved tracks
+    const tracks = await prisma.radioTrack.findMany({
+      where: { status: "APPROVED" },
+      include: {
+        artist: {
+          select: {
+            artistName: true,
+            slug: true,
+            avatarUrl: true,
+          }
+        }
+      },
+      orderBy: { approvedAt: "asc" }
+    })
+
+    if (tracks.length === 0) {
+      return NextResponse.json({ 
+        tracks: [], 
+        currentTrack: null,
+        currentPosition: 0,
+        isLive: false 
+      })
     }
 
-    const files = fs.readdirSync(tracksDirectory)
+    // Calculate total playlist duration
+    const totalDuration = tracks.reduce((sum, t) => sum + t.duration, 0)
+    
+    // Get current position in the playlist based on server time
+    // Radio "started" at a fixed epoch time and loops continuously
+    const radioEpoch = new Date("2026-01-01T00:00:00Z").getTime()
+    const now = Date.now()
+    const elapsedSeconds = Math.floor((now - radioEpoch) / 1000)
+    const positionInPlaylist = elapsedSeconds % totalDuration
 
-    // Filter for audio files (mp3, wav, ogg, etc.)
-    const tracks = files.filter(file => 
-      /\.(mp3|wav|ogg|m4a|flac|aiff)$/i.test(file)
-    ).map(file => `/afters-radio-tracks/${file}`)
+    // Find which track is currently playing
+    let accumulated = 0
+    let currentTrackIndex = 0
+    let currentPosition = 0
 
-    return NextResponse.json({ tracks })
+    for (let i = 0; i < tracks.length; i++) {
+      if (accumulated + tracks[i].duration > positionInPlaylist) {
+        currentTrackIndex = i
+        currentPosition = positionInPlaylist - accumulated
+        break
+      }
+      accumulated += tracks[i].duration
+    }
+
+    const currentTrack = tracks[currentTrackIndex]
+
+    // Log the play (debounced - only once per track per minute)
+    const oneMinuteAgo = new Date(Date.now() - 60000)
+    const recentPlay = await prisma.radioPlay.findFirst({
+      where: {
+        trackId: currentTrack.id,
+        playedAt: { gte: oneMinuteAgo }
+      }
+    })
+
+    if (!recentPlay) {
+      await prisma.radioPlay.create({
+        data: {
+          trackId: currentTrack.id,
+          playedAt: new Date(),
+          listeners: 1
+        }
+      })
+    }
+
+    return NextResponse.json({
+      tracks: tracks.map(t => ({
+        id: t.id,
+        title: t.title,
+        fileUrl: t.fileUrl,
+        duration: t.duration,
+        artworkUrl: t.artworkUrl,
+        artistName: t.artist.artistName,
+        artistSlug: t.artist.slug,
+        artistAvatar: t.artist.avatarUrl,
+      })),
+      currentTrack: {
+        id: currentTrack.id,
+        title: currentTrack.title,
+        fileUrl: currentTrack.fileUrl,
+        duration: currentTrack.duration,
+        artworkUrl: currentTrack.artworkUrl,
+        artistName: currentTrack.artist.artistName,
+        artistSlug: currentTrack.artist.slug,
+      },
+      currentIndex: currentTrackIndex,
+      currentPosition, // Position in seconds within the current track
+      serverTime: Date.now(),
+      isLive: true
+    })
   } catch (error) {
-    console.error("Error reading radio tracks:", error)
-    return NextResponse.json({ tracks: [] }, { status: 500 })
+    console.error("Error getting radio state:", error)
+    return NextResponse.json({ tracks: [], currentTrack: null, isLive: false }, { status: 500 })
   }
 }

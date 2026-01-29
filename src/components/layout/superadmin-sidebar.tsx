@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Activity,
   LayoutDashboard,
+  Radio,
 } from "lucide-react"
 
 const navItems = [
@@ -33,6 +34,11 @@ const navItems = [
     title: "Organizations",
     href: "/superadmin/organizations",
     icon: Building2,
+  },
+  {
+    title: "AFTERS RADIO",
+    href: "/superadmin/radio",
+    icon: Radio,
   },
   {
     title: "Roles & Perms",
