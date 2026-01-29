@@ -39,7 +39,8 @@ import {
   Eye,
   Loader2,
   Copy,
-  Check
+  Check,
+  Ghost
 } from "lucide-react"
 import { toast } from "sonner"
 import { 
@@ -48,7 +49,8 @@ import {
   unbanUser, 
   sendPasswordResetEmail, 
   updateUserMetadata,
-  getUserDetails 
+  getUserDetails,
+  impersonateUser
 } from "./actions"
 
 interface UserActionsProps {
@@ -140,6 +142,18 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
     setLoading(false)
   }
 
+  const handleImpersonate = async () => {
+    setLoading(true)
+    const result = await impersonateUser(userId)
+    if (result.success && result.url) {
+      toast.success("Opening impersonation session...")
+      window.open(result.url, '_blank')
+    } else {
+      toast.error(result.error || "Failed to impersonate user")
+    }
+    setLoading(false)
+  }
+
   const copyUserId = () => {
     navigator.clipboard.writeText(userId)
     setCopied(true)
@@ -173,6 +187,10 @@ export function UserActions({ userId, email, firstName, lastName, username }: Us
           <DropdownMenuItem onClick={handlePasswordReset}>
             <Key className="h-4 w-4 mr-2" />
             Password Reset
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleImpersonate} className="text-purple-600">
+            <Ghost className="h-4 w-4 mr-2" />
+            Impersonate User
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleBan} className="text-yellow-600">

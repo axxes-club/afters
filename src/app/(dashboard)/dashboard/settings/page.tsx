@@ -243,12 +243,12 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="artistType">Artist Type</Label>
+              <Label htmlFor="artistType">Account Type</Label>
               <Input
                 id="artistType"
                 value={artistType}
                 onChange={(e) => setArtistType(e.target.value)}
-                placeholder="DJ, Producer, Promoter, Venue..."
+                placeholder="DJ, Producer, Promoter, Venue, Personal..."
               />
             </div>
 
@@ -264,14 +264,23 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logoUrl">Logo URL</Label>
+              <Label htmlFor="logoUrl">
+                {artistType?.toLowerCase() === 'personal' ? 'Avatar URL' : 'Logo URL'}
+              </Label>
               <Input
                 id="logoUrl"
                 type="url"
                 value={logoUrl}
                 onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://example.com/logo.png"
+                placeholder={artistType?.toLowerCase() === 'personal' 
+                  ? "https://example.com/avatar.png" 
+                  : "https://example.com/logo.png"}
               />
+              <p className="text-xs text-muted-foreground">
+                {artistType?.toLowerCase() === 'personal' 
+                  ? "Your profile picture" 
+                  : "Your brand logo or profile image"}
+              </p>
             </div>
 
             <Separator />

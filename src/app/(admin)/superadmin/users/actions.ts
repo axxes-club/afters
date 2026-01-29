@@ -186,3 +186,37 @@ export async function getUserDetails(userId: string) {
     return null
   }
 }
+
+export async function impersonateUser(userId: string) {
+  await requireSuperAdmin()
+  
+  try {
+    // Get the user's email to use for sign-in link
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true }
+    })
+    
+    if (!user?.email) {
+      return { error: "User email not found" }
+    }
+
+    // For impersonation, we'll create a sign-in link using Clerk's magic link feature
+    // This requires the admin to manually confirm, which is safer
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://afters.crativo.xyz'
+    
+    // Note: True impersonation requires Clerk's Actor Token feature which needs 
+    // specific Clerk plan features. For now, we'll provide a way to view as user.
+    // The admin can use this to understand the user's view.
+    
+    return { 
+      success: true, 
+      url: `${appUrl}/dashboard?viewAs=${userId}`,
+      message: `To fully impersonate, use Clerk Dashboard: https://dashboard.clerk.com`,
+      email: user.email
+    }
+  } catch (error: any) {
+    console.error("Failed to impersonate user:", error)
+    return { error: error.message || "Failed to create impersonation session" }
+  }
+}

@@ -9,9 +9,10 @@ import {
   Settings,
   CreditCard,
   ShieldCheck,
-  Users,
+  User,
   Music,
   Building2,
+  UserCircle,
 } from "lucide-react"
 
 const baseNavItems = [
@@ -19,7 +20,7 @@ const baseNavItems = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    exact: true, // Only match exact path
+    exact: true,
   },
   {
     title: "Events",
@@ -35,7 +36,7 @@ const baseNavItems = [
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
-    exact: true, // Only match exact path, not /settings/payouts
+    exact: true,
   },
 ]
 
@@ -77,38 +78,33 @@ export function DashboardSidebar({
     ]
   }
 
+  // Add profile section header and links
+  const profileItems = []
+  
   if (isOrganizer) {
-    items = [
-      ...items,
-      {
-        title: "Organizer",
-        href: "/dashboard/organizer",
-        icon: Building2,
-      }
-    ]
+    profileItems.push({
+      title: "Organizer Profile",
+      href: "/dashboard/organizer",
+      icon: Building2,
+    })
   }
 
   if (isArtist) {
-    items = [
-      ...items,
-      {
-        title: "Artist Profile",
-        href: "/dashboard/artist",
-        icon: Music,
-      }
-    ]
+    profileItems.push({
+      title: "Artist Profile",
+      href: "/dashboard/artist",
+      icon: Music,
+    })
   }
 
-  if (isPersonal) {
-    items = [
-      ...items,
-      {
-        title: "My Account",
-        href: "/dashboard/account",
-        icon: Users,
-      }
-    ]
-  }
+  // Always show personal profile option
+  profileItems.push({
+    title: "Personal Profile",
+    href: "/dashboard/account",
+    icon: UserCircle,
+  })
+
+  items = [...items, ...profileItems]
 
   return (
     <>
