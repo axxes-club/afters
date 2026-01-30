@@ -3,6 +3,7 @@ import Link from "next/link";
 const footerLinks = {
   Discover: [
     { label: "Browse Events", href: "/events" },
+    { label: "Radio", href: "/radio" },
     { label: "Pricing", href: "/pricing" },
     { label: "Status", href: "/status" },
   ],
