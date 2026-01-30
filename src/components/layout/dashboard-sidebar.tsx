@@ -38,11 +38,6 @@ const mainNavItems: NavItem[] = [
     icon: CalendarDays,
   },
   {
-    titleKey: "myTickets",
-    href: "/my-tickets",
-    icon: Ticket,
-  },
-  {
     titleKey: "payouts",
     href: "/dashboard/settings/payouts",
     icon: CreditCard,
