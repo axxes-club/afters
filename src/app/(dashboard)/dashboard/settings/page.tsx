@@ -46,6 +46,10 @@ import {
   Music,
   Globe,
   Youtube,
+  Crown,
+  Zap,
+  Calendar,
+  AlertTriangle,
 } from "lucide-react";
 
 interface OrganizerProfile {
@@ -83,6 +87,18 @@ export default function SettingsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
+  // Subscription state
+  const [subscription, setSubscription] = useState<{
+    plan: string;
+    status: string;
+    trialEndsAt: string | null;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+  } | null>(null);
+  const [subLoading, setSubLoading] = useState(true);
+  const [upgrading, setUpgrading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
   // Form state
   const [displayName, setDisplayName] = useState("");
   const [slug, setSlug] = useState("");
@@ -98,6 +114,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchProfile();
+    fetchSubscription();
   }, []);
 
   async function fetchProfile() {
@@ -126,6 +143,59 @@ export default function SettingsPage() {
       toast.error(t("failedToLoad"));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchSubscription() {
+    try {
+      const res = await fetch("/api/stripe/subscription");
+      if (res.ok) {
+        const data = await res.json();
+        setSubscription(data);
+      }
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+    } finally {
+      setSubLoading(false);
+    }
+  }
+
+  async function handleUpgrade() {
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/stripe/subscription", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || "Failed to start upgrade");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setUpgrading(false);
+    }
+  }
+
+  async function handleCancelSubscription() {
+    setCancelling(true);
+    try {
+      const res = await fetch("/api/stripe/subscription/cancel", {
+        method: "POST",
+      });
+      if (res.ok) {
+        toast.success("Subscription will cancel at end of billing period");
+        fetchSubscription();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to cancel");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -218,6 +288,129 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
+
+      {/* Subscription Section */}
+      {!subLoading && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-pink" />
+              <CardTitle>Subscription</CardTitle>
+            </div>
+            <CardDescription>
+              Manage your plan and billing
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {subscription?.plan === "SIGNATURE" ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border border-pink/20 bg-pink/5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-pink/10 rounded-lg">
+                      <Crown className="h-5 w-5 text-pink" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white flex items-center gap-2">
+                        Signature Plan
+                        {subscription.status === "TRIALING" && (
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                            Trial
+                          </Badge>
+                        )}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {subscription.status === "TRIALING" && subscription.trialEndsAt
+                          ? `Trial ends ${new Date(subscription.trialEndsAt).toLocaleDateString()}`
+                          : subscription.currentPeriodEnd
+                          ? `Next billing: ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
+                          : "Active subscription"}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className="bg-pink/10 text-pink border-pink/20">Active</Badge>
+                </div>
+
+                {subscription.cancelAtPeriodEnd ? (
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5">
+                    <AlertTriangle className="h-4 w-4 text-yellow-400 shrink-0" />
+                    <p className="text-sm text-yellow-400">
+                      Your subscription will cancel at the end of the current billing period
+                      {subscription.currentPeriodEnd &&
+                        ` (${new Date(subscription.currentPeriodEnd).toLocaleDateString()})`}
+                      .
+                    </p>
+                  </div>
+                ) : (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-muted-foreground">
+                        Cancel Subscription
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Cancel Subscription?</DialogTitle>
+                        <DialogDescription>
+                          Your Signature perks will remain active until the end of your current billing period. After that, you&apos;ll be on the Free plan.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button variant="outline">Keep Subscription</Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleCancelSubscription}
+                          disabled={cancelling}
+                        >
+                          {cancelling ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Cancelling...
+                            </>
+                          ) : (
+                            "Yes, Cancel"
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+            ) : (
+              <div className="relative rounded-xl overflow-hidden">
+                <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-b from-pink/30 via-pink/5 to-transparent pointer-events-none" />
+                <div className="relative p-6 text-center bg-white/[0.02]">
+                  <Crown className="size-8 text-pink mx-auto mb-3" />
+                  <h3 className="font-bold text-white text-lg mb-1">
+                    Upgrade to Signature
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+                    Reduced fees, priority placement, staff management, advanced analytics, and more. Start with a 7-day free trial.
+                  </p>
+                  <div className="flex items-center justify-center gap-3">
+                    <Button
+                      onClick={handleUpgrade}
+                      disabled={upgrading}
+                      className="glow-pink font-bold"
+                    >
+                      {upgrading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="mr-2 h-4 w-4" />
+                          Start 7-Day Free Trial — $45/mo
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Profile Section */}
       <Card>

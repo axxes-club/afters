@@ -14,6 +14,7 @@ import {
   Building2,
   UserCircle,
   Ticket,
+  Users,
   LucideIcon,
 } from "lucide-react";
 
@@ -51,6 +52,14 @@ const mainNavItems: NavItem[] = [
     href: "/dashboard/settings",
     icon: Settings,
     exact: true,
+  },
+];
+
+const organizerNavItems: NavItem[] = [
+  {
+    titleKey: "staff",
+    href: "/dashboard/staff",
+    icon: Users,
   },
 ];
 
@@ -116,6 +125,26 @@ export function DashboardSidebar({
         <nav className="flex flex-col gap-2 p-4">
           {/* Main Navigation */}
           {mainNavItems.map((item) => {
+            const isActive = isNavItemActive(pathname, item);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted",
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {t(item.titleKey)}
+              </Link>
+            );
+          })}
+
+          {/* Organizer-only items */}
+          {isOrganizer && organizerNavItems.map((item) => {
             const isActive = isNavItemActive(pathname, item);
             return (
               <Link

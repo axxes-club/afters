@@ -38,6 +38,7 @@ model User {
   personalProfile  PersonalProfile?
   savedEvents      SavedEvent[]
   tickets          Ticket[]
+  staffMemberships StaffMember[]
 
   @@index([isFlagged])
 }
@@ -227,6 +228,9 @@ model OrganizerProfile {
   events                   Event[]
   followers                Follow[]
   user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription             Subscription?
+  staffMembers             StaffMember[]
+  staffInvites             StaffInvite[]
 }
 
 enum TicketingType {
@@ -470,4 +474,85 @@ model VerificationRequest {
   @@index([status])
   @@index([artistProfileId])
   @@index([userId])
+}
+
+// ─── Subscription & Staff Management ───
+
+enum Plan {
+  FREE
+  SIGNATURE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELLED
+  INCOMPLETE
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  organizerProfileId   String             @unique
+  stripeSubscriptionId String?            @unique
+  stripeCustomerId     String?
+  stripePriceId        String?
+  plan                 Plan               @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  trialEndsAt          DateTime?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  organizerProfile     OrganizerProfile   @relation(fields: [organizerProfileId], references: [id], onDelete: Cascade)
+}
+
+enum StaffRole {
+  ADMIN
+  SCANNER
+  EDITOR
+  SUPPORT
+  FINANCE
+}
+
+enum StaffStatus {
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+model StaffMember {
+  id                 String           @id @default(cuid())
+  organizerProfileId String
+  userId             String
+  role               StaffRole        @default(SCANNER)
+  customPermissions  String[]
+  invitedBy          String
+  status             StaffStatus      @default(ACTIVE)
+  addedAt            DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organizerProfile   OrganizerProfile @relation(fields: [organizerProfileId], references: [id], onDelete: Cascade)
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizerProfileId, userId])
+  @@index([organizerProfileId])
+  @@index([userId])
+}
+
+model StaffInvite {
+  id                 String           @id @default(cuid())
+  organizerProfileId String
+  email              String
+  role               StaffRole        @default(SCANNER)
+  token              String           @unique @default(cuid())
+  expiresAt          DateTime
+  acceptedAt         DateTime?
+  acceptedBy         String?
+  createdAt          DateTime         @default(now())
+  organizerProfile   OrganizerProfile @relation(fields: [organizerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([organizerProfileId])
+  @@index([token])
+  @@index([email])
 }

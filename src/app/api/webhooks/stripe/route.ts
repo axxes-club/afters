@@ -94,6 +94,87 @@ export async function POST(req: Request) {
       break
     }
 
+    case "customer.subscription.created":
+    case "customer.subscription.updated": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const organizerProfileId = subscription.metadata.organizerProfileId;
+
+      if (organizerProfileId) {
+        const planMap: Record<string, string> = {
+          active: "ACTIVE",
+          trialing: "TRIALING",
+          past_due: "PAST_DUE",
+          canceled: "CANCELLED",
+          incomplete: "INCOMPLETE",
+        };
+
+        await prisma.subscription.upsert({
+          where: { organizerProfileId },
+          create: {
+            organizerProfileId,
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: subscription.customer as string,
+            stripePriceId: subscription.items.data[0]?.price.id,
+            plan: "SIGNATURE",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            status: (planMap[subscription.status] || "ACTIVE") as any,
+            trialEndsAt: subscription.trial_end
+              ? new Date(subscription.trial_end * 1000)
+              : null,
+            currentPeriodStart: subscription.items.data[0]?.current_period_start
+              ? new Date(subscription.items.data[0].current_period_start * 1000)
+              : null,
+            currentPeriodEnd: subscription.items.data[0]?.current_period_end
+              ? new Date(subscription.items.data[0].current_period_end * 1000)
+              : null,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          },
+          update: {
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: subscription.customer as string,
+            stripePriceId: subscription.items.data[0]?.price.id,
+            plan: "SIGNATURE",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            status: (planMap[subscription.status] || "ACTIVE") as any,
+            trialEndsAt: subscription.trial_end
+              ? new Date(subscription.trial_end * 1000)
+              : null,
+            currentPeriodStart: subscription.items.data[0]?.current_period_start
+              ? new Date(subscription.items.data[0].current_period_start * 1000)
+              : null,
+            currentPeriodEnd: subscription.items.data[0]?.current_period_end
+              ? new Date(subscription.items.data[0].current_period_end * 1000)
+              : null,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          },
+        });
+      }
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const organizerProfileId = subscription.metadata.organizerProfileId;
+
+      if (organizerProfileId) {
+        await prisma.subscription.update({
+          where: { organizerProfileId },
+          data: {
+            plan: "FREE",
+            status: "CANCELLED",
+            cancelAtPeriodEnd: false,
+          },
+        });
+
+        // Deactivate all staff members when downgrading
+        await prisma.staffMember.updateMany({
+          where: { organizerProfileId },
+          data: { status: "SUSPENDED" },
+        });
+      }
+      break;
+    }
+
     case "account.updated": {
       // Stripe Connect account status update
       const account = event.data.object as Stripe.Account

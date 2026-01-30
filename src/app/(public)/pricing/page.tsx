@@ -84,6 +84,12 @@ const signatureFeatures = [
     description:
       "Get your artists featured on AFTERS RADIO. Reach thousands of listeners before the event.",
   },
+  {
+    icon: Users,
+    title: "Staff Management",
+    description:
+      "Add team members with role-based access. Ticket scanners, event editors, customer support, and more.",
+  },
 ];
 
 const comparisonRows = [
@@ -102,6 +108,7 @@ const comparisonRows = [
   { feature: "AFTERS RADIO Feature", free: false, signature: true },
   { feature: "Referral Link Tracking", free: false, signature: true },
   { feature: "Custom Event URLs", free: false, signature: true },
+  { feature: "Staff Management", free: false, signature: true },
 ];
 
 const testimonials = [
@@ -276,7 +283,7 @@ export default function PricingPage() {
                     <span className="text-muted-foreground text-lg">/mo</span>
                   </div>
                   <p className="text-muted-foreground/60 text-sm mt-2">
-                    Cancel anytime. Pays for itself in one event.
+                    7-day free trial · Cancel anytime. Pays for itself in one event.
                   </p>
                 </div>
 
@@ -580,7 +587,7 @@ export default function PricingPage() {
               },
               {
                 q: "Is there a free trial?",
-                a: "Not right now — but at $45/mo with no commitment, there's zero risk. The fee savings alone usually cover the subscription after a single event.",
+                a: "Yes! Every Signature subscription starts with a 7-day free trial. Full access to all features — cancel anytime before the trial ends and pay nothing.",
               },
               {
                 q: "How does priority placement work?",
