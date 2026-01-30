@@ -25,12 +25,23 @@ import {
   Percent,
   CircleDollarSign,
   Calculator,
+  QrCode,
+  Wallet,
+  Radio,
+  Languages,
+  Heart,
+  UserCircle,
+  Music,
+  ScanLine,
+  Layers,
+  Link2,
+  Tag,
 } from "lucide-react";
 
 export const metadata = {
   title: "Pricing — Afters",
   description:
-    "The lowest fees in nightlife ticketing. Free to start. Signature at $45/mo. Compare us to Posh, Eventbrite, DICE, and Luma.",
+    "The lowest fees in nightlife ticketing. Free to start. Signature at $45/mo with a 7-day free trial. Compare us to Posh, Eventbrite, DICE, and Luma.",
 };
 
 /* ─── data ─── */
@@ -61,6 +72,12 @@ const signatureFeatures = [
       "Create discount codes, early-bird pricing, and referral links. Built-in marketing engine.",
   },
   {
+    icon: Users,
+    title: "Staff Management",
+    description:
+      "Add team members with roles — ticket scanners, event editors, customer support, finance. Full access control.",
+  },
+  {
     icon: Shield,
     title: "Priority Support",
     description:
@@ -79,36 +96,49 @@ const signatureFeatures = [
       "Run events across multiple cities from a single dashboard. Tour management made easy.",
   },
   {
-    icon: Headphones,
-    title: "AFTERS RADIO Feature",
+    icon: Link2,
+    title: "Referral Tracking",
     description:
-      "Get your artists featured on AFTERS RADIO. Reach thousands of listeners before the event.",
+      "Track which links drive the most ticket sales. Know exactly where your audience comes from.",
   },
   {
-    icon: Users,
-    title: "Staff Management",
+    icon: Tag,
+    title: "Custom Event URLs",
     description:
-      "Add team members with role-based access. Ticket scanners, event editors, customer support, and more.",
+      "Branded short links for your events. Clean URLs that match your brand.",
   },
 ];
 
 const comparisonRows = [
-  { feature: "Event Listings", free: true, signature: true },
-  { feature: "Stripe Payouts", free: true, signature: true },
-  { feature: "QR Check-in Scanner", free: true, signature: true },
+  // ── Free features ──
+  { feature: "Unlimited Events", free: true, signature: true },
+  { feature: "Event Discovery & Listings", free: true, signature: true },
+  { feature: "Stripe Connect Payouts", free: true, signature: true },
+  { feature: "QR Code Check-in Scanner", free: true, signature: true },
+  { feature: "Manual Ticket Lookup", free: true, signature: true },
+  { feature: "Multi-Tier Ticketing", free: true, signature: true },
+  { feature: "Apple Wallet Passes", free: true, signature: true },
   { feature: "Basic Analytics", free: true, signature: true },
-  { feature: "Reduced Platform Fees", free: false, signature: true },
+  { feature: "Organizer Profile Page", free: true, signature: true },
+  { feature: "Artist Profile Page", free: true, signature: true },
+  { feature: "AFTERS RADIO Access", free: true, signature: true },
+  { feature: "Follow & Save Events", free: true, signature: true },
+  { feature: "Flyer Uploads", free: true, signature: true },
+  { feature: "Multi-Language (EN/ES/PT)", free: true, signature: true },
+  { feature: "Mobile-Optimized Pages", free: true, signature: true },
+  { feature: "Artist Verification Requests", free: true, signature: true },
+  // ── Signature features ──
+  { feature: "Reduced Platform Fees (2%)", free: false, signature: true },
   { feature: "Priority Event Placement", free: false, signature: true },
   { feature: "Advanced Analytics & Funnels", free: false, signature: true },
   { feature: "Custom Branding & Colors", free: false, signature: true },
   { feature: "Promo Codes & Discounts", free: false, signature: true },
+  { feature: "Staff Management (5 Roles)", free: false, signature: true },
   { feature: "Verified Organizer Badge", free: false, signature: true },
   { feature: "Priority Support (24/7)", free: false, signature: true },
   { feature: "Multi-City Management", free: false, signature: true },
-  { feature: "AFTERS RADIO Feature", free: false, signature: true },
   { feature: "Referral Link Tracking", free: false, signature: true },
   { feature: "Custom Event URLs", free: false, signature: true },
-  { feature: "Staff Management", free: false, signature: true },
 ];
 
 const testimonials = [
@@ -144,7 +174,7 @@ export default function PricingPage() {
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-pink/5 blur-[120px]" />
             <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-pink/3 blur-[100px]" />
-            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-purple-600/5 blur-[80px]" />
+            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-pink/5 blur-[80px]" />
           </div>
 
           <div className="relative max-w-5xl mx-auto px-4 pt-20 pb-8 text-center">
@@ -168,7 +198,7 @@ export default function PricingPage() {
             </p>
 
             <p className="text-muted-foreground/60 text-sm mb-12">
-              Free to start · No contracts · No setup fees
+              Free to start · 7-day free trial on Signature · No contracts · No setup fees
             </p>
           </div>
         </section>
@@ -236,16 +266,23 @@ export default function PricingPage() {
 
               <div className="space-y-3 mb-8">
                 {[
-                  "Unlimited events",
-                  "Event discovery listing",
-                  "Stripe payouts",
-                  "QR check-in scanner",
-                  "Basic analytics",
-                  "Mobile-optimized pages",
+                  { text: "Unlimited events", icon: Layers },
+                  { text: "Event discovery listing", icon: Globe },
+                  { text: "Stripe Connect payouts", icon: CircleDollarSign },
+                  { text: "QR check-in scanner", icon: QrCode },
+                  { text: "Multi-tier ticketing", icon: Ticket },
+                  { text: "Apple Wallet passes", icon: Wallet },
+                  { text: "Basic analytics", icon: BarChart3 },
+                  { text: "AFTERS RADIO access", icon: Radio },
+                  { text: "Organizer & artist profiles", icon: UserCircle },
+                  { text: "Follow & save events", icon: Heart },
+                  { text: "Multi-language (EN/ES/PT)", icon: Languages },
+                  { text: "Flyer uploads", icon: Music },
+                  { text: "Mobile-optimized pages", icon: ScanLine },
                 ].map((f) => (
-                  <div key={f} className="flex items-center gap-2.5">
+                  <div key={f.text} className="flex items-center gap-2.5">
                     <Check className="size-4 text-green-500 shrink-0" />
-                    <span className="text-sm text-white/80">{f}</span>
+                    <span className="text-sm text-white/80">{f.text}</span>
                   </div>
                 ))}
               </div>
@@ -282,9 +319,15 @@ export default function PricingPage() {
                     </span>
                     <span className="text-muted-foreground text-lg">/mo</span>
                   </div>
-                  <p className="text-muted-foreground/60 text-sm mt-2">
-                    7-day free trial · Cancel anytime. Pays for itself in one event.
-                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-bold font-display">
+                      <Clock className="size-3" />
+                      7-DAY FREE TRIAL
+                    </span>
+                    <span className="text-muted-foreground/60 text-sm">
+                      Cancel anytime.
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2 mb-8">
@@ -334,33 +377,33 @@ export default function PricingPage() {
 
                 <div className="space-y-3 mb-8">
                   {[
-                    "Everything in Free, plus:",
-                    "Reduced platform fees (2%)",
-                    "Priority event placement",
-                    "Advanced analytics & funnels",
-                    "Custom branding & colors",
-                    "Promo codes & discounts",
-                    "Verified organizer badge",
-                    "Priority support (24/7)",
-                    "Multi-city management",
-                    "AFTERS RADIO feature",
-                    "Referral link tracking",
-                    "Custom event URLs",
-                  ].map((f, i) => (
-                    <div key={f} className="flex items-center gap-2.5">
-                      {i === 0 ? (
+                    { text: "Everything in Free, plus:", highlight: true },
+                    { text: "Reduced platform fees (2%)" },
+                    { text: "Priority event placement" },
+                    { text: "Advanced analytics & funnels" },
+                    { text: "Custom branding & colors" },
+                    { text: "Promo codes & discounts" },
+                    { text: "Staff management (5 roles)" },
+                    { text: "Verified organizer badge" },
+                    { text: "Priority support (24/7)" },
+                    { text: "Multi-city management" },
+                    { text: "Referral link tracking" },
+                    { text: "Custom event URLs" },
+                  ].map((f) => (
+                    <div key={f.text} className="flex items-center gap-2.5">
+                      {"highlight" in f && f.highlight ? (
                         <Sparkles className="size-4 text-pink shrink-0" />
                       ) : (
                         <Check className="size-4 text-pink shrink-0" />
                       )}
                       <span
                         className={`text-sm ${
-                          i === 0
+                          "highlight" in f && f.highlight
                             ? "text-pink font-bold font-display"
                             : "text-white/80"
                         }`}
                       >
-                        {f}
+                        {f.text}
                       </span>
                     </div>
                   ))}
@@ -372,12 +415,12 @@ export default function PricingPage() {
                     className="w-full py-6 text-base font-bold glow-pink hover:scale-[1.02] transition-transform"
                   >
                     <Zap className="size-5 mr-2" />
-                    Upgrade to Signature
+                    Start 7-Day Free Trial
                   </Button>
                 </Link>
 
                 <p className="text-xs text-muted-foreground/40 mt-4 text-center">
-                  Billed monthly · Stripe secure checkout
+                  No charge until trial ends · Billed monthly · Cancel anytime
                 </p>
               </div>
             </div>
@@ -387,11 +430,11 @@ export default function PricingPage() {
         {/* ═══════════════ COMPETITOR COMPARISON (hidden by default) ═══════════════ */}
         <CompetitorComparison />
 
-        {/* ═══════════════ FEATURES GRID ═══════════════ */}
+        {/* ═══════════════ SIGNATURE FEATURES GRID ═══════════════ */}
         <section className="max-w-6xl mx-auto px-4 py-20">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
-              Everything you get with{" "}
+              Everything you unlock with{" "}
               <span className="text-gradient">Signature</span>
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
@@ -399,7 +442,7 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {signatureFeatures.map((feature) => (
               <div
                 key={feature.title}
@@ -426,7 +469,7 @@ export default function PricingPage() {
               Free vs <span className="text-gradient">Signature</span>
             </h2>
             <p className="text-muted-foreground">
-              See exactly what you unlock.
+              See exactly what you get — and what you unlock.
             </p>
           </div>
 
@@ -445,26 +488,39 @@ export default function PricingPage() {
               </div>
             </div>
 
-            {comparisonRows.map((row) => (
-              <div
-                key={row.feature}
-                className={`grid grid-cols-3 border-b border-white/5 ${
-                  !row.free ? "bg-pink/[0.015]" : ""
-                } hover:bg-white/[0.02] transition-colors`}
-              >
-                <div className="p-4 text-sm text-white/80">{row.feature}</div>
-                <div className="p-4 flex justify-center">
-                  {row.free ? (
-                    <Check className="size-4 text-green-500" />
-                  ) : (
-                    <X className="size-4 text-white/20" />
+            {comparisonRows.map((row, i) => {
+              // Add a visual separator between free and signature sections
+              const isFirstSignature = i > 0 && !row.free && comparisonRows[i - 1].free;
+              return (
+                <div key={row.feature}>
+                  {isFirstSignature && (
+                    <div className="border-b-2 border-pink/20 bg-pink/[0.03]">
+                      <div className="px-4 py-2 text-xs font-display text-pink font-bold tracking-wide uppercase flex items-center gap-1.5">
+                        <Crown className="size-3" />
+                        Signature Only
+                      </div>
+                    </div>
                   )}
+                  <div
+                    className={`grid grid-cols-3 border-b border-white/5 ${
+                      !row.free ? "bg-pink/[0.015]" : ""
+                    } hover:bg-white/[0.02] transition-colors`}
+                  >
+                    <div className="p-4 text-sm text-white/80">{row.feature}</div>
+                    <div className="p-4 flex justify-center">
+                      {row.free ? (
+                        <Check className="size-4 text-green-500" />
+                      ) : (
+                        <X className="size-4 text-white/20" />
+                      )}
+                    </div>
+                    <div className="p-4 flex justify-center">
+                      <Check className="size-4 text-pink" />
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4 flex justify-center">
-                  <Check className="size-4 text-pink" />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -504,7 +560,7 @@ export default function PricingPage() {
         {/* ═══════════════ ROI SECTION ═══════════════ */}
         <section className="max-w-4xl mx-auto px-4 py-20">
           <div className="relative rounded-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-pink/10 via-transparent to-purple-600/5" />
+            <div className="absolute inset-0 bg-gradient-to-br from-pink/10 via-transparent to-pink/5" />
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-pink/30 via-pink/5 to-transparent pointer-events-none" />
 
             <div className="relative p-8 sm:p-12 text-center">
@@ -553,7 +609,7 @@ export default function PricingPage() {
                   size="lg"
                   className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
                 >
-                  Start Signature Now
+                  Start Your Free Trial
                   <ArrowRight className="size-5 ml-2" />
                 </Button>
               </Link>
@@ -578,16 +634,32 @@ export default function PricingPage() {
                 a: "By default, fees are passed to the attendee (added at checkout). You can choose to absorb them if you prefer clean round-number pricing.",
               },
               {
+                q: "Is there a free trial?",
+                a: "Yes! Every Signature subscription starts with a 7-day free trial. Full access to all features — cancel anytime before the trial ends and pay nothing.",
+              },
+              {
+                q: "What do I get for free?",
+                a: "A lot. Unlimited events, QR check-in, multi-tier ticketing, Apple Wallet passes, AFTERS RADIO access, organizer and artist profiles, multi-language support, Stripe payouts, basic analytics, and more. Most platforms charge for half of this.",
+              },
+              {
+                q: "What does Signature add?",
+                a: "Lower fees (2% vs 5%), priority event placement, advanced analytics with funnels, custom branding, promo codes, staff management with 5 roles, verified badge, multi-city management, referral tracking, and 24/7 priority support.",
+              },
+              {
                 q: "Can I cancel anytime?",
                 a: "Yes. No contracts, no cancellation fees. Cancel from your dashboard whenever you want. Your Signature perks stay active until the end of your billing period.",
               },
               {
                 q: "What happens if I downgrade?",
-                a: "Your events stay live. You go back to 5% + $0.50 platform fees and lose Signature perks like priority placement and custom branding. No data is deleted.",
+                a: "Your events stay live. You go back to 5% + $0.50 platform fees and lose Signature perks. Staff members are suspended but not deleted — they reactivate if you re-subscribe. No data is lost.",
               },
               {
-                q: "Is there a free trial?",
-                a: "Yes! Every Signature subscription starts with a 7-day free trial. Full access to all features — cancel anytime before the trial ends and pay nothing.",
+                q: "Is AFTERS RADIO free?",
+                a: "Yes. Artists can submit tracks and listeners can stream on both Free and Signature plans. It's a core part of the Afters experience.",
+              },
+              {
+                q: "How does staff management work?",
+                a: "Signature organizers can invite team members by email and assign them roles: Admin (full access), Scanner (ticket check-in), Editor (event posts), Support (customer messaging), or Finance (analytics & reports). Each role has granular permissions.",
               },
               {
                 q: "How does priority placement work?",
@@ -612,7 +684,7 @@ export default function PricingPage() {
             <span className="text-gradient">deserves better fees.</span>
           </h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Start free. Upgrade when you&apos;re ready.
+            Start free. Try Signature for 7 days — on us.
             <br />
             Either way, you&apos;re paying less than anywhere else.
           </p>
@@ -633,7 +705,7 @@ export default function PricingPage() {
                 className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
               >
                 <Crown className="size-5 mr-2" />
-                Go Signature — $45/mo
+                Try Signature Free — 7 Days
               </Button>
             </Link>
           </div>
