@@ -1,6 +1,67 @@
 import { prisma } from "./prisma";
+import { Plan } from "@prisma/client";
 
-// Permission definitions per role
+// ─── Plan helpers ───
+
+/** All plans that grant Signature-level access */
+const SIGNATURE_PLANS: Plan[] = [
+  "SIGNATURE_TRIAL_7D",
+  "SIGNATURE_30D",
+  "SIGNATURE_180D",
+  "SIGNATURE_360D",
+  "SIGNATURE_FF",
+];
+
+/** Plans that are paid via Stripe (need a subscription ID) */
+export const PAID_PLANS: Plan[] = [
+  "SIGNATURE_30D",
+  "SIGNATURE_180D",
+  "SIGNATURE_360D",
+];
+
+/** Human-readable labels */
+export const PLAN_LABELS: Record<Plan, string> = {
+  FREE: "Free",
+  SIGNATURE_TRIAL_7D: "Signature (Trial)",
+  SIGNATURE_30D: "Signature (Monthly)",
+  SIGNATURE_180D: "Signature (6-Month)",
+  SIGNATURE_360D: "Signature (Annual)",
+  SIGNATURE_FF: "Signature (Friends & Family)",
+};
+
+/** Billing interval in days for each paid plan */
+export const PLAN_INTERVAL_DAYS: Partial<Record<Plan, number>> = {
+  SIGNATURE_30D: 30,
+  SIGNATURE_180D: 180,
+  SIGNATURE_360D: 360,
+};
+
+/** Stripe recurring interval for each paid plan */
+export const PLAN_STRIPE_INTERVAL: Partial<
+  Record<Plan, { interval: "month" | "year"; interval_count: number }>
+> = {
+  SIGNATURE_30D: { interval: "month", interval_count: 1 },
+  SIGNATURE_180D: { interval: "month", interval_count: 6 },
+  SIGNATURE_360D: { interval: "year", interval_count: 1 },
+};
+
+/** Monthly price in cents for each paid plan */
+export const PLAN_PRICES: Partial<Record<Plan, number>> = {
+  SIGNATURE_30D: 4500, // $45/mo
+  SIGNATURE_180D: 22500, // $225 / 6mo ($37.50/mo — save 17%)
+  SIGNATURE_360D: 39600, // $396 / yr ($33/mo — save 27%)
+};
+
+export function isSignaturePlan(plan: Plan): boolean {
+  return SIGNATURE_PLANS.includes(plan);
+}
+
+export function isPaidPlan(plan: Plan): boolean {
+  return PAID_PLANS.includes(plan);
+}
+
+// ─── Permission definitions per role ───
+
 export const STAFF_PERMISSIONS = {
   ADMIN: [
     "events.create",
@@ -25,7 +86,9 @@ export const STAFF_PERMISSIONS = {
 export type Permission =
   (typeof STAFF_PERMISSIONS)[keyof typeof STAFF_PERMISSIONS][number];
 
-// Check if an organizer has Signature plan (active or trialing)
+// ─── Subscription checks ───
+
+/** Check if an organizer has any active Signature plan */
 export async function hasSignaturePlan(
   organizerProfileId: string
 ): Promise<boolean> {
@@ -34,35 +97,39 @@ export async function hasSignaturePlan(
   });
 
   if (!sub) return false;
-  if (sub.plan !== "SIGNATURE") return false;
+  if (!isSignaturePlan(sub.plan)) return false;
 
-  // Check if active or in valid trial
+  // Friends & Family — always active
+  if (sub.plan === "SIGNATURE_FF") return true;
+
+  // Trial — check expiry
+  if (sub.plan === "SIGNATURE_TRIAL_7D") {
+    if (sub.status === "TRIALING" && sub.trialEndsAt && sub.trialEndsAt > new Date()) return true;
+    // Trial expired
+    return false;
+  }
+
+  // Paid plans — check status
   if (sub.status === "ACTIVE") return true;
-  if (
-    sub.status === "TRIALING" &&
-    sub.trialEndsAt &&
-    sub.trialEndsAt > new Date()
-  )
-    return true;
 
   return false;
 }
 
-// Check if staff features are available
+/** Check if staff features are available */
 export async function canUseStaff(
   organizerProfileId: string
 ): Promise<boolean> {
   return hasSignaturePlan(organizerProfileId);
 }
 
-// Get organizer's subscription
+/** Get organizer's subscription */
 export async function getSubscription(organizerProfileId: string) {
   return prisma.subscription.findUnique({
     where: { organizerProfileId },
   });
 }
 
-// Get or create subscription (defaults to FREE)
+/** Get or create subscription (defaults to FREE) */
 export async function getOrCreateSubscription(organizerProfileId: string) {
   let sub = await prisma.subscription.findUnique({
     where: { organizerProfileId },
@@ -81,19 +148,17 @@ export async function getOrCreateSubscription(organizerProfileId: string) {
   return sub;
 }
 
-// Check if a user has a specific permission for an organizer
+/** Check if a user has a specific permission for an organizer */
 export async function hasPermission(
   userId: string,
   organizerProfileId: string,
   permission: string
 ): Promise<boolean> {
-  // Check if user is the organizer themselves
   const profile = await prisma.organizerProfile.findUnique({
     where: { id: organizerProfileId },
   });
-  if (profile?.userId === userId) return true; // Owner has all permissions
+  if (profile?.userId === userId) return true;
 
-  // Check staff membership
   const staff = await prisma.staffMember.findUnique({
     where: {
       organizerProfileId_userId: {
@@ -105,7 +170,6 @@ export async function hasPermission(
 
   if (!staff || staff.status !== "ACTIVE") return false;
 
-  // Check custom permissions first, then role defaults
   if (staff.customPermissions.length > 0) {
     return staff.customPermissions.includes(permission);
   }
@@ -114,7 +178,7 @@ export async function hasPermission(
   return rolePerms.includes(permission);
 }
 
-// Get staff count for an organizer
+/** Get staff count for an organizer */
 export async function getStaffCount(
   organizerProfileId: string
 ): Promise<number> {

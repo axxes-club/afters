@@ -91,12 +91,15 @@ export default function SettingsPage() {
   const [subscription, setSubscription] = useState<{
     plan: string;
     status: string;
+    label: string;
+    isSignature: boolean;
     trialEndsAt: string | null;
     currentPeriodEnd: string | null;
     cancelAtPeriodEnd: boolean;
   } | null>(null);
   const [subLoading, setSubLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>("SIGNATURE_30D");
   const [cancelling, setCancelling] = useState(false);
 
   // Form state
@@ -160,11 +163,13 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleUpgrade() {
+  async function handleUpgrade(plan?: string) {
     setUpgrading(true);
     try {
       const res = await fetch("/api/stripe/subscription", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: plan || selectedPlan }),
       });
       const data = await res.json();
       if (res.ok && data.url) {
@@ -302,7 +307,7 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {subscription?.plan === "SIGNATURE" ? (
+            {subscription?.isSignature ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-lg border border-pink/20 bg-pink/5">
                   <div className="flex items-center gap-3">
@@ -311,15 +316,22 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <p className="font-bold text-white flex items-center gap-2">
-                        Signature Plan
-                        {subscription.status === "TRIALING" && (
+                        {subscription.label || "Signature Plan"}
+                        {subscription.plan === "SIGNATURE_TRIAL_7D" && (
                           <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
                             Trial
                           </Badge>
                         )}
+                        {subscription.plan === "SIGNATURE_FF" && (
+                          <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
+                            F&F
+                          </Badge>
+                        )}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {subscription.status === "TRIALING" && subscription.trialEndsAt
+                        {subscription.plan === "SIGNATURE_FF"
+                          ? "Free forever — Friends & Family"
+                          : subscription.plan === "SIGNATURE_TRIAL_7D" && subscription.trialEndsAt
                           ? `Trial ends ${new Date(subscription.trialEndsAt).toLocaleDateString()}`
                           : subscription.currentPeriodEnd
                           ? `Next billing: ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
@@ -330,7 +342,11 @@ export default function SettingsPage() {
                   <Badge className="bg-pink/10 text-pink border-pink/20">Active</Badge>
                 </div>
 
-                {subscription.cancelAtPeriodEnd ? (
+                {subscription.plan === "SIGNATURE_FF" ? (
+                  <p className="text-sm text-muted-foreground">
+                    This plan is managed by the Afters team. Contact us if you need changes.
+                  </p>
+                ) : subscription.cancelAtPeriodEnd ? (
                   <div className="flex items-center gap-2 p-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5">
                     <AlertTriangle className="h-4 w-4 text-yellow-400 shrink-0" />
                     <p className="text-sm text-yellow-400">
@@ -378,17 +394,53 @@ export default function SettingsPage() {
             ) : (
               <div className="relative rounded-xl overflow-hidden">
                 <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-b from-pink/30 via-pink/5 to-transparent pointer-events-none" />
-                <div className="relative p-6 text-center bg-white/[0.02]">
-                  <Crown className="size-8 text-pink mx-auto mb-3" />
-                  <h3 className="font-bold text-white text-lg mb-1">
-                    Upgrade to Signature
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
-                    Reduced fees, priority placement, staff management, advanced analytics, and more. Start with a 7-day free trial.
-                  </p>
-                  <div className="flex items-center justify-center gap-3">
+                <div className="relative p-6 bg-white/[0.02]">
+                  <div className="text-center mb-6">
+                    <Crown className="size-8 text-pink mx-auto mb-3" />
+                    <h3 className="font-bold text-white text-lg mb-1">
+                      Upgrade to Signature
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                      Reduced fees, priority placement, staff management, advanced analytics, and more.
+                    </p>
+                  </div>
+
+                  {/* Billing options */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    {[
+                      { plan: "SIGNATURE_30D", label: "Monthly", price: "$45", period: "/mo", badge: "7-day free trial", savings: null },
+                      { plan: "SIGNATURE_180D", label: "6 Months", price: "$225", period: "/6mo", badge: "Most popular", savings: "Save 17%" },
+                      { plan: "SIGNATURE_360D", label: "Annual", price: "$396", period: "/yr", badge: "Best value", savings: "Save 27%" },
+                    ].map((option) => (
+                      <button
+                        key={option.plan}
+                        onClick={() => setSelectedPlan(option.plan)}
+                        className={`relative p-4 rounded-lg border text-left transition-all ${
+                          selectedPlan === option.plan
+                            ? "border-pink bg-pink/5"
+                            : "border-white/10 hover:border-white/20"
+                        }`}
+                      >
+                        {option.savings && (
+                          <span className="absolute -top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                            {option.savings}
+                          </span>
+                        )}
+                        <p className="text-sm font-bold text-white">{option.label}</p>
+                        <p className="text-lg font-bold text-white">
+                          {option.price}
+                          <span className="text-xs text-muted-foreground font-normal">{option.period}</span>
+                        </p>
+                        {option.plan === "SIGNATURE_30D" && (
+                          <p className="text-[10px] text-blue-400 mt-1">Includes 7-day free trial</p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-center">
                     <Button
-                      onClick={handleUpgrade}
+                      onClick={() => handleUpgrade(selectedPlan)}
                       disabled={upgrading}
                       className="glow-pink font-bold"
                     >
@@ -400,7 +452,9 @@ export default function SettingsPage() {
                       ) : (
                         <>
                           <Zap className="mr-2 h-4 w-4" />
-                          Start 7-Day Free Trial — $45/mo
+                          {selectedPlan === "SIGNATURE_30D"
+                            ? "Start 7-Day Free Trial"
+                            : "Subscribe Now"}
                         </>
                       )}
                     </Button>

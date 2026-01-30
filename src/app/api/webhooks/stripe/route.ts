@@ -100,7 +100,7 @@ export async function POST(req: Request) {
       const organizerProfileId = subscription.metadata.organizerProfileId;
 
       if (organizerProfileId) {
-        const planMap: Record<string, string> = {
+        const statusMap: Record<string, string> = {
           active: "ACTIVE",
           trialing: "TRIALING",
           past_due: "PAST_DUE",
@@ -108,45 +108,63 @@ export async function POST(req: Request) {
           incomplete: "INCOMPLETE",
         };
 
+        // Determine internal plan from metadata or subscription state
+        const metaPlan = subscription.metadata.plan; // e.g. "SIGNATURE_30D"
+        let plan: string;
+
+        if (metaPlan && ["SIGNATURE_30D", "SIGNATURE_180D", "SIGNATURE_360D", "SIGNATURE_TRIAL_7D"].includes(metaPlan)) {
+          plan = metaPlan;
+        } else if (subscription.status === "trialing") {
+          plan = "SIGNATURE_TRIAL_7D";
+        } else {
+          // Derive from interval: 1 month = 30D, 6 months = 180D, 1 year = 360D
+          const item = subscription.items.data[0];
+          const interval = item?.price?.recurring?.interval;
+          const count = item?.price?.recurring?.interval_count || 1;
+          if (interval === "year") {
+            plan = "SIGNATURE_360D";
+          } else if (interval === "month" && count >= 6) {
+            plan = "SIGNATURE_180D";
+          } else {
+            plan = "SIGNATURE_30D";
+          }
+        }
+
+        // If trialing, override to TRIAL plan
+        if (subscription.status === "trialing") {
+          plan = "SIGNATURE_TRIAL_7D";
+        }
+
+        // If active and was trial, upgrade to the paid plan from metadata
+        if (subscription.status === "active" && plan === "SIGNATURE_TRIAL_7D") {
+          plan = metaPlan && metaPlan !== "SIGNATURE_TRIAL_7D" ? metaPlan : "SIGNATURE_30D";
+        }
+
+        const subData = {
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: subscription.customer as string,
+          stripePriceId: subscription.items.data[0]?.price.id,
+          plan,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          status: (statusMap[subscription.status] || "ACTIVE") as any,
+          trialEndsAt: subscription.trial_end
+            ? new Date(subscription.trial_end * 1000)
+            : null,
+          currentPeriodStart: subscription.items.data[0]?.current_period_start
+            ? new Date(subscription.items.data[0].current_period_start * 1000)
+            : null,
+          currentPeriodEnd: subscription.items.data[0]?.current_period_end
+            ? new Date(subscription.items.data[0].current_period_end * 1000)
+            : null,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        };
+
         await prisma.subscription.upsert({
           where: { organizerProfileId },
-          create: {
-            organizerProfileId,
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer as string,
-            stripePriceId: subscription.items.data[0]?.price.id,
-            plan: "SIGNATURE",
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            status: (planMap[subscription.status] || "ACTIVE") as any,
-            trialEndsAt: subscription.trial_end
-              ? new Date(subscription.trial_end * 1000)
-              : null,
-            currentPeriodStart: subscription.items.data[0]?.current_period_start
-              ? new Date(subscription.items.data[0].current_period_start * 1000)
-              : null,
-            currentPeriodEnd: subscription.items.data[0]?.current_period_end
-              ? new Date(subscription.items.data[0].current_period_end * 1000)
-              : null,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
-          },
-          update: {
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer as string,
-            stripePriceId: subscription.items.data[0]?.price.id,
-            plan: "SIGNATURE",
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            status: (planMap[subscription.status] || "ACTIVE") as any,
-            trialEndsAt: subscription.trial_end
-              ? new Date(subscription.trial_end * 1000)
-              : null,
-            currentPeriodStart: subscription.items.data[0]?.current_period_start
-              ? new Date(subscription.items.data[0].current_period_start * 1000)
-              : null,
-            currentPeriodEnd: subscription.items.data[0]?.current_period_end
-              ? new Date(subscription.items.data[0].current_period_end * 1000)
-              : null,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
-          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          create: { organizerProfileId, ...subData } as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          update: subData as any,
         });
       }
       break;

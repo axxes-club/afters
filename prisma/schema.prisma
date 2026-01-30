@@ -480,7 +480,11 @@ model VerificationRequest {
 
 enum Plan {
   FREE
-  SIGNATURE
+  SIGNATURE_TRIAL_7D
+  SIGNATURE_30D
+  SIGNATURE_180D
+  SIGNATURE_360D
+  SIGNATURE_FF
 }
 
 enum SubscriptionStatus {
