@@ -20,13 +20,19 @@ import {
   Globe,
   Palette,
   Headphones,
+  DollarSign,
+  Percent,
+  CircleDollarSign,
+  Calculator,
 } from "lucide-react";
 
 export const metadata = {
-  title: "VIP for Organizers — Afters",
+  title: "Pricing — Afters",
   description:
-    "Unlock the full power of Afters. Priority placement, advanced analytics, custom branding, and more. $45/month.",
+    "The lowest fees in nightlife ticketing. Free to start. VIP at $45/mo. Compare us to Posh, Eventbrite, DICE, and Luma.",
 };
+
+/* ─── data ─── */
 
 const vipFeatures = [
   {
@@ -84,6 +90,7 @@ const comparisonRows = [
   { feature: "Stripe Payouts", free: true, vip: true },
   { feature: "QR Check-in Scanner", free: true, vip: true },
   { feature: "Basic Analytics", free: true, vip: true },
+  { feature: "Reduced Platform Fees", free: false, vip: true },
   { feature: "Priority Event Placement", free: false, vip: true },
   { feature: "Advanced Analytics & Funnels", free: false, vip: true },
   { feature: "Custom Branding & Colors", free: false, vip: true },
@@ -94,6 +101,37 @@ const comparisonRows = [
   { feature: "AFTERS RADIO Feature", free: false, vip: true },
   { feature: "Referral Link Tracking", free: false, vip: true },
   { feature: "Custom Event URLs", free: false, vip: true },
+];
+
+const competitors = [
+  {
+    name: "Posh",
+    fee: "10% + $0.99",
+    on30: "$3.99",
+    pct: "13.3%",
+    note: "No paid tier — everyone pays the same high fees",
+  },
+  {
+    name: "Eventbrite",
+    fee: "3.7% + $1.79 + 2.9% + $0.30",
+    on30: "$3.77",
+    pct: "12.6%",
+    note: "Processing fee added on top of service fee",
+  },
+  {
+    name: "Luma",
+    fee: "5% + 2.9% + $0.30",
+    on30: "$2.67",
+    pct: "8.9%",
+    note: "$59/mo to remove 5% — still pay processing",
+  },
+  {
+    name: "Humanitix",
+    fee: "2.1% + $0.99 + 2.9% + $0.30",
+    on30: "$2.79",
+    pct: "9.3%",
+    note: "Charity model — limited nightlife features",
+  },
 ];
 
 const testimonials = [
@@ -107,7 +145,7 @@ const testimonials = [
     name: "NEON COLLECTIVE",
     role: "Raleigh, NC",
     quote:
-      "The analytics helped us understand our audience. We stopped guessing and started selling.",
+      "We switched from Eventbrite and saved hundreds in fees our first month. The analytics are way better too.",
   },
   {
     name: "VIBE DISTRICT",
@@ -117,6 +155,8 @@ const testimonials = [
   },
 ];
 
+/* ─── page ─── */
+
 export default function PricingPage() {
   return (
     <>
@@ -124,66 +164,357 @@ export default function PricingPage() {
       <main className="min-h-screen bg-black pt-16">
         {/* ═══════════════ HERO ═══════════════ */}
         <section className="relative overflow-hidden">
-          {/* Animated background glow */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-pink/5 blur-[120px]" />
             <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-pink/3 blur-[100px]" />
             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-purple-600/5 blur-[80px]" />
           </div>
 
-          <div className="relative max-w-5xl mx-auto px-4 pt-20 pb-16 text-center">
-            {/* Pill badge */}
+          <div className="relative max-w-5xl mx-auto px-4 pt-20 pb-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full border border-pink/30 bg-pink/5 text-pink text-sm font-medium">
               <Crown className="size-4" />
               <span className="font-display tracking-wide">
-                FOR ORGANIZERS
+                LOWEST FEES IN NIGHTLIFE
               </span>
             </div>
 
             <h1 className="font-display text-5xl sm:text-7xl font-bold tracking-tight mb-6">
-              <span className="text-white">GO </span>
-              <span className="text-gradient">VIP</span>
+              <span className="text-white">Keep more.</span>
+              <br />
+              <span className="text-gradient">Sell more.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-              Stop competing for attention. Start commanding it.
+              Other platforms take 10–13% of every ticket.
               <br className="hidden sm:block" />
-              Everything you need to sell out every event.
+              We start at 5%. VIP drops it to 2%.
             </p>
 
             <p className="text-muted-foreground/60 text-sm mb-12">
-              Join the organizers who stopped leaving money on the table.
+              Free to start · No contracts · No setup fees
             </p>
+          </div>
+        </section>
 
-            {/* Price card */}
-            <div className="relative inline-block">
-              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-pink/60 via-pink/20 to-transparent" />
-              <div className="relative bg-[#0a0a0a] rounded-2xl px-12 py-10">
-                <div className="flex items-baseline justify-center gap-1 mb-2">
-                  <span className="text-6xl sm:text-7xl font-bold text-white font-display">
-                    $45
-                  </span>
-                  <span className="text-muted-foreground text-lg">/mo</span>
-                </div>
-                <p className="text-muted-foreground/60 text-sm mb-8">
-                  Cancel anytime · No contracts · No setup fees
+        {/* ═══════════════ PRICING CARDS ═══════════════ */}
+        <section className="max-w-4xl mx-auto px-4 pb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* FREE TIER */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8">
+              <div className="mb-6">
+                <p className="text-sm text-muted-foreground font-display tracking-wide uppercase mb-2">
+                  Starter
                 </p>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-5xl font-bold text-white font-display">
+                    Free
+                  </span>
+                </div>
+                <p className="text-muted-foreground/60 text-sm mt-2">
+                  Forever. No credit card required.
+                </p>
+              </div>
+
+              <div className="space-y-2 mb-8">
+                <div className="flex items-center gap-3 py-2 border-b border-white/5">
+                  <Percent className="size-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-white text-sm font-medium">
+                      5% + $0.50{" "}
+                      <span className="text-muted-foreground">
+                        platform fee
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-2 border-b border-white/5">
+                  <CircleDollarSign className="size-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-white text-sm font-medium">
+                      2.9% + $0.30{" "}
+                      <span className="text-muted-foreground">
+                        Stripe processing
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-2 border-b border-white/5">
+                  <Calculator className="size-4 text-muted-foreground shrink-0" />
+                  <div>
+                    <p className="text-white text-sm font-medium">
+                      ~$2.67 on a $30 ticket{" "}
+                      <span className="text-green-400 text-xs font-display">
+                        (8.9%)
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-2">
+                  <Ticket className="size-4 text-muted-foreground shrink-0" />
+                  <p className="text-white text-sm font-medium">
+                    Free events = $0 fees
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-8">
+                {[
+                  "Unlimited events",
+                  "Event discovery listing",
+                  "Stripe payouts",
+                  "QR check-in scanner",
+                  "Basic analytics",
+                  "Mobile-optimized pages",
+                ].map((f) => (
+                  <div key={f} className="flex items-center gap-2.5">
+                    <Check className="size-4 text-green-500 shrink-0" />
+                    <span className="text-sm text-white/80">{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link href="/sign-up">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full py-6 text-base font-bold"
+                >
+                  Get Started Free
+                </Button>
+              </Link>
+            </div>
+
+            {/* VIP TIER */}
+            <div className="relative">
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-pink/60 via-pink/20 to-pink/5" />
+              <div className="relative rounded-2xl bg-[#0a0a0a] p-8">
+                {/* Popular badge */}
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="px-4 py-1 rounded-full bg-pink text-black text-xs font-bold font-display tracking-wide">
+                    MOST POPULAR
+                  </span>
+                </div>
+
+                <div className="mb-6 mt-2">
+                  <p className="text-sm text-pink font-display tracking-wide uppercase mb-2 flex items-center gap-1.5">
+                    <Crown className="size-3.5" /> VIP
+                  </p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-bold text-white font-display">
+                      $45
+                    </span>
+                    <span className="text-muted-foreground text-lg">/mo</span>
+                  </div>
+                  <p className="text-muted-foreground/60 text-sm mt-2">
+                    Cancel anytime. Pays for itself in one event.
+                  </p>
+                </div>
+
+                <div className="space-y-2 mb-8">
+                  <div className="flex items-center gap-3 py-2 border-b border-white/5">
+                    <Percent className="size-4 text-pink shrink-0" />
+                    <div>
+                      <p className="text-white text-sm font-medium">
+                        2% + $0.50{" "}
+                        <span className="text-muted-foreground">
+                          platform fee
+                        </span>
+                        <span className="text-pink text-xs ml-2 font-display">
+                          60% OFF
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 py-2 border-b border-white/5">
+                    <CircleDollarSign className="size-4 text-pink shrink-0" />
+                    <div>
+                      <p className="text-white text-sm font-medium">
+                        2.9% + $0.30{" "}
+                        <span className="text-muted-foreground">
+                          Stripe processing
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 py-2 border-b border-white/5">
+                    <Calculator className="size-4 text-pink shrink-0" />
+                    <div>
+                      <p className="text-white text-sm font-medium">
+                        ~$1.77 on a $30 ticket{" "}
+                        <span className="text-pink text-xs font-display">
+                          (5.9%)
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 py-2">
+                    <Ticket className="size-4 text-pink shrink-0" />
+                    <p className="text-white text-sm font-medium">
+                      Free events = $0 fees
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-8">
+                  {[
+                    "Everything in Free, plus:",
+                    "Reduced platform fees (2%)",
+                    "Priority event placement",
+                    "Advanced analytics & funnels",
+                    "Custom branding & colors",
+                    "Promo codes & discounts",
+                    "Verified organizer badge",
+                    "Priority support (24/7)",
+                    "Multi-city management",
+                    "AFTERS RADIO feature",
+                    "Referral link tracking",
+                    "Custom event URLs",
+                  ].map((f, i) => (
+                    <div key={f} className="flex items-center gap-2.5">
+                      {i === 0 ? (
+                        <Sparkles className="size-4 text-pink shrink-0" />
+                      ) : (
+                        <Check className="size-4 text-pink shrink-0" />
+                      )}
+                      <span
+                        className={`text-sm ${
+                          i === 0
+                            ? "text-pink font-bold font-display"
+                            : "text-white/80"
+                        }`}
+                      >
+                        {f}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
                 <Link href="/dashboard/settings">
                   <Button
                     size="lg"
-                    className="w-full text-base font-bold px-12 py-6 glow-pink hover:scale-[1.02] transition-transform"
+                    className="w-full py-6 text-base font-bold glow-pink hover:scale-[1.02] transition-transform"
                   >
                     <Zap className="size-5 mr-2" />
                     Upgrade to VIP
                   </Button>
                 </Link>
 
-                <p className="text-xs text-muted-foreground/40 mt-4">
+                <p className="text-xs text-muted-foreground/40 mt-4 text-center">
                   Billed monthly · Stripe secure checkout
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* ═══════════════ COMPETITOR COMPARISON ═══════════════ */}
+        <section className="max-w-4xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
+              Compare the{" "}
+              <span className="text-gradient">real cost</span>
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Total fees on a $30 ticket. Stripe processing included.
+              <br />
+              See why organizers are switching to Afters.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/10 overflow-hidden">
+            {/* Header */}
+            <div className="grid grid-cols-12 bg-white/[0.03] border-b border-white/10">
+              <div className="col-span-3 p-4 text-sm font-medium text-muted-foreground">
+                Platform
+              </div>
+              <div className="col-span-4 p-4 text-sm font-medium text-muted-foreground">
+                Fee Structure
+              </div>
+              <div className="col-span-2 p-4 text-center text-sm font-medium text-muted-foreground">
+                On $30
+              </div>
+              <div className="col-span-3 p-4 text-sm font-medium text-muted-foreground">
+                Note
+              </div>
+            </div>
+
+            {/* Afters VIP — highlighted */}
+            <div className="grid grid-cols-12 border-b border-pink/20 bg-pink/[0.04]">
+              <div className="col-span-3 p-4">
+                <span className="text-pink font-bold font-display text-sm flex items-center gap-1.5">
+                  <Crown className="size-3.5" /> Afters VIP
+                </span>
+              </div>
+              <div className="col-span-4 p-4 text-sm text-white/80">
+                2% + $0.50 + processing
+              </div>
+              <div className="col-span-2 p-4 text-center">
+                <span className="text-pink font-bold font-display">$1.77</span>
+              </div>
+              <div className="col-span-3 p-4 text-xs text-green-400">
+                + $45/mo · Lowest total cost
+              </div>
+            </div>
+
+            {/* Afters Free */}
+            <div className="grid grid-cols-12 border-b border-pink/10 bg-pink/[0.02]">
+              <div className="col-span-3 p-4">
+                <span className="text-white font-bold text-sm">
+                  Afters Free
+                </span>
+              </div>
+              <div className="col-span-4 p-4 text-sm text-white/80">
+                5% + $0.50 + processing
+              </div>
+              <div className="col-span-2 p-4 text-center">
+                <span className="text-white font-bold font-display">
+                  $2.67
+                </span>
+              </div>
+              <div className="col-span-3 p-4 text-xs text-green-400">
+                No subscription needed
+              </div>
+            </div>
+
+            {/* Competitors */}
+            {competitors.map((c) => (
+              <div
+                key={c.name}
+                className="grid grid-cols-12 border-b border-white/5 hover:bg-white/[0.01] transition-colors"
+              >
+                <div className="col-span-3 p-4">
+                  <span className="text-white/60 text-sm">{c.name}</span>
+                </div>
+                <div className="col-span-4 p-4 text-sm text-white/40">
+                  {c.fee}
+                </div>
+                <div className="col-span-2 p-4 text-center">
+                  <span className="text-white/60 font-display">{c.on30}</span>
+                </div>
+                <div className="col-span-3 p-4 text-xs text-muted-foreground/60">
+                  {c.note}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Savings callout */}
+          <div className="mt-8 rounded-xl border border-pink/10 bg-pink/[0.02] p-6 text-center">
+            <p className="text-white text-sm">
+              <span className="font-bold">Sell 200 tickets at $30?</span>{" "}
+              <span className="text-muted-foreground">
+                On Posh you&apos;d pay{" "}
+              </span>
+              <span className="text-white/60 line-through">$798 in fees</span>
+              <span className="text-muted-foreground">. On Afters VIP: </span>
+              <span className="text-pink font-bold font-display">
+                $354 + $45 sub
+              </span>
+              <span className="text-muted-foreground">.</span>
+            </p>
+            <p className="text-pink font-bold font-display text-lg mt-2">
+              That&apos;s $399 saved. Every single event.
+            </p>
           </div>
         </section>
 
@@ -219,17 +550,18 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ═══════════════ COMPARISON TABLE ═══════════════ */}
+        {/* ═══════════════ FREE VS VIP TABLE ═══════════════ */}
         <section className="max-w-3xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
               Free vs <span className="text-gradient">VIP</span>
             </h2>
-            <p className="text-muted-foreground">See exactly what you unlock.</p>
+            <p className="text-muted-foreground">
+              See exactly what you unlock.
+            </p>
           </div>
 
           <div className="rounded-xl border border-white/10 overflow-hidden">
-            {/* Header row */}
             <div className="grid grid-cols-3 bg-white/[0.03] border-b border-white/10">
               <div className="p-4 text-sm font-medium text-muted-foreground">
                 Feature
@@ -244,14 +576,11 @@ export default function PricingPage() {
               </div>
             </div>
 
-            {/* Feature rows */}
-            {comparisonRows.map((row, i) => (
+            {comparisonRows.map((row) => (
               <div
                 key={row.feature}
                 className={`grid grid-cols-3 border-b border-white/5 ${
-                  !row.free
-                    ? "bg-pink/[0.015]"
-                    : ""
+                  !row.free ? "bg-pink/[0.015]" : ""
                 } hover:bg-white/[0.02] transition-colors`}
               >
                 <div className="p-4 text-sm text-white/80">{row.feature}</div>
@@ -274,8 +603,7 @@ export default function PricingPage() {
         <section className="max-w-5xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
-              Organizers{" "}
-              <span className="text-gradient">love it</span>
+              Organizers <span className="text-gradient">love it</span>
             </h2>
           </div>
 
@@ -287,10 +615,7 @@ export default function PricingPage() {
               >
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="size-4 fill-pink text-pink"
-                    />
+                    <Star key={i} className="size-4 fill-pink text-pink" />
                   ))}
                 </div>
                 <p className="text-white/80 text-sm leading-relaxed mb-4">
@@ -316,19 +641,28 @@ export default function PricingPage() {
             <div className="relative p-8 sm:p-12 text-center">
               <Sparkles className="size-8 text-pink mx-auto mb-6" />
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-4">
-                Do the math
+                VIP pays for itself. Fast.
               </h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8 leading-relaxed">
-                Sell <span className="text-white font-bold">just 3 extra tickets</span> per
-                event from priority placement alone and VIP pays for itself.
-                Most organizers see{" "}
-                <span className="text-pink font-bold">10–25% more sales</span>{" "}
-                in their first month.
+                The fee savings alone cover the $45/mo. Priority placement on
+                top of that means{" "}
+                <span className="text-pink font-bold">
+                  more tickets sold at lower cost
+                </span>
+                . It&apos;s not an expense — it&apos;s a raise.
               </p>
 
-              <div className="grid grid-cols-3 gap-6 max-w-md mx-auto mb-10">
+              <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto mb-10">
                 <div>
                   <p className="text-3xl sm:text-4xl font-bold text-white font-display">
+                    60%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Lower platform fees
+                  </p>
+                </div>
+                <div>
+                  <p className="text-3xl sm:text-4xl font-bold text-pink font-display">
                     2×
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -336,19 +670,11 @@ export default function PricingPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-3xl sm:text-4xl font-bold text-pink font-display">
-                    10%+
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Sales increase
-                  </p>
-                </div>
-                <div>
                   <p className="text-3xl sm:text-4xl font-bold text-white font-display">
-                    24h
+                    $399
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Support response
+                    Saved per 200 tickets vs Posh
                   </p>
                 </div>
               </div>
@@ -375,30 +701,35 @@ export default function PricingPage() {
           <div className="space-y-6">
             {[
               {
-                q: "Can I cancel anytime?",
+                q: "What are the fees on free events?",
+                a: "Zero. Free events have zero platform fees and zero processing fees. Always.",
+              },
+              {
+                q: "Who pays the fees — me or the attendee?",
+                a: "By default, fees are passed to the attendee (added at checkout). You can choose to absorb them if you prefer clean round-number pricing.",
+              },
+              {
+                q: "How do you compare to Posh?",
+                a: "Posh charges 10% + $0.99 per ticket with no way to reduce it. Our free tier is already cheaper (5% + $0.50), and VIP drops it to just 2% + $0.50. On a 200-ticket event at $30, you'd save ~$399 vs Posh.",
+              },
+              {
+                q: "Can I cancel VIP anytime?",
                 a: "Yes. No contracts, no cancellation fees. Cancel from your dashboard whenever you want. Your VIP perks stay active until the end of your billing period.",
               },
               {
-                q: "Do I keep my existing events?",
-                a: "Of course. All your events, analytics, and data stay exactly as they are. VIP just unlocks more features on top.",
-              },
-              {
-                q: "What happens to my events if I downgrade?",
-                a: "Your events stay live. You just lose VIP perks like priority placement and custom branding. No data is deleted.",
+                q: "What happens if I downgrade?",
+                a: "Your events stay live. You go back to 5% + $0.50 platform fees and lose VIP perks like priority placement and custom branding. No data is deleted.",
               },
               {
                 q: "Is there a free trial?",
-                a: "Not right now — but at $45/mo with no commitment, there's zero risk. Try it for a month. If it doesn't pay for itself, cancel.",
+                a: "Not right now — but at $45/mo with no commitment, there's zero risk. The fee savings alone usually cover the subscription after a single event.",
               },
               {
                 q: "How does priority placement work?",
-                a: "VIP events are boosted to the top of discovery feeds, search results, and city pages. Your event gets seen first.",
+                a: "VIP events are boosted to the top of discovery feeds, search results, and city pages. Your event gets seen first — more impressions, more sales.",
               },
             ].map((faq) => (
-              <div
-                key={faq.q}
-                className="border-b border-white/5 pb-6"
-              >
+              <div key={faq.q} className="border-b border-white/5 pb-6">
                 <h3 className="text-white font-bold mb-2">{faq.q}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {faq.a}
@@ -413,23 +744,34 @@ export default function PricingPage() {
           <h2 className="font-display text-4xl sm:text-5xl font-bold mb-4">
             <span className="text-white">Your next event</span>
             <br />
-            <span className="text-gradient">deserves VIP.</span>
+            <span className="text-gradient">deserves better fees.</span>
           </h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            $45/mo. No contracts. Cancel anytime.
+            Start free. Upgrade when you&apos;re ready.
             <br />
-            The only question is why you haven&apos;t started yet.
+            Either way, you&apos;re paying less than anywhere else.
           </p>
 
-          <Link href="/dashboard/settings">
-            <Button
-              size="lg"
-              className="text-lg font-bold px-14 py-7 glow-pink hover:scale-[1.02] transition-transform"
-            >
-              <Crown className="size-5 mr-2" />
-              Go VIP
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/sign-up">
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-base font-bold px-10 py-6"
+              >
+                Start Free
+              </Button>
+            </Link>
+            <Link href="/dashboard/settings">
+              <Button
+                size="lg"
+                className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
+              >
+                <Crown className="size-5 mr-2" />
+                Go VIP — $45/mo
+              </Button>
+            </Link>
+          </div>
         </section>
       </main>
     </>
