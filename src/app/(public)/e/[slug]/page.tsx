@@ -3,6 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
+import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -260,6 +261,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

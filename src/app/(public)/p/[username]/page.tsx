@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -309,6 +310,7 @@ export default async function PersonalProfilePage({
             </Card>
           )}
       </main>
+      <Footer />
     </div>
   );
 }

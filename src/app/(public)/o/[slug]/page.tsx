@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
@@ -380,6 +381,7 @@ export default async function ArtistProfilePage({
           )}
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

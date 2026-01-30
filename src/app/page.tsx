@@ -5,6 +5,7 @@ import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, ArrowRight, Sparkles } from "lucide-react"
 import { auth } from "@clerk/nextjs/server"
 import { SaveEventButton } from "@/components/SaveEventButton"
+import { Footer } from "@/components/layout/footer"
 
 // Ensure this page is not cached
 export const dynamic = "force-dynamic"
@@ -301,34 +302,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-white/10">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold font-display">AFTERS</span>
-              <span className="text-[#ff1493]">.</span>
-            </div>
-            <div className="flex items-center gap-8 text-sm text-white/40">
-              <Link href="/events" className="hover:text-[#ff1493] transition-colors">Events</Link>
-              <Link href="/dashboard" className="hover:text-[#ff1493] transition-colors">Host</Link>
-              <span>&copy; {new Date().getFullYear()}</span>
-            </div>
-          </div>
-          <div className="mt-8 text-center text-sm text-white/30">
-            from{" "}
-            <a 
-              href="https://crativo.xyz" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-[#ff1493] hover:text-[#ff69b4] transition-colors"
-            >
-              jose
-            </a>
-            {" "}with love
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

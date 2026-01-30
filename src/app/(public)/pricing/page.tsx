@@ -1,4 +1,5 @@
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { CompetitorComparison } from "@/components/pricing/CompetitorComparison";
 import Link from "next/link";
@@ -631,6 +632,7 @@ export default function PricingPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </>
   );
 }

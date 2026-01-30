@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { auth } from "@clerk/nextjs/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -266,6 +267,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageProps) {
           </Card>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { SystemHealth, FeatureType } from "@prisma/client"
@@ -118,6 +119,7 @@ export default async function PublicStatusPage() {
           Afters Radio • Est. 2026 • Brooklyn, NY
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

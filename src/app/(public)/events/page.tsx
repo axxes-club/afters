@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/stripe";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EventFilters } from "@/components/events/EventFilters";
@@ -399,6 +400,7 @@ export default async function EventsPage({
           </p>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
