@@ -2,9 +2,9 @@ import { Header } from "@/components/layout/header";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
 import {
   isSuperAdmin as checkSuperAdmin,
-  isOrganizer,
-  isArtist,
-  isPersonal,
+  hasOrganizerProfile,
+  hasArtistProfile,
+  hasPersonalProfile,
 } from "@/lib/auth-utils";
 
 export default async function DashboardLayout({
@@ -13,9 +13,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const isSuperAdmin = await checkSuperAdmin();
-  const isOrg = await isOrganizer();
-  const isArt = await isArtist();
-  const isPers = await isPersonal();
+  const isOrg = await hasOrganizerProfile();
+  const isArt = await hasArtistProfile();
+  const isPers = await hasPersonalProfile();
 
   return (
     <div className="min-h-screen">

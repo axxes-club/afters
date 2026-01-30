@@ -1,40 +1,55 @@
-import { notFound } from "next/navigation"
-import { prisma } from "@/lib/prisma"
-import { Header } from "@/components/layout/header"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { 
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { Header } from "@/components/layout/header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
   Calendar,
   Heart,
   Users,
   Instagram,
   Twitter,
   Globe,
-  MapPin
-} from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+  MapPin,
+} from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 interface PersonalProfilePageProps {
-  params: Promise<{ username: string }>
+  params: Promise<{ username: string }>;
 }
 
-export default async function PersonalProfilePage({ params }: PersonalProfilePageProps) {
-  const { username } = await params
+export default async function PersonalProfilePage({
+  params,
+}: PersonalProfilePageProps) {
+  const { username } = await params;
+  const { userId } = await auth();
 
   // Try to find by personalProfile slug first, then by username
   const profile = await prisma.personalProfile.findUnique({
     where: { slug: username },
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      displayName: true,
+      slug: true,
+      bio: true,
+      avatarUrl: true,
+      coverUrl: true,
+      websiteUrl: true,
+      twitterUrl: true,
+      instagramUrl: true,
+      isPublic: true,
       user: {
         include: {
           savedEvents: {
             where: {
               event: {
                 isPublished: true,
-                startsAt: { gte: new Date() }
-              }
+                startsAt: { gte: new Date() },
+              },
             },
             include: {
               event: {
@@ -47,13 +62,13 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
                   venueName: true,
                   city: true,
                   organizer: {
-                    select: { slug: true }
-                  }
-                }
-              }
+                    select: { slug: true },
+                  },
+                },
+              },
             },
             take: 6,
-            orderBy: { event: { startsAt: "asc" } }
+            orderBy: { event: { startsAt: "asc" } },
           },
           follows: {
             include: {
@@ -63,38 +78,41 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
                   displayName: true,
                   slug: true,
                   logoUrl: true,
-                }
-              }
+                },
+              },
             },
-            take: 6
+            take: 6,
           },
           _count: {
             select: {
               savedEvents: true,
               follows: true,
-              tickets: true
-            }
-          }
-        }
-      }
-    }
-  })
+              tickets: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
   if (!profile || !profile.isPublic) {
-    notFound()
+    notFound();
   }
+
+  // Check if current user owns this profile
+  const isOwner = userId === profile.userId;
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
-      day: "numeric"
-    })
-  }
+      day: "numeric",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Cover Image */}
       <div className="relative h-48 md:h-64 bg-gradient-to-br from-blue-500/20 via-background to-background">
         {profile.coverUrl && (
@@ -112,15 +130,27 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-8">
           <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-background shadow-xl">
-            <AvatarImage src={profile.avatarUrl || profile.user.imageUrl || undefined} alt={profile.displayName} />
+            <AvatarImage
+              src={profile.avatarUrl || profile.user.imageUrl || undefined}
+              alt={profile.displayName}
+            />
             <AvatarFallback className="text-3xl">
               {profile.displayName[0]}
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-bold mb-1">{profile.displayName}</h1>
-            <p className="text-muted-foreground mb-4">@{profile.slug}</p>
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold">
+                {profile.displayName}
+              </h1>
+              {isOwner && (
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/dashboard/account">Edit Profile</Link>
+                </Button>
+              )}
+            </div>
+            <p className="text-muted-foreground">@{profile.slug}</p>
 
             {/* Stats */}
             <div className="flex items-center gap-6 text-sm">
@@ -169,7 +199,9 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
         {profile.bio && (
           <Card className="mb-8">
             <CardContent className="p-6">
-              <p className="text-muted-foreground whitespace-pre-wrap">{profile.bio}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap">
+                {profile.bio}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -184,8 +216,8 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
               </h2>
               <div className="space-y-3">
                 {profile.user.savedEvents.map(({ event }) => (
-                  <Link 
-                    key={event.id} 
+                  <Link
+                    key={event.id}
                     href={`/e/${event.organizer.slug}/${event.slug}`}
                     className="block"
                   >
@@ -205,8 +237,12 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
                             )}
                           </div>
                           <div className="flex-1 py-3 pr-4">
-                            <h3 className="font-medium line-clamp-1">{event.title}</h3>
-                            <p className="text-sm text-muted-foreground">{formatDate(event.startsAt)}</p>
+                            <h3 className="font-medium line-clamp-1">
+                              {event.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDate(event.startsAt)}
+                            </p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
                               {event.venueName}, {event.city}
@@ -235,11 +271,17 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
                       <CardContent className="p-4 flex items-center gap-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={following.logoUrl || undefined} />
-                          <AvatarFallback>{following.displayName[0]}</AvatarFallback>
+                          <AvatarFallback>
+                            {following.displayName[0]}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="font-medium truncate text-sm">{following.displayName}</p>
-                          <p className="text-xs text-muted-foreground">@{following.slug}</p>
+                          <p className="font-medium truncate text-sm">
+                            {following.displayName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            @{following.slug}
+                          </p>
                         </div>
                       </CardContent>
                     </Card>
@@ -251,18 +293,22 @@ export default async function PersonalProfilePage({ params }: PersonalProfilePag
         </div>
 
         {/* Empty State */}
-        {profile.user.savedEvents.length === 0 && profile.user.follows.length === 0 && (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-lg font-medium mb-2">No public activity yet</p>
-              <p className="text-muted-foreground">
-                This user hasn&apos;t saved any events or followed any organizers yet.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {profile.user.savedEvents.length === 0 &&
+          profile.user.follows.length === 0 && (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium mb-2">
+                  No public activity yet
+                </p>
+                <p className="text-muted-foreground">
+                  This user hasn&apos;t saved any events or followed any
+                  organizers yet.
+                </p>
+              </CardContent>
+            </Card>
+          )}
       </main>
     </div>
-  )
+  );
 }

@@ -1,52 +1,78 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { SignedIn, SignedOut, useClerk, useUser } from "@clerk/nextjs"
-import { Menu, ShieldCheck, LogOut, Settings, User, LayoutDashboard } from "lucide-react"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { SignedIn, SignedOut, useClerk, useUser } from "@clerk/nextjs";
+import {
+  Menu,
+  ShieldCheck,
+  LogOut,
+  Settings,
+  User,
+  LayoutDashboard,
+} from "lucide-react";
+
+const GHOST_BANNER_HEIGHT = 44; // px - must match GhostBanner.tsx
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { LanguageSwitcher } from "@/components/LanguageSwitcher"
-import { useTranslations } from "next-intl"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslations } from "next-intl";
 
 export function Header() {
-  const t = useTranslations('nav')
-  const [open, setOpen] = useState(false)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const { signOut } = useClerk()
-  const { user } = useUser()
+  const t = useTranslations("nav");
+  const [open, setOpen] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isGhosting, setIsGhosting] = useState(false);
+  const { signOut } = useClerk();
+  const { user } = useUser();
 
   useEffect(() => {
     fetch("/api/user/role")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.role === "SUPERADMIN") {
-          setIsSuperAdmin(true)
+          setIsSuperAdmin(true);
         }
       })
-      .catch(() => {})
-  }, [])
+      .catch(() => {});
 
-  const closeMenu = () => setOpen(false)
+    // Check if in ghost mode
+    fetch("/api/admin/ghost")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ghosting) {
+          setIsGhosting(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const closeMenu = () => setOpen(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass">
+    <header
+      className="fixed left-0 right-0 z-50 glass transition-all duration-200"
+      style={{ top: isGhosting ? `${GHOST_BANNER_HEIGHT}px` : "0" }}
+    >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="text-xl md:text-2xl font-bold font-display tracking-tight">
+        <Link
+          href="/"
+          className="text-xl md:text-2xl font-bold font-display tracking-tight"
+        >
           AFTERS<span className="text-[#ff1493]">.</span>
         </Link>
 
@@ -57,21 +83,21 @@ export function Header() {
               href="/dashboard"
               className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              {t('dashboard')}
+              {t("dashboard")}
             </Link>
           </SignedIn>
           <Link
             href="/events"
             className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
           >
-            {t('events')}
+            {t("events")}
           </Link>
           <SignedIn>
             <Link
               href="/my-tickets"
               className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              {t('myTickets')}
+              {t("myTickets")}
             </Link>
             {isSuperAdmin && (
               <Link
@@ -91,20 +117,20 @@ export function Header() {
           <div className="md:hidden">
             <LanguageSwitcher />
           </div>
-          
+
           <SignedOut>
             {/* Desktop auth buttons */}
             <Link
               href="/sign-in"
               className="hidden md:block text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              {t('signIn')}
+              {t("signIn")}
             </Link>
             <Link
               href="/sign-up"
               className="hidden md:block text-sm px-4 py-2 bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors"
             >
-              {t('signUp')}
+              {t("signUp")}
             </Link>
           </SignedOut>
           <SignedIn>
@@ -114,14 +140,17 @@ export function Header() {
                   <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-[#ff1493]/50 hover:border-[#ff1493] transition-colors cursor-pointer">
                     <AvatarImage src={user?.imageUrl} />
                     <AvatarFallback className="bg-[#ff1493]/10 text-[#ff1493] text-sm">
-                      {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
+                      {user?.firstName?.[0] ||
+                        user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-sm font-medium">
+                    {user?.firstName} {user?.lastName}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.emailAddresses?.[0]?.emailAddress}
                   </p>
@@ -149,7 +178,10 @@ export function Header() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/superadmin" className="cursor-pointer text-[#ff1493]">
+                      <Link
+                        href="/superadmin"
+                        className="cursor-pointer text-[#ff1493]"
+                      >
                         <ShieldCheck className="h-4 w-4 mr-2" />
                         Superadmin
                       </Link>
@@ -157,7 +189,7 @@ export function Header() {
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => signOut({ redirectUrl: "/" })}
                   className="cursor-pointer text-red-500 focus:text-red-500"
                 >
@@ -176,13 +208,16 @@ export function Header() {
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72 bg-background/95 backdrop-blur-lg border-l border-[#ff1493]/20">
+            <SheetContent
+              side="right"
+              className="w-72 bg-background/95 backdrop-blur-lg border-l border-[#ff1493]/20"
+            >
               <SheetHeader className="border-b border-[#ff1493]/20 pb-4">
                 <SheetTitle className="text-left font-display text-xl tracking-tight">
                   AFTERS<span className="text-[#ff1493]">.</span>
                 </SheetTitle>
               </SheetHeader>
-              
+
               <nav className="flex flex-col gap-1 mt-6">
                 <SignedIn>
                   <Link
@@ -190,7 +225,7 @@ export function Header() {
                     onClick={closeMenu}
                     className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                   >
-                    {t('dashboard')}
+                    {t("dashboard")}
                   </Link>
                 </SignedIn>
                 <Link
@@ -198,7 +233,7 @@ export function Header() {
                   onClick={closeMenu}
                   className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                 >
-                  {t('events')}
+                  {t("events")}
                 </Link>
                 <SignedIn>
                   <Link
@@ -206,7 +241,7 @@ export function Header() {
                     onClick={closeMenu}
                     className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                   >
-                    {t('myTickets')}
+                    {t("myTickets")}
                   </Link>
                   {isSuperAdmin && (
                     <Link
@@ -227,14 +262,14 @@ export function Header() {
                       onClick={closeMenu}
                       className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest border border-[#ff1493]/30 hover:bg-[#ff1493]/10 transition-colors uppercase"
                     >
-                      {t('signIn')}
+                      {t("signIn")}
                     </Link>
                     <Link
                       href="/sign-up"
                       onClick={closeMenu}
                       className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase"
                     >
-                      {t('signUp')}
+                      {t("signUp")}
                     </Link>
                   </div>
                 </SignedOut>
@@ -244,5 +279,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

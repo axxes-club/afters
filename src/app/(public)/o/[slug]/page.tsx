@@ -1,61 +1,90 @@
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { prisma } from "@/lib/prisma"
-import { Header } from "@/components/layout/header"
-import { Button } from "@/components/ui/button"
-import { CalendarDays, MapPin, Instagram, Youtube, Globe, Music2, Twitter } from "lucide-react"
-import { formatCents } from "@/lib/stripe"
-import { auth } from "@clerk/nextjs/server"
-import { FollowButton } from "@/components/FollowButton"
-import { SaveEventButton } from "@/components/SaveEventButton"
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import {
+  CalendarDays,
+  MapPin,
+  Instagram,
+  Youtube,
+  Globe,
+  Music2,
+  Twitter,
+} from "lucide-react";
+import { formatCents } from "@/lib/stripe";
+import { auth } from "@clerk/nextjs/server";
+import { FollowButton } from "@/components/FollowButton";
+import { SaveEventButton } from "@/components/SaveEventButton";
 
 // SoundCloud icon component
 function SoundCloudIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M1.175 12.225c-.051 0-.094.046-.101.1l-.233 2.154.233 2.105c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.255-2.105-.27-2.154c-.009-.06-.052-.1-.084-.1zm-.899 1.02c-.051 0-.094.046-.101.1l-.181 1.234.181 1.206c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.21-1.206-.21-1.234c-.009-.06-.052-.1-.099-.1zm1.798-.633c-.051 0-.094.046-.101.1l-.318 1.867.318 1.828c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.35-1.828-.35-1.867c-.009-.06-.052-.1-.099-.1zm.899-.317c-.051 0-.094.046-.101.1l-.265 2.184.265 2.105c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.295-2.105-.295-2.184c-.009-.06-.052-.1-.099-.1zm.899-.184c-.051 0-.094.046-.101.1l-.232 2.368.232 2.289c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.255-2.289-.255-2.368c-.009-.06-.052-.1-.099-.1zm.899.05c-.051 0-.094.046-.101.1l-.181 2.318.181 2.239c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.21-2.239-.21-2.318c-.009-.06-.052-.1-.099-.1zm1.799-1.435c-.06 0-.111.05-.121.109l-.158 3.694.158 3.539c.01.06.061.109.121.109s.111-.05.121-.109l.175-3.539-.175-3.694c-.01-.06-.061-.109-.121-.109zm.899-.632c-.06 0-.111.05-.121.109l-.105 4.326.105 3.489c.01.06.061.109.121.109s.111-.05.121-.109l.121-3.489-.121-4.326c-.01-.06-.061-.109-.121-.109zm.899-.316c-.06 0-.111.05-.121.109l-.073 4.642.073 3.439c.01.06.061.109.121.109s.111-.05.121-.109l.084-3.439-.084-4.642c-.01-.06-.061-.109-.121-.109zm.899.05c-.06 0-.111.05-.121.109l-.036 4.592.036 3.389c.01.06.061.109.121.109s.111-.05.121-.109l.048-3.389-.048-4.592c-.01-.06-.061-.109-.121-.109zm1.899-1.066c-.075 0-.139.064-.148.139l-.024 5.658.024 3.289c.009.075.073.139.148.139.074 0 .138-.064.147-.139l.036-3.289-.036-5.658c-.009-.075-.073-.139-.147-.139zm.899-.05c-.075 0-.139.064-.148.139v5.708l.012 3.239c.009.075.073.139.148.139.074 0 .138-.064.147-.139l.012-3.239-.024-5.708c-.009-.075-.073-.139-.147-.139zm.899.633c-.075 0-.139.064-.148.139l-.012 5.025.012 3.189c.009.075.073.139.148.139.074 0 .138-.064.147-.139l.012-3.189-.012-5.025c-.009-.075-.073-.139-.147-.139zm3.396-2.032c-.396 0-.779.065-1.136.183-.232-2.628-2.44-4.692-5.13-4.692-.682 0-1.34.138-1.936.389-.222.093-.282.188-.285.372v9.479c.004.193.161.352.354.371l8.133.004c1.775 0 3.215-1.435 3.215-3.203s-1.44-3.203-3.215-3.203z"/>
+      <path d="M1.175 12.225c-.051 0-.094.046-.101.1l-.233 2.154.233 2.105c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.255-2.105-.27-2.154c-.009-.06-.052-.1-.084-.1zm-.899 1.02c-.051 0-.094.046-.101.1l-.181 1.234.181 1.206c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.21-1.206-.21-1.234c-.009-.06-.052-.1-.099-.1zm1.798-.633c-.051 0-.094.046-.101.1l-.318 1.867.318 1.828c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.35-1.828-.35-1.867c-.009-.06-.052-.1-.099-.1zm.899-.317c-.051 0-.094.046-.101.1l-.265 2.184.265 2.105c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.295-2.105-.295-2.184c-.009-.06-.052-.1-.099-.1zm.899-.184c-.051 0-.094.046-.101.1l-.232 2.368.232 2.289c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.255-2.289-.255-2.368c-.009-.06-.052-.1-.099-.1zm.899.05c-.051 0-.094.046-.101.1l-.181 2.318.181 2.239c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.21-2.239-.21-2.318c-.009-.06-.052-.1-.099-.1zm1.799-1.435c-.06 0-.111.05-.121.109l-.158 3.694.158 3.539c.01.06.061.109.121.109s.111-.05.121-.109l.175-3.539-.175-3.694c-.01-.06-.061-.109-.121-.109zm.899-.632c-.06 0-.111.05-.121.109l-.105 4.326.105 3.489c.01.06.061.109.121.109s.111-.05.121-.109l.121-3.489-.121-4.326c-.01-.06-.061-.109-.121-.109zm.899-.316c-.06 0-.111.05-.121.109l-.073 4.642.073 3.439c.01.06.061.109.121.109s.111-.05.121-.109l.084-3.439-.084-4.642c-.01-.06-.061-.109-.121-.109zm.899.05c-.06 0-.111.05-.121.109l-.036 4.592.036 3.389c.01.06.061.109.121.109s.111-.05.121-.109l.048-3.389-.048-4.592c-.01-.06-.061-.109-.121-.109zm1.899-1.066c-.075 0-.139.064-.148.139l-.024 5.658.024 3.289c.009.075.073.139.148.139.074 0 .138-.064.147-.139l.036-3.289-.036-5.658c-.009-.075-.073-.139-.147-.139zm.899-.05c-.075 0-.139.064-.148.139v5.708l.012 3.239c.009.075.073.139.148.139.074 0 .138-.064.147-.139l.012-3.239-.024-5.708c-.009-.075-.073-.139-.147-.139zm.899.633c-.075 0-.139.064-.148.139l-.012 5.025.012 3.189c.009.075.073.139.148.139.074 0 .138-.064.147-.139l.012-3.189-.012-5.025c-.009-.075-.073-.139-.147-.139zm3.396-2.032c-.396 0-.779.065-1.136.183-.232-2.628-2.44-4.692-5.13-4.692-.682 0-1.34.138-1.936.389-.222.093-.282.188-.285.372v9.479c.004.193.161.352.354.371l8.133.004c1.775 0 3.215-1.435 3.215-3.203s-1.44-3.203-3.215-3.203z" />
     </svg>
-  )
+  );
 }
 
-// Spotify icon component  
+// Spotify icon component
 function SpotifyIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
     </svg>
-  )
+  );
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
   const profile = await prisma.organizerProfile.findUnique({
     where: { slug },
     select: { displayName: true, bio: true },
-  })
+  });
 
   if (!profile) {
-    return { title: "Artist Not Found | Afters" }
+    return { title: "Artist Not Found | Afters" };
   }
 
   return {
     title: `${profile.displayName} | Afters`,
-    description: profile.bio || `Check out ${profile.displayName}'s upcoming events on Afters`,
-  }
+    description:
+      profile.bio ||
+      `Check out ${profile.displayName}'s upcoming events on Afters`,
+  };
 }
 
 export default async function ArtistProfilePage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params
-  const { userId } = await auth()
+  const { slug } = await params;
+  const { userId } = await auth();
 
   const profile = await prisma.organizerProfile.findUnique({
     where: { slug },
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      displayName: true,
+      slug: true,
+      bio: true,
+      logoUrl: true,
+      coverUrl: true,
+      artistType: true,
+      genres: true,
+      websiteUrl: true,
+      instagramUrl: true,
+      twitterUrl: true,
+      youtubeUrl: true,
+      spotifyUrl: true,
+      soundcloudUrl: true,
       events: {
         where: {
           isPublished: true,
@@ -73,30 +102,37 @@ export default async function ArtistProfilePage({
         take: 12,
       },
       _count: {
-        select: { followers: true }
-      }
-    },
-  })
-
-  if (!profile) {
-    notFound()
-  }
-
-  const isFollowing = userId ? !!(await prisma.follow.findUnique({
-    where: {
-      followerId_followingId: {
-        followerId: userId,
-        followingId: profile.id,
+        select: { followers: true },
       },
     },
-  })) : false
+  });
 
-  const savedEventIds = userId 
-    ? (await prisma.savedEvent.findMany({
-        where: { userId },
-        select: { eventId: true }
-      })).map(s => s.eventId)
-    : []
+  if (!profile) {
+    notFound();
+  }
+
+  // Check if current user owns this profile
+  const isOwner = userId === profile.userId;
+
+  const isFollowing = userId
+    ? !!(await prisma.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: userId,
+            followingId: profile.id,
+          },
+        },
+      }))
+    : false;
+
+  const savedEventIds = userId
+    ? (
+        await prisma.savedEvent.findMany({
+          where: { userId },
+          select: { eventId: true },
+        })
+      ).map((s) => s.eventId)
+    : [];
 
   const pastEventsCount = await prisma.event.count({
     where: {
@@ -104,9 +140,9 @@ export default async function ArtistProfilePage({
       isPublished: true,
       startsAt: { lt: new Date() },
     },
-  })
+  });
 
-  const genres = profile.genres ? JSON.parse(profile.genres) : []
+  const genres = profile.genres ? JSON.parse(profile.genres) : [];
 
   return (
     <div className="min-h-screen bg-black">
@@ -159,16 +195,20 @@ export default async function ArtistProfilePage({
               <h1 className="text-4xl md:text-5xl font-bold text-white">
                 {profile.displayName}
               </h1>
-              <FollowButton 
-                organizerId={profile.id} 
-                initialIsFollowing={isFollowing}
-                className="w-fit"
-              />
+              {isOwner ? (
+                <Button asChild variant="outline">
+                  <Link href="/dashboard/organizer">Edit Profile</Link>
+                </Button>
+              ) : (
+                <FollowButton
+                  organizerId={profile.id}
+                  initialIsFollowing={isFollowing}
+                  className="w-fit"
+                />
+              )}
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
-              {genres.length > 0 && (
-                <span>{genres.join(" • ")}</span>
-              )}
+              {genres.length > 0 && <span>{genres.join(" • ")}</span>}
               <span>{profile._count.followers} followers</span>
             </div>
             {profile.bio && (
@@ -244,11 +284,15 @@ export default async function ArtistProfilePage({
         {/* Stats */}
         <div className="flex gap-6 mb-12 text-sm">
           <div>
-            <span className="text-2xl font-bold text-white">{profile.events.length}</span>
+            <span className="text-2xl font-bold text-white">
+              {profile.events.length}
+            </span>
             <span className="text-gray-500 ml-2">upcoming events</span>
           </div>
           <div>
-            <span className="text-2xl font-bold text-white">{pastEventsCount}</span>
+            <span className="text-2xl font-bold text-white">
+              {pastEventsCount}
+            </span>
             <span className="text-gray-500 ml-2">past events</span>
           </div>
         </div>
@@ -268,7 +312,7 @@ export default async function ArtistProfilePage({
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {profile.events.map((event) => {
-                const lowestPrice = event.ticketTiers[0]?.price || 0
+                const lowestPrice = event.ticketTiers[0]?.price || 0;
 
                 return (
                   <Link
@@ -285,8 +329,8 @@ export default async function ArtistProfilePage({
                           className="object-cover"
                         />
                         <div className="absolute top-2 right-2">
-                          <SaveEventButton 
-                            eventId={event.id} 
+                          <SaveEventButton
+                            eventId={event.id}
                             initialIsSaved={savedEventIds.includes(event.id)}
                           />
                         </div>
@@ -295,8 +339,8 @@ export default async function ArtistProfilePage({
                       <div className="relative w-full aspect-square bg-gradient-to-br from-[#ff1493]/20 to-[#ff1493]/5 flex items-center justify-center">
                         <CalendarDays className="h-16 w-16 text-[#ff1493]/40" />
                         <div className="absolute top-2 right-2">
-                          <SaveEventButton 
-                            eventId={event.id} 
+                          <SaveEventButton
+                            eventId={event.id}
                             initialIsSaved={savedEventIds.includes(event.id)}
                           />
                         </div>
@@ -309,11 +353,14 @@ export default async function ArtistProfilePage({
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
                         <span className="flex items-center gap-1">
                           <CalendarDays className="h-4 w-4" />
-                          {new Date(event.startsAt).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })}
+                          {new Date(event.startsAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 mt-1 text-sm text-gray-400">
@@ -321,16 +368,18 @@ export default async function ArtistProfilePage({
                         {event.venueName}, {event.city}
                       </div>
                       <p className="mt-3 font-medium text-[#ff1493]">
-                        {lowestPrice === 0 ? "Free" : `From ${formatCents(lowestPrice)}`}
+                        {lowestPrice === 0
+                          ? "Free"
+                          : `From ${formatCents(lowestPrice)}`}
                       </p>
                     </div>
                   </Link>
-                )
+                );
               })}
             </div>
           )}
         </section>
       </main>
     </div>
-  )
+  );
 }

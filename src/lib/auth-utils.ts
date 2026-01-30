@@ -114,6 +114,22 @@ export async function isPersonal() {
   );
 }
 
+// Profile type checks (for sidebar display) - returns actual profile type only
+export async function hasOrganizerProfile() {
+  const user = await getSessionUser();
+  return user?.role === UserRole.ORGANIZER;
+}
+
+export async function hasArtistProfile() {
+  const user = await getSessionUser();
+  return user?.role === UserRole.ARTIST;
+}
+
+export async function hasPersonalProfile() {
+  const user = await getSessionUser();
+  return user?.role === UserRole.PERSONAL || user?.role === UserRole.USER;
+}
+
 export async function requireSuperAdmin() {
   // Always check the real user for superadmin access (not ghost)
   const user = await getRealSessionUser();

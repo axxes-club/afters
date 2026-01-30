@@ -1,18 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "sonner"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { FlyerUpload } from "@/components/FlyerUpload"
-import { AuthGuard } from "@/components/AuthGuard"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { FlyerUpload } from "@/components/FlyerUpload";
+import { AuthGuard } from "@/components/AuthGuard";
 
 const US_CITIES = [
   "New York",
@@ -28,28 +40,29 @@ const US_CITIES = [
   "Dallas",
   "Phoenix",
   "San Francisco",
-]
+];
 
 function NewEventForm() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [flyerUrl, setFlyerUrl] = useState<string | null>(null)
-  const [city, setCity] = useState<string>("")
-  const [timezone, setTimezone] = useState<string>("America/New_York")
-  const [ageRestriction, setAgeRestriction] = useState<string>("all")
-  const [ticketingType, setTicketingType] = useState<string>("AFTERS")
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [flyerUrl, setFlyerUrl] = useState<string | null>(null);
+  const [city, setCity] = useState<string>("");
+  const [timezone, setTimezone] = useState<string>("America/New_York");
+  const [ageRestriction, setAgeRestriction] = useState<string>("all");
+  const [ticketingType, setTicketingType] = useState<string>("AFTERS");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    
-    if (!city) {
-      toast.error("Please select a city")
-      return
-    }
-    
-    setLoading(true)
+    e.preventDefault();
+    console.log("Form submitted");
 
-    const formData = new FormData(e.currentTarget)
+    if (!city) {
+      toast.error("Please select a city");
+      return;
+    }
+
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
 
     const data = {
       title: formData.get("title"),
@@ -65,27 +78,36 @@ function NewEventForm() {
       flyerUrl: flyerUrl,
       ticketingType: ticketingType,
       externalTicketingUrl: formData.get("externalTicketingUrl") || null,
-    }
+    };
+
+    console.log("Event data:", data);
 
     try {
       const res = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      })
+      });
+
+      console.log("API response status:", res.status);
 
       if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message || "Failed to create event")
+        const error = await res.json();
+        console.error("API error:", error);
+        throw new Error(error.message || "Failed to create event");
       }
 
-      const event = await res.json()
-      toast.success("Event created! Now add ticket tiers.")
-      router.push(`/dashboard/events/${event.id}`)
+      const event = await res.json();
+      console.log("Event created:", event);
+      toast.success("Event created! Now add ticket tiers.");
+      router.push(`/dashboard/events/${event.id}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong")
+      console.error("Error creating event:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -115,7 +137,11 @@ function NewEventForm() {
               <p className="text-sm text-muted-foreground mb-2">
                 Upload a poster or flyer for your event (recommended 3:4 ratio)
               </p>
-              <FlyerUpload value={flyerUrl} onChange={setFlyerUrl} disabled={loading} />
+              <FlyerUpload
+                value={flyerUrl}
+                onChange={setFlyerUrl}
+                disabled={loading}
+              />
             </div>
 
             <div className="space-y-2">
@@ -150,11 +176,7 @@ function NewEventForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endsAt">End Date & Time (optional)</Label>
-                <Input
-                  id="endsAt"
-                  name="endsAt"
-                  type="datetime-local"
-                />
+                <Input id="endsAt" name="endsAt" type="datetime-local" />
               </div>
             </div>
 
@@ -168,7 +190,9 @@ function NewEventForm() {
                   <SelectItem value="America/New_York">Eastern Time</SelectItem>
                   <SelectItem value="America/Chicago">Central Time</SelectItem>
                   <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                  <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                  <SelectItem value="America/Los_Angeles">
+                    Pacific Time
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -211,11 +235,7 @@ function NewEventForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  name="state"
-                  placeholder="e.g., NY"
-                />
+                <Input id="state" name="state" placeholder="e.g., NY" />
               </div>
             </div>
 
@@ -242,7 +262,9 @@ function NewEventForm() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="AFTERS">Afters Direct (Default)</SelectItem>
+                    <SelectItem value="AFTERS">
+                      Afters Direct (Default)
+                    </SelectItem>
                     <SelectItem value="POSH">Posh.vip</SelectItem>
                     <SelectItem value="DICE">Dice.fm</SelectItem>
                     <SelectItem value="TICKETMASTER">Ticketmaster</SelectItem>
@@ -254,7 +276,9 @@ function NewEventForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="externalTicketingUrl">External Ticketing URL (Optional)</Label>
+                <Label htmlFor="externalTicketingUrl">
+                  External Ticketing URL (Optional)
+                </Label>
                 <Input
                   id="externalTicketingUrl"
                   name="externalTicketingUrl"
@@ -273,7 +297,7 @@ function NewEventForm() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default function NewEventPage() {
@@ -281,5 +305,5 @@ export default function NewEventPage() {
     <AuthGuard>
       <NewEventForm />
     </AuthGuard>
-  )
+  );
 }

@@ -121,7 +121,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
+async function updateProfile(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -197,6 +197,14 @@ export async function PUT(request: Request) {
       { status: 500 },
     );
   }
+}
+
+export async function PUT(request: Request) {
+  return updateProfile(request);
+}
+
+export async function PATCH(request: Request) {
+  return updateProfile(request);
 }
 
 export async function GET() {

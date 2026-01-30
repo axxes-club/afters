@@ -29,7 +29,13 @@ vi.mock("@clerk/nextjs/server", () => ({
   currentUser: mockCurrentUser,
 }));
 
-import { POST, PUT, DELETE, GET } from "@/app/api/organizer/profile/route";
+import {
+  POST,
+  PUT,
+  PATCH,
+  DELETE,
+  GET,
+} from "@/app/api/organizer/profile/route";
 
 describe("Organizer Profile API", () => {
   beforeEach(() => {
@@ -278,6 +284,68 @@ describe("Organizer Profile API", () => {
       );
 
       const response = await PUT(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toContain("not found");
+    });
+  });
+
+  describe("PATCH /api/organizer/profile", () => {
+    it("should update an existing organizer profile", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockPrisma.organizerProfile.findUnique.mockResolvedValue({
+        id: "profile-123",
+        userId: "user-123",
+        slug: "test-organizer",
+      } as any);
+
+      mockPrisma.organizerProfile.update.mockResolvedValue({
+        id: "profile-123",
+        userId: "user-123",
+        displayName: "Updated Name",
+        slug: "test-organizer",
+        bio: "Updated bio",
+      } as any);
+
+      const request = new Request(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Updated Name",
+            slug: "test-organizer",
+            bio: "Updated bio",
+          }),
+        },
+      );
+
+      const response = await PATCH(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.displayName).toBe("Updated Name");
+      expect(mockPrisma.organizerProfile.update).toHaveBeenCalled();
+    });
+
+    it("should return 404 if profile does not exist", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockPrisma.organizerProfile.findUnique.mockResolvedValue(null);
+
+      const request = new Request(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "test",
+          }),
+        },
+      );
+
+      const response = await PATCH(request);
       const data = await response.json();
 
       expect(response.status).toBe(404);
