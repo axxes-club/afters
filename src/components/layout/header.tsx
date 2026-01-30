@@ -92,6 +92,16 @@ export function Header() {
           >
             {t("events")}
           </Link>
+          <Link
+            href="/radio"
+            className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase flex items-center gap-1.5"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+            </span>
+            RADIO
+          </Link>
           <SignedIn>
             <Link
               href="/my-tickets"
@@ -234,6 +244,17 @@ export function Header() {
                   className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                 >
                   {t("events")}
+                </Link>
+                <Link
+                  href="/radio"
+                  onClick={closeMenu}
+                  className="flex items-center gap-2 h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                  </span>
+                  RADIO
                 </Link>
                 <SignedIn>
                   <Link
