@@ -97,11 +97,11 @@ export function CompetitorComparison() {
               </div>
             </div>
 
-            {/* Afters VIP */}
+            {/* Afters Signature */}
             <div className="grid grid-cols-12 border-b border-pink/20 bg-pink/[0.04]">
               <div className="col-span-3 p-4">
                 <span className="text-pink font-bold font-display text-sm flex items-center gap-1.5">
-                  <Crown className="size-3.5" /> Afters VIP
+                  <Crown className="size-3.5" /> Afters Signature
                 </span>
               </div>
               <div className="col-span-4 p-4 text-sm text-white/80 hidden sm:block">
@@ -165,7 +165,7 @@ export function CompetitorComparison() {
                 On Posh you&apos;d pay{" "}
               </span>
               <span className="text-white/60 line-through">$798 in fees</span>
-              <span className="text-muted-foreground">. On Afters VIP: </span>
+              <span className="text-muted-foreground">. On Afters Signature: </span>
               <span className="text-pink font-bold font-display">
                 $354 + $45 sub
               </span>

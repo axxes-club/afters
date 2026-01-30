@@ -29,12 +29,12 @@ import {
 export const metadata = {
   title: "Pricing — Afters",
   description:
-    "The lowest fees in nightlife ticketing. Free to start. VIP at $45/mo. Compare us to Posh, Eventbrite, DICE, and Luma.",
+    "The lowest fees in nightlife ticketing. Free to start. Signature at $45/mo. Compare us to Posh, Eventbrite, DICE, and Luma.",
 };
 
 /* ─── data ─── */
 
-const vipFeatures = [
+const signatureFeatures = [
   {
     icon: TrendingUp,
     title: "Priority Placement",
@@ -86,21 +86,21 @@ const vipFeatures = [
 ];
 
 const comparisonRows = [
-  { feature: "Event Listings", free: true, vip: true },
-  { feature: "Stripe Payouts", free: true, vip: true },
-  { feature: "QR Check-in Scanner", free: true, vip: true },
-  { feature: "Basic Analytics", free: true, vip: true },
-  { feature: "Reduced Platform Fees", free: false, vip: true },
-  { feature: "Priority Event Placement", free: false, vip: true },
-  { feature: "Advanced Analytics & Funnels", free: false, vip: true },
-  { feature: "Custom Branding & Colors", free: false, vip: true },
-  { feature: "Promo Codes & Discounts", free: false, vip: true },
-  { feature: "Verified Organizer Badge", free: false, vip: true },
-  { feature: "Priority Support (24/7)", free: false, vip: true },
-  { feature: "Multi-City Management", free: false, vip: true },
-  { feature: "AFTERS RADIO Feature", free: false, vip: true },
-  { feature: "Referral Link Tracking", free: false, vip: true },
-  { feature: "Custom Event URLs", free: false, vip: true },
+  { feature: "Event Listings", free: true, signature: true },
+  { feature: "Stripe Payouts", free: true, signature: true },
+  { feature: "QR Check-in Scanner", free: true, signature: true },
+  { feature: "Basic Analytics", free: true, signature: true },
+  { feature: "Reduced Platform Fees", free: false, signature: true },
+  { feature: "Priority Event Placement", free: false, signature: true },
+  { feature: "Advanced Analytics & Funnels", free: false, signature: true },
+  { feature: "Custom Branding & Colors", free: false, signature: true },
+  { feature: "Promo Codes & Discounts", free: false, signature: true },
+  { feature: "Verified Organizer Badge", free: false, signature: true },
+  { feature: "Priority Support (24/7)", free: false, signature: true },
+  { feature: "Multi-City Management", free: false, signature: true },
+  { feature: "AFTERS RADIO Feature", free: false, signature: true },
+  { feature: "Referral Link Tracking", free: false, signature: true },
+  { feature: "Custom Event URLs", free: false, signature: true },
 ];
 
 const testimonials = [
@@ -108,7 +108,7 @@ const testimonials = [
     name: "DJ KRAVE",
     role: "Charlotte, NC",
     quote:
-      "Since going VIP, my ticket sales doubled. The priority placement alone is worth it.",
+      "Since upgrading to Signature, my ticket sales doubled. The priority placement alone is worth it.",
   },
   {
     name: "NEON COLLECTIVE",
@@ -156,7 +156,7 @@ export default function PricingPage() {
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
               Other platforms take 10–13% of every ticket.
               <br className="hidden sm:block" />
-              We start at 5%. VIP drops it to 2%.
+              We start at 5%. Go Signature and drop it to 2%.
             </p>
 
             <p className="text-muted-foreground/60 text-sm mb-12">
@@ -253,7 +253,7 @@ export default function PricingPage() {
               </Link>
             </div>
 
-            {/* VIP TIER */}
+            {/* Signature TIER */}
             <div className="relative">
               <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-pink/60 via-pink/20 to-pink/5" />
               <div className="relative rounded-2xl bg-[#0a0a0a] p-8">
@@ -266,7 +266,7 @@ export default function PricingPage() {
 
                 <div className="mb-6 mt-2">
                   <p className="text-sm text-pink font-display tracking-wide uppercase mb-2 flex items-center gap-1.5">
-                    <Crown className="size-3.5" /> VIP
+                    <Crown className="size-3.5" /> Signature
                   </p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-5xl font-bold text-white font-display">
@@ -364,7 +364,7 @@ export default function PricingPage() {
                     className="w-full py-6 text-base font-bold glow-pink hover:scale-[1.02] transition-transform"
                   >
                     <Zap className="size-5 mr-2" />
-                    Upgrade to VIP
+                    Upgrade to Signature
                   </Button>
                 </Link>
 
@@ -384,7 +384,7 @@ export default function PricingPage() {
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
               Everything you get with{" "}
-              <span className="text-gradient">VIP</span>
+              <span className="text-gradient">Signature</span>
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               Built for organizers who are serious about growing their events.
@@ -392,7 +392,7 @@ export default function PricingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {vipFeatures.map((feature) => (
+            {signatureFeatures.map((feature) => (
               <div
                 key={feature.title}
                 className="group relative rounded-xl border border-white/5 bg-white/[0.02] p-6 hover:border-pink/20 hover:bg-pink/[0.02] transition-all duration-300"
@@ -411,11 +411,11 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ═══════════════ FREE VS VIP TABLE ═══════════════ */}
+        {/* ═══════════════ FREE VS Signature TABLE ═══════════════ */}
         <section className="max-w-3xl mx-auto px-4 py-20">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
-              Free vs <span className="text-gradient">VIP</span>
+              Free vs <span className="text-gradient">Signature</span>
             </h2>
             <p className="text-muted-foreground">
               See exactly what you unlock.
@@ -432,7 +432,7 @@ export default function PricingPage() {
               </div>
               <div className="p-4 text-center text-sm font-medium">
                 <span className="text-pink font-display font-bold flex items-center justify-center gap-1.5">
-                  <Crown className="size-3.5" /> VIP
+                  <Crown className="size-3.5" /> Signature
                 </span>
               </div>
             </div>
@@ -502,7 +502,7 @@ export default function PricingPage() {
             <div className="relative p-8 sm:p-12 text-center">
               <Sparkles className="size-8 text-pink mx-auto mb-6" />
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-4">
-                VIP pays for itself. Fast.
+                Signature pays for itself. Fast.
               </h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8 leading-relaxed">
                 The fee savings alone cover the $45/mo. Priority placement on
@@ -545,7 +545,7 @@ export default function PricingPage() {
                   size="lg"
                   className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
                 >
-                  Start VIP Now
+                  Start Signature Now
                   <ArrowRight className="size-5 ml-2" />
                 </Button>
               </Link>
@@ -570,12 +570,12 @@ export default function PricingPage() {
                 a: "By default, fees are passed to the attendee (added at checkout). You can choose to absorb them if you prefer clean round-number pricing.",
               },
               {
-                q: "Can I cancel VIP anytime?",
-                a: "Yes. No contracts, no cancellation fees. Cancel from your dashboard whenever you want. Your VIP perks stay active until the end of your billing period.",
+                q: "Can I cancel anytime?",
+                a: "Yes. No contracts, no cancellation fees. Cancel from your dashboard whenever you want. Your Signature perks stay active until the end of your billing period.",
               },
               {
                 q: "What happens if I downgrade?",
-                a: "Your events stay live. You go back to 5% + $0.50 platform fees and lose VIP perks like priority placement and custom branding. No data is deleted.",
+                a: "Your events stay live. You go back to 5% + $0.50 platform fees and lose Signature perks like priority placement and custom branding. No data is deleted.",
               },
               {
                 q: "Is there a free trial?",
@@ -583,7 +583,7 @@ export default function PricingPage() {
               },
               {
                 q: "How does priority placement work?",
-                a: "VIP events are boosted to the top of discovery feeds, search results, and city pages. Your event gets seen first — more impressions, more sales.",
+                a: "Signature events are boosted to the top of discovery feeds, search results, and city pages. Your event gets seen first — more impressions, more sales.",
               },
             ].map((faq) => (
               <div key={faq.q} className="border-b border-white/5 pb-6">
@@ -625,7 +625,7 @@ export default function PricingPage() {
                 className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
               >
                 <Crown className="size-5 mr-2" />
-                Go VIP — $45/mo
+                Go Signature — $45/mo
               </Button>
             </Link>
           </div>
