@@ -35,7 +35,9 @@ export default async function UserManagement({
         ],
       },
       include: {
-        organizerProfile: true,
+        organizerProfile: {
+          include: { subscription: { select: { plan: true } } }
+        },
         artistProfile: true,
         personalProfile: true,
         _count: {
@@ -48,7 +50,9 @@ export default async function UserManagement({
     prisma.user.findMany({
       where: { isFlagged: true },
       include: {
-        organizerProfile: true,
+        organizerProfile: {
+          include: { subscription: { select: { plan: true } } }
+        },
         artistProfile: true,
         personalProfile: true,
         _count: {
@@ -241,6 +245,8 @@ export default async function UserManagement({
                     username={user.username || ""}
                     isFlagged={user.isFlagged}
                     flagReason={user.flagReason}
+                    organizerProfileId={user.organizerProfile?.id || null}
+                    currentPlan={user.organizerProfile?.subscription?.plan || null}
                   />
                 </div>
               </CardContent>
@@ -345,6 +351,8 @@ export default async function UserManagement({
                           username={user.username || ""}
                           isFlagged={user.isFlagged}
                           flagReason={user.flagReason}
+                          organizerProfileId={user.organizerProfile?.id || null}
+                          currentPlan={user.organizerProfile?.subscription?.plan || null}
                         />
                       </td>
                     </tr>

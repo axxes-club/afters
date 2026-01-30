@@ -42,8 +42,16 @@ import {
   Check,
   Ghost,
   Flag,
-  FlagOff
+  FlagOff,
+  Crown,
 } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { 
@@ -63,9 +71,11 @@ interface UserActionsProps {
   username: string
   isFlagged?: boolean
   flagReason?: string | null
+  organizerProfileId?: string | null
+  currentPlan?: string | null
 }
 
-export function UserActions({ userId, email, firstName, lastName, username, isFlagged = false, flagReason }: UserActionsProps) {
+export function UserActions({ userId, email, firstName, lastName, username, isFlagged = false, flagReason, organizerProfileId, currentPlan }: UserActionsProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [detailsLoading, setDetailsLoading] = useState(false)
@@ -81,6 +91,9 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
   })
   const [flagReasonInput, setFlagReasonInput] = useState(flagReason || "")
   const [copied, setCopied] = useState(false)
+  const [showPlanDialog, setShowPlanDialog] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState(currentPlan || "FREE")
+  const [planReason, setPlanReason] = useState("")
 
   const handleViewDetails = async () => {
     setShowDetailsDialog(true)
@@ -239,6 +252,37 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
     }
   }
 
+  const handleChangePlan = async () => {
+    if (!organizerProfileId) return
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizerProfileId,
+          plan: selectedPlan,
+          reason: planReason.trim() || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        toast.success(`Plan updated to ${data.label}`, {
+          description: `${data.organizer.displayName || data.organizer.email}`,
+        })
+        setShowPlanDialog(false)
+        setPlanReason("")
+        router.refresh()
+      } else {
+        toast.error(data.error || "Failed to update plan")
+      }
+    } catch {
+      toast.error("Failed to update plan")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -271,6 +315,12 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
             <Ghost className="h-4 w-4 mr-2" />
             Ghost
           </DropdownMenuItem>
+          {organizerProfileId && (
+            <DropdownMenuItem onClick={() => { setSelectedPlan(currentPlan || "FREE"); setShowPlanDialog(true) }} className="text-emerald-600">
+              <Crown className="h-4 w-4 mr-2" />
+              Change Plan
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           {isFlagged ? (
             <DropdownMenuItem onClick={handleUnflag} disabled={loading}>
@@ -497,6 +547,60 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Change Plan Dialog */}
+      <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-emerald-500" />
+              Change Subscription Plan
+            </DialogTitle>
+            <DialogDescription>
+              Update the subscription plan for {firstName} {lastName} ({email})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="plan">Plan</Label>
+              <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FREE">Free</SelectItem>
+                  <SelectItem value="SIGNATURE_TRIAL_7D">Signature (7-day Trial)</SelectItem>
+                  <SelectItem value="SIGNATURE_30D">Signature (Monthly)</SelectItem>
+                  <SelectItem value="SIGNATURE_180D">Signature (6-Month)</SelectItem>
+                  <SelectItem value="SIGNATURE_360D">Signature (Annual)</SelectItem>
+                  <SelectItem value="SIGNATURE_FF">Signature (Friends &amp; Family) — Free Forever</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="planReason">Reason (optional)</Label>
+              <Input
+                id="planReason"
+                value={planReason}
+                onChange={(e) => setPlanReason(e.target.value)}
+                placeholder="Why are you changing the plan?"
+              />
+              <p className="text-xs text-muted-foreground">
+                Internal note — not visible to the organizer.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPlanDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleChangePlan} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Crown className="h-4 w-4 mr-2" />}
+              Update Plan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Flag Dialog */}
       <Dialog open={showFlagDialog} onOpenChange={setShowFlagDialog}>
