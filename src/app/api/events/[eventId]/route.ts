@@ -88,6 +88,12 @@ export async function PUT(
       externalTicketingUrl,
     } = body
 
+    // Normalize external ticketing URL — ensure it has a protocol
+    let normalizedExternalUrl = externalTicketingUrl
+    if (normalizedExternalUrl && !normalizedExternalUrl.startsWith('http')) {
+      normalizedExternalUrl = `https://${normalizedExternalUrl}`
+    }
+
     const event = await prisma.event.update({
       where: { id: eventId },
       data: {
@@ -103,7 +109,7 @@ export async function PUT(
         flyerUrl,
         ageRestriction: ageRestriction !== undefined ? (ageRestriction ? parseInt(ageRestriction) : null) : undefined,
         ticketingType,
-        externalTicketingUrl,
+        externalTicketingUrl: normalizedExternalUrl,
       },
     })
 

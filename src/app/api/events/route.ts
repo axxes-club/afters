@@ -168,6 +168,12 @@ export async function POST(req: Request) {
       counter++
     }
 
+    // Normalize external ticketing URL — ensure it has a protocol
+    let normalizedExternalUrl = externalTicketingUrl || null
+    if (normalizedExternalUrl && !normalizedExternalUrl.startsWith('http')) {
+      normalizedExternalUrl = `https://${normalizedExternalUrl}`
+    }
+
     const event = await prisma.event.create({
       data: {
         organizerId: profile.id,
@@ -184,7 +190,7 @@ export async function POST(req: Request) {
         flyerUrl,
         ageRestriction: ageRestriction ? parseInt(ageRestriction) : null,
         ticketingType: ticketingType || 'AFTERS',
-        externalTicketingUrl,
+        externalTicketingUrl: normalizedExternalUrl,
       },
     })
 

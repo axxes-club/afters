@@ -238,12 +238,29 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
                 {event.externalTicketingUrl ? (
                   <Button className="w-full" size="lg" asChild>
-                    <a href={event.externalTicketingUrl} target="_blank" rel="noopener noreferrer">
+                    <a 
+                      href={event.externalTicketingUrl.startsWith('http') ? event.externalTicketingUrl : `https://${event.externalTicketingUrl}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
                       Get Tickets on {event.ticketingType === 'OTHER' ? 'Official Site' : 
                         event.ticketingType === 'POSH' ? 'posh.vip' :
                         event.ticketingType === 'DICE' ? 'dice.fm' :
+                        event.ticketingType === 'TICKETMASTER' ? 'Ticketmaster' :
+                        event.ticketingType === 'LIVENATION' ? 'Live Nation' :
+                        event.ticketingType === 'EVENTBRITE' ? 'Eventbrite' :
                         event.ticketingType.toLowerCase()}
                     </a>
+                  </Button>
+                ) : event.ticketingType !== 'AFTERS' ? (
+                  <Button className="w-full" size="lg" disabled>
+                    Tickets via {event.ticketingType === 'OTHER' ? 'External Site' :
+                      event.ticketingType === 'POSH' ? 'posh.vip' :
+                      event.ticketingType === 'DICE' ? 'dice.fm' :
+                      event.ticketingType === 'TICKETMASTER' ? 'Ticketmaster' :
+                      event.ticketingType === 'LIVENATION' ? 'Live Nation' :
+                      event.ticketingType === 'EVENTBRITE' ? 'Eventbrite' :
+                      'External Site'} — Link Coming Soon
                   </Button>
                 ) : totalAvailable > 0 ? (
                   <Button className="w-full" size="lg" asChild>
