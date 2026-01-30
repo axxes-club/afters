@@ -317,7 +317,7 @@ export function AftersRadio() {
   const progressPercent = (trackProgress / radioState.currentTrack.duration) * 100
 
   return (
-    <>
+    <div className="hidden md:block">
       <audio ref={audioRef} onEnded={handleTrackEnd} className="hidden" />
       
       {/* Always-open floating player */}
@@ -571,6 +571,6 @@ export function AftersRadio() {
           )}
         </div>
       </div>
-    </>
+    </div>
   )
 }
