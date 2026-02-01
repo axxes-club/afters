@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 const CLERK_FRONTEND_API = "https://frontend-api.clerk.dev";
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || "";
-const PROXY_URL = process.env.NEXT_PUBLIC_CLERK_PROXY_URL || "https://www.afters.xxx/clerkproxy";
+// Must match exactly what's configured in Clerk's backend (non-www)
+const PROXY_URL = "https://afters.xxx/clerkproxy";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -35,8 +36,8 @@ async function handler(
     "X-Forwarded-For",
     req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1"
   );
-  // Set host to clerk.afters.xxx so Clerk identifies the correct instance
-  headers.set("host", "clerk.afters.xxx");
+  // Remove host so it doesn't conflict with upstream
+  headers.delete("host");
 
   const body =
     req.method !== "GET" && req.method !== "HEAD"
