@@ -18,7 +18,7 @@ async function handler(
   headers.set("Clerk-Secret-Key", CLERK_SECRET_KEY);
   headers.set(
     "X-Forwarded-For",
-    req.headers.get("x-forwarded-for") || req.ip || "127.0.0.1"
+    req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1"
   );
   // Remove host header so it doesn't conflict
   headers.delete("host");
