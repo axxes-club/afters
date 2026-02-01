@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const CLERK_FRONTEND_API = "https://frontend-api.clerk.services";
+const CLERK_FRONTEND_API = "https://frontend-api.clerk.dev";
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || "";
-const PROXY_URL = "https://afters.xxx/clerkproxy";
+const PROXY_URL = process.env.NEXT_PUBLIC_CLERK_PROXY_URL || "https://afters.xxx/clerkproxy";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
