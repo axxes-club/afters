@@ -52,8 +52,10 @@ async function handler(
   });
 
   const responseHeaders = new Headers(response.headers);
-  // Remove transfer-encoding to avoid issues with Next.js
+  // Remove encoding headers to avoid mismatch (fetch decodes, but headers remain)
   responseHeaders.delete("transfer-encoding");
+  responseHeaders.delete("content-encoding");
+  responseHeaders.delete("content-length");
   // Add CORS headers (www.afters.xxx → afters.xxx cross-origin)
   Object.entries(CORS_HEADERS).forEach(([key, value]) => {
     responseHeaders.set(key, value);

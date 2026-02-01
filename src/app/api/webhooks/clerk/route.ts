@@ -7,7 +7,8 @@ export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
 
   if (!WEBHOOK_SECRET) {
-    throw new Error("Missing CLERK_WEBHOOK_SECRET")
+    console.error("CLERK_WEBHOOK_SECRET is not configured — webhook ignored")
+    return new Response("Webhook secret not configured", { status: 500 })
   }
 
   const headerPayload = await headers()
