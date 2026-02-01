@@ -50,22 +50,42 @@ export async function POST(req: Request) {
       return new Response("No primary email", { status: 400 })
     }
 
-    await prisma.user.upsert({
-      where: { id },
-      update: {
-        email: primaryEmail,
-        firstName: first_name,
-        lastName: last_name,
-        imageUrl: image_url,
-      },
-      create: {
-        id,
-        email: primaryEmail,
-        firstName: first_name,
-        lastName: last_name,
-        imageUrl: image_url,
-      },
+    // Check if a user with this email already exists (e.g., migrated from dev)
+    const existingByEmail = await prisma.user.findUnique({
+      where: { email: primaryEmail },
     })
+
+    if (existingByEmail && existingByEmail.id !== id) {
+      // User exists with a different Clerk ID (dev→prod migration).
+      // Update their ID to the new production Clerk ID.
+      await prisma.user.update({
+        where: { email: primaryEmail },
+        data: {
+          id,
+          firstName: first_name ?? existingByEmail.firstName,
+          lastName: last_name ?? existingByEmail.lastName,
+          imageUrl: image_url ?? existingByEmail.imageUrl,
+        },
+      })
+    } else {
+      // Normal upsert — match by Clerk ID
+      await prisma.user.upsert({
+        where: { id },
+        update: {
+          email: primaryEmail,
+          firstName: first_name,
+          lastName: last_name,
+          imageUrl: image_url,
+        },
+        create: {
+          id,
+          email: primaryEmail,
+          firstName: first_name,
+          lastName: last_name,
+          imageUrl: image_url,
+        },
+      })
+    }
   }
 
   if (eventType === "user.deleted") {

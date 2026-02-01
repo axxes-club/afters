@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { UserRole } from "@prisma/client";
+import { ensureUserSynced } from "./sync-user";
 
 const GHOST_COOKIE = "afters-ghost-user";
 const GHOST_ADMIN_COOKIE = "afters-ghost-admin";
@@ -47,6 +48,9 @@ export async function getSessionUser() {
   const { userId } = await auth();
   if (!userId) return null;
 
+  // Auto-sync: ensure this Clerk user exists in our DB
+  await ensureUserSynced(userId);
+
   // Check if ghosting - if so, return the ghost user instead
   const ghostUserId = await getGhostUserId();
   const effectiveUserId = ghostUserId || userId;
@@ -68,6 +72,9 @@ export async function getSessionUser() {
 export async function getRealSessionUser() {
   const { userId } = await auth();
   if (!userId) return null;
+
+  // Auto-sync: ensure this Clerk user exists in our DB
+  await ensureUserSynced(userId);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
