@@ -13,6 +13,9 @@ import { toast } from "sonner"
 import { ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil, BarChart3 } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
 import { FlyerUpload } from "@/components/FlyerUpload"
+import { ScannerManagement } from "@/components/dashboard/ScannerManagement"
+import { ScanActivityLog } from "@/components/dashboard/ScanActivityLog"
+import { ShiftHistory } from "@/components/dashboard/ShiftHistory"
 
 interface TicketTier {
   id: string
@@ -545,6 +548,15 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
           )}
         </CardContent>
       </Card>
+
+      {/* Scanner Management */}
+      <ScannerManagement eventId={eventId} />
+
+      {/* Scan Activity */}
+      <ScanActivityLog eventId={eventId} />
+
+      {/* Shift History */}
+      <ShiftHistory eventId={eventId} />
 
       {/* Publish Card */}
       {event.status === "DRAFT" && (

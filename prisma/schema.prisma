@@ -275,6 +275,8 @@ model Event {
   savedBy              SavedEvent[]
   tickets              Ticket[]
   ticketTiers          TicketTier[]
+  scanners             EventScanner[]
+  scanLogs             ScanLog[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -360,6 +362,7 @@ model Ticket {
   order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
   ticketTier   TicketTier   @relation(fields: [ticketTierId], references: [id])
   user         User         @relation(fields: [userId], references: [id])
+  scanLogs     ScanLog[]
 
   @@index([eventId])
   @@index([orderId])
@@ -559,4 +562,76 @@ model StaffInvite {
   @@index([organizerProfileId])
   @@index([token])
   @@index([email])
+}
+
+// ─── Beta Program ───
+
+model BetaEntry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  city      String
+  state     String
+  instagram String?
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([state])
+}
+
+// ─── Scanner Security System ───
+
+enum ScanResult {
+  SUCCESS
+  ALREADY_CHECKED_IN
+  INVALID_TICKET
+  CANCELLED_TICKET
+  WRONG_EVENT
+}
+
+model EventScanner {
+  id        String         @id @default(cuid())
+  eventId   String
+  name      String
+  code      String
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scanLogs  ScanLog[]
+  shifts    ScannerShift[]
+
+  @@unique([eventId, code])
+  @@index([eventId])
+  @@index([code])
+}
+
+model ScanLog {
+  id           String       @id @default(cuid())
+  eventId      String
+  scannerId    String
+  ticketId     String?
+  ticketNumber String?
+  result       ScanResult
+  message      String?
+  scannedAt    DateTime     @default(now())
+  event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scanner      EventScanner @relation(fields: [scannerId], references: [id], onDelete: Cascade)
+  ticket       Ticket?      @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+
+  @@index([eventId, scannedAt])
+  @@index([scannerId])
+  @@index([ticketId])
+}
+
+model ScannerShift {
+  id           String       @id @default(cuid())
+  scannerId    String
+  punchedInAt  DateTime     @default(now())
+  punchedOutAt DateTime?
+  scanner      EventScanner @relation(fields: [scannerId], references: [id], onDelete: Cascade)
+
+  @@index([scannerId])
+  @@index([punchedInAt])
 }
