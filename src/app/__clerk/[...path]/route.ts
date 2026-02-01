@@ -4,10 +4,25 @@ const CLERK_FRONTEND_API = "https://frontend-api.clerk.services";
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || "";
 const PROXY_URL = "https://afters.xxx/__clerk";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "*",
+  "Access-Control-Expose-Headers": "*",
+};
+
 async function handler(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 200,
+      headers: CORS_HEADERS,
+    });
+  }
+
   const { path } = await params;
   const targetPath = path.join("/");
   const url = new URL(targetPath, CLERK_FRONTEND_API);
@@ -39,6 +54,10 @@ async function handler(
   const responseHeaders = new Headers(response.headers);
   // Remove transfer-encoding to avoid issues with Next.js
   responseHeaders.delete("transfer-encoding");
+  // Add CORS headers (www.afters.xxx → afters.xxx cross-origin)
+  Object.entries(CORS_HEADERS).forEach(([key, value]) => {
+    responseHeaders.set(key, value);
+  });
 
   return new NextResponse(response.body, {
     status: response.status,
