@@ -14,8 +14,8 @@ export const ENABLE_DOMAIN_REDIRECT = process.env.NEXT_PUBLIC_ENABLE_DOMAIN_REDI
 // Full URLs
 export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || `https://${SITE_DOMAIN}`
 
-// Clerk proxy (uses www subdomain)
-export const CLERK_PROXY_URL = process.env.NEXT_PUBLIC_CLERK_PROXY_URL || `https://www.${SITE_DOMAIN}/clerkproxy`
+// Clerk proxy (must match exactly what's configured in Clerk Dashboard - no www)
+export const CLERK_PROXY_URL = process.env.NEXT_PUBLIC_CLERK_PROXY_URL || `https://${SITE_DOMAIN}/clerkproxy`
 
 // URL prefixes for profile pages
 export const URL_PREFIXES = {
