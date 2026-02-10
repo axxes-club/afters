@@ -141,6 +141,11 @@ export async function POST(req: Request) {
       ageRestriction,
       ticketingType,
       externalTicketingUrl,
+      // Underground features
+      isAddressHidden,
+      lineup,
+      pageTheme,
+      accentColor,
     } = body
 
     if (!title || !startsAt || !venueName || !venueAddress || !city) {
@@ -191,6 +196,11 @@ export async function POST(req: Request) {
         ageRestriction: ageRestriction ? parseInt(ageRestriction) : null,
         ticketingType: ticketingType || 'AFTERS',
         externalTicketingUrl: normalizedExternalUrl,
+        // Underground features
+        isAddressHidden: isAddressHidden || false,
+        lineup: lineup || null,
+        pageTheme: pageTheme || 'default',
+        accentColor: accentColor || null,
       },
     })
 
