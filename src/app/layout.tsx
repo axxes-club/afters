@@ -57,13 +57,9 @@ export default async function RootLayout({
 }
 
 function RedirectHandler() {
-  // Only redirect netlify domain for now (afters.xxx redirect disabled until Clerk configured)
-  // Set NEXT_PUBLIC_ENABLE_DOMAIN_REDIRECT=true to enable afters.xxx → afters.am redirect
-  const enableFullRedirect = process.env.NEXT_PUBLIC_ENABLE_DOMAIN_REDIRECT === "true";
+  // Redirect legacy domains to afters.am
   const primaryDomain = "afters.am";
-  const legacyDomains = enableFullRedirect 
-    ? ["afters.netlify.app", "afters.xxx"] 
-    : ["afters.netlify.app"];
+  const legacyDomains = ["afters.netlify.app", "afters.xxx"];
   
   return (
     <script

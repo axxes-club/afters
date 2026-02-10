@@ -1,15 +1,9 @@
 // Site domain configuration
-// Primary domain - uses env var, falls back to afters.xxx until fully migrated
-export const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN || "afters.xxx"
+// Primary domain - afters.am is now the main domain
+export const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN || "afters.am"
 
-// Target domain for redirects (when enabled)
-export const PRIMARY_DOMAIN = "afters.am"
-
-// Legacy domains that should redirect to PRIMARY_DOMAIN
-export const LEGACY_DOMAINS = ["afters.netlify.app"]
-
-// Whether to enable redirects from legacy domains (disable until Clerk is configured)
-export const ENABLE_DOMAIN_REDIRECT = process.env.NEXT_PUBLIC_ENABLE_DOMAIN_REDIRECT === "true"
+// Legacy domains that should redirect to primary domain
+export const LEGACY_DOMAINS = ["afters.netlify.app", "afters.xxx"]
 
 // Full URLs
 export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || `https://${SITE_DOMAIN}`
