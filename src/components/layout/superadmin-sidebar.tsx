@@ -15,6 +15,7 @@ import {
   Ticket,
   Languages,
   BadgeCheck,
+  Settings,
 } from "lucide-react";
 
 const navItems = [
@@ -69,6 +70,11 @@ const navItems = [
     title: "System Status",
     href: "/superadmin/status",
     icon: Activity,
+  },
+  {
+    title: "Site Settings",
+    href: "/superadmin/settings",
+    icon: Settings,
   },
 ];
 

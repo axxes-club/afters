@@ -635,3 +635,12 @@ model ScannerShift {
   @@index([scannerId])
   @@index([punchedInAt])
 }
+
+// ─── Site Settings (singleton) ───
+
+model SiteSettings {
+  id                 String   @id @default("singleton")
+  radioWidgetEnabled Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

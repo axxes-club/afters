@@ -4,7 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
-import { AftersRadio } from "@/components/AftersRadio";
+import { ConditionalRadio } from "@/components/ConditionalRadio";
 import { GhostBanner } from "@/components/GhostBanner";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
@@ -47,7 +47,7 @@ export default async function RootLayout({
             <GhostBanner />
             <RedirectHandler />
             {children}
-            <AftersRadio />
+            <ConditionalRadio />
             <Toaster />
           </NextIntlClientProvider>
         </body>
