@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Loader2, Save, Palette, Globe, Music, Mail, FileText, Building2 } from "lucide-react"
+import { URL_PREFIXES } from "@/lib/constants"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
@@ -154,7 +155,7 @@ export function ArtistProfileForm({ profile }: Props) {
                 <Label htmlFor="slug">Profile URL *</Label>
                 <div className="flex gap-2">
                   <div className="flex items-center px-3 bg-muted rounded-l-md border border-r-0 text-sm text-muted-foreground">
-                    afters.xxx/a/
+                    {URL_PREFIXES.artist}
                   </div>
                   <Input
                     id="slug"

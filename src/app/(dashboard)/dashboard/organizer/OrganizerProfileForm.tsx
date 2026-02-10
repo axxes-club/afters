@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Loader2, Save, Globe, Upload } from "lucide-react"
+import { URL_PREFIXES } from "@/lib/constants"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
@@ -128,7 +129,7 @@ export function OrganizerProfileForm({ profile }: Props) {
               <Label htmlFor="slug">Profile URL *</Label>
               <div className="flex gap-2">
                 <div className="flex items-center px-3 bg-muted rounded-l-md border border-r-0 text-sm text-muted-foreground whitespace-nowrap">
-                  afters.xxx/o/
+                  {URL_PREFIXES.organizer}
                 </div>
                 <Input
                   id="slug"

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CLERK_PROXY_URL } from "@/lib/constants";
 
 const CLERK_FRONTEND_API = "https://frontend-api.clerk.dev";
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || "";
-// Must match exactly what's configured in Clerk's backend (non-www)
-const PROXY_URL = "https://afters.xxx/clerkproxy";
+// Proxy URL configured via environment or constants
+const PROXY_URL = CLERK_PROXY_URL;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -57,7 +58,7 @@ async function handler(
   responseHeaders.delete("transfer-encoding");
   responseHeaders.delete("content-encoding");
   responseHeaders.delete("content-length");
-  // Add CORS headers (www.afters.xxx → afters.xxx cross-origin)
+  // Add CORS headers for cross-origin requests
   Object.entries(CORS_HEADERS).forEach(([key, value]) => {
     responseHeaders.set(key, value);
   });

@@ -57,18 +57,26 @@ export default async function RootLayout({
 }
 
 function RedirectHandler() {
+  // Redirect legacy domains to primary domain (afters.am)
+  const primaryDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN || "afters.am";
+  const legacyDomains = ["afters.netlify.app", "afters.xxx"];
+  
   return (
     <script
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
-            if (window.location.hostname.includes('afters.netlify.app')) {
+            var legacyDomains = ${JSON.stringify(legacyDomains)};
+            var primaryDomain = "${primaryDomain}";
+            var isLegacy = legacyDomains.some(function(d) { return window.location.hostname.includes(d); });
+            
+            if (isLegacy) {
               // Show a temporary message while redirecting
-              document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #000; color: white; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; text-align: center;"><div style="padding: 2rem; border-radius: 8px; background-color: rgba(30, 30, 30, 0.8); max-width: 90%; width: 500px;"><h1>We\'re moving you to our latest deployment!</h1><p>Please hold on while we redirect you to the official site.</p><div style="width: 40px; height: 40px; border: 4px solid rgba(255, 20, 147, 0.3); border-top: 4px solid #ff1493; border-radius: 50%; animation: spin 1s linear infinite; margin: 2rem auto;"></div><p>You\'ll be redirected in a few seconds, or <a href="https://afters.xxx" style="color: #ff1493;">click here</a> if you don\'t want to wait.</p></div><style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style></div>';
+              document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #000; color: white; font-family: -apple-system, BlinkMacSystemFont, \\'Segoe UI\\', Roboto, sans-serif; text-align: center;"><div style="padding: 2rem; border-radius: 8px; background-color: rgba(30, 30, 30, 0.8); max-width: 90%; width: 500px;"><h1>We\\'re moving you to our new home!</h1><p>Please hold on while we redirect you to ' + primaryDomain + '.</p><div style="width: 40px; height: 40px; border: 4px solid rgba(255, 20, 147, 0.3); border-top: 4px solid #ff1493; border-radius: 50%; animation: spin 1s linear infinite; margin: 2rem auto;"></div><p>You\\'ll be redirected in a few seconds, or <a href="https://' + primaryDomain + '" style="color: #ff1493;">click here</a> if you don\\'t want to wait.</p></div><style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style></div>';
 
               // Redirect after a short delay
               setTimeout(function() {
-                window.location.href = 'https://afters.xxx' + window.location.pathname + window.location.search + window.location.hash;
+                window.location.href = 'https://' + primaryDomain + window.location.pathname + window.location.search + window.location.hash;
               }, 3000);
             }
           })();

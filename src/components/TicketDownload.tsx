@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import { QRCodeSVG } from "qrcode.react"
 import { Button } from "@/components/ui/button"
 import { Download, Loader2 } from "lucide-react"
+import { SITE_DOMAIN } from "@/lib/constants"
 import { toast } from "sonner"
 
 interface TicketDownloadProps {
@@ -136,7 +137,7 @@ export function TicketDownload({
 
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-zinc-800 text-center">
-          <p className="text-xs text-zinc-500">afters.xxx</p>
+          <p className="text-xs text-zinc-500">{SITE_DOMAIN}</p>
         </div>
       </div>
     </>

@@ -51,6 +51,7 @@ import {
   Calendar,
   AlertTriangle,
 } from "lucide-react";
+import { URL_PREFIXES } from "@/lib/constants";
 
 interface OrganizerProfile {
   id: string;
@@ -492,7 +493,7 @@ export default function SettingsPage() {
               <Label htmlFor="slug">{t("profileUrl")}</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  afters.xxx/o/
+                  {URL_PREFIXES.organizer}
                 </span>
                 <Input
                   id="slug"

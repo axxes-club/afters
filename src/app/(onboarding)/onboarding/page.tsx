@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
+import { URL_PREFIXES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,13 +110,13 @@ export default function OnboardingPage() {
 
       if (profileType === "organizer") {
         endpoint = "/api/organizer/profile";
-        urlPrefix = "afters.xxx/o/";
+        urlPrefix = URL_PREFIXES.organizer;
       } else if (profileType === "artist") {
         endpoint = "/api/artist/profile";
-        urlPrefix = "afters.xxx/a/";
+        urlPrefix = URL_PREFIXES.artist;
       } else if (profileType === "personal") {
         endpoint = "/api/personal/profile";
-        urlPrefix = "afters.xxx/p/";
+        urlPrefix = URL_PREFIXES.personal;
       }
 
       const res = await fetch(endpoint, {
@@ -141,10 +142,10 @@ export default function OnboardingPage() {
 
   // Update URL prefix based on profile type
   const getUrlPrefix = () => {
-    if (profileType === "organizer") return "afters.xxx/o/";
-    if (profileType === "artist") return "afters.xxx/a/";
-    if (profileType === "personal") return "afters.xxx/p/";
-    return "afters.xxx/";
+    if (profileType === "organizer") return URL_PREFIXES.organizer;
+    if (profileType === "artist") return URL_PREFIXES.artist;
+    if (profileType === "personal") return URL_PREFIXES.personal;
+    return URL_PREFIXES.base;
   };
 
   return (
