@@ -8,9 +8,6 @@ export const LEGACY_DOMAINS = ["afters.netlify.app", "afters.xxx"]
 // Full URLs
 export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || `https://${SITE_DOMAIN}`
 
-// Clerk proxy (must match exactly what's configured in Clerk Dashboard - no www)
-export const CLERK_PROXY_URL = process.env.NEXT_PUBLIC_CLERK_PROXY_URL || `https://${SITE_DOMAIN}/clerkproxy`
-
 // URL prefixes for profile pages
 export const URL_PREFIXES = {
   organizer: `${SITE_DOMAIN}/o/`,
