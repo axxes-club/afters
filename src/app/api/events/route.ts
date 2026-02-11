@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { generateTestTicket } from "@/lib/test-ticket"
 
 export async function GET(req: Request) {
   try {
@@ -203,6 +204,14 @@ export async function POST(req: Request) {
         accentColor: accentColor || null,
       },
     })
+
+    // Auto-generate a test ticket for the organizer
+    try {
+      await generateTestTicket(event.id, userId)
+    } catch (testTicketError) {
+      console.error("Failed to generate test ticket:", testTicketError)
+      // Don't fail event creation if test ticket fails
+    }
 
     return NextResponse.json(event)
   } catch (error) {

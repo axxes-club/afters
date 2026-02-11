@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, use } from "react"
+import { useEffect, useState, use } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -8,9 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil, BarChart3 } from "lucide-react"
+import { 
+  ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil, 
+  BarChart3, Ticket, Users, Settings, DollarSign, Calendar, MapPin,
+  Copy, Eye, EyeOff
+} from "lucide-react"
 import { formatCents } from "@/lib/stripe"
 import { FlyerUpload } from "@/components/FlyerUpload"
 import { ScannerManagement } from "@/components/dashboard/ScannerManagement"
@@ -32,140 +37,61 @@ interface Event {
   title: string
   slug: string
   description: string | null
+  startsAt: string
+  endsAt: string | null
+  venueName: string
+  venueAddress: string
+  city: string
+  state: string | null
+  flyerUrl: string | null
   status: string
   isPublished: boolean
-  startsAt: string
-  venueName: string
-  city: string
-  flyerUrl: string | null
   ticketingType: string
   externalTicketingUrl: string | null
   ticketTiers: TicketTier[]
-  organizer: {
-    slug: string
-  }
 }
 
-export default function EventDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
+export default function EventDashboardPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params)
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
-  const [publishing, setPublishing] = useState(false)
   const [showTierDialog, setShowTierDialog] = useState(false)
   const [showFlyerDialog, setShowFlyerDialog] = useState(false)
   const [showTicketingDialog, setShowTicketingDialog] = useState(false)
   const [tierLoading, setTierLoading] = useState(false)
   const [flyerLoading, setFlyerLoading] = useState(false)
   const [ticketingLoading, setTicketingLoading] = useState(false)
+  const [publishing, setPublishing] = useState(false)
   const [tempFlyerUrl, setTempFlyerUrl] = useState<string | null>(null)
 
-  const fetchEvent = useCallback(async () => {
+  useEffect(() => {
+    fetchEvent()
+  }, [eventId])
+
+  async function fetchEvent() {
     try {
       const res = await fetch(`/api/events/${eventId}`)
       if (res.ok) {
         const data = await res.json()
         setEvent(data)
-        setTempFlyerUrl(data.flyerUrl)
       }
     } catch (error) {
-      console.error(error)
+      console.error("Failed to fetch event:", error)
     } finally {
       setLoading(false)
     }
-  }, [eventId])
-
-  useEffect(() => {
-    fetchEvent()
-  }, [fetchEvent])
-
-  async function publishEvent() {
-    setPublishing(true)
-    try {
-      const res = await fetch(`/api/events/${eventId}/publish`, {
-        method: "POST",
-      })
-
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message)
-      }
-
-      toast.success("Event published!")
-      fetchEvent()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to publish")
-    } finally {
-      setPublishing(false)
-    }
   }
 
-  async function updateFlyer() {
-    setFlyerLoading(true)
-    try {
-      const res = await fetch(`/api/events/${eventId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ flyerUrl: tempFlyerUrl }),
-      })
-
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message)
-      }
-
-      toast.success("Flyer updated!")
-      setShowFlyerDialog(false)
-      fetchEvent()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update flyer")
-    } finally {
-      setFlyerLoading(false)
-    }
-  }
-
-  async function updateTicketing(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setTicketingLoading(true)
-
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      ticketingType: formData.get("ticketingType"),
-      externalTicketingUrl: formData.get("externalTicketingUrl") || null,
-    }
-
-    try {
-      const res = await fetch(`/api/events/${eventId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message)
-      }
-
-      toast.success("Ticketing updated!")
-      setShowTicketingDialog(false)
-      fetchEvent()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update ticketing")
-    } finally {
-      setTicketingLoading(false)
-    }
-  }
-
-  async function addTier(e: React.FormEvent<HTMLFormElement>) {
+  async function createTier(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setTierLoading(true)
 
     const formData = new FormData(e.currentTarget)
     const data = {
       name: formData.get("name"),
-      description: formData.get("description") || null,
-      price: parseFloat(formData.get("price") as string),
+      description: formData.get("description"),
+      price: Math.round(parseFloat(formData.get("price") as string) * 100),
       quantity: parseInt(formData.get("quantity") as string),
-      maxPerOrder: parseInt(formData.get("maxPerOrder") as string) || 10,
     }
 
     try {
@@ -175,16 +101,15 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
         body: JSON.stringify(data),
       })
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message)
+      if (res.ok) {
+        toast.success("Ticket tier created")
+        setShowTierDialog(false)
+        fetchEvent()
+      } else {
+        toast.error("Failed to create tier")
       }
-
-      toast.success("Ticket tier added!")
-      setShowTierDialog(false)
-      fetchEvent()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to add tier")
+    } catch {
+      toast.error("Failed to create tier")
     } finally {
       setTierLoading(false)
     }
@@ -198,391 +123,585 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
         method: "DELETE",
       })
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message)
+      if (res.ok) {
+        toast.success("Tier deleted")
+        fetchEvent()
+      } else {
+        toast.error("Failed to delete tier")
       }
-
-      toast.success("Tier deleted")
-      fetchEvent()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete")
+    } catch {
+      toast.error("Failed to delete tier")
     }
   }
 
+  async function updateFlyer() {
+    setFlyerLoading(true)
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ flyerUrl: tempFlyerUrl }),
+      })
+
+      if (res.ok) {
+        toast.success("Flyer updated")
+        setShowFlyerDialog(false)
+        fetchEvent()
+      } else {
+        toast.error("Failed to update flyer")
+      }
+    } catch {
+      toast.error("Failed to update flyer")
+    } finally {
+      setFlyerLoading(false)
+    }
+  }
+
+  async function updateTicketing(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setTicketingLoading(true)
+
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      ticketingType: formData.get("ticketingType"),
+      externalTicketingUrl: formData.get("externalTicketingUrl"),
+    }
+
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (res.ok) {
+        toast.success("Ticketing settings updated")
+        setShowTicketingDialog(false)
+        fetchEvent()
+      } else {
+        toast.error("Failed to update settings")
+      }
+    } catch {
+      toast.error("Failed to update settings")
+    } finally {
+      setTicketingLoading(false)
+    }
+  }
+
+  async function publishEvent() {
+    if (!confirm("Publish this event? It will be visible to everyone.")) return
+    setPublishing(true)
+
+    try {
+      const res = await fetch(`/api/events/${eventId}/publish`, { method: "POST" })
+      if (res.ok) {
+        toast.success("Event published!")
+        fetchEvent()
+      } else {
+        toast.error("Failed to publish")
+      }
+    } catch {
+      toast.error("Failed to publish")
+    } finally {
+      setPublishing(false)
+    }
+  }
+
+  function copyEventUrl() {
+    const url = `${window.location.origin}/e/${event?.slug}`
+    navigator.clipboard.writeText(url)
+    toast.success("Event URL copied!")
+  }
+
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    )
   }
 
   if (!event) {
-    return <div className="text-center py-8">Event not found</div>
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Event not found</p>
+      </div>
+    )
   }
 
-  const eventUrl = `/e/${event.organizer.slug}-${event.slug}`
+  const eventUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${event.slug}`
+  const totalCapacity = event.ticketTiers.reduce((sum, t) => sum + t.quantity, 0)
+  const totalSold = event.ticketTiers.reduce((sum, t) => sum + t.quantitySold, 0)
+  const totalRevenue = event.ticketTiers.reduce((sum, t) => sum + (t.quantitySold * t.price), 0)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/dashboard">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{event.title}</h1>
-            <p className="text-muted-foreground">
-              {new Date(event.startsAt).toLocaleDateString()} at {event.venueName}
-            </p>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/dashboard/events">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">{event.title}</h1>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {new Date(event.startsAt).toLocaleDateString('en-US', { 
+                  weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                })}
+                <span className="text-muted-foreground/50">•</span>
+                <MapPin className="h-3.5 w-3.5" />
+                {event.venueName}
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={event.status === "PUBLISHED" ? "default" : "secondary"}>
+            {event.status === "PUBLISHED" ? <Eye className="mr-1 h-3 w-3" /> : <EyeOff className="mr-1 h-3 w-3" />}
             {event.status}
           </Badge>
-          {event.isPublished && (
+          {event.isPublished ? (
             <Button variant="outline" size="sm" asChild>
               <Link href={eventUrl} target="_blank">
                 <ExternalLink className="mr-2 h-4 w-4" />
                 View Live
               </Link>
             </Button>
+          ) : (
+            <Button size="sm" onClick={publishEvent} disabled={publishing || event.ticketTiers.length === 0}>
+              {publishing ? "Publishing..." : "Publish Event"}
+            </Button>
           )}
         </div>
       </div>
 
-      {/* Event Flyer & Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-[300px_1fr]">
-        {/* Flyer Card */}
-        <Card>
-          <CardHeader className="pb-2">
+      {/* Quick Stats Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-muted/30">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Event Flyer</CardTitle>
-              <Dialog open={showFlyerDialog} onOpenChange={(open) => {
-                setShowFlyerDialog(open)
-                if (open) setTempFlyerUrl(event.flyerUrl)
-              }}>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Update Event Flyer</DialogTitle>
-                    <DialogDescription>
-                      Upload a new flyer image for your event
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <FlyerUpload
-                      value={tempFlyerUrl}
-                      onChange={setTempFlyerUrl}
-                      disabled={flyerLoading}
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowFlyerDialog(false)}
-                        disabled={flyerLoading}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={updateFlyer} disabled={flyerLoading}>
-                        {flyerLoading ? "Saving..." : "Save Flyer"}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <div>
+                <p className="text-sm text-muted-foreground">Sold</p>
+                <p className="text-2xl font-bold">{totalSold}<span className="text-sm font-normal text-muted-foreground">/{totalCapacity}</span></p>
+              </div>
+              <Ticket className="h-8 w-8 text-muted-foreground/50" />
             </div>
-          </CardHeader>
-          <CardContent>
-            {event.flyerUrl ? (
-              <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden border border-border">
-                <Image
-                  src={event.flyerUrl}
-                  alt={event.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div 
-                className="relative aspect-[3/4] w-full rounded-lg border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => setShowFlyerDialog(true)}
-              >
-                <ImageIcon className="h-10 w-10 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground text-center px-4">
-                  Click to add event flyer
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
-
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Capacity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {event.ticketTiers.reduce((sum, t) => sum + t.quantity, 0)}
+        <Card className="bg-muted/30">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Revenue</p>
+                <p className="text-2xl font-bold">{formatCents(totalRevenue)}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {event.ticketTiers.reduce((sum, t) => sum + t.quantitySold, 0)}
+              <DollarSign className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors" onClick={copyEventUrl}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Event URL</p>
+                <p className="text-sm font-mono truncate max-w-[120px]">/e/{event.slug}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Check-in</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href={`/dashboard/events/${eventId}/check-in`}>
-                  <QrCode className="mr-2 h-4 w-4" />
-                  Open Scanner
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href={`/dashboard/events/${eventId}/analytics`}>
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  View Analytics
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Ticketing</CardTitle>
-                <Dialog open={showTicketingDialog} onOpenChange={setShowTicketingDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Ticketing Settings</DialogTitle>
-                      <DialogDescription>
-                        Configure how users will get tickets for this event.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={updateTicketing} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="ticketingType">Ticketing Platform</Label>
-                        <select 
-                          name="ticketingType" 
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          defaultValue={event.ticketingType}
-                        >
-                          <option value="AFTERS">Afters (Default)</option>
-                          <option value="POSH">Posh.vip</option>
-                          <option value="DICE">Dice.fm</option>
-                          <option value="TICKETMASTER">Ticketmaster</option>
-                          <option value="LIVENATION">Live Nation</option>
-                          <option value="EVENTBRITE">Eventbrite</option>
-                          <option value="OTHER">Other</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="externalTicketingUrl">External URL (Optional)</Label>
-                        <Input
-                          id="externalTicketingUrl"
-                          name="externalTicketingUrl"
-                          defaultValue={event.externalTicketingUrl || ""}
-                          placeholder="https://..."
-                        />
-                      </div>
-                      <Button type="submit" className="w-full" disabled={ticketingLoading}>
-                        {ticketingLoading ? "Saving..." : "Save Settings"}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm">
-                <p className="font-medium">{event.ticketingType === 'AFTERS' ? 'Internal (Afters)' : 'External'}</p>
-                <p className="text-muted-foreground truncate">{event.externalTicketingUrl || 'No external URL'}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Copy className="h-5 w-5 text-muted-foreground/50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-muted/30">
+          <CardContent className="p-4">
+            <Button variant="outline" className="w-full h-full" asChild>
+              <Link href={`/dashboard/events/${eventId}/analytics`}>
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Analytics
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Ticket Tiers */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Ticket Tiers</CardTitle>
-              <CardDescription>Manage your event&apos;s ticket types and pricing</CardDescription>
-            </div>
-            <Dialog open={showTierDialog} onOpenChange={setShowTierDialog}>
-              <DialogTrigger asChild>
-                <Button>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="tickets">Tickets</TabsTrigger>
+          <TabsTrigger value="door">Door</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+
+        {/* OVERVIEW TAB */}
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-[280px_1fr]">
+            {/* Flyer */}
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">Event Flyer</CardTitle>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                    setTempFlyerUrl(event.flyerUrl)
+                    setShowFlyerDialog(true)
+                  }}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {event.flyerUrl ? (
+                  <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden border">
+                    <Image src={event.flyerUrl} alt={event.title} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div 
+                    className="aspect-[3/4] w-full rounded-lg border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => setShowFlyerDialog(true)}
+                  >
+                    <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                    <p className="text-xs text-muted-foreground">Add flyer</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Ticket Tiers Summary */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Ticket Tiers</CardTitle>
+                    <CardDescription>Quick overview of your ticket types</CardDescription>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setShowTierDialog(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Tier
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {event.ticketTiers.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Ticket className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p>No ticket tiers yet</p>
+                    <p className="text-sm">Create your first tier to start selling</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {event.ticketTiers.map((tier) => (
+                      <div key={tier.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                        <div>
+                          <p className="font-medium">{tier.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tier.quantitySold}/{tier.quantity} sold • {formatCents(tier.price)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary rounded-full" 
+                              style={{ width: `${(tier.quantitySold / tier.quantity) * 100}%` }} 
+                            />
+                          </div>
+                          <span className="text-sm text-muted-foreground w-12 text-right">
+                            {Math.round((tier.quantitySold / tier.quantity) * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
+              <Link href={`/dashboard/events/${eventId}/check-in`}>
+                <QrCode className="h-6 w-6" />
+                <span>Open Scanner</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
+              <Link href={`/dashboard/events/${eventId}/analytics`}>
+                <BarChart3 className="h-6 w-6" />
+                <span>View Analytics</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={copyEventUrl}>
+              <Copy className="h-6 w-6" />
+              <span>Copy Event Link</span>
+            </Button>
+          </div>
+        </TabsContent>
+
+        {/* TICKETS TAB */}
+        <TabsContent value="tickets" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Ticket Tiers</CardTitle>
+                  <CardDescription>Manage your event's ticket types and pricing</CardDescription>
+                </div>
+                <Button onClick={() => setShowTierDialog(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Tier
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Ticket Tier</DialogTitle>
-                  <DialogDescription>
-                    Create a new ticket type for your event
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={addTier} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Tier Name</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="e.g., General Admission"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description (optional)</Label>
-                    <Input
-                      id="description"
-                      name="description"
-                      placeholder="e.g., Access to main floor"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="price">Price ($)</Label>
-                      <Input
-                        id="price"
-                        name="price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="25.00"
-                        required
-                      />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {event.ticketTiers.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Ticket className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="font-medium">No ticket tiers yet</p>
+                  <p className="text-sm">Add your first tier to start selling tickets</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {event.ticketTiers.map((tier) => (
+                    <div key={tier.id} className="flex items-center justify-between p-4 rounded-lg border">
+                      <div className="space-y-1">
+                        <p className="font-medium">{tier.name}</p>
+                        {tier.description && (
+                          <p className="text-sm text-muted-foreground">{tier.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="font-medium">{formatCents(tier.price)}</span>
+                          <span className="text-muted-foreground">
+                            {tier.quantitySold}/{tier.quantity} sold
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => deleteTier(tier.id)}
+                        disabled={tier.quantitySold > 0}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="quantity">Quantity</Label>
-                      <Input
-                        id="quantity"
-                        name="quantity"
-                        type="number"
-                        min="1"
-                        placeholder="100"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="maxPerOrder">Max per Order</Label>
-                    <Input
-                      id="maxPerOrder"
-                      name="maxPerOrder"
-                      type="number"
-                      min="1"
-                      defaultValue="10"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={tierLoading}>
-                    {tierLoading ? "Adding..." : "Add Tier"}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* DOOR TAB */}
+        <TabsContent value="door" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2" asChild>
+              <Link href={`/dashboard/events/${eventId}/check-in`}>
+                <QrCode className="h-8 w-8" />
+                <span className="font-medium">Open Check-in Scanner</span>
+                <span className="text-sm text-muted-foreground">Scan tickets at the door</span>
+              </Link>
+            </Button>
+            <Card className="flex items-center justify-center p-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold">{totalSold}</p>
+                <p className="text-sm text-muted-foreground">tickets to scan</p>
+              </div>
+            </Card>
           </div>
-        </CardHeader>
-        <CardContent>
-          {event.ticketTiers.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              No ticket tiers yet. Add one to start selling!
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {event.ticketTiers.map((tier) => (
-                <div
-                  key={tier.id}
-                  className="flex items-center justify-between p-4 rounded-lg border"
-                >
-                  <div>
-                    <p className="font-medium">{tier.name}</p>
-                    {tier.description && (
-                      <p className="text-sm text-muted-foreground">{tier.description}</p>
-                    )}
-                    <p className="text-sm">
-                      {formatCents(tier.price)} &bull; {tier.quantitySold}/{tier.quantity} sold
+
+          <GuestlistManagement eventId={eventId} />
+          <ScannerManagement eventId={eventId} />
+          <ScanActivityLog eventId={eventId} />
+          <ShiftHistory eventId={eventId} />
+        </TabsContent>
+
+        {/* SETTINGS TAB */}
+        <TabsContent value="settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ticketing Settings</CardTitle>
+              <CardDescription>Configure how tickets are sold for this event</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-lg border">
+                <div>
+                  <p className="font-medium">Platform</p>
+                  <p className="text-sm text-muted-foreground">
+                    {event.ticketingType === 'AFTERS' ? 'Afters (Internal)' : event.ticketingType}
+                  </p>
+                  {event.externalTicketingUrl && (
+                    <p className="text-xs text-muted-foreground truncate max-w-xs">
+                      {event.externalTicketingUrl}
+                    </p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setShowTicketingDialog(true)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Event Details</CardTitle>
+              <CardDescription>Basic information about your event</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Venue</p>
+                  <p className="font-medium">{event.venueName}</p>
+                  <p className="text-sm text-muted-foreground">{event.venueAddress}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Location</p>
+                  <p className="font-medium">{event.city}{event.state ? `, ${event.state}` : ''}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Start</p>
+                  <p className="font-medium">
+                    {new Date(event.startsAt).toLocaleDateString('en-US', {
+                      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                      hour: 'numeric', minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                {event.endsAt && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">End</p>
+                    <p className="font-medium">
+                      {new Date(event.endsAt).toLocaleDateString('en-US', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                        hour: 'numeric', minute: '2-digit'
+                      })}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteTier(tier.id)}
-                    disabled={tier.quantitySold > 0}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {!event.isPublished && (
+            <Card className="border-primary/50 bg-primary/5">
+              <CardHeader>
+                <CardTitle>Ready to Go Live?</CardTitle>
+                <CardDescription>
+                  Publishing will make your event visible to everyone
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={publishEvent} disabled={publishing || event.ticketTiers.length === 0}>
+                  {publishing ? "Publishing..." : "Publish Event"}
+                </Button>
+                {event.ticketTiers.length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Add at least one ticket tier before publishing.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
 
-      {/* Guestlist Management */}
-      <GuestlistManagement eventId={eventId} />
+      {/* DIALOGS */}
+      {/* Flyer Dialog */}
+      <Dialog open={showFlyerDialog} onOpenChange={setShowFlyerDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Event Flyer</DialogTitle>
+            <DialogDescription>Upload a new flyer image</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <FlyerUpload value={tempFlyerUrl} onChange={setTempFlyerUrl} disabled={flyerLoading} />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowFlyerDialog(false)} disabled={flyerLoading}>
+                Cancel
+              </Button>
+              <Button onClick={updateFlyer} disabled={flyerLoading}>
+                {flyerLoading ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      {/* Scanner Management */}
-      <ScannerManagement eventId={eventId} />
-
-      {/* Scan Activity */}
-      <ScanActivityLog eventId={eventId} />
-
-      {/* Shift History */}
-      <ShiftHistory eventId={eventId} />
-
-      {/* Publish Card */}
-      {event.status === "DRAFT" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Ready to Go Live?</CardTitle>
-            <CardDescription>
-              Publishing will make your event visible to everyone.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={publishEvent} disabled={publishing || event.ticketTiers.length === 0}>
-              {publishing ? "Publishing..." : "Publish Event"}
+      {/* Tier Dialog */}
+      <Dialog open={showTierDialog} onOpenChange={setShowTierDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Ticket Tier</DialogTitle>
+            <DialogDescription>Create a new ticket type</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={createTier} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Tier Name</Label>
+              <Input id="name" name="name" placeholder="General Admission" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Input id="description" name="description" placeholder="Access to main floor" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Price ($)</Label>
+                <Input id="price" name="price" type="number" step="0.01" min="0" placeholder="25.00" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity</Label>
+                <Input id="quantity" name="quantity" type="number" min="1" placeholder="100" required />
+              </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={tierLoading}>
+              {tierLoading ? "Creating..." : "Create Tier"}
             </Button>
-            {event.ticketTiers.length === 0 && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Add at least one ticket tier before publishing.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ticketing Dialog */}
+      <Dialog open={showTicketingDialog} onOpenChange={setShowTicketingDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ticketing Settings</DialogTitle>
+            <DialogDescription>Configure your ticketing platform</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={updateTicketing} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ticketingType">Platform</Label>
+              <select 
+                name="ticketingType" 
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                defaultValue={event.ticketingType}
+              >
+                <option value="AFTERS">Afters (Default)</option>
+                <option value="POSH">Posh.vip</option>
+                <option value="DICE">Dice.fm</option>
+                <option value="TICKETMASTER">Ticketmaster</option>
+                <option value="LIVENATION">Live Nation</option>
+                <option value="EVENTBRITE">Eventbrite</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="externalTicketingUrl">External URL</Label>
+              <Input
+                name="externalTicketingUrl"
+                defaultValue={event.externalTicketingUrl || ""}
+                placeholder="https://..."
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={ticketingLoading}>
+              {ticketingLoading ? "Saving..." : "Save Settings"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
