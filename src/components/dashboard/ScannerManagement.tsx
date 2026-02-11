@@ -1,26 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { Plus, Trash2, Copy, QrCode, ExternalLink } from "lucide-react"
 
@@ -147,140 +136,153 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Loading scanners...
-        </CardContent>
-      </Card>
+      <div className="border border-white/10 bg-white/[0.02]">
+        <div className="p-8 text-center">
+          <div className="w-5 h-5 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin mx-auto" />
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5" />
-              Scanner Management
-            </CardTitle>
-            <CardDescription>
-              Create scanner codes for staff to check in tickets — no account
-              needed
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={copyScannerUrl}>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Copy Scanner URL
-            </Button>
-            <Dialog open={showDialog} onOpenChange={setShowDialog}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Scanner
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create Scanner</DialogTitle>
-                  <DialogDescription>
-                    Enter the staff member&apos;s name. A unique 6-digit code
-                    will be generated for them.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="scanner-name">Staff Name</Label>
-                    <Input
-                      id="scanner-name"
-                      placeholder="e.g., John Smith"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && createScanner()}
-                    />
-                  </div>
-                  <Button
-                    onClick={createScanner}
-                    disabled={creating}
-                    className="w-full"
-                  >
-                    {creating ? "Creating..." : "Create Scanner"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+    <div className="border border-white/10 bg-white/[0.02]">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <QrCode className="w-4 h-4 text-white/30" />
+          <span className="text-[10px] font-mono text-white/40 tracking-widest">SCANNERS</span>
         </div>
-      </CardHeader>
-      <CardContent>
-        {scanners.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <QrCode className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="mb-1">No scanners yet</p>
-            <p className="text-sm">
-              Add a scanner to generate a code for your staff
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {scanners.map((scanner) => (
-              <div
-                key={scanner.id}
-                className="flex items-center justify-between p-4 rounded-lg border"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium truncate">{scanner.name}</p>
-                    {scanner.isActive ? (
-                      <Badge variant="default" className="shrink-0">
-                        Active
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="shrink-0">
-                        Inactive
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 mt-1">
-                    <button
-                      onClick={() => copyCode(scanner.code)}
-                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <code className="bg-muted px-2 py-0.5 rounded font-mono">
-                        {scanner.code}
-                      </code>
-                      <Copy className="h-3 w-3" />
-                    </button>
-                    {scanner._count && (
-                      <p className="text-xs text-muted-foreground">
-                        {scanner._count.scanLogs} scans
-                        {scanner._count.shifts > 0 &&
-                          ` · ${scanner._count.shifts} shifts`}
-                      </p>
-                    )}
-                  </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={copyScannerUrl}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 text-[10px] font-mono text-white/60 tracking-wider hover:border-white/20 hover:text-white transition-all"
+          >
+            <ExternalLink className="w-3 h-3" />
+            COPY URL
+          </button>
+          <button
+            onClick={() => setShowDialog(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff1493] text-black text-[10px] font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
+          >
+            <Plus className="w-3 h-3" />
+            ADD SCANNER
+          </button>
+        </div>
+      </div>
+
+      {/* Scanner List */}
+      {scanners.length === 0 ? (
+        <div className="p-12 text-center">
+          <QrCode className="w-8 h-8 mx-auto text-white/10 mb-3" />
+          <p className="text-white/40 font-mono text-sm">No scanners yet</p>
+          <p className="text-[10px] text-white/20 font-mono mt-1">
+            Add a scanner to generate a code for your staff
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-white/5">
+          {scanners.map((scanner) => (
+            <div
+              key={scanner.id}
+              className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-all"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2.5">
+                  <p className="font-mono text-sm truncate">{scanner.name}</p>
+                  {scanner.isActive ? (
+                    <span className="text-[9px] font-mono text-green-400 tracking-wider px-1.5 py-0.5 border border-green-400/30 bg-green-400/5">
+                      ACTIVE
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-mono text-white/30 tracking-wider px-1.5 py-0.5 border border-white/10">
+                      INACTIVE
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 shrink-0 ml-4">
-                  <Switch
-                    checked={scanner.isActive}
-                    onCheckedChange={() =>
-                      toggleActive(scanner.id, scanner.isActive)
-                    }
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteScanner(scanner.id)}
+                <div className="flex items-center gap-4 mt-1">
+                  <button
+                    onClick={() => copyCode(scanner.code)}
+                    className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-[#ff1493] transition-colors"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    <code className="bg-white/5 px-2 py-0.5 border border-white/10 text-[11px]">
+                      {scanner.code}
+                    </code>
+                    <Copy className="w-3 h-3" />
+                  </button>
+                  {scanner._count && (
+                    <p className="text-[10px] font-mono text-white/30">
+                      {scanner._count.scanLogs} scans
+                      {scanner._count.shifts > 0 &&
+                        ` · ${scanner._count.shifts} shifts`}
+                    </p>
+                  )}
                 </div>
               </div>
-            ))}
+              <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                <button
+                  onClick={() => toggleActive(scanner.id, scanner.isActive)}
+                  className={`relative w-9 h-5 transition-all ${
+                    scanner.isActive
+                      ? "bg-[#ff1493]/20 border border-[#ff1493]/50"
+                      : "bg-white/5 border border-white/10"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-3.5 h-3.5 transition-all ${
+                      scanner.isActive
+                        ? "left-[18px] bg-[#ff1493]"
+                        : "left-0.5 bg-white/30"
+                    }`}
+                  />
+                </button>
+                <button
+                  onClick={() => deleteScanner(scanner.id)}
+                  className="p-1.5 text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create Scanner Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="border-white/10 bg-black">
+          <DialogHeader>
+            <DialogTitle className="font-mono flex items-center gap-2">
+              <QrCode className="h-4 w-4 text-[#ff1493]" />
+              Create Scanner
+            </DialogTitle>
+            <DialogDescription className="text-xs text-white/40">
+              Enter the staff member&apos;s name. A unique 6-digit code will be generated.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="scanner-name" className="text-xs font-mono text-white/50">
+                Staff Name
+              </Label>
+              <Input
+                id="scanner-name"
+                placeholder="e.g., John Smith"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createScanner()}
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+              />
+            </div>
+            <button
+              onClick={createScanner}
+              disabled={creating}
+              className="w-full py-2.5 bg-[#ff1493] text-black font-mono font-bold hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
+            >
+              {creating ? "Creating..." : "Create Scanner"}
+            </button>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }

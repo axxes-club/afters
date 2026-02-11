@@ -100,7 +100,7 @@ export default function EventDashboardPage({
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [activeSection, setActiveSection] = useState<"overview" | "door" | "settings">("overview");
+  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "settings">("overview");
 
   useEffect(() => {
     fetchEvent();
@@ -477,46 +477,11 @@ export default function EventDashboardPage({
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label="TICKETS SOLD"
-          value={`${totalSold}/${totalCapacity}`}
-          icon={<Ticket className="w-4 h-4" />}
-          progress={totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0}
-          highlight
-        />
-        <StatCard
-          label="REVENUE"
-          value={formatCents(totalRevenue)}
-          icon={<DollarSign className="w-4 h-4" />}
-        />
-        <StatCard
-          label="CHECKED IN"
-          value={`${doorStats?.checkedIn ?? 0}/${doorStats?.total ?? totalSold}`}
-          icon={<UserCheck className="w-4 h-4" />}
-          progress={doorStats?.total ? (doorStats.checkedIn / doorStats.total) * 100 : 0}
-        />
-        <div
-          onClick={copyEventUrl}
-          className="border border-white/10 bg-white/[0.02] p-4 cursor-pointer hover:border-[#ff1493]/30 transition-all"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-white/30">
-              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-            </span>
-            <span className="text-[10px] font-mono text-white/30 tracking-widest">
-              {copied ? "COPIED" : "COPY URL"}
-            </span>
-          </div>
-          <p className="text-sm font-mono text-[#ff1493] truncate">/e/{event.slug}</p>
-        </div>
-      </div>
-
       {/* Section Nav */}
       <div className="flex items-center gap-1 border-b border-white/10">
         {[
           { id: "overview" as const, label: "OVERVIEW" },
+          { id: "tickets" as const, label: "TICKETS" },
           { id: "door" as const, label: "DOOR" },
           { id: "settings" as const, label: "SETTINGS" },
         ].map((section) => (
@@ -536,6 +501,77 @@ export default function EventDashboardPage({
 
       {/* Content */}
       {activeSection === "overview" && (
+        <div className="space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard
+              label="TICKETS SOLD"
+              value={`${totalSold}/${totalCapacity}`}
+              icon={<Ticket className="w-4 h-4" />}
+              progress={totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0}
+              highlight
+            />
+            <StatCard
+              label="REVENUE"
+              value={formatCents(totalRevenue)}
+              icon={<DollarSign className="w-4 h-4" />}
+            />
+            <StatCard
+              label="CHECKED IN"
+              value={`${doorStats?.checkedIn ?? 0}/${doorStats?.total ?? totalSold}`}
+              icon={<UserCheck className="w-4 h-4" />}
+              progress={doorStats?.total ? (doorStats.checkedIn / doorStats.total) * 100 : 0}
+            />
+            <div
+              onClick={copyEventUrl}
+              className="border border-white/10 bg-white/[0.02] p-4 cursor-pointer hover:border-[#ff1493]/30 transition-all"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-white/30">
+                  {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                </span>
+                <span className="text-[10px] font-mono text-white/30 tracking-widest">
+                  {copied ? "COPIED" : "COPY URL"}
+                </span>
+              </div>
+              <p className="text-sm font-mono text-[#ff1493] truncate">/e/{event.slug}</p>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-3 gap-4">
+            <Link
+              href={`/dashboard/events/${eventId}/check-in`}
+              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-cyan-500/50 hover:bg-white/[0.02] transition-all group"
+            >
+              <QrCode className="w-5 h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
+              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
+                SCANNER
+              </span>
+            </Link>
+            <Link
+              href={`/dashboard/events/${eventId}/analytics`}
+              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-purple-500/50 hover:bg-white/[0.02] transition-all group"
+            >
+              <BarChart3 className="w-5 h-5 text-white/30 group-hover:text-purple-400 transition-colors" />
+              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
+                ANALYTICS
+              </span>
+            </Link>
+            <button
+              onClick={copyEventUrl}
+              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-[#ff1493]/50 hover:bg-white/[0.02] transition-all group"
+            >
+              <Copy className="w-5 h-5 text-white/30 group-hover:text-[#ff1493] transition-colors" />
+              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
+                COPY LINK
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeSection === "tickets" && (
         <div className="space-y-6">
           {/* Ticket Tiers */}
           <div className="border border-white/10">
@@ -606,37 +642,6 @@ export default function EventDashboardPage({
                 })}
               </div>
             )}
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-3 gap-4">
-            <Link
-              href={`/dashboard/events/${eventId}/check-in`}
-              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-cyan-500/50 hover:bg-white/[0.02] transition-all group"
-            >
-              <QrCode className="w-5 h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
-              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
-                SCANNER
-              </span>
-            </Link>
-            <Link
-              href={`/dashboard/events/${eventId}/analytics`}
-              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-purple-500/50 hover:bg-white/[0.02] transition-all group"
-            >
-              <BarChart3 className="w-5 h-5 text-white/30 group-hover:text-purple-400 transition-colors" />
-              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
-                ANALYTICS
-              </span>
-            </Link>
-            <button
-              onClick={copyEventUrl}
-              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-[#ff1493]/50 hover:bg-white/[0.02] transition-all group"
-            >
-              <Copy className="w-5 h-5 text-white/30 group-hover:text-[#ff1493] transition-colors" />
-              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
-                COPY LINK
-              </span>
-            </button>
           </div>
         </div>
       )}
