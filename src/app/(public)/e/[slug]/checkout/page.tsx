@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { toast } from "sonner"
-import { ArrowLeft, Minus, Plus, Ticket, Lock, Calendar, MapPin, Loader2, Mail, User } from "lucide-react"
+import { ArrowLeft, Minus, Plus, Ticket, Lock, Calendar, MapPin, Loader2, Mail, User, Shield, CreditCard } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -63,7 +63,7 @@ function CheckoutForm({ orderId, accentColor }: { orderId: string; accentColor: 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="border border-white/10 bg-black">
+      <div className="border border-white/10 bg-black rounded-none overflow-hidden">
         <PaymentElement
           options={{
             layout: "tabs",
@@ -72,17 +72,20 @@ function CheckoutForm({ orderId, accentColor }: { orderId: string; accentColor: 
       </div>
       <button
         type="submit"
-        className="w-full h-12 font-mono text-sm font-medium uppercase tracking-wider transition-all disabled:opacity-50"
+        className="btn-premium w-full h-14 font-headline text-lg tracking-wider transition-all disabled:opacity-50"
         style={{ backgroundColor: accentColor, color: '#000' }}
         disabled={!stripe || loading}
       >
         {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="flex items-center justify-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin" />
             PROCESSING
           </span>
         ) : (
-          "COMPLETE PURCHASE"
+          <span className="flex items-center justify-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            COMPLETE PURCHASE
+          </span>
         )}
       </button>
     </form>
@@ -238,9 +241,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
     return (
       <div className="min-h-screen bg-black">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-white/50" />
-            <p className="text-white/30 text-xs font-mono uppercase tracking-widest">LOADING</p>
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative">
+              <div className="w-16 h-16 border-2 border-white/10 rounded-full" />
+              <div className="absolute inset-0 w-16 h-16 border-2 border-t-[#ff1493] rounded-full animate-spin" />
+            </div>
+            <p className="text-white/30 font-body text-sm uppercase tracking-[0.2em]">Loading checkout</p>
           </div>
         </div>
       </div>
@@ -251,9 +257,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
   if (!event) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center font-mono">
-          <h1 className="text-xl text-white mb-2">EVENT NOT FOUND</h1>
-          <Link href="/" className="text-white/50 hover:text-white text-sm">Return home</Link>
+        <div className="text-center">
+          <h1 className="font-headline text-3xl text-white mb-4">EVENT NOT FOUND</h1>
+          <Link href="/" className="font-body text-white/50 hover:text-white transition-colors">
+            Return home
+          </Link>
         </div>
       </div>
     )
@@ -262,45 +270,48 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
   const eventDate = new Date(event.startsAt)
 
   return (
-    <div className="min-h-screen bg-black text-white font-mono">
+    <div className="min-h-screen bg-black text-white relative">
+      {/* Noise texture overlay */}
+      <div className="fixed inset-0 pointer-events-none grain z-50" />
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-xl border-b border-white/5">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <Link
             href={`/e/${slug}`}
-            className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-xs uppercase tracking-wider"
+            className="flex items-center gap-2 text-white/50 hover:text-white transition-colors font-body text-sm"
           >
-            <ArrowLeft className="h-3 w-3" />
-            <span>Back</span>
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to event</span>
           </Link>
-          <Link href="/" className="text-lg font-bold tracking-tight">
+          <Link href="/" className="font-headline text-2xl tracking-wide">
             AFTERS<span style={{ color: accentColor }}>.</span>
           </Link>
-          <div className="w-16" />
+          <div className="w-24" />
         </div>
       </header>
 
       <main className="pt-20 pb-8">
-        <div className="container mx-auto px-4 max-w-5xl">
-          {/* Event Header */}
-          <div className="border border-white/5 mb-6">
-            <div className="p-4 flex items-center gap-4">
+        <div className="container mx-auto px-4 max-w-6xl">
+          {/* Event Mini-Header */}
+          <div className="mb-8 reveal-up">
+            <div className="flex items-center gap-5 p-5 border border-white/10 bg-white/[0.02]">
               {event.flyerUrl && (
-                <div className="hidden sm:block relative w-16 h-20 flex-shrink-0 border border-white/10">
+                <div className="hidden sm:block relative w-20 h-24 flex-shrink-0 overflow-hidden border border-white/10">
                   <Image src={event.flyerUrl} alt={event.title} fill className="object-cover" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg font-bold tracking-tight mb-2 truncate uppercase">
+                <h1 className="font-headline text-2xl md:text-3xl tracking-wide mb-3 truncate">
                   {event.title}
                 </h1>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/50">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3 w-3" style={{ color: accentColor }} />
+                <div className="flex flex-wrap items-center gap-4 text-sm text-white/50 font-body">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" style={{ color: accentColor }} />
                     <span>{eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3" style={{ color: accentColor }} />
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" style={{ color: accentColor }} />
                     <span>{event.venueName}</span>
                   </div>
                 </div>
@@ -309,17 +320,22 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-[1fr_360px] gap-6">
+          <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             {/* Left Column */}
-            <div>
+            <div className="space-y-8">
               {clientSecret ? (
                 /* Payment Section */
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 pb-4 border-b border-white/5">
-                    <Lock className="h-4 w-4" style={{ color: accentColor }} />
+                <div className="reveal-up space-y-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-white/10">
+                    <div
+                      className="w-12 h-12 flex items-center justify-center"
+                      style={{ backgroundColor: `${accentColor}15` }}
+                    >
+                      <Shield className="h-6 w-6" style={{ color: accentColor }} />
+                    </div>
                     <div>
-                      <h2 className="text-sm font-bold uppercase tracking-wider">Secure Payment</h2>
-                      <p className="text-xs text-white/30">Encrypted checkout via Stripe</p>
+                      <h2 className="font-headline text-xl tracking-wider">SECURE PAYMENT</h2>
+                      <p className="font-body text-sm text-white/40">256-bit encrypted checkout</p>
                     </div>
                   </div>
 
@@ -335,7 +351,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                           colorText: '#ffffff',
                           colorTextSecondary: '#666666',
                           colorDanger: '#ff4444',
-                          fontFamily: 'ui-monospace, monospace',
+                          fontFamily: 'Outfit, system-ui, sans-serif',
                           borderRadius: '0px',
                           spacingUnit: '4px',
                         },
@@ -343,25 +359,29 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                           '.Input': {
                             backgroundColor: '#000000',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
-                            fontFamily: 'ui-monospace, monospace',
+                            fontFamily: 'Outfit, system-ui, sans-serif',
+                            padding: '14px',
                           },
                           '.Input:focus': {
-                            border: `1px solid ${accentColor}`,
+                            border: `2px solid ${accentColor}`,
+                            boxShadow: `0 0 0 1px ${accentColor}40`,
                           },
                           '.Tab': {
                             backgroundColor: '#000000',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
-                            fontFamily: 'ui-monospace, monospace',
+                            fontFamily: 'Bebas Neue, Impact, sans-serif',
+                            letterSpacing: '0.05em',
                           },
                           '.Tab--selected': {
                             backgroundColor: '#000000',
-                            border: `1px solid ${accentColor}`,
+                            border: `2px solid ${accentColor}`,
                           },
                           '.Label': {
-                            fontFamily: 'ui-monospace, monospace',
+                            fontFamily: 'Outfit, system-ui, sans-serif',
                             textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
+                            letterSpacing: '0.1em',
                             fontSize: '11px',
+                            color: 'rgba(255,255,255,0.5)',
                           },
                         },
                       },
@@ -372,24 +392,29 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                 </div>
               ) : (
                 /* Ticket Selection + Guest Info */
-                <div className="space-y-6">
+                <div className="space-y-8">
                   {/* Ticket Selection */}
-                  <div>
-                    <div className="flex items-center gap-3 pb-4 border-b border-white/5">
-                      <Ticket className="h-4 w-4" style={{ color: accentColor }} />
+                  <div className="reveal-up">
+                    <div className="flex items-center gap-4 pb-4 border-b border-white/10 mb-6">
+                      <div
+                        className="w-12 h-12 flex items-center justify-center"
+                        style={{ backgroundColor: `${accentColor}15` }}
+                      >
+                        <Ticket className="h-6 w-6" style={{ color: accentColor }} />
+                      </div>
                       <div>
-                        <h2 className="text-sm font-bold uppercase tracking-wider">Select Tickets</h2>
-                        <p className="text-xs text-white/30">Choose your ticket type</p>
+                        <h2 className="font-headline text-xl tracking-wider">SELECT TICKETS</h2>
+                        <p className="font-body text-sm text-white/40">Choose your ticket type</p>
                       </div>
                     </div>
 
                     {availableTiers.length === 0 ? (
-                      <div className="text-center py-12 border border-white/5 mt-4">
-                        <Ticket className="h-8 w-8 mx-auto text-white/20 mb-3" />
-                        <p className="text-white/30 text-xs uppercase tracking-wider">No tickets available</p>
+                      <div className="text-center py-16 border border-white/5">
+                        <Ticket className="h-12 w-12 mx-auto text-white/10 mb-4" />
+                        <p className="font-headline text-xl text-white/30">NO TICKETS AVAILABLE</p>
                       </div>
                     ) : (
-                      <div className="space-y-2 mt-4">
+                      <div className="space-y-3">
                         {availableTiers.map((tier) => {
                           const available = tier.quantity - tier.quantitySold
                           const soldOut = available <= 0
@@ -400,33 +425,36 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                             <div
                               key={tier.id}
                               className={`
-                                border transition-all
-                                ${isSelected ? 'border-l-2' : 'border-white/5 hover:border-white/10'}
+                                ticket-card border transition-all
+                                ${isSelected
+                                  ? 'border-l-4 border-white/20'
+                                  : 'border-white/5 hover:border-white/15'
+                                }
                                 ${soldOut ? 'opacity-40' : ''}
                               `}
                               style={isSelected ? { borderLeftColor: accentColor } : undefined}
                             >
-                              <div className="p-4 bg-black">
+                              <div className="p-5">
                                 <div className="flex items-center justify-between gap-4">
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-1">
-                                      <h3 className="font-bold text-sm uppercase tracking-wider">{tier.name}</h3>
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <h3 className="font-headline text-xl tracking-wide">{tier.name}</h3>
                                       {soldOut && (
-                                        <span className="text-[10px] px-2 py-0.5 bg-white/5 text-white/30 uppercase">
+                                        <span className="px-2 py-0.5 bg-white/5 text-white/30 font-mono text-[10px] uppercase">
                                           Sold Out
                                         </span>
                                       )}
                                     </div>
                                     {tier.description && (
-                                      <p className="text-xs text-white/30 mb-2">{tier.description}</p>
+                                      <p className="font-body text-sm text-white/40 mb-3">{tier.description}</p>
                                     )}
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-lg font-bold" style={{ color: accentColor }}>
+                                    <div className="flex items-center gap-4">
+                                      <span className="font-headline text-2xl" style={{ color: accentColor }}>
                                         {tier.price === 0 ? 'FREE' : formatCents(tier.price)}
                                       </span>
                                       {!soldOut && (
-                                        <span className="text-[10px] text-white/20 uppercase">
-                                          {available} left
+                                        <span className="font-body text-xs text-white/30 uppercase tracking-wider">
+                                          {available} available
                                         </span>
                                       )}
                                     </div>
@@ -438,15 +466,18 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                                         onClick={() => updateQuantity(tier.id, -1)}
                                         disabled={qty === 0}
                                         className={`
-                                          w-8 h-8 flex items-center justify-center border border-white/10 transition-all
-                                          ${qty === 0 ? 'opacity-20 cursor-not-allowed' : 'hover:border-white/30'}
+                                          w-10 h-10 flex items-center justify-center border transition-all
+                                          ${qty === 0
+                                            ? 'border-white/5 opacity-30 cursor-not-allowed'
+                                            : 'border-white/20 hover:border-white/40 hover:bg-white/5'
+                                          }
                                         `}
                                       >
-                                        <Minus className="h-3 w-3" />
+                                        <Minus className="h-4 w-4" />
                                       </button>
                                       <span
-                                        className="w-10 text-center text-sm font-bold tabular-nums"
-                                        style={{ color: qty > 0 ? accentColor : 'rgba(255,255,255,0.3)' }}
+                                        className="w-12 text-center font-headline text-xl"
+                                        style={{ color: qty > 0 ? accentColor : 'rgba(255,255,255,0.2)' }}
                                       >
                                         {qty}
                                       </span>
@@ -454,14 +485,14 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                                         onClick={() => updateQuantity(tier.id, 1)}
                                         disabled={qty >= tier.maxPerOrder || qty >= available}
                                         className={`
-                                          w-8 h-8 flex items-center justify-center border transition-all
+                                          w-10 h-10 flex items-center justify-center border transition-all
                                           ${qty >= tier.maxPerOrder || qty >= available
-                                            ? 'border-white/10 opacity-20 cursor-not-allowed'
-                                            : 'border-white/10 hover:border-white/30'
+                                            ? 'border-white/5 opacity-30 cursor-not-allowed'
+                                            : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                                           }
                                         `}
                                       >
-                                        <Plus className="h-3 w-3" />
+                                        <Plus className="h-4 w-4" />
                                       </button>
                                     </div>
                                   )}
@@ -476,48 +507,59 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
 
                   {/* Guest Info Form - only show when tickets selected */}
                   {ticketCount > 0 && (
-                    <div>
-                      <div className="flex items-center gap-3 pb-4 border-b border-white/5">
-                        <User className="h-4 w-4" style={{ color: accentColor }} />
+                    <div className="reveal-up">
+                      <div className="flex items-center gap-4 pb-4 border-b border-white/10 mb-6">
+                        <div
+                          className="w-12 h-12 flex items-center justify-center"
+                          style={{ backgroundColor: `${accentColor}15` }}
+                        >
+                          <User className="h-6 w-6" style={{ color: accentColor }} />
+                        </div>
                         <div>
-                          <h2 className="text-sm font-bold uppercase tracking-wider">Your Information</h2>
-                          <p className="text-xs text-white/30">Where should we send your tickets?</p>
+                          <h2 className="font-headline text-xl tracking-wider">YOUR DETAILS</h2>
+                          <p className="font-body text-sm text-white/40">Where should we send your tickets?</p>
                         </div>
                       </div>
 
-                      <div className="space-y-3 mt-4">
+                      <div className="space-y-4">
                         <div>
-                          <label className="block text-[10px] text-white/30 uppercase tracking-wider mb-1.5">
+                          <label className="block font-body text-xs text-white/40 uppercase tracking-wider mb-2">
                             Full Name
                           </label>
                           <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20" />
                             <input
                               type="text"
                               value={guestName}
                               onChange={(e) => setGuestName(e.target.value)}
                               placeholder="Enter your name"
-                              className="w-full h-11 pl-10 pr-4 bg-black border border-white/10 text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-white/30 transition-colors"
+                              className="w-full h-14 pl-12 pr-4 bg-black border border-white/10 text-white placeholder:text-white/20 font-body text-base focus:outline-none focus:border-white/30 transition-colors"
+                              style={{
+                                borderColor: guestName.trim().length >= 2 ? `${accentColor}50` : undefined
+                              }}
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label className="block text-[10px] text-white/30 uppercase tracking-wider mb-1.5">
+                          <label className="block font-body text-xs text-white/40 uppercase tracking-wider mb-2">
                             Email Address
                           </label>
                           <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20" />
                             <input
                               type="email"
                               value={guestEmail}
                               onChange={(e) => setGuestEmail(e.target.value)}
                               placeholder="you@example.com"
-                              className="w-full h-11 pl-10 pr-4 bg-black border border-white/10 text-white placeholder:text-white/20 text-sm focus:outline-none focus:border-white/30 transition-colors"
+                              className="w-full h-14 pl-12 pr-4 bg-black border border-white/10 text-white placeholder:text-white/20 font-body text-base focus:outline-none focus:border-white/30 transition-colors"
+                              style={{
+                                borderColor: isValidEmail ? `${accentColor}50` : undefined
+                              }}
                             />
                           </div>
-                          <p className="text-[10px] text-white/20 mt-1.5">
-                            Tickets will be sent to this email
+                          <p className="font-body text-xs text-white/30 mt-2">
+                            Your tickets will be sent to this email address
                           </p>
                         </div>
                       </div>
@@ -529,30 +571,36 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
 
             {/* Right Column - Order Summary */}
             <div className="lg:sticky lg:top-20 h-fit">
-              <div className="border border-white/5">
+              <div className="border border-white/10 overflow-hidden">
+                {/* Header */}
                 <div
-                  className="px-4 py-3 border-b border-white/5"
-                  style={{ backgroundColor: `${accentColor}10` }}
+                  className="h-2"
+                  style={{ backgroundColor: accentColor }}
+                />
+                <div
+                  className="px-6 py-4 border-b border-white/10"
+                  style={{ backgroundColor: `${accentColor}08` }}
                 >
-                  <h3 className="text-xs font-bold uppercase tracking-wider">Order Summary</h3>
+                  <h3 className="font-headline text-xl tracking-wider">ORDER SUMMARY</h3>
                 </div>
 
-                <div className="p-4 space-y-4">
+                <div className="p-6">
                   {ticketCount === 0 ? (
-                    <p className="text-center text-white/20 py-8 text-xs uppercase tracking-wider">
-                      Select tickets to continue
-                    </p>
+                    <div className="text-center py-12">
+                      <Ticket className="h-10 w-10 mx-auto text-white/10 mb-4" />
+                      <p className="font-body text-white/30 text-sm">Select tickets to continue</p>
+                    </div>
                   ) : (
-                    <>
+                    <div className="space-y-6">
                       {/* Selected Items */}
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {selectedTiers.map((tier) => (
-                          <div key={tier.id} className="flex justify-between items-center text-sm">
+                          <div key={tier.id} className="flex justify-between items-center">
                             <div>
-                              <p className="font-medium">{tier.name}</p>
-                              <p className="text-xs text-white/30">x{quantities[tier.id]}</p>
+                              <p className="font-headline text-base">{tier.name}</p>
+                              <p className="font-body text-xs text-white/40">Qty: {quantities[tier.id]}</p>
                             </div>
-                            <p className="tabular-nums">
+                            <p className="font-headline text-lg" style={{ color: accentColor }}>
                               {formatCents(tier.price * quantities[tier.id])}
                             </p>
                           </div>
@@ -560,22 +608,22 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                       </div>
 
                       {!isFreeOrder && (
-                        <div className="border-t border-white/5 pt-4 space-y-2 text-xs">
-                          <div className="flex justify-between text-white/40">
+                        <div className="border-t border-white/5 pt-4 space-y-3">
+                          <div className="flex justify-between text-white/40 font-body text-sm">
                             <span>Subtotal</span>
-                            <span className="tabular-nums">{formatCents(subtotal)}</span>
+                            <span>{formatCents(subtotal)}</span>
                           </div>
-                          <div className="flex justify-between text-white/40">
+                          <div className="flex justify-between text-white/40 font-body text-sm">
                             <span>Service fee</span>
-                            <span className="tabular-nums">{formatCents(platformFee)}</span>
+                            <span>{formatCents(platformFee)}</span>
                           </div>
                         </div>
                       )}
 
-                      <div className="border-t border-white/5 pt-4">
+                      <div className="border-t border-white/10 pt-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold uppercase tracking-wider">Total</span>
-                          <span className="text-xl font-bold tabular-nums" style={{ color: accentColor }}>
+                          <span className="font-headline text-lg tracking-wider">TOTAL</span>
+                          <span className="font-headline text-3xl" style={{ color: accentColor }}>
                             {isFreeOrder ? "FREE" : formatCents(total)}
                           </span>
                         </div>
@@ -583,7 +631,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
 
                       {!clientSecret && (
                         <button
-                          className="w-full h-12 text-xs font-bold uppercase tracking-wider mt-4 transition-all disabled:opacity-30"
+                          className="btn-premium w-full h-14 font-headline text-lg tracking-wider transition-all disabled:opacity-30"
                           style={{
                             backgroundColor: isGuestInfoValid ? accentColor : 'transparent',
                             color: isGuestInfoValid ? '#000' : 'rgba(255,255,255,0.3)',
@@ -593,32 +641,40 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                           disabled={checkingOut || !isGuestInfoValid}
                         >
                           {checkingOut ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="flex items-center justify-center gap-3">
+                              <Loader2 className="h-5 w-5 animate-spin" />
                               {isFreeOrder ? "GETTING TICKETS" : "PROCESSING"}
                             </span>
                           ) : !isGuestInfoValid ? (
-                            "ENTER YOUR INFO ABOVE"
+                            "ENTER YOUR DETAILS"
                           ) : isFreeOrder ? (
-                            "GET FREE TICKETS"
+                            <span className="flex items-center justify-center gap-2">
+                              <Ticket className="h-5 w-5" />
+                              GET FREE TICKETS
+                            </span>
                           ) : (
-                            "CONTINUE TO PAYMENT"
+                            <span className="flex items-center justify-center gap-2">
+                              <Lock className="h-5 w-5" />
+                              CONTINUE TO PAYMENT
+                            </span>
                           )}
                         </button>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              {/* Trust Indicators */}
-              <div className="mt-3 flex items-center justify-center gap-3 text-[10px] text-white/20 uppercase tracking-wider">
-                <div className="flex items-center gap-1">
-                  <Lock className="h-3 w-3" />
-                  <span>Secure</span>
+                {/* Trust Indicators */}
+                <div className="px-6 py-4 bg-white/[0.02] border-t border-white/5">
+                  <div className="flex items-center justify-center gap-4 text-white/30 font-body text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5" />
+                      <span>Secure checkout</span>
+                    </div>
+                    <span className="w-1 h-1 rounded-full bg-white/20" />
+                    <span>Powered by Stripe</span>
+                  </div>
                 </div>
-                <span>•</span>
-                <span>Powered by Stripe</span>
               </div>
             </div>
           </div>
