@@ -14,14 +14,11 @@ import {
   Users,
   Ticket,
   Check,
-  X,
   Sparkles,
   ArrowRight,
-  Clock,
   BadgeCheck,
   Globe,
   Palette,
-  Headphones,
   Percent,
   CircleDollarSign,
   Calculator,
@@ -41,12 +38,12 @@ import {
 export const metadata = {
   title: "Pricing — Afters",
   description:
-    "The lowest fees in nightlife ticketing. Free to start. Signature at $45/mo with a 7-day free trial. Compare us to Posh, Eventbrite, DICE, and Luma.",
+    "The lowest fees in nightlife ticketing. All features included for every organizer. 5% + $0.50 per paid ticket. Free events = $0 fees.",
 };
 
 /* ─── data ─── */
 
-const signatureFeatures = [
+const allFeatures = [
   {
     icon: TrendingUp,
     title: "Priority Placement",
@@ -109,36 +106,25 @@ const signatureFeatures = [
   },
 ];
 
-const comparisonRows = [
-  // ── Free features ──
-  { feature: "Unlimited Events", free: true, signature: true },
-  { feature: "Event Discovery & Listings", free: true, signature: true },
-  { feature: "Stripe Connect Payouts", free: true, signature: true },
-  { feature: "QR Code Check-in Scanner", free: true, signature: true },
-  { feature: "Manual Ticket Lookup", free: true, signature: true },
-  { feature: "Multi-Tier Ticketing", free: true, signature: true },
-  { feature: "Apple Wallet Passes", free: true, signature: true },
-  { feature: "Basic Analytics", free: true, signature: true },
-  { feature: "Organizer Profile Page", free: true, signature: true },
-  { feature: "Artist Profile Page", free: true, signature: true },
-  { feature: "AFTERS RADIO Access", free: true, signature: true },
-  { feature: "Follow & Save Events", free: true, signature: true },
-  { feature: "Flyer Uploads", free: true, signature: true },
-  { feature: "Multi-Language (EN/ES/PT)", free: true, signature: true },
-  { feature: "Mobile-Optimized Pages", free: true, signature: true },
-  { feature: "Artist Verification Requests", free: true, signature: true },
-  // ── Signature features ──
-  { feature: "Reduced Platform Fees (2%)", free: false, signature: true },
-  { feature: "Priority Event Placement", free: false, signature: true },
-  { feature: "Advanced Analytics & Funnels", free: false, signature: true },
-  { feature: "Custom Branding & Colors", free: false, signature: true },
-  { feature: "Promo Codes & Discounts", free: false, signature: true },
-  { feature: "Staff Management (5 Roles)", free: false, signature: true },
-  { feature: "Verified Organizer Badge", free: false, signature: true },
-  { feature: "Priority Support (24/7)", free: false, signature: true },
-  { feature: "Multi-City Management", free: false, signature: true },
-  { feature: "Referral Link Tracking", free: false, signature: true },
-  { feature: "Custom Event URLs", free: false, signature: true },
+const allIncluded = [
+  { text: "Unlimited events", icon: Layers },
+  { text: "Event discovery listing", icon: Globe },
+  { text: "Stripe Connect payouts", icon: CircleDollarSign },
+  { text: "QR check-in scanner", icon: QrCode },
+  { text: "Multi-tier ticketing", icon: Ticket },
+  { text: "Apple Wallet passes", icon: Wallet },
+  { text: "Advanced analytics", icon: BarChart3 },
+  { text: "AFTERS RADIO access", icon: Radio },
+  { text: "Organizer & artist profiles", icon: UserCircle },
+  { text: "Follow & save events", icon: Heart },
+  { text: "Multi-language (EN/ES/PT)", icon: Languages },
+  { text: "Flyer uploads", icon: Music },
+  { text: "Mobile-optimized pages", icon: ScanLine },
+  { text: "Staff management (5 roles)", icon: Users },
+  { text: "Promo codes & discounts", icon: Tag },
+  { text: "Custom branding & colors", icon: Palette },
+  { text: "Referral link tracking", icon: Link2 },
+  { text: "Priority support", icon: Shield },
 ];
 
 const testimonials = [
@@ -146,13 +132,13 @@ const testimonials = [
     name: "DJ KRAVE",
     role: "Charlotte, NC",
     quote:
-      "Since upgrading to Signature, my ticket sales doubled. The priority placement alone is worth it.",
+      "We switched from Eventbrite and saved hundreds in fees our first month. The analytics are way better too.",
   },
   {
     name: "NEON COLLECTIVE",
     role: "Raleigh, NC",
     quote:
-      "We switched from Eventbrite and saved hundreds in fees our first month. The analytics are way better too.",
+      "Every feature we need, no paywall. Staff management and analytics included? This is how it should be.",
   },
   {
     name: "VIBE DISTRICT",
@@ -186,45 +172,46 @@ export default function PricingPage() {
             </div>
 
             <h1 className="font-display text-5xl sm:text-7xl font-bold tracking-tight mb-6">
-              <span className="text-white">Keep more.</span>
+              <span className="text-white">One plan.</span>
               <br />
-              <span className="text-gradient">Sell more.</span>
+              <span className="text-gradient">All features.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-              Other platforms take 10–13% of every ticket.
+              Every organizer gets full access to every feature.
               <br className="hidden sm:block" />
-              We start at 5%. Go Signature and drop it to 2%.
+              No tiers. No paywalls. Just fair pricing.
             </p>
 
             <p className="text-muted-foreground/60 text-sm mb-12">
-              Free to start · 7-day free trial on Signature · No contracts · No setup fees
+              5% + $0.50 per paid ticket · Free events = $0 fees · No monthly subscription
             </p>
           </div>
         </section>
 
-        {/* ═══════════════ PRICING CARDS ═══════════════ */}
-        <section className="max-w-4xl mx-auto px-4 pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* FREE TIER */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8">
+        {/* ═══════════════ SINGLE PRICING CARD ═══════════════ */}
+        <section className="max-w-xl mx-auto px-4 pb-20">
+          <div className="relative">
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-pink/60 via-pink/20 to-pink/5" />
+            <div className="relative rounded-2xl bg-[#0a0a0a] p-8">
               <div className="mb-6">
-                <p className="text-sm text-muted-foreground font-display tracking-wide uppercase mb-2">
-                  Starter
+                <p className="text-sm text-pink font-display tracking-wide uppercase mb-2 flex items-center gap-1.5">
+                  <Crown className="size-3.5" /> Full Access
                 </p>
                 <div className="flex items-baseline gap-1">
                   <span className="text-5xl font-bold text-white font-display">
                     Free
                   </span>
+                  <span className="text-muted-foreground text-lg">to start</span>
                 </div>
                 <p className="text-muted-foreground/60 text-sm mt-2">
-                  Forever. No credit card required.
+                  Only pay when you sell tickets.
                 </p>
               </div>
 
               <div className="space-y-2 mb-8">
                 <div className="flex items-center gap-3 py-2 border-b border-white/5">
-                  <Percent className="size-4 text-muted-foreground shrink-0" />
+                  <Percent className="size-4 text-pink shrink-0" />
                   <div>
                     <p className="text-white text-sm font-medium">
                       5% + $0.50{" "}
@@ -235,7 +222,7 @@ export default function PricingPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 py-2 border-b border-white/5">
-                  <CircleDollarSign className="size-4 text-muted-foreground shrink-0" />
+                  <CircleDollarSign className="size-4 text-pink shrink-0" />
                   <div>
                     <p className="text-white text-sm font-medium">
                       2.9% + $0.30{" "}
@@ -246,42 +233,28 @@ export default function PricingPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 py-2 border-b border-white/5">
-                  <Calculator className="size-4 text-muted-foreground shrink-0" />
+                  <Calculator className="size-4 text-pink shrink-0" />
                   <div>
                     <p className="text-white text-sm font-medium">
                       ~$2.67 on a $30 ticket{" "}
                       <span className="text-green-400 text-xs font-display">
-                        (8.9%)
+                        (8.9% total)
                       </span>
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 py-2">
-                  <Ticket className="size-4 text-muted-foreground shrink-0" />
+                  <Ticket className="size-4 text-pink shrink-0" />
                   <p className="text-white text-sm font-medium">
                     Free events = $0 fees
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3 mb-8">
-                {[
-                  { text: "Unlimited events", icon: Layers },
-                  { text: "Event discovery listing", icon: Globe },
-                  { text: "Stripe Connect payouts", icon: CircleDollarSign },
-                  { text: "QR check-in scanner", icon: QrCode },
-                  { text: "Multi-tier ticketing", icon: Ticket },
-                  { text: "Apple Wallet passes", icon: Wallet },
-                  { text: "Basic analytics", icon: BarChart3 },
-                  { text: "AFTERS RADIO access", icon: Radio },
-                  { text: "Organizer & artist profiles", icon: UserCircle },
-                  { text: "Follow & save events", icon: Heart },
-                  { text: "Multi-language (EN/ES/PT)", icon: Languages },
-                  { text: "Flyer uploads", icon: Music },
-                  { text: "Mobile-optimized pages", icon: ScanLine },
-                ].map((f) => (
-                  <div key={f.text} className="flex items-center gap-2.5">
-                    <Check className="size-4 text-green-500 shrink-0" />
+              <div className="grid grid-cols-2 gap-2 mb-8">
+                {allIncluded.map((f) => (
+                  <div key={f.text} className="flex items-center gap-2">
+                    <Check className="size-4 text-pink shrink-0" />
                     <span className="text-sm text-white/80">{f.text}</span>
                   </div>
                 ))}
@@ -289,161 +262,38 @@ export default function PricingPage() {
 
               <Link href="/sign-up">
                 <Button
-                  variant="outline"
                   size="lg"
-                  className="w-full py-6 text-base font-bold"
+                  className="w-full py-6 text-base font-bold glow-pink hover:scale-[1.02] transition-transform"
                 >
+                  <Zap className="size-5 mr-2" />
                   Get Started Free
                 </Button>
               </Link>
-            </div>
 
-            {/* Signature TIER */}
-            <div className="relative">
-              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-pink/60 via-pink/20 to-pink/5" />
-              <div className="relative rounded-2xl bg-[#0a0a0a] p-8">
-                {/* Popular badge */}
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1 rounded-full bg-pink text-black text-xs font-bold font-display tracking-wide">
-                    MOST POPULAR
-                  </span>
-                </div>
-
-                <div className="mb-6 mt-2">
-                  <p className="text-sm text-pink font-display tracking-wide uppercase mb-2 flex items-center gap-1.5">
-                    <Crown className="size-3.5" /> Signature
-                  </p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold text-white font-display">
-                      $45
-                    </span>
-                    <span className="text-muted-foreground text-lg">/mo</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs font-bold font-display">
-                      <Clock className="size-3" />
-                      7-DAY FREE TRIAL
-                    </span>
-                    <span className="text-muted-foreground/60 text-sm">
-                      Cancel anytime.
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2 mb-8">
-                  <div className="flex items-center gap-3 py-2 border-b border-white/5">
-                    <Percent className="size-4 text-pink shrink-0" />
-                    <div>
-                      <p className="text-white text-sm font-medium">
-                        2% + $0.50{" "}
-                        <span className="text-muted-foreground">
-                          platform fee
-                        </span>
-                        <span className="text-pink text-xs ml-2 font-display">
-                          60% OFF
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 py-2 border-b border-white/5">
-                    <CircleDollarSign className="size-4 text-pink shrink-0" />
-                    <div>
-                      <p className="text-white text-sm font-medium">
-                        2.9% + $0.30{" "}
-                        <span className="text-muted-foreground">
-                          Stripe processing
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 py-2 border-b border-white/5">
-                    <Calculator className="size-4 text-pink shrink-0" />
-                    <div>
-                      <p className="text-white text-sm font-medium">
-                        ~$1.77 on a $30 ticket{" "}
-                        <span className="text-pink text-xs font-display">
-                          (5.9%)
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 py-2">
-                    <Ticket className="size-4 text-pink shrink-0" />
-                    <p className="text-white text-sm font-medium">
-                      Free events = $0 fees
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 mb-8">
-                  {[
-                    { text: "Everything in Free, plus:", highlight: true },
-                    { text: "Reduced platform fees (2%)" },
-                    { text: "Priority event placement" },
-                    { text: "Advanced analytics & funnels" },
-                    { text: "Custom branding & colors" },
-                    { text: "Promo codes & discounts" },
-                    { text: "Staff management (5 roles)" },
-                    { text: "Verified organizer badge" },
-                    { text: "Priority support (24/7)" },
-                    { text: "Multi-city management" },
-                    { text: "Referral link tracking" },
-                    { text: "Custom event URLs" },
-                  ].map((f) => (
-                    <div key={f.text} className="flex items-center gap-2.5">
-                      {"highlight" in f && f.highlight ? (
-                        <Sparkles className="size-4 text-pink shrink-0" />
-                      ) : (
-                        <Check className="size-4 text-pink shrink-0" />
-                      )}
-                      <span
-                        className={`text-sm ${
-                          "highlight" in f && f.highlight
-                            ? "text-pink font-bold font-display"
-                            : "text-white/80"
-                        }`}
-                      >
-                        {f.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <Link href="/dashboard/settings">
-                  <Button
-                    size="lg"
-                    className="w-full py-6 text-base font-bold glow-pink hover:scale-[1.02] transition-transform"
-                  >
-                    <Zap className="size-5 mr-2" />
-                    Start 7-Day Free Trial
-                  </Button>
-                </Link>
-
-                <p className="text-xs text-muted-foreground/40 mt-4 text-center">
-                  No charge until trial ends · Billed monthly · Cancel anytime
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground/40 mt-4 text-center">
+                No credit card required · No monthly fees · Pay only when you sell
+              </p>
             </div>
           </div>
         </section>
 
-        {/* ═══════════════ COMPETITOR COMPARISON (hidden by default) ═══════════════ */}
+        {/* ═══════════════ COMPETITOR COMPARISON ═══════════════ */}
         <CompetitorComparison />
 
-        {/* ═══════════════ SIGNATURE FEATURES GRID ═══════════════ */}
+        {/* ═══════════════ ALL FEATURES GRID ═══════════════ */}
         <section className="max-w-6xl mx-auto px-4 py-20">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
-              Everything you unlock with{" "}
-              <span className="text-gradient">Signature</span>
+              Everything included for{" "}
+              <span className="text-gradient">every organizer</span>
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Built for organizers who are serious about growing their events.
+              No artificial limits. No premium tiers. Every feature, unlocked.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {signatureFeatures.map((feature) => (
+            {allFeatures.map((feature) => (
               <div
                 key={feature.title}
                 className="group relative rounded-xl border border-white/5 bg-white/[0.02] p-6 hover:border-pink/20 hover:bg-pink/[0.02] transition-all duration-300"
@@ -459,68 +309,6 @@ export default function PricingPage() {
                 </p>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* ═══════════════ FREE VS Signature TABLE ═══════════════ */}
-        <section className="max-w-3xl mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
-              Free vs <span className="text-gradient">Signature</span>
-            </h2>
-            <p className="text-muted-foreground">
-              See exactly what you get — and what you unlock.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-white/10 overflow-hidden">
-            <div className="grid grid-cols-3 bg-white/[0.03] border-b border-white/10">
-              <div className="p-4 text-sm font-medium text-muted-foreground">
-                Feature
-              </div>
-              <div className="p-4 text-center text-sm font-medium text-muted-foreground">
-                Free
-              </div>
-              <div className="p-4 text-center text-sm font-medium">
-                <span className="text-pink font-display font-bold flex items-center justify-center gap-1.5">
-                  <Crown className="size-3.5" /> Signature
-                </span>
-              </div>
-            </div>
-
-            {comparisonRows.map((row, i) => {
-              // Add a visual separator between free and signature sections
-              const isFirstSignature = i > 0 && !row.free && comparisonRows[i - 1].free;
-              return (
-                <div key={row.feature}>
-                  {isFirstSignature && (
-                    <div className="border-b-2 border-pink/20 bg-pink/[0.03]">
-                      <div className="px-4 py-2 text-xs font-display text-pink font-bold tracking-wide uppercase flex items-center gap-1.5">
-                        <Crown className="size-3" />
-                        Signature Only
-                      </div>
-                    </div>
-                  )}
-                  <div
-                    className={`grid grid-cols-3 border-b border-white/5 ${
-                      !row.free ? "bg-pink/[0.015]" : ""
-                    } hover:bg-white/[0.02] transition-colors`}
-                  >
-                    <div className="p-4 text-sm text-white/80">{row.feature}</div>
-                    <div className="p-4 flex justify-center">
-                      {row.free ? (
-                        <Check className="size-4 text-green-500" />
-                      ) : (
-                        <X className="size-4 text-white/20" />
-                      )}
-                    </div>
-                    <div className="p-4 flex justify-center">
-                      <Check className="size-4 text-pink" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </section>
 
@@ -557,7 +345,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ═══════════════ ROI SECTION ═══════════════ */}
+        {/* ═══════════════ WHY NO TIERS ═══════════════ */}
         <section className="max-w-4xl mx-auto px-4 py-20">
           <div className="relative rounded-2xl overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-pink/10 via-transparent to-pink/5" />
@@ -566,50 +354,49 @@ export default function PricingPage() {
             <div className="relative p-8 sm:p-12 text-center">
               <Sparkles className="size-8 text-pink mx-auto mb-6" />
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-4">
-                Signature pays for itself. Fast.
+                Why no subscription tiers?
               </h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8 leading-relaxed">
-                The fee savings alone cover the $45/mo. Priority placement on
-                top of that means{" "}
+                We believe every organizer deserves the same tools to succeed. 
+                Premium tiers create artificial barriers.{" "}
                 <span className="text-pink font-bold">
-                  more tickets sold at lower cost
+                  We&apos;d rather compete on quality than lock features behind paywalls.
                 </span>
-                . It&apos;s not an expense — it&apos;s a raise.
               </p>
 
               <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto mb-10">
                 <div>
                   <p className="text-3xl sm:text-4xl font-bold text-white font-display">
-                    60%
+                    5%
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Lower platform fees
+                    Simple platform fee
                   </p>
                 </div>
                 <div>
                   <p className="text-3xl sm:text-4xl font-bold text-pink font-display">
-                    2×
+                    $0
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    More visibility
+                    Monthly subscription
                   </p>
                 </div>
                 <div>
                   <p className="text-3xl sm:text-4xl font-bold text-white font-display">
-                    24h
+                    100%
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Support response
+                    Features unlocked
                   </p>
                 </div>
               </div>
 
-              <Link href="/dashboard/settings">
+              <Link href="/sign-up">
                 <Button
                   size="lg"
                   className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
                 >
-                  Start Your Free Trial
+                  Start Selling Tickets
                   <ArrowRight className="size-5 ml-2" />
                 </Button>
               </Link>
@@ -634,36 +421,28 @@ export default function PricingPage() {
                 a: "By default, fees are passed to the attendee (added at checkout). You can choose to absorb them if you prefer clean round-number pricing.",
               },
               {
-                q: "Is there a free trial?",
-                a: "Yes! Every Signature subscription starts with a 7-day free trial. Full access to all features — cancel anytime before the trial ends and pay nothing.",
-              },
-              {
-                q: "What do I get for free?",
-                a: "A lot. Unlimited events, QR check-in, multi-tier ticketing, Apple Wallet passes, AFTERS RADIO access, organizer and artist profiles, multi-language support, Stripe payouts, basic analytics, and more. Most platforms charge for half of this.",
-              },
-              {
-                q: "What does Signature add?",
-                a: "Lower fees (2% vs 5%), priority event placement, advanced analytics with funnels, custom branding, promo codes, staff management with 5 roles, verified badge, multi-city management, referral tracking, and 24/7 priority support.",
-              },
-              {
-                q: "Can I cancel anytime?",
-                a: "Yes. No contracts, no cancellation fees. Cancel from your dashboard whenever you want. Your Signature perks stay active until the end of your billing period.",
-              },
-              {
-                q: "What happens if I downgrade?",
-                a: "Your events stay live. You go back to 5% + $0.50 platform fees and lose Signature perks. Staff members are suspended but not deleted — they reactivate if you re-subscribe. No data is lost.",
+                q: "Why did you remove the subscription tiers?",
+                a: "We believe every organizer should have access to the same tools. Premium tiers create artificial barriers. Our business model works on transaction fees, so we don't need to gate features behind monthly subscriptions.",
               },
               {
                 q: "Is AFTERS RADIO free?",
-                a: "Yes. Artists can submit tracks and listeners can stream on both Free and Signature plans. It's a core part of the Afters experience.",
+                a: "Yes. Artists can submit tracks and listeners can stream. It's a core part of the Afters experience.",
               },
               {
                 q: "How does staff management work?",
-                a: "Signature organizers can invite team members by email and assign them roles: Admin (full access), Scanner (ticket check-in), Editor (event posts), Support (customer messaging), or Finance (analytics & reports). Each role has granular permissions.",
+                a: "Invite team members by email and assign them roles: Admin (full access), Scanner (ticket check-in), Editor (event posts), Support (customer messaging), or Finance (analytics & reports). Each role has granular permissions.",
               },
               {
-                q: "How does priority placement work?",
-                a: "Signature events are boosted to the top of discovery feeds, search results, and city pages. Your event gets seen first — more impressions, more sales.",
+                q: "Can I use promo codes?",
+                a: "Yes! Create discount codes, early-bird pricing, and referral links. All included, no extra charge.",
+              },
+              {
+                q: "What about analytics?",
+                a: "Full analytics dashboard with real-time sales data, demographic breakdowns, and conversion tracking. All organizers get the same insights.",
+              },
+              {
+                q: "How do payouts work?",
+                a: "Connect your Stripe account and receive payouts directly. We use Stripe Connect for secure, fast transfers.",
               },
             ].map((faq) => (
               <div key={faq.q} className="border-b border-white/5 pb-6">
@@ -681,34 +460,23 @@ export default function PricingPage() {
           <h2 className="font-display text-4xl sm:text-5xl font-bold mb-4">
             <span className="text-white">Your next event</span>
             <br />
-            <span className="text-gradient">deserves better fees.</span>
+            <span className="text-gradient">starts here.</span>
           </h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Start free. Try Signature for 7 days — on us.
+            All features. No subscription. Just fair fees.
             <br />
-            Either way, you&apos;re paying less than anywhere else.
+            Create your first event in minutes.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/sign-up">
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-base font-bold px-10 py-6"
-              >
-                Start Free
-              </Button>
-            </Link>
-            <Link href="/dashboard/settings">
-              <Button
-                size="lg"
-                className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
-              >
-                <Crown className="size-5 mr-2" />
-                Try Signature Free — 7 Days
-              </Button>
-            </Link>
-          </div>
+          <Link href="/sign-up">
+            <Button
+              size="lg"
+              className="text-base font-bold px-10 py-6 glow-pink hover:scale-[1.02] transition-transform"
+            >
+              <Crown className="size-5 mr-2" />
+              Get Started Free
+            </Button>
+          </Link>
         </section>
       </main>
       <Footer />

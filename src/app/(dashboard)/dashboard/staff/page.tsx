@@ -32,7 +32,6 @@ import { toast } from "sonner";
 import {
   Users,
   UserPlus,
-  Shield,
   Scan,
   Edit,
   MessageSquare,
@@ -43,11 +42,8 @@ import {
   Clock,
   Loader2,
   Copy,
-  ArrowRight,
   Sparkles,
-  Zap,
 } from "lucide-react";
-import Link from "next/link";
 
 /* ─── Types ─── */
 
@@ -131,7 +127,6 @@ export default function StaffPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [invites, setInvites] = useState<StaffInvite[]>([]);
   const [loading, setLoading] = useState(true);
-  const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
   // Invite dialog
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -143,17 +138,12 @@ export default function StaffPage() {
   const fetchStaff = useCallback(async () => {
     try {
       const res = await fetch("/api/staff");
-      if (res.status === 403) {
-        const data = await res.json();
-        if (data.requiresUpgrade) {
-          setRequiresUpgrade(true);
-          return;
-        }
-      }
       if (res.ok) {
         const data = await res.json();
         setStaff(data.staff);
         setInvites(data.invites);
+      } else {
+        toast.error("Failed to load staff");
       }
     } catch {
       toast.error("Failed to load staff");
@@ -249,75 +239,6 @@ export default function StaffPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // ─── Upgrade CTA ───
-  if (requiresUpgrade) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Staff</h1>
-          <p className="text-muted-foreground">
-            Manage your team members and their access
-          </p>
-        </div>
-
-        <div className="relative rounded-2xl overflow-hidden">
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-pink/40 via-pink/10 to-transparent" />
-          <div className="relative rounded-2xl bg-[#0a0a0a] p-8 sm:p-12 text-center">
-            <div className="size-16 rounded-full bg-pink/10 flex items-center justify-center mx-auto mb-6">
-              <Crown className="size-8 text-pink" />
-            </div>
-
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-3">
-              Staff Management is a{" "}
-              <span className="text-gradient">Signature</span> feature
-            </h2>
-
-            <p className="text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
-              Add team members to help scan tickets, post events, message
-              attendees, and more. Each role gets exactly the access they need.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto mb-8">
-              {[
-                { icon: Scan, label: "Ticket Scanners" },
-                { icon: Edit, label: "Event Editors" },
-                { icon: Shield, label: "Role-Based Access" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex flex-col items-center gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/5"
-                >
-                  <item.icon className="size-5 text-pink" />
-                  <span className="text-xs text-muted-foreground">
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link href="/dashboard/settings">
-                <Button
-                  size="lg"
-                  className="text-base font-bold px-8 py-6 glow-pink hover:scale-[1.02] transition-transform"
-                >
-                  <Zap className="size-5 mr-2" />
-                  Start your 7-day free trial
-                </Button>
-              </Link>
-              <Link href="/pricing">
-                <Button variant="outline" size="lg" className="text-base px-8 py-6">
-                  View Pricing
-                  <ArrowRight className="size-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
     );
   }

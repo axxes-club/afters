@@ -88,38 +88,31 @@ export type Permission =
 
 // ─── Subscription checks ───
 
-/** Check if an organizer has any active Signature plan */
+/**
+ * Check if an organizer has any active Signature plan.
+ * 
+ * NOTE: Paywall removed — all organizers now have full access to all features.
+ * This function always returns true regardless of subscription status.
+ */
 export async function hasSignaturePlan(
-  organizerProfileId: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _organizerProfileId: string
 ): Promise<boolean> {
-  const sub = await prisma.subscription.findUnique({
-    where: { organizerProfileId },
-  });
-
-  if (!sub) return false;
-  if (!isSignaturePlan(sub.plan)) return false;
-
-  // Friends & Family — always active
-  if (sub.plan === "SIGNATURE_FF") return true;
-
-  // Trial — check expiry
-  if (sub.plan === "SIGNATURE_TRIAL_7D") {
-    if (sub.status === "TRIALING" && sub.trialEndsAt && sub.trialEndsAt > new Date()) return true;
-    // Trial expired
-    return false;
-  }
-
-  // Paid plans — check status
-  if (sub.status === "ACTIVE") return true;
-
-  return false;
+  // Paywall removed: all organizers get full access
+  return true;
 }
 
-/** Check if staff features are available */
+/**
+ * Check if staff features are available.
+ * 
+ * NOTE: Paywall removed — all organizers can use staff features.
+ */
 export async function canUseStaff(
-  organizerProfileId: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _organizerProfileId: string
 ): Promise<boolean> {
-  return hasSignaturePlan(organizerProfileId);
+  // Paywall removed: all organizers get staff features
+  return true;
 }
 
 /** Get organizer's subscription */
