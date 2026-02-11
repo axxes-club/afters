@@ -34,6 +34,15 @@ export const PLATFORM_FEE_PERCENTAGE = 0.10 // 10%
 export const PLATFORM_FEE_FIXED_CENTS = 99 // $0.99 per ticket
 
 export function calculateFees(subtotalCents: number, ticketCount: number) {
+  // Free tickets have no fees - completely free
+  if (subtotalCents === 0) {
+    return {
+      subtotal: 0,
+      platformFee: 0,
+      total: 0,
+    }
+  }
+
   const percentageFee = Math.round(subtotalCents * PLATFORM_FEE_PERCENTAGE)
   const fixedFee = PLATFORM_FEE_FIXED_CENTS * ticketCount
   const platformFee = percentageFee + fixedFee

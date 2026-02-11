@@ -153,8 +153,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
   const selectedTiers = availableTiers.filter((t) => (quantities[t.id] || 0) > 0) || []
   const subtotal = selectedTiers.reduce((sum, t) => sum + t.price * (quantities[t.id] || 0), 0)
   const ticketCount = selectedTiers.reduce((sum, t) => sum + (quantities[t.id] || 0), 0)
-  const platformFee = Math.round(subtotal * 0.1) + ticketCount * 99
+  // Free tickets have no fees
+  const platformFee = subtotal === 0 ? 0 : Math.round(subtotal * 0.1) + ticketCount * 99
   const total = subtotal + platformFee
+  const isFreeOrder = total === 0
 
   async function handleCheckout() {
     if (!isSignedIn) {
@@ -190,6 +192,23 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
       const order = await orderRes.json()
       setOrderId(order.id)
 
+      // Free orders bypass Stripe entirely
+      if (isFreeOrder) {
+        const confirmRes = await fetch(`/api/orders/${order.id}/confirm-free`, {
+          method: "POST",
+        })
+
+        if (!confirmRes.ok) {
+          const error = await confirmRes.json()
+          throw new Error(error.message)
+        }
+
+        // Redirect directly to order confirmation
+        router.push(`/orders/${order.id}`)
+        return
+      }
+
+      // Paid orders go through Stripe
       const paymentRes = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -547,25 +566,27 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                         ))}
                       </div>
 
-                      <div className="border-t border-white/10 pt-4 space-y-2">
-                        <div className="flex justify-between text-sm text-white/60">
-                          <span>Subtotal</span>
-                          <span>{formatCents(subtotal)}</span>
+                      {!isFreeOrder && (
+                        <div className="border-t border-white/10 pt-4 space-y-2">
+                          <div className="flex justify-between text-sm text-white/60">
+                            <span>Subtotal</span>
+                            <span>{formatCents(subtotal)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm text-white/60">
+                            <span>Service fee</span>
+                            <span>{formatCents(platformFee)}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-sm text-white/60">
-                          <span>Service fee</span>
-                          <span>{formatCents(platformFee)}</span>
-                        </div>
-                      </div>
+                      )}
 
                       <div className="border-t border-white/10 pt-4">
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold">Total</span>
                           <span
-                            className="text-2xl font-bold"
+                            className="text-2xl font-bold font-mono"
                             style={{ color: accentColor }}
                           >
-                            {formatCents(total)}
+                            {isFreeOrder ? "FREE" : formatCents(total)}
                           </span>
                         </div>
                       </div>
@@ -583,10 +604,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                           {checkingOut ? (
                             <span className="flex items-center gap-2">
                               <Loader2 className="h-5 w-5 animate-spin" />
-                              Processing...
+                              {isFreeOrder ? "Getting Tickets..." : "Processing..."}
                             </span>
                           ) : isSignedIn ? (
-                            "Continue to Payment"
+                            isFreeOrder ? "Get Free Tickets" : "Continue to Payment"
                           ) : (
                             "Sign in to Continue"
                           )}

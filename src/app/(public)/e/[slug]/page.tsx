@@ -3,7 +3,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
-import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
@@ -511,7 +510,26 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
       </section>
 
-      <Footer />
+      {/* Minimal Footer */}
+      <footer className="border-t border-white/10 py-6 px-6 mt-8">
+        <div className="container mx-auto flex justify-between items-center">
+          <p className="text-xs text-white/30">
+            &copy; {new Date().getFullYear()} Afters
+          </p>
+          <p className="text-xs text-white/30">
+            made with{" "}
+            <a
+              href="https://crativo.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#ff1493] transition-colors"
+              style={{ color: accentColor }}
+            >
+              love
+            </a>
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
