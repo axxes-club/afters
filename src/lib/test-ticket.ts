@@ -48,7 +48,6 @@ export async function generateTestTicket(eventId: string, userId: string) {
       ticketTierId: testTier.id,
       quantity: 1,
       unitPrice: 0,
-      total: 0,
     },
   })
 
