@@ -60,10 +60,12 @@ export async function GET(
 
     // Handle both Blob and Buffer types
     let buffer: Buffer
-    if (rawData instanceof Buffer) {
+    if (Buffer.isBuffer(rawData)) {
       buffer = rawData
     } else {
-      buffer = Buffer.from(await rawData.arrayBuffer())
+      // It's a Blob
+      const blob = rawData as Blob
+      buffer = Buffer.from(await blob.arrayBuffer())
     }
 
     return new NextResponse(buffer, {

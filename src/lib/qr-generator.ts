@@ -44,10 +44,12 @@ export async function generateBrandedQR(
   }
   
   // Handle both Blob and Buffer types
-  if (rawData instanceof Buffer) {
+  if (Buffer.isBuffer(rawData)) {
     return rawData
   }
-  return Buffer.from(await rawData.arrayBuffer())
+  // It's a Blob
+  const blob = rawData as Blob
+  return Buffer.from(await blob.arrayBuffer())
 }
 
 // Generate QR code as data URL for client-side display
