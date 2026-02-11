@@ -3,6 +3,8 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
+import { generateTicketPDF } from "@/lib/pdf-ticket"
+import { sendEmail, generateTicketEmailHtml } from "@/lib/email"
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -46,15 +48,19 @@ export async function POST(req: Request) {
                 ticketTier: true,
               },
             },
+            event: true,
+            user: true,
           },
         })
+
+        const createdTickets = []
 
         // Generate tickets for each order item
         for (const item of order.items) {
           for (let i = 0; i < item.quantity; i++) {
             const ticketNumber = `TKT-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`
 
-            await prisma.ticket.create({
+            const ticket = await prisma.ticket.create({
               data: {
                 ticketNumber,
                 orderId: order.id,
@@ -62,6 +68,27 @@ export async function POST(req: Request) {
                 ticketTierId: item.ticketTierId,
                 userId: order.userId,
               },
+            })
+
+            createdTickets.push({
+              ticketNumber: ticket.ticketNumber,
+              ticketId: ticket.id,
+              tierName: item.ticketTier.name,
+              eventTitle: order.event.title,
+              eventDate: new Date(order.event.startsAt).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              }),
+              venueName: order.event.venueName,
+              venueAddress: `${order.event.venueAddress}, ${order.event.city}${order.event.state ? `, ${order.event.state}` : ''}`,
+              holderName: order.user.firstName && order.user.lastName 
+                ? `${order.user.firstName} ${order.user.lastName}`
+                : undefined,
+              isTestTicket: false,
             })
           }
 
@@ -74,6 +101,43 @@ export async function POST(req: Request) {
               },
             },
           })
+        }
+
+        // Generate PDF and send email
+        try {
+          const pdfBuffer = await generateTicketPDF(createdTickets)
+          
+          const emailHtml = generateTicketEmailHtml({
+            eventTitle: order.event.title,
+            eventDate: new Date(order.event.startsAt).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            }),
+            venueName: order.event.venueName,
+            venueAddress: `${order.event.venueAddress}, ${order.event.city}${order.event.state ? `, ${order.event.state}` : ''}`,
+            ticketCount: createdTickets.length,
+            orderNumber: order.orderNumber,
+          })
+
+          await sendEmail({
+            to: order.email,
+            subject: `Your Tickets for ${order.event.title}`,
+            html: emailHtml,
+            attachments: [{
+              filename: `tickets-${order.orderNumber}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            }],
+          })
+
+          console.log(`Sent ${createdTickets.length} tickets to ${order.email}`)
+        } catch (emailError) {
+          console.error('Failed to send ticket email:', emailError)
+          // Don't fail the webhook - tickets are still created
         }
       }
       break
