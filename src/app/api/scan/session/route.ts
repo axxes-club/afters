@@ -21,7 +21,7 @@ export async function GET() {
           }
         },
         tickets: {
-          where: { checkedIn: true },
+          where: { checkedInAt: { not: null } },
           select: { id: true }
         }
       }

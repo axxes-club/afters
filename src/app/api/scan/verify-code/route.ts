@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
               select: { tickets: true }
             },
             tickets: {
-              where: { checkedIn: true },
+              where: { checkedInAt: { not: null } },
               select: { id: true }
             }
           },
