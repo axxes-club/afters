@@ -293,3 +293,150 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ===== BOLD DESIGN SYSTEM UTILITIES ===== */
+
+/* Staggered reveal animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--glow-color, rgba(255, 20, 147, 0.4));
+  }
+  50% {
+    box-shadow: 0 0 40px var(--glow-color, rgba(255, 20, 147, 0.6));
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Staggered animation delays */
+.stagger-1 { animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation-delay: 0.2s; opacity: 0; }
+.stagger-3 { animation-delay: 0.3s; opacity: 0; }
+.stagger-4 { animation-delay: 0.4s; opacity: 0; }
+.stagger-5 { animation-delay: 0.5s; opacity: 0; }
+
+/* Dynamic accent glow (uses CSS variable) */
+.accent-glow {
+  box-shadow: 0 0 20px var(--accent-color, rgba(255, 20, 147, 0.4));
+}
+
+.accent-glow-intense {
+  box-shadow: 0 0 30px var(--accent-color, rgba(255, 20, 147, 0.5)),
+              0 0 60px var(--accent-color, rgba(255, 20, 147, 0.3));
+}
+
+/* Selected state with accent glow */
+.selected-glow {
+  box-shadow: 0 0 0 2px var(--accent-color, #ff1493),
+              0 0 20px var(--accent-color, rgba(255, 20, 147, 0.4));
+}
+
+/* Card hover lift effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Accent left border for cards */
+.accent-border-left {
+  border-left: 3px solid var(--accent-color, #ff1493);
+}
+
+/* Glass card variant */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Input focus glow */
+.input-glow:focus {
+  box-shadow: 0 0 0 2px rgba(255, 20, 147, 0.3),
+              0 0 20px rgba(255, 20, 147, 0.2);
+  border-color: #ff1493;
+}
+
+/* Button glow on hover */
+.btn-glow {
+  transition: all 0.2s ease;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 30px var(--accent-color, rgba(255, 20, 147, 0.5));
+  transform: translateY(-1px);
+}
+
+/* Progress bar with gradient */
+.progress-gradient {
+  background: linear-gradient(90deg, #ff1493 0%, #ff69b4 100%);
+}
+
+/* Number counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-count {
+  animation: countUp 0.4s ease-out forwards;
+}

@@ -160,30 +160,32 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       </header>
 
       {/* Hero Section - Full Bleed Flyer */}
-      <section className="relative min-h-[70vh] md:min-h-[80vh] flex items-end">
+      <section className="relative min-h-[70vh] md:min-h-[80vh] flex items-end overflow-hidden">
         {event.flyerUrl ? (
           <>
             <Image
               src={event.flyerUrl}
               alt={event.title}
               fill
-              className="object-cover"
+              className="object-cover scale-105"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
+            {/* Subtle noise texture */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
           </>
         ) : (
-          <div 
-            className="absolute inset-0" 
+          <div
+            className="absolute inset-0"
             style={{ background: `linear-gradient(135deg, ${accentColor}20 0%, black 100%)` }}
           />
         )}
-        
+
         {/* Event Info Overlay */}
         <div className="relative z-10 w-full p-6 md:p-10 pb-8">
           <div className="container mx-auto max-w-4xl">
             {/* Organizer */}
-            <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-4">
+            <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-4 animate-fade-in">
               {event.organizer.logoUrl && (
                 <Image
                   src={event.organizer.logoUrl}
@@ -195,39 +197,62 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               )}
               {event.organizer.displayName}
             </div>
-            
-            {/* Title */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
+
+            {/* Title with Glow Effect */}
+            <h1
+              className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 animate-fade-in-up font-mono"
+              style={{
+                textShadow: `0 0 40px ${accentColor}40, 0 0 80px ${accentColor}20`
+              }}
+            >
               {event.title}
             </h1>
-            
-            {/* Quick Info Row */}
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-white/80">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" style={{ color: accentColor }} />
-                <span className="font-medium">{dateStr}</span>
+
+            {/* Quick Info Row - Animated Pills */}
+            <div className="flex flex-wrap items-center gap-3 text-white/80 animate-fade-in-up stagger-2">
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border transition-all hover:scale-105"
+                style={{
+                  backgroundColor: `${accentColor}10`,
+                  borderColor: `${accentColor}30`
+                }}
+              >
+                <CalendarDays className="h-4 w-4" style={{ color: accentColor }} />
+                <span className="font-medium text-sm">{dateStr}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5" style={{ color: accentColor }} />
-                <span>{timeStr}</span>
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border transition-all hover:scale-105"
+                style={{
+                  backgroundColor: `${accentColor}10`,
+                  borderColor: `${accentColor}30`
+                }}
+              >
+                <Clock className="h-4 w-4" style={{ color: accentColor }} />
+                <span className="text-sm">{timeStr}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border transition-all hover:scale-105"
+                style={{
+                  backgroundColor: `${accentColor}10`,
+                  borderColor: `${accentColor}30`
+                }}
+              >
                 {event.isAddressHidden ? (
                   <>
-                    <Lock className="h-5 w-5" style={{ color: accentColor }} />
-                    <span>{event.city} • Location TBA</span>
+                    <Lock className="h-4 w-4" style={{ color: accentColor }} />
+                    <span className="text-sm">{event.city} • Location TBA</span>
                   </>
                 ) : (
                   <>
-                    <MapPin className="h-5 w-5" style={{ color: accentColor }} />
-                    <span>{event.venueName}, {event.city}</span>
+                    <MapPin className="h-4 w-4" style={{ color: accentColor }} />
+                    <span className="text-sm">{event.venueName}, {event.city}</span>
                   </>
                 )}
               </div>
               {event.ageRestriction && (
-                <Badge 
-                  variant="outline" 
-                  className="border-white/30 text-white"
+                <Badge
+                  variant="outline"
+                  className="border-white/30 text-white font-mono"
                 >
                   {event.ageRestriction}+
                 </Badge>
@@ -238,19 +263,22 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       </section>
 
       {/* Sticky Ticket CTA - Mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-4 bg-black/95 backdrop-blur-lg border-t border-white/10 safe-area-bottom">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-4 bg-black/95 backdrop-blur-xl border-t safe-area-bottom" style={{ borderColor: `${accentColor}20` }}>
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm text-white/60">Starting at</p>
-            <p className="text-xl font-bold" style={{ color: accentColor }}>
+            <p className="text-xl font-bold font-mono" style={{ color: accentColor }}>
               {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
             </p>
           </div>
           {totalAvailable > 0 ? (
             <Button
               size="lg"
-              className="flex-1 max-w-[200px] font-bold"
-              style={{ backgroundColor: accentColor }}
+              className="flex-1 max-w-[200px] font-bold animate-pulse-glow"
+              style={{
+                backgroundColor: accentColor,
+                '--glow-color': `${accentColor}60`
+              } as React.CSSProperties}
               asChild
             >
               <Link href={`/e/${combinedSlug}/checkout`}>
@@ -274,14 +302,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {/* Lineup */}
               {lineup.length > 0 && (
                 <div>
-                  <h2 className="text-sm font-bold tracking-widest text-white/40 uppercase mb-6">
+                  <h2
+                    className="text-xs font-bold tracking-[0.2em] uppercase mb-6 font-mono"
+                    style={{ color: accentColor }}
+                  >
                     Lineup
                   </h2>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {lineup.map((artist, i) => (
-                      <div 
-                        key={i} 
-                        className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                      <div
+                        key={i}
+                        className="group flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 card-hover animate-fade-in-up"
+                        style={{
+                          animationDelay: `${i * 0.1}s`,
+                          '--accent-color': accentColor
+                        } as React.CSSProperties}
                       >
                         {artist.imageUrl ? (
                           <Image
@@ -289,30 +324,35 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                             alt={artist.name}
                             width={56}
                             height={56}
-                            className="rounded-full object-cover"
+                            className="rounded-full object-cover ring-2 ring-white/10 group-hover:ring-white/20 transition-all"
                           />
                         ) : (
-                          <div 
-                            className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold"
-                            style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
+                          <div
+                            className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold font-mono ring-2 transition-all"
+                            style={{
+                              backgroundColor: `${accentColor}20`,
+                              color: accentColor,
+                              ringColor: `${accentColor}30`
+                            }}
                           >
                             {artist.name.charAt(0)}
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-lg truncate">{artist.name}</p>
+                          <p className="font-bold text-lg truncate group-hover:text-white transition-colors">{artist.name}</p>
                           {artist.role && (
                             <p className="text-sm text-white/50">{artist.role}</p>
                           )}
                         </div>
                         {artist.socialUrl && (
-                          <a 
-                            href={artist.socialUrl} 
-                            target="_blank" 
+                          <a
+                            href={artist.socialUrl}
+                            target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                            className="p-2 rounded-full hover:bg-white/10 transition-all hover:scale-110"
+                            style={{ color: accentColor }}
                           >
-                            <Instagram className="h-5 w-5 text-white/50" />
+                            <Instagram className="h-5 w-5" />
                           </a>
                         )}
                       </div>
@@ -324,7 +364,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {/* Description */}
               {event.description && (
                 <div>
-                  <h2 className="text-sm font-bold tracking-widest text-white/40 uppercase mb-4">
+                  <h2
+                    className="text-xs font-bold tracking-[0.2em] uppercase mb-4 font-mono"
+                    style={{ color: accentColor }}
+                  >
                     About
                   </h2>
                   <p className="text-white/70 whitespace-pre-wrap leading-relaxed">
@@ -335,16 +378,27 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
               {/* Venue Info */}
               <div>
-                <h2 className="text-sm font-bold tracking-widest text-white/40 uppercase mb-4">
+                <h2
+                  className="text-xs font-bold tracking-[0.2em] uppercase mb-4 font-mono"
+                  style={{ color: accentColor }}
+                >
                   Location
                 </h2>
                 {event.isAddressHidden ? (
-                  <div className="p-6 rounded-xl bg-white/5 border border-white/10">
+                  <div
+                    className="p-6 rounded-xl bg-white/5 border transition-all hover:bg-white/[0.07]"
+                    style={{ borderColor: `${accentColor}30` }}
+                  >
                     <div className="flex items-center gap-3 mb-2">
-                      <Lock className="h-5 w-5" style={{ color: accentColor }} />
+                      <div
+                        className="p-2 rounded-lg"
+                        style={{ backgroundColor: `${accentColor}20` }}
+                      >
+                        <Lock className="h-5 w-5" style={{ color: accentColor }} />
+                      </div>
                       <p className="font-bold">Address Revealed After Purchase</p>
                     </div>
-                    <p className="text-white/50 text-sm">
+                    <p className="text-white/50 text-sm ml-11">
                       The exact location will be sent to you after you purchase tickets.
                     </p>
                   </div>
@@ -360,11 +414,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
             {/* Sidebar - Ticket Card (Desktop) */}
             <div className="hidden md:block">
-              <div className="sticky top-24 p-6 rounded-2xl bg-white/5 border border-white/10">
-                <h3 className="font-bold text-lg mb-4">Get Tickets</h3>
-                
+              <div
+                className="sticky top-24 p-6 rounded-2xl backdrop-blur-xl border"
+                style={{
+                  background: `linear-gradient(135deg, ${accentColor}08 0%, rgba(255,255,255,0.03) 100%)`,
+                  borderColor: `${accentColor}20`
+                }}
+              >
+                <h3 className="font-bold text-lg mb-4 font-mono">Get Tickets</h3>
+
                 <div className="space-y-3 mb-6">
-                  {availableTiers.map((tier: TierType) => {
+                  {availableTiers.map((tier: TierType, idx: number) => {
                     const available = tier.quantity - tier.quantitySold
                     const soldOut = available <= 0
 
@@ -372,9 +432,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                       <div
                         key={tier.id}
                         className={cn(
-                          "p-4 rounded-xl border border-white/10 transition-colors",
-                          soldOut ? "opacity-50" : "hover:border-white/20"
+                          "p-4 rounded-xl border transition-all duration-300 animate-fade-in-up",
+                          soldOut
+                            ? "opacity-50 border-white/10"
+                            : "border-white/10 hover:border-white/20 hover:bg-white/5"
                         )}
+                        style={{ animationDelay: `${idx * 0.1}s` }}
                       >
                         <div className="flex justify-between items-start mb-2">
                           <div>
@@ -383,7 +446,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                               <p className="text-sm text-white/50">{tier.description}</p>
                             )}
                           </div>
-                          <p className="font-bold" style={{ color: accentColor }}>
+                          <p className="font-bold font-mono" style={{ color: accentColor }}>
                             {tier.price === 0 ? 'FREE' : formatCents(tier.price)}
                           </p>
                         </div>
@@ -398,9 +461,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
                 {totalAvailable > 0 ? (
                   <Button
-                    className="w-full font-bold"
+                    className="w-full font-bold btn-glow"
                     size="lg"
-                    style={{ backgroundColor: accentColor }}
+                    style={{
+                      backgroundColor: accentColor,
+                      '--accent-color': accentColor
+                    } as React.CSSProperties}
                     asChild
                   >
                     <Link href={`/e/${combinedSlug}/checkout`}>
@@ -422,11 +488,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                         alt={event.organizer.displayName}
                         width={40}
                         height={40}
-                        className="rounded-full"
+                        className="rounded-full ring-2 ring-white/10"
                       />
                     ) : (
                       <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
+                        className="w-10 h-10 rounded-full flex items-center justify-center font-bold font-mono"
                         style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
                       >
                         {event.organizer.displayName.charAt(0)}
