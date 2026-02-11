@@ -34,42 +34,41 @@ export async function POST(req: NextRequest) {
         isActive: true,
       },
       include: {
-        event: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            startsAt: true,
-            endsAt: true,
-            isPublished: true,
-            hasGuestlist: true,
-            _count: {
-              select: { tickets: true },
-            },
-            tickets: {
-              where: { checkedInAt: { not: null } },
-              select: { id: true },
-            },
-          },
-        },
-      },
-      orderBy: {
-        event: {
-          startsAt: "desc",
-        },
+        event: true,
       },
     })
 
-    if (scanners.length === 0) {
+    // Fetch ticket stats separately to avoid complex nested queries
+    const scannersWithStats = await Promise.all(
+      scanners.map(async (scanner) => {
+        const [totalTickets, checkedInTickets] = await Promise.all([
+          prisma.ticket.count({ where: { eventId: scanner.eventId } }),
+          prisma.ticket.count({ where: { eventId: scanner.eventId, checkedInAt: { not: null } } }),
+        ])
+        return {
+          ...scanner,
+          stats: { total: totalTickets, scanned: checkedInTickets },
+        }
+      })
+    )
+
+    if (scannersWithStats.length === 0) {
       return NextResponse.json(
         { error: "Invalid code", valid: false },
         { status: 401 }
       )
     }
 
-    // If multiple scanners have this code, pick the one for the most recent upcoming/current event
-    // Filter to only active (published) events first
-    const activeScanner = scanners.find((s) => s.event.isPublished) || scanners[0]
+    // Sort by event start date (most recent first) and prefer published events
+    const sortedScanners = scannersWithStats.sort((a, b) => {
+      // Prefer published events
+      if (a.event.isPublished && !b.event.isPublished) return -1
+      if (!a.event.isPublished && b.event.isPublished) return 1
+      // Then sort by start date descending
+      return new Date(b.event.startsAt).getTime() - new Date(a.event.startsAt).getTime()
+    })
+
+    const activeScanner = sortedScanners[0]
 
     const token = await createScannerToken(
       activeScanner.id,
@@ -88,13 +87,15 @@ export async function POST(req: NextRequest) {
         eventSlug: activeScanner.event.slug,
         hasGuestlist: activeScanner.event.hasGuestlist,
       },
-      stats: {
-        scanned: activeScanner.event.tickets.length,
-        total: activeScanner.event._count.tickets,
-      },
+      stats: activeScanner.stats,
     })
   } catch (error) {
     console.error("Scanner code lookup error:", error)
+    // Log the actual error for debugging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message)
+      console.error("Error stack:", error.stack)
+    }
     return NextResponse.json(
       { error: "Verification failed", valid: false },
       { status: 500 }
