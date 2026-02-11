@@ -50,15 +50,21 @@ export async function GET(
       },
     })
 
-    const blob = await qrCode.getRawData("png")
-    if (!blob) {
+    const rawData = await qrCode.getRawData("png")
+    if (!rawData) {
       return NextResponse.json(
         { error: "Failed to generate QR code" },
         { status: 500 }
       )
     }
 
-    const buffer = Buffer.from(await blob.arrayBuffer())
+    // Handle both Blob and Buffer types
+    let buffer: Buffer
+    if (rawData instanceof Buffer) {
+      buffer = rawData
+    } else {
+      buffer = Buffer.from(await rawData.arrayBuffer())
+    }
 
     return new NextResponse(buffer, {
       headers: {
