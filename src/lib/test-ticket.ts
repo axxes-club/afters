@@ -35,7 +35,7 @@ export async function generateTestTicket(eventId: string, userId: string) {
       platformFee: 0,
       stripeFee: 0,
       total: 0,
-      status: "COMPLETED",
+      status: "PAID",
       email: "test@afters.am",
       paidAt: new Date(),
     },
