@@ -240,560 +240,394 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   const totalRevenue = event.ticketTiers.reduce((sum, t) => sum + (t.quantitySold * t.price), 0)
 
   return (
-    <div className="space-y-6">
-      {/* Hero Header with Flyer Background */}
-      <div className="relative -mx-6 -mt-6 mb-6 overflow-hidden rounded-b-3xl">
-        {/* Background */}
-        <div className="absolute inset-0">
-          {event.flyerUrl ? (
-            <>
-              <Image
-                src={event.flyerUrl}
-                alt=""
-                fill
-                className="object-cover opacity-30 blur-sm scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-background" />
-            </>
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-pink/10 via-background to-background" />
-          )}
-        </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Compact Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between animate-fade-in-up">
+        {/* Left: Back + Event Info */}
+        <div className="flex items-start gap-4">
+          {/* Flyer Thumbnail */}
+          <div
+            className="relative w-16 h-20 sm:w-20 sm:h-24 rounded-lg overflow-hidden border border-white/10 flex-shrink-0 cursor-pointer group"
+            onClick={() => {
+              setTempFlyerUrl(event.flyerUrl)
+              setShowFlyerDialog(true)
+            }}
+          >
+            {event.flyerUrl ? (
+              <>
+                <Image src={event.flyerUrl} alt={event.title} fill className="object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Pencil className="w-4 h-4 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-full bg-white/5 flex items-center justify-center group-hover:bg-pink/10 transition-colors">
+                <ImageIcon className="w-5 h-5 text-white/30 group-hover:text-pink transition-colors" />
+              </div>
+            )}
+          </div>
 
-        {/* Content */}
-        <div className="relative px-6 pt-6 pb-8">
-          <div className="space-y-4">
-            {/* Top Row - Back button and status */}
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 -ml-2" asChild>
+          {/* Event Info */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-white/40 hover:text-white -ml-2" asChild>
                 <Link href="/dashboard/events">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Back to Parties</span>
-                  <span className="sm:hidden">Back</span>
+                  <ArrowLeft className="mr-1 h-3 w-3" />
+                  <span className="text-xs">Back</span>
                 </Link>
               </Button>
               <Badge
                 variant={event.status === "PUBLISHED" ? "default" : "secondary"}
                 className={cn(
-                  "font-mono",
+                  "font-mono text-[10px] h-5",
                   event.status === "PUBLISHED" && "bg-green-500/20 text-green-400 border-green-500/30"
                 )}
               >
-                {event.status === "PUBLISHED" ? <Eye className="mr-1 h-3 w-3" /> : <EyeOff className="mr-1 h-3 w-3" />}
+                {event.status === "PUBLISHED" ? <Eye className="mr-1 h-2.5 w-2.5" /> : <EyeOff className="mr-1 h-2.5 w-2.5" />}
                 {event.status}
               </Badge>
             </div>
-
-            {/* Title and Meta */}
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-mono tracking-tight text-white animate-fade-in">
-                {event.title}
-              </h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/60 mt-3">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-pink" />
-                  {new Date(event.startsAt).toLocaleDateString('en-US', {
-                    weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-                  })}
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-pink" />
-                  {event.venueName}
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 pt-2">
-              {event.isPublished ? (
-                <>
-                  <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10" asChild>
-                    <Link href={eventUrl} target="_blank">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      <span className="hidden sm:inline">View Live</span>
-                      <span className="sm:hidden">View</span>
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-white/20 text-white hover:bg-white/10"
-                    onClick={shareEvent}
-                  >
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={() => setShowPublishDialog(true)}
-                  disabled={publishing || event.ticketTiers.length === 0}
-                  className={cn(
-                    "bg-pink hover:bg-pink/90 text-white font-bold",
-                    event.ticketTiers.length > 0 && "animate-pulse-glow"
-                  )}
-                  style={{ '--glow-color': 'rgba(255, 20, 147, 0.4)' } as React.CSSProperties}
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {publishing ? "Publishing..." : "Publish Event"}
-                </Button>
-              )}
+            <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-white truncate">
+              {event.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50 mt-1">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3 text-pink" />
+                {new Date(event.startsAt).toLocaleDateString('en-US', {
+                  weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                })}
+              </span>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3 w-3 text-pink" />
+                {event.venueName}, {event.city}
+              </span>
             </div>
           </div>
         </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {event.isPublished ? (
+            <>
+              <Button variant="outline" size="sm" className="h-8 border-white/10 text-white/70 hover:bg-white/5" asChild>
+                <Link href={eventUrl} target="_blank">
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                  View
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="h-8 border-white/10 text-white/70 hover:bg-white/5" onClick={shareEvent}>
+                <Share2 className="mr-1.5 h-3.5 w-3.5" />
+                Share
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              className="h-8 bg-pink hover:bg-pink/90 text-white font-bold"
+              onClick={() => setShowPublishDialog(true)}
+              disabled={publishing || event.ticketTiers.length === 0}
+            >
+              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+              Publish
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Quick Stats Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="group glass-card border-white/10 hover:border-pink/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,20,147,0.15)] animate-fade-in-up stagger-1">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Sold</p>
-                <p className="text-2xl font-bold font-mono">
-                  <span className="text-pink">{totalSold}</span>
-                  <span className="text-sm font-normal text-muted-foreground">/{totalCapacity}</span>
-                </p>
-                {totalCapacity > 0 && (
-                  <div className="mt-2 w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full progress-gradient"
-                      style={{ width: `${(totalSold / totalCapacity) * 100}%` }}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="p-2 rounded-xl bg-pink/10 group-hover:bg-pink/20 transition-colors">
-                <Ticket className="h-6 w-6 text-pink" />
-              </div>
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-pink/20 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider">Tickets</p>
+              <p className="text-2xl font-bold font-mono mt-1">
+                <span className="text-pink">{totalSold}</span>
+                <span className="text-sm font-normal text-white/30">/{totalCapacity}</span>
+              </p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="group glass-card border-white/10 hover:border-green-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] animate-fade-in-up stagger-2">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Revenue</p>
-                <p className="text-2xl font-bold font-mono text-green-400">{formatCents(totalRevenue)}</p>
-              </div>
-              <div className="p-2 rounded-xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-                <DollarSign className="h-6 w-6 text-green-400" />
-              </div>
+            <Ticket className="h-5 w-5 text-pink/50" />
+          </div>
+          {totalCapacity > 0 && (
+            <div className="mt-3 w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+              <div className="h-full rounded-full bg-pink" style={{ width: `${(totalSold / totalCapacity) * 100}%` }} />
             </div>
-          </CardContent>
-        </Card>
-        <Card
+          )}
+        </div>
+
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-green-500/20 transition-colors">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider">Revenue</p>
+              <p className="text-2xl font-bold font-mono text-green-400 mt-1">{formatCents(totalRevenue)}</p>
+            </div>
+            <DollarSign className="h-5 w-5 text-green-500/50" />
+          </div>
+        </div>
+
+        <div
           className={cn(
-            "group glass-card border-white/10 hover:border-cyan-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] cursor-pointer animate-fade-in-up stagger-3",
-            copied && "border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.2)]"
+            "p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/20 transition-colors cursor-pointer",
+            copied && "border-green-500/30"
           )}
           onClick={copyEventUrl}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{copied ? "Copied!" : "Party URL"}</p>
-                <p className="text-sm font-mono truncate max-w-[120px] text-cyan-400">/e/{event.slug}</p>
-              </div>
-              <div className={cn(
-                "p-2 rounded-xl transition-all",
-                copied ? "bg-green-500/20" : "bg-cyan-500/10 group-hover:bg-cyan-500/20"
-              )}>
-                {copied ? (
-                  <Check className="h-5 w-5 text-green-400 animate-scale-in" />
-                ) : (
-                  <Copy className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                )}
-              </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider">{copied ? "Copied!" : "URL"}</p>
+              <p className="text-sm font-mono truncate max-w-[100px] text-cyan-400 mt-1">/e/{event.slug}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="group glass-card border-white/10 hover:border-purple-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] animate-fade-in-up stagger-4">
-          <CardContent className="p-4 h-full">
-            <Link
-              href={`/dashboard/events/${eventId}/analytics`}
-              className="flex items-center justify-between h-full"
-            >
-              <div>
-                <p className="text-sm text-muted-foreground">Insights</p>
-                <p className="text-sm font-medium text-purple-400">View Analytics →</p>
-              </div>
-              <div className="p-2 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                <BarChart3 className="h-6 w-6 text-purple-400" />
-              </div>
-            </Link>
-          </CardContent>
-        </Card>
+            {copied ? (
+              <Check className="h-5 w-5 text-green-400" />
+            ) : (
+              <Copy className="h-5 w-5 text-cyan-500/50" />
+            )}
+          </div>
+        </div>
+
+        <Link
+          href={`/dashboard/events/${eventId}/analytics`}
+          className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-purple-500/20 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider">Insights</p>
+              <p className="text-sm font-medium text-purple-400 mt-1">Analytics →</p>
+            </div>
+            <BarChart3 className="h-5 w-5 text-purple-500/50" />
+          </div>
+        </Link>
       </div>
 
       {/* Getting Started Checklist - Only for draft events */}
       {!event.isPublished && (
-        <Card className="glass-card border-pink/20 bg-gradient-to-r from-pink/5 via-transparent to-transparent animate-fade-in-up">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-pink/10">
-                  <Sparkles className="h-5 w-5 text-pink" />
-                </div>
-                <div>
-                  <h3 className="font-bold font-mono">Get Ready to Launch</h3>
-                  <p className="text-sm text-muted-foreground">Complete these steps to publish your event</p>
-                </div>
+        <Card className="border-pink/20 bg-pink/[0.02] animate-fade-in-up" style={{ animationDelay: '0.15s', opacity: 0 }}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-pink" />
+                <span className="font-bold font-mono text-sm">Launch Checklist</span>
               </div>
-              <Badge variant="outline" className="font-mono border-pink/30 text-pink">
-                {[event.flyerUrl, event.ticketTiers.length > 0, event.description].filter(Boolean).length}/3 done
+              <Badge variant="outline" className="font-mono text-[10px] border-pink/30 text-pink">
+                {[event.flyerUrl, event.ticketTiers.length > 0, event.description].filter(Boolean).length}/3
               </Badge>
             </div>
-            <div className="grid gap-2">
+            <div className="grid sm:grid-cols-3 gap-2">
               <div
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg transition-all",
-                  event.flyerUrl ? "bg-green-500/10 border border-green-500/20" : "bg-white/5 border border-white/10 cursor-pointer hover:border-pink/30"
+                  "flex items-center gap-2 p-2.5 rounded-lg transition-all cursor-pointer",
+                  event.flyerUrl ? "bg-green-500/10 border border-green-500/20" : "bg-white/[0.02] border border-white/[0.06] hover:border-pink/30"
                 )}
                 onClick={() => !event.flyerUrl && setShowFlyerDialog(true)}
               >
-                {event.flyerUrl ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-400" />
-                ) : (
-                  <Circle className="h-5 w-5 text-muted-foreground" />
-                )}
-                <span className={cn("flex-1", event.flyerUrl && "text-green-400")}>Upload event flyer</span>
-                {!event.flyerUrl && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                {event.flyerUrl ? <CheckCircle2 className="h-4 w-4 text-green-400" /> : <Circle className="h-4 w-4 text-white/30" />}
+                <span className={cn("text-sm", event.flyerUrl && "text-green-400")}>Upload flyer</span>
               </div>
               <div
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg transition-all",
-                  event.ticketTiers.length > 0 ? "bg-green-500/10 border border-green-500/20" : "bg-white/5 border border-white/10 cursor-pointer hover:border-pink/30"
+                  "flex items-center gap-2 p-2.5 rounded-lg transition-all cursor-pointer",
+                  event.ticketTiers.length > 0 ? "bg-green-500/10 border border-green-500/20" : "bg-white/[0.02] border border-white/[0.06] hover:border-pink/30"
                 )}
                 onClick={() => event.ticketTiers.length === 0 && setShowTierDialog(true)}
               >
-                {event.ticketTiers.length > 0 ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-400" />
-                ) : (
-                  <Circle className="h-5 w-5 text-muted-foreground" />
-                )}
-                <span className={cn("flex-1", event.ticketTiers.length > 0 && "text-green-400")}>Create ticket tiers</span>
-                {event.ticketTiers.length === 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                {event.ticketTiers.length > 0 ? <CheckCircle2 className="h-4 w-4 text-green-400" /> : <Circle className="h-4 w-4 text-white/30" />}
+                <span className={cn("text-sm", event.ticketTiers.length > 0 && "text-green-400")}>Add tickets</span>
               </div>
               <div
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg transition-all",
-                  event.description ? "bg-green-500/10 border border-green-500/20" : "bg-white/5 border border-white/10"
+                  "flex items-center gap-2 p-2.5 rounded-lg",
+                  event.description ? "bg-green-500/10 border border-green-500/20" : "bg-white/[0.02] border border-white/[0.06]"
                 )}
               >
-                {event.description ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-400" />
-                ) : (
-                  <Circle className="h-5 w-5 text-muted-foreground" />
-                )}
-                <span className={cn("flex-1", event.description ? "text-green-400" : "text-muted-foreground")}>
-                  {event.description ? "Party description added" : "Add party description (optional)"}
-                </span>
+                {event.description ? <CheckCircle2 className="h-4 w-4 text-green-400" /> : <Circle className="h-4 w-4 text-white/30" />}
+                <span className={cn("text-sm", event.description ? "text-green-400" : "text-white/50")}>Description</span>
               </div>
             </div>
             {event.flyerUrl && event.ticketTiers.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-white/10">
-                <Button
-                  onClick={() => setShowPublishDialog(true)}
-                  className="w-full bg-pink hover:bg-pink/90 text-white font-bold btn-glow animate-pulse-glow"
-                  style={{ '--glow-color': 'rgba(255, 20, 147, 0.4)' } as React.CSSProperties}
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Ready to Publish!
-                </Button>
-              </div>
+              <Button
+                onClick={() => setShowPublishDialog(true)}
+                className="w-full mt-3 bg-pink hover:bg-pink/90 text-white font-bold h-9"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Ready to Publish
+              </Button>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Share Card - Only for published events */}
+      {/* Live Event Banner */}
       {event.isPublished && (
-        <Card className="glass-card border-green-500/20 bg-gradient-to-r from-green-500/5 via-transparent to-transparent animate-fade-in-up">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-green-500/10">
-                  <CheckCircle2 className="h-5 w-5 text-green-400" />
-                </div>
-                <div>
-                  <h3 className="font-bold font-mono text-green-400">Party is Live!</h3>
-                  <p className="text-sm text-muted-foreground">Share your event to start selling tickets</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-white/20 hover:border-cyan-500/30 hover:bg-cyan-500/10"
-                  onClick={copyEventUrl}
-                >
-                  {copied ? <Check className="mr-2 h-4 w-4 text-green-400" /> : <Copy className="mr-2 h-4 w-4" />}
-                  {copied ? "Copied!" : "Copy Link"}
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-pink hover:bg-pink/90 text-white font-bold"
-                  onClick={shareEvent}
-                >
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-between p-3 rounded-xl bg-green-500/[0.05] border border-green-500/20 animate-fade-in-up" style={{ animationDelay: '0.15s', opacity: 0 }}>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-400" />
+            <span className="font-mono text-sm text-green-400">Live</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={copyEventUrl}>
+              {copied ? <Check className="mr-1 h-3 w-3" /> : <Copy className="mr-1 h-3 w-3" />}
+              {copied ? "Copied" : "Copy Link"}
+            </Button>
+            <Button size="sm" className="h-7 bg-pink hover:bg-pink/90 text-white text-xs" onClick={shareEvent}>
+              <Share2 className="mr-1 h-3 w-3" />
+              Share
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-white/5 p-1 rounded-xl">
-          <TabsTrigger
-            value="overview"
-            className="font-mono text-sm data-[state=active]:bg-pink data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(255,20,147,0.3)] rounded-lg transition-all"
-          >
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="h-9 bg-white/[0.02] border border-white/[0.06] p-0.5 rounded-lg">
+          <TabsTrigger value="overview" className="h-8 px-4 text-xs font-mono data-[state=active]:bg-pink data-[state=active]:text-white rounded-md">
             Overview
           </TabsTrigger>
-          <TabsTrigger
-            value="tickets"
-            className="font-mono text-sm data-[state=active]:bg-pink data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(255,20,147,0.3)] rounded-lg transition-all"
-          >
+          <TabsTrigger value="tickets" className="h-8 px-4 text-xs font-mono data-[state=active]:bg-pink data-[state=active]:text-white rounded-md">
             Tickets
           </TabsTrigger>
-          <TabsTrigger
-            value="door"
-            className="font-mono text-sm data-[state=active]:bg-pink data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(255,20,147,0.3)] rounded-lg transition-all"
-          >
+          <TabsTrigger value="door" className="h-8 px-4 text-xs font-mono data-[state=active]:bg-pink data-[state=active]:text-white rounded-md">
             Door
           </TabsTrigger>
-          <TabsTrigger
-            value="settings"
-            className="font-mono text-sm data-[state=active]:bg-pink data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(255,20,147,0.3)] rounded-lg transition-all"
-          >
+          <TabsTrigger value="settings" className="h-8 px-4 text-xs font-mono data-[state=active]:bg-pink data-[state=active]:text-white rounded-md">
             Settings
           </TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW TAB */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-[280px_1fr]">
-            {/* Flyer */}
-            <Card className="glass-card border-white/10 overflow-hidden group">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-mono">Party Flyer</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 hover:bg-pink/20 hover:text-pink"
-                    onClick={() => {
-                      setTempFlyerUrl(event.flyerUrl)
-                      setShowFlyerDialog(true)
-                    }}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
+        <TabsContent value="overview" className="space-y-4">
+          {/* Ticket Tiers */}
+          <Card className="border-white/[0.06] bg-white/[0.01]">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-mono text-base">Ticket Tiers</CardTitle>
+                <Button size="sm" className="h-7 bg-pink hover:bg-pink/90 text-white text-xs" onClick={() => setShowTierDialog(true)}>
+                  <Plus className="mr-1 h-3 w-3" />
+                  Add
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {event.ticketTiers.length === 0 ? (
+                <div className="text-center py-8 text-white/40">
+                  <Ticket className="h-8 w-8 mx-auto mb-2 text-pink/50" />
+                  <p className="text-sm">No ticket tiers yet</p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {event.flyerUrl ? (
-                  <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border border-white/10 group-hover:border-pink/30 transition-all group-hover:shadow-[0_0_30px_rgba(255,20,147,0.2)]">
-                    <Image src={event.flyerUrl} alt={event.title} fill className="object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                ) : (
-                  <div
-                    className="aspect-[3/4] w-full rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-pink/50 hover:bg-pink/5 transition-all"
-                    onClick={() => setShowFlyerDialog(true)}
-                  >
-                    <div className="p-3 rounded-full bg-pink/10">
-                      <ImageIcon className="h-8 w-8 text-pink" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Add flyer</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Ticket Tiers Summary */}
-            <Card className="glass-card border-white/10">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="font-mono">Ticket Tiers</CardTitle>
-                    <CardDescription>Quick overview of your ticket types</CardDescription>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setShowTierDialog(true)}
-                    className="bg-pink hover:bg-pink/90 text-white font-bold btn-glow"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Tier
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {event.ticketTiers.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <div className="p-4 rounded-full bg-pink/10 w-fit mx-auto mb-4">
-                      <Ticket className="h-10 w-10 text-pink" />
-                    </div>
-                    <p className="font-medium">No ticket tiers yet</p>
-                    <p className="text-sm mt-1">Create your first tier to start selling</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {event.ticketTiers.map((tier, idx) => {
-                      const percentage = Math.round((tier.quantitySold / tier.quantity) * 100)
-                      return (
-                        <div
-                          key={tier.id}
-                          className="group flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-pink/30 hover:bg-white/[0.07] transition-all animate-fade-in-up"
-                          style={{ animationDelay: `${idx * 0.1}s` }}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-1 h-10 rounded-full bg-gradient-to-b from-pink to-pink/30" />
-                            <div>
-                              <p className="font-medium">{tier.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                <span className="text-pink font-mono">{tier.quantitySold}</span>/{tier.quantity} sold • <span className="text-green-400">{formatCents(tier.price)}</span>
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="w-28 h-2 bg-white/10 rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full progress-gradient transition-all duration-500"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                            <span className={cn(
-                              "text-sm font-mono w-12 text-right",
-                              percentage >= 80 ? "text-pink" : "text-muted-foreground"
-                            )}>
-                              {percentage}%
-                            </span>
+              ) : (
+                <div className="space-y-2">
+                  {event.ticketTiers.map((tier) => {
+                    const percentage = Math.round((tier.quantitySold / tier.quantity) * 100)
+                    return (
+                      <div
+                        key={tier.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-0.5 h-8 rounded-full bg-pink" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{tier.name}</p>
+                            <p className="text-xs text-white/40">
+                              <span className="text-pink">{tier.quantitySold}</span>/{tier.quantity} • <span className="text-green-400">{formatCents(tier.price)}</span>
+                            </p>
                           </div>
                         </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                        <div className="flex items-center gap-3">
+                          <div className="hidden sm:flex items-center gap-2">
+                            <div className="w-16 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-pink" style={{ width: `${percentage}%` }} />
+                            </div>
+                            <span className="text-xs font-mono text-white/40 w-8">{percentage}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <Button
-              variant="outline"
-              className="group h-auto py-6 flex-col gap-3 border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/5 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] transition-all"
-              asChild
+          <div className="grid grid-cols-3 gap-3">
+            <Link
+              href={`/dashboard/events/${eventId}/check-in`}
+              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/30 transition-colors text-center group"
             >
-              <Link href={`/dashboard/events/${eventId}/check-in`}>
-                <div className="p-3 rounded-xl bg-cyan-500/10 group-hover:bg-cyan-500/20 transition-colors">
-                  <QrCode className="h-6 w-6 text-cyan-400" />
-                </div>
-                <span className="font-medium">Open Scanner</span>
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="group h-auto py-6 flex-col gap-3 border-white/10 hover:border-purple-500/30 hover:bg-purple-500/5 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all"
-              asChild
+              <QrCode className="h-6 w-6 mx-auto mb-2 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <p className="text-xs font-medium">Scanner</p>
+            </Link>
+            <Link
+              href={`/dashboard/events/${eventId}/analytics`}
+              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-purple-500/30 transition-colors text-center group"
             >
-              <Link href={`/dashboard/events/${eventId}/analytics`}>
-                <div className="p-3 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                  <BarChart3 className="h-6 w-6 text-purple-400" />
-                </div>
-                <span className="font-medium">View Analytics</span>
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="group h-auto py-6 flex-col gap-3 border-white/10 hover:border-pink/30 hover:bg-pink/5 hover:shadow-[0_0_30px_rgba(255,20,147,0.15)] transition-all"
+              <BarChart3 className="h-6 w-6 mx-auto mb-2 text-purple-400 group-hover:scale-110 transition-transform" />
+              <p className="text-xs font-medium">Analytics</p>
+            </Link>
+            <button
               onClick={copyEventUrl}
+              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-pink/30 transition-colors text-center group"
             >
-              <div className="p-3 rounded-xl bg-pink/10 group-hover:bg-pink/20 transition-colors">
-                <Copy className="h-6 w-6 text-pink" />
-              </div>
-              <span className="font-medium">Copy Party Link</span>
-            </Button>
+              <Copy className="h-6 w-6 mx-auto mb-2 text-pink group-hover:scale-110 transition-transform" />
+              <p className="text-xs font-medium">Copy Link</p>
+            </button>
           </div>
         </TabsContent>
 
         {/* TICKETS TAB */}
-        <TabsContent value="tickets" className="space-y-6">
-          <Card className="glass-card border-white/10">
-            <CardHeader>
+        <TabsContent value="tickets" className="space-y-4">
+          <Card className="border-white/[0.06] bg-white/[0.01]">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="font-mono">Ticket Tiers</CardTitle>
-                  <CardDescription>Manage your event's ticket types and pricing</CardDescription>
+                  <CardTitle className="font-mono text-base">Ticket Tiers</CardTitle>
+                  <CardDescription className="text-xs">Manage pricing and availability</CardDescription>
                 </div>
-                <Button
-                  onClick={() => setShowTierDialog(true)}
-                  className="bg-pink hover:bg-pink/90 text-white font-bold btn-glow"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button size="sm" className="h-8 bg-pink hover:bg-pink/90 text-white" onClick={() => setShowTierDialog(true)}>
+                  <Plus className="mr-1 h-3 w-3" />
                   Add Tier
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {event.ticketTiers.length === 0 ? (
-                <div className="text-center py-16 text-muted-foreground">
-                  <div className="p-4 rounded-full bg-pink/10 w-fit mx-auto mb-4">
-                    <Ticket className="h-12 w-12 text-pink" />
-                  </div>
-                  <p className="font-medium text-lg">No ticket tiers yet</p>
-                  <p className="text-sm mt-1">Add your first tier to start selling tickets</p>
+                <div className="text-center py-12 text-white/40">
+                  <Ticket className="h-10 w-10 mx-auto mb-3 text-pink/50" />
+                  <p className="font-medium">No ticket tiers yet</p>
+                  <p className="text-xs mt-1">Create your first tier to start selling</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {event.ticketTiers.map((tier, idx) => {
+                <div className="space-y-3">
+                  {event.ticketTiers.map((tier) => {
                     const percentage = Math.round((tier.quantitySold / tier.quantity) * 100)
                     const almostSoldOut = percentage >= 80
                     return (
                       <div
                         key={tier.id}
                         className={cn(
-                          "group relative p-5 rounded-xl border transition-all duration-300 animate-fade-in-up",
-                          almostSoldOut
-                            ? "border-pink/30 bg-pink/5 hover:border-pink/50 hover:shadow-[0_0_30px_rgba(255,20,147,0.2)]"
-                            : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]"
+                          "p-4 rounded-xl border transition-colors",
+                          almostSoldOut ? "border-pink/30 bg-pink/[0.03]" : "border-white/[0.06] bg-white/[0.02]"
                         )}
-                        style={{ animationDelay: `${idx * 0.1}s` }}
                       >
-                        {almostSoldOut && (
-                          <div className="absolute top-3 right-12 px-2 py-1 rounded-full bg-pink/20 text-pink text-xs font-mono">
-                            HOT
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                              <div className="w-1.5 h-12 rounded-full bg-gradient-to-b from-pink via-pink/50 to-pink/20" />
-                              <div>
-                                <p className="font-bold text-lg">{tier.name}</p>
-                                {tier.description && (
-                                  <p className="text-sm text-muted-foreground">{tier.description}</p>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <div className="w-1 h-full min-h-[48px] rounded-full bg-gradient-to-b from-pink to-pink/20" />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold">{tier.name}</p>
+                                {almostSoldOut && (
+                                  <Badge className="h-4 text-[10px] bg-pink/20 text-pink border-pink/30">HOT</Badge>
                                 )}
                               </div>
-                            </div>
-                            <div className="flex items-center gap-6 ml-4 text-sm">
-                              <span className="font-mono text-2xl font-bold text-green-400">{formatCents(tier.price)}</span>
-                              <div>
-                                <p className="text-muted-foreground">
-                                  <span className="text-pink font-mono font-bold">{tier.quantitySold}</span> / {tier.quantity} sold
-                                </p>
-                                <div className="mt-1 w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full progress-gradient"
-                                    style={{ width: `${percentage}%` }}
-                                  />
+                              {tier.description && (
+                                <p className="text-xs text-white/50 mt-0.5">{tier.description}</p>
+                              )}
+                              <div className="flex items-center gap-4 mt-2">
+                                <span className="text-xl font-bold font-mono text-green-400">{formatCents(tier.price)}</span>
+                                <div>
+                                  <p className="text-xs text-white/50">
+                                    <span className="text-pink font-mono">{tier.quantitySold}</span> / {tier.quantity}
+                                  </p>
+                                  <div className="w-20 h-1 bg-white/[0.06] rounded-full overflow-hidden mt-1">
+                                    <div className="h-full rounded-full bg-pink" style={{ width: `${percentage}%` }} />
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -801,7 +635,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
+                            className="h-8 w-8 text-white/30 hover:text-red-400 hover:bg-red-500/10"
                             onClick={() => deleteTier(tier.id)}
                             disabled={tier.quantitySold > 0}
                           >
@@ -818,36 +652,22 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
         </TabsContent>
 
         {/* DOOR TAB */}
-        <TabsContent value="door" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Button
-              variant="outline"
-              size="lg"
-              className="group h-auto py-8 flex-col gap-3 border-cyan-500/30 bg-cyan-500/5 hover:bg-cyan-500/10 hover:border-cyan-400/50 hover:shadow-[0_0_40px_rgba(34,211,238,0.2)] transition-all"
-              asChild
+        <TabsContent value="door" className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Link
+              href={`/dashboard/events/${eventId}/check-in`}
+              className="p-6 rounded-xl bg-cyan-500/[0.05] border border-cyan-500/20 hover:border-cyan-400/40 transition-colors group"
             >
-              <Link href={`/dashboard/events/${eventId}/check-in`}>
-                <div className="p-4 rounded-2xl bg-cyan-500/10 group-hover:bg-cyan-500/20 transition-colors group-hover:scale-110 transform duration-300">
-                  <QrCode className="h-10 w-10 text-cyan-400" />
-                </div>
-                <span className="font-bold text-lg text-cyan-400">Open Check-in Scanner</span>
-                <span className="text-sm text-muted-foreground">Scan tickets at the door</span>
-              </Link>
-            </Button>
-            <Card className="glass-card border-white/10 flex items-center justify-center p-8">
+              <QrCode className="h-8 w-8 text-cyan-400 mb-3 group-hover:scale-110 transition-transform" />
+              <p className="font-bold text-cyan-400">Open Scanner</p>
+              <p className="text-xs text-white/50 mt-1">Scan tickets at the door</p>
+            </Link>
+            <div className="p-6 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
               <div className="text-center">
-                <p className="text-5xl font-bold font-mono text-pink">{totalSold}</p>
-                <p className="text-sm text-muted-foreground mt-2">tickets to scan</p>
-                {totalCapacity > 0 && (
-                  <div className="mt-4 w-32 mx-auto h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full progress-gradient"
-                      style={{ width: `${(totalSold / totalCapacity) * 100}%` }}
-                    />
-                  </div>
-                )}
+                <p className="text-4xl font-bold font-mono text-pink">{totalSold}</p>
+                <p className="text-xs text-white/40 mt-1">tickets to scan</p>
               </div>
-            </Card>
+            </div>
           </div>
 
           <GuestlistManagement eventId={eventId} />
@@ -857,60 +677,39 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
         </TabsContent>
 
         {/* SETTINGS TAB */}
-        <TabsContent value="settings" className="space-y-6">
-          <Card className="glass-card border-white/10">
-            <CardHeader>
-              <CardTitle className="font-mono">Party Details</CardTitle>
-              <CardDescription>Basic information about your event</CardDescription>
+        <TabsContent value="settings" className="space-y-4">
+          <Card className="border-white/[0.06] bg-white/[0.01]">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-mono text-base">Party Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2 text-pink mb-2">
-                    <MapPin className="h-4 w-4" />
-                    <p className="text-xs font-mono uppercase tracking-wider">Venue</p>
-                  </div>
-                  <p className="font-bold">{event.venueName}</p>
-                  <p className="text-sm text-muted-foreground">{event.venueAddress}</p>
+            <CardContent className="pt-0">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                  <p className="text-[10px] font-mono text-pink uppercase tracking-wider mb-1">Venue</p>
+                  <p className="font-medium text-sm">{event.venueName}</p>
+                  <p className="text-xs text-white/40">{event.venueAddress}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2 text-cyan-400 mb-2">
-                    <MapPin className="h-4 w-4" />
-                    <p className="text-xs font-mono uppercase tracking-wider">Location</p>
-                  </div>
-                  <p className="font-bold">{event.city}{event.state ? `, ${event.state}` : ''}</p>
+                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                  <p className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider mb-1">Location</p>
+                  <p className="font-medium text-sm">{event.city}{event.state ? `, ${event.state}` : ''}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2 text-green-400 mb-2">
-                    <Calendar className="h-4 w-4" />
-                    <p className="text-xs font-mono uppercase tracking-wider">Start</p>
-                  </div>
-                  <p className="font-bold">
-                    {new Date(event.startsAt).toLocaleDateString('en-US', {
-                      weekday: 'long', month: 'long', day: 'numeric'
-                    })}
+                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                  <p className="text-[10px] font-mono text-green-400 uppercase tracking-wider mb-1">Start</p>
+                  <p className="font-medium text-sm">
+                    {new Date(event.startsAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(event.startsAt).toLocaleTimeString('en-US', {
-                      hour: 'numeric', minute: '2-digit'
-                    })}
+                  <p className="text-xs text-white/40">
+                    {new Date(event.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                   </p>
                 </div>
                 {event.endsAt && (
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                    <div className="flex items-center gap-2 text-orange-400 mb-2">
-                      <Calendar className="h-4 w-4" />
-                      <p className="text-xs font-mono uppercase tracking-wider">End</p>
-                    </div>
-                    <p className="font-bold">
-                      {new Date(event.endsAt).toLocaleDateString('en-US', {
-                        weekday: 'long', month: 'long', day: 'numeric'
-                      })}
+                  <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                    <p className="text-[10px] font-mono text-orange-400 uppercase tracking-wider mb-1">End</p>
+                    <p className="font-medium text-sm">
+                      {new Date(event.endsAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(event.endsAt).toLocaleTimeString('en-US', {
-                        hour: 'numeric', minute: '2-digit'
-                      })}
+                    <p className="text-xs text-white/40">
+                      {new Date(event.endsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                     </p>
                   </div>
                 )}
@@ -919,34 +718,25 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
           </Card>
 
           {!event.isPublished && (
-            <Card className="relative overflow-hidden border-pink/30 bg-gradient-to-br from-pink/10 via-background to-background">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-pink/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
-              <CardHeader className="relative">
+            <Card className="border-pink/20 bg-pink/[0.03]">
+              <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-pink" />
-                  <CardTitle className="font-mono">Ready to Go Live?</CardTitle>
+                  <Sparkles className="h-4 w-4 text-pink" />
+                  <CardTitle className="font-mono text-base">Ready to Go Live?</CardTitle>
                 </div>
-                <CardDescription>
-                  Publishing will make your event visible to everyone
-                </CardDescription>
+                <CardDescription className="text-xs">Publishing makes your event visible to everyone</CardDescription>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="pt-0">
                 <Button
                   onClick={() => setShowPublishDialog(true)}
                   disabled={publishing || event.ticketTiers.length === 0}
-                  className={cn(
-                    "bg-pink hover:bg-pink/90 text-white font-bold",
-                    event.ticketTiers.length > 0 && "animate-pulse-glow"
-                  )}
-                  style={{ '--glow-color': 'rgba(255, 20, 147, 0.4)' } as React.CSSProperties}
+                  className="bg-pink hover:bg-pink/90 text-white font-bold"
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
                   {publishing ? "Publishing..." : "Publish Event"}
                 </Button>
                 {event.ticketTiers.length === 0 && (
-                  <p className="text-sm text-muted-foreground mt-3">
-                    Add at least one ticket tier before publishing.
-                  </p>
+                  <p className="text-xs text-white/40 mt-2">Add at least one ticket tier first</p>
                 )}
               </CardContent>
             </Card>
@@ -957,18 +747,18 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
       {/* DIALOGS */}
       {/* Flyer Dialog */}
       <Dialog open={showFlyerDialog} onOpenChange={setShowFlyerDialog}>
-        <DialogContent className="glass-card border-white/10">
+        <DialogContent className="border-white/[0.06] bg-black">
           <DialogHeader>
-            <DialogTitle className="font-mono">Update Party Flyer</DialogTitle>
-            <DialogDescription>Upload a new flyer image</DialogDescription>
+            <DialogTitle className="font-mono">Update Flyer</DialogTitle>
+            <DialogDescription className="text-xs">Upload a new flyer image</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <FlyerUpload value={tempFlyerUrl} onChange={setTempFlyerUrl} disabled={flyerLoading} />
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowFlyerDialog(false)} disabled={flyerLoading} className="border-white/20">
+              <Button variant="outline" onClick={() => setShowFlyerDialog(false)} disabled={flyerLoading} className="border-white/10">
                 Cancel
               </Button>
-              <Button onClick={updateFlyer} disabled={flyerLoading} className="bg-pink hover:bg-pink/90 text-white font-bold">
+              <Button onClick={updateFlyer} disabled={flyerLoading} className="bg-pink hover:bg-pink/90 text-white">
                 {flyerLoading ? "Saving..." : "Save"}
               </Button>
             </div>
@@ -978,37 +768,37 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
 
       {/* Tier Dialog */}
       <Dialog open={showTierDialog} onOpenChange={setShowTierDialog}>
-        <DialogContent className="glass-card border-white/10">
+        <DialogContent className="border-white/[0.06] bg-black">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <Ticket className="h-5 w-5 text-pink" />
+              <Ticket className="h-4 w-4 text-pink" />
               Add Ticket Tier
             </DialogTitle>
-            <DialogDescription>Create a new ticket type</DialogDescription>
+            <DialogDescription className="text-xs">Create a new ticket type</DialogDescription>
           </DialogHeader>
           <form onSubmit={createTier} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium">Tier Name</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-xs">Tier Name</Label>
               <Input
                 id="name"
                 name="name"
                 placeholder="General Admission"
                 required
-                className="bg-white/5 border-white/10 focus:border-pink/50 focus:ring-pink/20"
+                className="h-9 bg-white/[0.02] border-white/[0.06]"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="description" className="text-xs">Description</Label>
               <Input
                 id="description"
                 name="description"
                 placeholder="Access to main floor"
-                className="bg-white/5 border-white/10 focus:border-pink/50 focus:ring-pink/20"
+                className="h-9 bg-white/[0.02] border-white/[0.06]"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="price" className="text-sm font-medium">Price ($)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="price" className="text-xs">Price ($)</Label>
                 <Input
                   id="price"
                   name="price"
@@ -1017,11 +807,11 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
                   min="0"
                   placeholder="25.00"
                   required
-                  className="bg-white/5 border-white/10 focus:border-green-500/50 focus:ring-green-500/20 font-mono"
+                  className="h-9 bg-white/[0.02] border-white/[0.06] font-mono"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="quantity" className="text-sm font-medium">Quantity</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="quantity" className="text-xs">Quantity</Label>
                 <Input
                   id="quantity"
                   name="quantity"
@@ -1029,15 +819,11 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
                   min="1"
                   placeholder="100"
                   required
-                  className="bg-white/5 border-white/10 focus:border-cyan-500/50 focus:ring-cyan-500/20 font-mono"
+                  className="h-9 bg-white/[0.02] border-white/[0.06] font-mono"
                 />
               </div>
             </div>
-            <Button
-              type="submit"
-              className="w-full bg-pink hover:bg-pink/90 text-white font-bold btn-glow"
-              disabled={tierLoading}
-            >
+            <Button type="submit" className="w-full bg-pink hover:bg-pink/90 text-white" disabled={tierLoading}>
               {tierLoading ? "Creating..." : "Create Tier"}
             </Button>
           </form>
@@ -1046,52 +832,44 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
 
       {/* Publish Confirmation Dialog */}
       <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
-        <DialogContent className="glass-card border-white/10">
+        <DialogContent className="border-white/[0.06] bg-black">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-pink" />
+              <Sparkles className="h-4 w-4 text-pink" />
               Publish Event
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               This will make your event visible to everyone.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {stripeEnabled === false && hasPaidTiers && (
-              <div className="flex gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-                <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <div className="flex gap-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <AlertTriangle className="h-4 w-4 text-yellow-500 flex-shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="font-medium text-yellow-500">Stripe not configured</p>
-                  <p className="text-sm text-muted-foreground">
-                    Paid ticket tiers will be hidden from guests until you set up Stripe payouts.
-                    Only free tickets will be available for purchase.
+                  <p className="font-medium text-yellow-500 text-sm">Stripe not configured</p>
+                  <p className="text-xs text-white/50">
+                    Paid tiers will be hidden until you set up Stripe.
                   </p>
-                  <Button variant="link" className="h-auto p-0 text-yellow-500" asChild>
+                  <Button variant="link" className="h-auto p-0 text-xs text-yellow-500" asChild>
                     <Link href="/dashboard/organizer">Configure Stripe →</Link>
                   </Button>
                 </div>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">
-              Are you sure you want to publish this event?
-            </p>
+            <p className="text-sm text-white/50">Are you sure you want to publish?</p>
           </div>
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setShowPublishDialog(false)} disabled={publishing} className="border-white/20">
+            <Button variant="outline" onClick={() => setShowPublishDialog(false)} disabled={publishing} className="border-white/10">
               Cancel
             </Button>
-            <Button
-              onClick={publishEvent}
-              disabled={publishing}
-              className="bg-pink hover:bg-pink/90 text-white font-bold btn-glow"
-            >
+            <Button onClick={publishEvent} disabled={publishing} className="bg-pink hover:bg-pink/90 text-white">
               <Sparkles className="mr-2 h-4 w-4" />
-              {publishing ? "Publishing..." : "Publish Event"}
+              {publishing ? "Publishing..." : "Publish"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   )
 }
