@@ -32,7 +32,19 @@ export async function POST(req: NextRequest) {
       },
       include: {
         event: {
-          select: { id: true, title: true, startsAt: true },
+          select: { 
+            id: true, 
+            title: true, 
+            startsAt: true,
+            hasGuestlist: true,
+            _count: {
+              select: { tickets: true }
+            },
+            tickets: {
+              where: { checkedIn: true },
+              select: { id: true }
+            }
+          },
         },
       },
     })
@@ -65,7 +77,12 @@ export async function POST(req: NextRequest) {
         name: scanner.name,
         eventId: scanner.eventId,
         eventTitle: scanner.event.title,
+        hasGuestlist: scanner.event.hasGuestlist,
       },
+      stats: {
+        scanned: scanner.event.tickets.length,
+        total: scanner.event._count.tickets,
+      }
     })
   } catch (error) {
     console.error("Scanner verification error:", error)

@@ -269,6 +269,7 @@ model Event {
   lineup               Json?            // Array of artists: [{name, role?, imageUrl?, socialUrl?}]
   pageTheme            String           @default("default") // 'default', 'underground', 'minimal'
   accentColor          String?          // Custom accent color (hex)
+  hasGuestlist         Boolean          @default(false) // Enable guestlist for this event
   
   isFlagged            Boolean          @default(false) // Superadmin internal flag (not visible to organizer)
   flaggedAt            DateTime?

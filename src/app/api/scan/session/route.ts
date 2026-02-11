@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getScannerSession, clearScannerSession } from "@/lib/scanner-auth"
+import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   try {
@@ -8,13 +9,37 @@ export async function GET() {
       return NextResponse.json({ authenticated: false })
     }
 
+    // Get event details and stats
+    const event = await prisma.event.findUnique({
+      where: { id: session.eventId },
+      select: {
+        title: true,
+        hasGuestlist: true,
+        _count: {
+          select: {
+            tickets: true,
+          }
+        },
+        tickets: {
+          where: { checkedIn: true },
+          select: { id: true }
+        }
+      }
+    })
+
     return NextResponse.json({
       authenticated: true,
       scanner: {
         scannerId: session.scannerId,
         eventId: session.eventId,
         name: session.name,
+        eventTitle: event?.title || "",
+        hasGuestlist: event?.hasGuestlist || false,
       },
+      stats: {
+        scanned: event?.tickets.length || 0,
+        total: event?._count.tickets || 0,
+      }
     })
   } catch {
     return NextResponse.json({ authenticated: false })
