@@ -14,7 +14,8 @@ import { toast } from "sonner"
 import {
   ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil,
   BarChart3, Ticket, Users, DollarSign, Calendar, MapPin,
-  Copy, Eye, EyeOff, AlertTriangle, Sparkles
+  Copy, Eye, EyeOff, AlertTriangle, Sparkles, Check, Share2,
+  CheckCircle2, Circle, ChevronRight
 } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
 import { FlyerUpload } from "@/components/FlyerUpload"
@@ -62,6 +63,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   const [tempFlyerUrl, setTempFlyerUrl] = useState<string | null>(null)
   const [stripeEnabled, setStripeEnabled] = useState<boolean | null>(null)
   const [showPublishDialog, setShowPublishDialog] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetchEvent()
@@ -195,7 +197,22 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   function copyEventUrl() {
     const url = `${window.location.origin}/e/${event?.slug}`
     navigator.clipboard.writeText(url)
+    setCopied(true)
     toast.success("Event URL copied!")
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  function shareEvent() {
+    const url = `${window.location.origin}/e/${event?.slug}`
+    if (navigator.share) {
+      navigator.share({
+        title: event?.title,
+        text: `Check out ${event?.title}`,
+        url,
+      })
+    } else {
+      copyEventUrl()
+    }
   }
 
   if (loading) {
@@ -245,33 +262,16 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
 
         {/* Content */}
         <div className="relative px-6 pt-6 pb-8">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Top Row - Back button and status */}
+            <div className="flex items-center justify-between">
               <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 -ml-2" asChild>
                 <Link href="/dashboard/events">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Events
+                  <span className="hidden sm:inline">Back to Events</span>
+                  <span className="sm:hidden">Back</span>
                 </Link>
               </Button>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold font-mono tracking-tight text-white animate-fade-in">
-                  {event.title}
-                </h1>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/60 mt-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-pink" />
-                    {new Date(event.startsAt).toLocaleDateString('en-US', {
-                      weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-                    })}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-pink" />
-                    {event.venueName}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 mt-8">
               <Badge
                 variant={event.status === "PUBLISHED" ? "default" : "secondary"}
                 className={cn(
@@ -282,13 +282,48 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
                 {event.status === "PUBLISHED" ? <Eye className="mr-1 h-3 w-3" /> : <EyeOff className="mr-1 h-3 w-3" />}
                 {event.status}
               </Badge>
+            </div>
+
+            {/* Title and Meta */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-mono tracking-tight text-white animate-fade-in">
+                {event.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/60 mt-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-pink" />
+                  {new Date(event.startsAt).toLocaleDateString('en-US', {
+                    weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                  })}
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-pink" />
+                  {event.venueName}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 pt-2">
               {event.isPublished ? (
-                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10" asChild>
-                  <Link href={eventUrl} target="_blank">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View Live
-                  </Link>
-                </Button>
+                <>
+                  <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10" asChild>
+                    <Link href={eventUrl} target="_blank">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">View Live</span>
+                      <span className="sm:hidden">View</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-white/20 text-white hover:bg-white/10"
+                    onClick={shareEvent}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                </>
               ) : (
                 <Button
                   size="sm"
@@ -349,17 +384,27 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
           </CardContent>
         </Card>
         <Card
-          className="group glass-card border-white/10 hover:border-cyan-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] cursor-pointer animate-fade-in-up stagger-3"
+          className={cn(
+            "group glass-card border-white/10 hover:border-cyan-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] cursor-pointer animate-fade-in-up stagger-3",
+            copied && "border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.2)]"
+          )}
           onClick={copyEventUrl}
         >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Event URL</p>
+                <p className="text-sm text-muted-foreground">{copied ? "Copied!" : "Event URL"}</p>
                 <p className="text-sm font-mono truncate max-w-[120px] text-cyan-400">/e/{event.slug}</p>
               </div>
-              <div className="p-2 rounded-xl bg-cyan-500/10 group-hover:bg-cyan-500/20 transition-colors">
-                <Copy className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <div className={cn(
+                "p-2 rounded-xl transition-all",
+                copied ? "bg-green-500/20" : "bg-cyan-500/10 group-hover:bg-cyan-500/20"
+              )}>
+                {copied ? (
+                  <Check className="h-5 w-5 text-green-400 animate-scale-in" />
+                ) : (
+                  <Copy className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                )}
               </div>
             </div>
           </CardContent>
@@ -381,6 +426,125 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
           </CardContent>
         </Card>
       </div>
+
+      {/* Getting Started Checklist - Only for draft events */}
+      {!event.isPublished && (
+        <Card className="glass-card border-pink/20 bg-gradient-to-r from-pink/5 via-transparent to-transparent animate-fade-in-up">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-pink/10">
+                  <Sparkles className="h-5 w-5 text-pink" />
+                </div>
+                <div>
+                  <h3 className="font-bold font-mono">Get Ready to Launch</h3>
+                  <p className="text-sm text-muted-foreground">Complete these steps to publish your event</p>
+                </div>
+              </div>
+              <Badge variant="outline" className="font-mono border-pink/30 text-pink">
+                {[event.flyerUrl, event.ticketTiers.length > 0, event.description].filter(Boolean).length}/3 done
+              </Badge>
+            </div>
+            <div className="grid gap-2">
+              <div
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg transition-all",
+                  event.flyerUrl ? "bg-green-500/10 border border-green-500/20" : "bg-white/5 border border-white/10 cursor-pointer hover:border-pink/30"
+                )}
+                onClick={() => !event.flyerUrl && setShowFlyerDialog(true)}
+              >
+                {event.flyerUrl ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                ) : (
+                  <Circle className="h-5 w-5 text-muted-foreground" />
+                )}
+                <span className={cn("flex-1", event.flyerUrl && "text-green-400")}>Upload event flyer</span>
+                {!event.flyerUrl && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+              </div>
+              <div
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg transition-all",
+                  event.ticketTiers.length > 0 ? "bg-green-500/10 border border-green-500/20" : "bg-white/5 border border-white/10 cursor-pointer hover:border-pink/30"
+                )}
+                onClick={() => event.ticketTiers.length === 0 && setShowTierDialog(true)}
+              >
+                {event.ticketTiers.length > 0 ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                ) : (
+                  <Circle className="h-5 w-5 text-muted-foreground" />
+                )}
+                <span className={cn("flex-1", event.ticketTiers.length > 0 && "text-green-400")}>Create ticket tiers</span>
+                {event.ticketTiers.length === 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+              </div>
+              <div
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg transition-all",
+                  event.description ? "bg-green-500/10 border border-green-500/20" : "bg-white/5 border border-white/10"
+                )}
+              >
+                {event.description ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                ) : (
+                  <Circle className="h-5 w-5 text-muted-foreground" />
+                )}
+                <span className={cn("flex-1", event.description ? "text-green-400" : "text-muted-foreground")}>
+                  {event.description ? "Event description added" : "Add event description (optional)"}
+                </span>
+              </div>
+            </div>
+            {event.flyerUrl && event.ticketTiers.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <Button
+                  onClick={() => setShowPublishDialog(true)}
+                  className="w-full bg-pink hover:bg-pink/90 text-white font-bold btn-glow animate-pulse-glow"
+                  style={{ '--glow-color': 'rgba(255, 20, 147, 0.4)' } as React.CSSProperties}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Ready to Publish!
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Share Card - Only for published events */}
+      {event.isPublished && (
+        <Card className="glass-card border-green-500/20 bg-gradient-to-r from-green-500/5 via-transparent to-transparent animate-fade-in-up">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-green-500/10">
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold font-mono text-green-400">Event is Live!</h3>
+                  <p className="text-sm text-muted-foreground">Share your event to start selling tickets</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 hover:border-cyan-500/30 hover:bg-cyan-500/10"
+                  onClick={copyEventUrl}
+                >
+                  {copied ? <Check className="mr-2 h-4 w-4 text-green-400" /> : <Copy className="mr-2 h-4 w-4" />}
+                  {copied ? "Copied!" : "Copy Link"}
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-pink hover:bg-pink/90 text-white font-bold"
+                  onClick={shareEvent}
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
