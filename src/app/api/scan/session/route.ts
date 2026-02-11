@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getScannerSession, clearScannerSession } from "@/lib/scanner-auth"
+import { getScannerSession, SCANNER_SESSION_COOKIE } from "@/lib/scanner-auth"
 import { prisma } from "@/lib/prisma"
 
 export async function GET() {
@@ -47,13 +47,7 @@ export async function GET() {
 }
 
 export async function DELETE() {
-  try {
-    await clearScannerSession()
-    return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to clear session" },
-      { status: 500 }
-    )
-  }
+  const response = NextResponse.json({ success: true })
+  response.cookies.delete(SCANNER_SESSION_COOKIE)
+  return response
 }
