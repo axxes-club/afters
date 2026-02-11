@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Afters - Event Ticketing for Nightlife",
+  title: "Afters",
   description:
     "Discover and book tickets to the best nightlife events and after-parties",
 };

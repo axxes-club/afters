@@ -10,45 +10,14 @@ const isProtectedRoute = createRouteMatcher([
   "/superadmin(.*)",
 ]);
 
-// Check if we're in local development mode
-function isLocalDev(req: NextRequest): boolean {
-  const host = req.headers.get("host") || "";
-
-  // Allow localhost and local network IPs
-  return (
-    host.startsWith("localhost:") ||
-    host.startsWith("127.0.0.1:") ||
-    host.startsWith("192.168.") ||
-    host.startsWith("10.") ||
-    host.startsWith("172.16.") ||
-    host.startsWith("172.17.") ||
-    host.startsWith("172.18.") ||
-    host.startsWith("172.19.") ||
-    host.startsWith("172.20.") ||
-    host.startsWith("172.21.") ||
-    host.startsWith("172.22.") ||
-    host.startsWith("172.23.") ||
-    host.startsWith("172.24.") ||
-    host.startsWith("172.25.") ||
-    host.startsWith("172.26.") ||
-    host.startsWith("172.27.") ||
-    host.startsWith("172.28.") ||
-    host.startsWith("172.29.") ||
-    host.startsWith("172.30.") ||
-    host.startsWith("172.31.")
-  );
-}
+// In development, skip all auth to make local testing easy
+// Set ENABLE_AUTH_IN_DEV=true in .env.local if you need auth locally
+const skipAuthInDev = process.env.NODE_ENV === "development" && process.env.ENABLE_AUTH_IN_DEV !== "true";
 
 export default clerkMiddleware(async (auth, req) => {
-  // Skip auth protection for local development on mobile/LAN
-  // This allows testing without Clerk domain restrictions
-  if (process.env.NODE_ENV === "development" && isLocalDev(req)) {
-    // Still allow Clerk to work for localhost, just don't enforce protection
-    // for LAN IPs where Clerk may not be configured
-    const host = req.headers.get("host") || "";
-    if (!host.startsWith("localhost:") && !host.startsWith("127.0.0.1:")) {
-      return NextResponse.next();
-    }
+  // Skip auth entirely in development for easy local/mobile testing
+  if (skipAuthInDev) {
+    return NextResponse.next();
   }
 
   if (isProtectedRoute(req)) {

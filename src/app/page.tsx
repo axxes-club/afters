@@ -36,11 +36,11 @@ export default function HomePage() {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center gap-12 relative z-10 px-6">
+      <main className="flex-1 flex flex-col items-center justify-center gap-8 relative z-10 px-6">
         {/* Logo mark - clean, no glow */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0s', opacity: 0 }}>
           <div className="flex flex-col items-center gap-1">
-            <h1 className="text-7xl md:text-9xl lg:text-[11rem] font-bold font-mono tracking-[-0.05em] text-white">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-mono tracking-[-0.02em] text-white">
               AFTERS<span className="text-[#ff1493]">.</span>
             </h1>
           </div>
