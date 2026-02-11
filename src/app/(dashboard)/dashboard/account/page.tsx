@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Settings, ShieldCheck, Calendar } from "lucide-react";
+import { ShieldCheck, Calendar } from "lucide-react";
 import Link from "next/link";
 
 export default async function AccountPage() {
@@ -58,12 +58,6 @@ export default async function AccountPage() {
             <p className="text-muted-foreground">{user.email}</p>
           </div>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/dashboard/settings">
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Link>
-        </Button>
       </div>
 
       {/* Organizer Profile Info */}

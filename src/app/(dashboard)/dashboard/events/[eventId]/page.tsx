@@ -11,10 +11,10 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { 
-  ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil, 
-  BarChart3, Ticket, Users, Settings, DollarSign, Calendar, MapPin,
-  Copy, Eye, EyeOff
+import {
+  ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil,
+  BarChart3, Ticket, Users, DollarSign, Calendar, MapPin,
+  Copy, Eye, EyeOff, AlertTriangle
 } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
 import { FlyerUpload } from "@/components/FlyerUpload"
@@ -59,10 +59,25 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   const [flyerLoading, setFlyerLoading] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [tempFlyerUrl, setTempFlyerUrl] = useState<string | null>(null)
+  const [stripeEnabled, setStripeEnabled] = useState<boolean | null>(null)
+  const [showPublishDialog, setShowPublishDialog] = useState(false)
 
   useEffect(() => {
     fetchEvent()
+    fetchStripeStatus()
   }, [eventId])
+
+  async function fetchStripeStatus() {
+    try {
+      const res = await fetch('/api/user/stripe-status')
+      if (res.ok) {
+        const data = await res.json()
+        setStripeEnabled(data.stripeChargesEnabled)
+      }
+    } catch (error) {
+      console.error("Failed to fetch Stripe status:", error)
+    }
+  }
 
   async function fetchEvent() {
     try {
@@ -154,8 +169,8 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   }
 
   async function publishEvent() {
-    if (!confirm("Publish this event? It will be visible to everyone.")) return
     setPublishing(true)
+    setShowPublishDialog(false)
 
     try {
       const res = await fetch(`/api/events/${eventId}/publish`, { method: "POST" })
@@ -163,7 +178,8 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
         toast.success("Event published!")
         fetchEvent()
       } else {
-        toast.error("Failed to publish")
+        const data = await res.json()
+        toast.error(data.message || "Failed to publish")
       }
     } catch {
       toast.error("Failed to publish")
@@ -171,6 +187,9 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
       setPublishing(false)
     }
   }
+
+  // Check if event has paid tiers
+  const hasPaidTiers = event?.ticketTiers.some(t => t.price > 0) || false
 
   function copyEventUrl() {
     const url = `${window.location.origin}/e/${event?.slug}`
@@ -237,7 +256,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
               </Link>
             </Button>
           ) : (
-            <Button size="sm" onClick={publishEvent} disabled={publishing || event.ticketTiers.length === 0}>
+            <Button size="sm" onClick={() => setShowPublishDialog(true)} disabled={publishing || event.ticketTiers.length === 0}>
               {publishing ? "Publishing..." : "Publish Event"}
             </Button>
           )}
@@ -534,7 +553,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button onClick={publishEvent} disabled={publishing || event.ticketTiers.length === 0}>
+                <Button onClick={() => setShowPublishDialog(true)} disabled={publishing || event.ticketTiers.length === 0}>
                   {publishing ? "Publishing..." : "Publish Event"}
                 </Button>
                 {event.ticketTiers.length === 0 && (
@@ -600,6 +619,46 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
               {tierLoading ? "Creating..." : "Create Tier"}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Publish Confirmation Dialog */}
+      <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Publish Event</DialogTitle>
+            <DialogDescription>
+              This will make your event visible to everyone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {stripeEnabled === false && hasPaidTiers && (
+              <div className="flex gap-3 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-medium text-yellow-500">Stripe not configured</p>
+                  <p className="text-sm text-muted-foreground">
+                    Paid ticket tiers will be hidden from guests until you set up Stripe payouts.
+                    Only free tickets will be available for purchase.
+                  </p>
+                  <Button variant="link" className="h-auto p-0 text-yellow-500" asChild>
+                    <Link href="/dashboard/organizer">Configure Stripe →</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to publish this event?
+            </p>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowPublishDialog(false)} disabled={publishing}>
+              Cancel
+            </Button>
+            <Button onClick={publishEvent} disabled={publishing}>
+              {publishing ? "Publishing..." : "Publish Event"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

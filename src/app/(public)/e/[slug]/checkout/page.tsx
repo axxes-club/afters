@@ -35,6 +35,7 @@ interface Event {
   organizer: {
     displayName: string
     slug: string
+    stripeChargesEnabled: boolean
   }
 }
 
@@ -108,7 +109,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
 
   function updateQuantity(tierId: string, delta: number) {
     setQuantities((prev) => {
-      const tier = event?.ticketTiers.find((t) => t.id === tierId)
+      const tier = availableTiers.find((t) => t.id === tierId)
       if (!tier) return prev
 
       const current = prev[tierId] || 0
@@ -124,7 +125,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
     })
   }
 
-  const selectedTiers = event?.ticketTiers.filter((t) => (quantities[t.id] || 0) > 0) || []
+  // Filter out paid tiers if Stripe is not enabled
+  const availableTiers = event?.organizer.stripeChargesEnabled
+    ? event.ticketTiers
+    : event?.ticketTiers.filter((t) => t.price === 0) || []
+
+  const selectedTiers = availableTiers.filter((t) => (quantities[t.id] || 0) > 0) || []
   const subtotal = selectedTiers.reduce((sum, t) => sum + t.price * (quantities[t.id] || 0), 0)
   const ticketCount = selectedTiers.reduce((sum, t) => sum + (quantities[t.id] || 0), 0)
   const platformFee = Math.round(subtotal * 0.1) + ticketCount * 99
@@ -267,7 +273,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                 <CardTitle>Select Tickets</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {event.ticketTiers.map((tier) => {
+                {availableTiers.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No tickets available for purchase at this time.</p>
+                  </div>
+                )}
+                {availableTiers.map((tier) => {
                   const available = tier.quantity - tier.quantitySold
                   const soldOut = available <= 0
                   const qty = quantities[tier.id] || 0

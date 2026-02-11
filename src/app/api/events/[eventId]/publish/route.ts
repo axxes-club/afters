@@ -25,14 +25,6 @@ export async function POST(
       )
     }
 
-    // Check Stripe Connect status
-    if (!profile.stripeChargesEnabled) {
-      return NextResponse.json(
-        { message: "Complete Stripe setup before publishing" },
-        { status: 400 }
-      )
-    }
-
     // Verify ownership
     const existingEvent = await prisma.event.findUnique({
       where: { id: eventId },

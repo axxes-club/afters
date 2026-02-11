@@ -43,6 +43,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           slug: true,
           logoUrl: true,
           instagramUrl: true,
+          stripeChargesEnabled: true,
         },
       },
       ticketTiers: {
@@ -75,6 +76,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 slug: true,
                 logoUrl: true,
                 instagramUrl: true,
+                stripeChargesEnabled: true,
               },
             },
             ticketTiers: {
@@ -104,12 +106,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   type TierType = typeof event.ticketTiers[number]
 
-  const lowestPrice = event.ticketTiers.reduce(
+  // Filter out paid tiers if Stripe is not enabled
+  const availableTiers = event.organizer.stripeChargesEnabled
+    ? event.ticketTiers
+    : event.ticketTiers.filter((tier: TierType) => tier.price === 0)
+
+  const lowestPrice = availableTiers.reduce(
     (min: number, tier: TierType) => (tier.price < min ? tier.price : min),
-    event.ticketTiers[0]?.price || 0
+    availableTiers[0]?.price || 0
   )
 
-  const totalAvailable = event.ticketTiers.reduce(
+  const totalAvailable = availableTiers.reduce(
     (sum: number, tier: TierType) => sum + (tier.quantity - tier.quantitySold),
     0
   )
@@ -357,7 +364,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 <h3 className="font-bold text-lg mb-4">Get Tickets</h3>
                 
                 <div className="space-y-3 mb-6">
-                  {event.ticketTiers.map((tier: TierType) => {
+                  {availableTiers.map((tier: TierType) => {
                     const available = tier.quantity - tier.quantitySold
                     const soldOut = available <= 0
 

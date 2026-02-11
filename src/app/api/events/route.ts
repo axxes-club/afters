@@ -23,6 +23,7 @@ export async function GET(req: Request) {
             select: {
               displayName: true,
               slug: true,
+              stripeChargesEnabled: true,
             },
           },
           ticketTiers: {
@@ -52,6 +53,7 @@ export async function GET(req: Request) {
                   select: {
                     displayName: true,
                     slug: true,
+                    stripeChargesEnabled: true,
                   },
                 },
                 ticketTiers: {

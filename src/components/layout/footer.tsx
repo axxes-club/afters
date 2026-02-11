@@ -8,7 +8,6 @@ const footerLinks = {
   Organizers: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "New Event", href: "/dashboard/events/new" },
-    { label: "Settings", href: "/dashboard/settings" },
   ],
 };
 

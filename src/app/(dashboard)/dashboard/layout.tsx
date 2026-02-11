@@ -2,23 +2,16 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { 
-  Calendar, 
-  LayoutDashboard, 
-  Settings, 
-  LogOut,
-  Zap,
-  Radio,
-  Users,
-  CreditCard
+import {
+  Calendar,
+  LayoutDashboard,
+  Zap
 } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
 
 const navItems = [
   { href: "/dashboard", label: "CONTROL", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/events", label: "EVENTS", icon: Calendar },
-  { href: "/dashboard/staff", label: "CREW", icon: Users },
-  { href: "/dashboard/settings", label: "CONFIG", icon: Settings },
 ]
 
 export default function DashboardLayout({
@@ -105,16 +98,6 @@ export default function DashboardLayout({
               <span className="text-white/10">|</span>
               <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/dashboard/settings/payouts"
-              className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono text-white/50 hover:text-white border border-white/10 hover:border-white/20 transition-all"
-            >
-              <CreditCard className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">PAYOUTS</span>
-            </Link>
           </div>
         </header>
 

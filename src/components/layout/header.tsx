@@ -7,7 +7,6 @@ import {
   Menu,
   ShieldCheck,
   LogOut,
-  Settings,
   User,
   LayoutDashboard,
   ScanLine,
@@ -151,12 +150,6 @@ export function Header() {
                   <Link href="/dashboard/account" className="cursor-pointer">
                     <User className="h-4 w-4 mr-2" />
                     Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings" className="cursor-pointer">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
                   </Link>
                 </DropdownMenuItem>
                 {isSuperAdmin && (
