@@ -16,6 +16,7 @@ import { FlyerUpload } from "@/components/FlyerUpload"
 import { ScannerManagement } from "@/components/dashboard/ScannerManagement"
 import { ScanActivityLog } from "@/components/dashboard/ScanActivityLog"
 import { ShiftHistory } from "@/components/dashboard/ShiftHistory"
+import { GuestlistManagement } from "@/components/guestlist-management"
 
 interface TicketTier {
   id: string
@@ -394,7 +395,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           defaultValue={event.ticketingType}
                         >
-                          <option value="AFTERS">Afterz (Default)</option>
+                          <option value="AFTERS">Afters (Default)</option>
                           <option value="POSH">Posh.vip</option>
                           <option value="DICE">Dice.fm</option>
                           <option value="TICKETMASTER">Ticketmaster</option>
@@ -422,7 +423,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
             </CardHeader>
             <CardContent>
               <div className="text-sm">
-                <p className="font-medium">{event.ticketingType === 'AFTERS' ? 'Internal (Afterz)' : 'External'}</p>
+                <p className="font-medium">{event.ticketingType === 'AFTERS' ? 'Internal (Afters)' : 'External'}</p>
                 <p className="text-muted-foreground truncate">{event.externalTicketingUrl || 'No external URL'}</p>
               </div>
             </CardContent>
@@ -548,6 +549,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
           )}
         </CardContent>
       </Card>
+
+      {/* Guestlist Management */}
+      <GuestlistManagement eventId={eventId} />
 
       {/* Scanner Management */}
       <ScannerManagement eventId={eventId} />

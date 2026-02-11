@@ -42,6 +42,7 @@ interface CheckInResult {
     tierName: string
     holderName?: string
     checkedInAt?: string
+    isTestTicket?: boolean
   }
 }
 
@@ -221,13 +222,57 @@ export default function ScannerPage({
     setResult(null)
   }
 
-  async function checkInGuestlistEntry(entry: GuestlistEntry) {
-    // TODO: Implement guestlist check-in
-    toast.success(`${entry.name} checked in!`)
-    setGuestlistEntries(prev => 
-      prev.map(e => e.id === entry.id ? { ...e, checkedIn: true } : e)
-    )
+  async function fetchGuestlist(search: string = "") {
+    try {
+      const res = await fetch(`/api/scan/guestlist?search=${encodeURIComponent(search)}`)
+      if (res.ok) {
+        const data = await res.json()
+        setGuestlistEntries(data.entries || [])
+      }
+    } catch (error) {
+      console.error("Failed to fetch guestlist:", error)
+    }
   }
+
+  async function checkInGuestlistEntry(entry: GuestlistEntry) {
+    try {
+      const res = await fetch("/api/scan/guestlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryId: entry.id }),
+      })
+      
+      const data = await res.json()
+      
+      if (data.valid) {
+        toast.success(data.message)
+        setGuestlistEntries(prev => 
+          prev.map(e => e.id === entry.id ? { ...e, checkedIn: true, checkedInAt: new Date().toISOString() } : e)
+        )
+      } else {
+        toast.error(data.error || "Check-in failed")
+      }
+    } catch (error) {
+      toast.error("Check-in failed")
+    }
+  }
+
+  // Fetch guestlist when entering guestlist mode
+  useEffect(() => {
+    if (viewMode === "guestlist" && authenticated) {
+      fetchGuestlist(guestlistSearch)
+    }
+  }, [viewMode, authenticated])
+
+  // Debounced search for guestlist
+  useEffect(() => {
+    if (viewMode === "guestlist" && authenticated) {
+      const timeout = setTimeout(() => {
+        fetchGuestlist(guestlistSearch)
+      }, 300)
+      return () => clearTimeout(timeout)
+    }
+  }, [guestlistSearch])
 
   // Loading state
   if (checkingSession) {
@@ -461,6 +506,13 @@ export default function ScannerPage({
                 <p className="text-white/40 text-center">
                   {result.message || result.error}
                 </p>
+
+                {/* Test Ticket Warning */}
+                {result.ticket?.isTestTicket && (
+                  <div className="mt-4 px-4 py-2 bg-orange-500/20 border border-orange-500/40 rounded-lg">
+                    <p className="text-orange-400 text-sm font-display tracking-wider">⚠️ TEST TICKET</p>
+                  </div>
+                )}
 
                 {result.ticket && (
                   <div className="w-full max-w-sm mt-6 bg-white/[0.02] border border-white/10 divide-y divide-white/10">

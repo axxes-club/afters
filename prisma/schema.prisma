@@ -285,6 +285,7 @@ model Event {
   ticketTiers          TicketTier[]
   scanners             EventScanner[]
   scanLogs             ScanLog[]
+  guestlistEntries     GuestlistEntry[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -362,6 +363,7 @@ model Ticket {
   userId       String
   qrCodeUrl    String?
   status       TicketStatus @default(VALID)
+  isTestTicket Boolean      @default(false) // Test ticket for organizer testing
   checkedInAt  DateTime?
   checkedInBy  String?
   createdAt    DateTime     @default(now())
@@ -375,6 +377,26 @@ model Ticket {
   @@index([eventId])
   @@index([orderId])
   @@index([ticketNumber])
+}
+
+// Guestlist for VIP/comp entries (separate from paid tickets)
+model GuestlistEntry {
+  id          String    @id @default(cuid())
+  eventId     String
+  name        String
+  phone       String?
+  email       String?
+  plusOnes    Int       @default(0) // Number of additional guests allowed
+  notes       String?   // Internal notes (e.g., "VIP", "Artist +1")
+  addedBy     String    // User ID who added this entry
+  checkedInAt DateTime?
+  checkedInBy String?   // Scanner ID who checked them in
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([phone])
 }
 
 model EventView {

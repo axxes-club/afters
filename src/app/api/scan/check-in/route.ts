@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
     )
 
     return NextResponse.json({
-      message: "Check-in successful!",
+      message: ticket.isTestTicket ? "⚠️ TEST TICKET - Check-in successful!" : "Check-in successful!",
       valid: true,
       result: "SUCCESS",
       ticket: {
@@ -165,6 +165,7 @@ export async function POST(req: NextRequest) {
           `${ticket.user.firstName || ""} ${ticket.user.lastName || ""}`.trim() ||
           ticket.user.email,
         checkedInAt: updatedTicket.checkedInAt,
+        isTestTicket: ticket.isTestTicket,
       },
     })
   } catch (error) {
