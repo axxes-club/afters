@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import {
   createScannerToken,
-  setScannerSessionCookie,
   checkRateLimit,
+  SCANNER_SESSION_COOKIE,
+  getScannerCookieOptions,
 } from "@/lib/scanner-auth"
 
 export async function POST(req: NextRequest) {
@@ -68,9 +69,8 @@ export async function POST(req: NextRequest) {
       scanner.eventId,
       scanner.name
     )
-    await setScannerSessionCookie(token)
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       valid: true,
       scanner: {
         id: scanner.id,
@@ -84,6 +84,10 @@ export async function POST(req: NextRequest) {
         total: scanner.event._count.tickets,
       }
     })
+
+    response.cookies.set(SCANNER_SESSION_COOKIE, token, getScannerCookieOptions())
+
+    return response
   } catch (error) {
     console.error("Scanner verification error:", error)
     return NextResponse.json(

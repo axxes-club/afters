@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
 
-const SCANNER_SESSION_COOKIE = "afters-scanner-session"
+export const SCANNER_SESSION_COOKIE = "afters-scanner-session"
 
 function getSecret() {
   const secret = process.env.SCANNER_JWT_SECRET
@@ -51,15 +51,19 @@ export async function getScannerSession(): Promise<ScannerSession | null> {
   return verifyScannerToken(token)
 }
 
-export async function setScannerSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies()
-  cookieStore.set(SCANNER_SESSION_COOKIE, token, {
+export function getScannerCookieOptions() {
+  return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     maxAge: 60 * 60 * 12,
     path: "/",
-  })
+  }
+}
+
+export async function setScannerSessionCookie(token: string): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(SCANNER_SESSION_COOKIE, token, getScannerCookieOptions())
 }
 
 export async function clearScannerSession(): Promise<void> {

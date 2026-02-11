@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import {
   createScannerToken,
-  setScannerSessionCookie,
   checkRateLimit,
+  SCANNER_SESSION_COOKIE,
+  getScannerCookieOptions,
 } from "@/lib/scanner-auth"
 
 // Find scanner by code alone (without needing eventId)
@@ -75,9 +76,8 @@ export async function POST(req: NextRequest) {
       activeScanner.eventId,
       activeScanner.name
     )
-    await setScannerSessionCookie(token)
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       valid: true,
       scanner: {
         id: activeScanner.id,
@@ -89,6 +89,10 @@ export async function POST(req: NextRequest) {
       },
       stats: activeScanner.stats,
     })
+
+    response.cookies.set(SCANNER_SESSION_COOKIE, token, getScannerCookieOptions())
+
+    return response
   } catch (error) {
     console.error("Scanner code lookup error:", error)
     // Log the actual error for debugging
