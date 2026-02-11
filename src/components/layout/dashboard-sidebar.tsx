@@ -15,6 +15,7 @@ import {
   UserCircle,
   Ticket,
   Users,
+  ScanLine,
   LucideIcon,
 } from "lucide-react";
 
@@ -55,6 +56,11 @@ const organizerNavItems: NavItem[] = [
     titleKey: "staff",
     href: "/dashboard/staff",
     icon: Users,
+  },
+  {
+    titleKey: "scanner",
+    href: "/scan",
+    icon: ScanLine,
   },
 ];
 
