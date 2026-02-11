@@ -1,14 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, AlertTriangle, Activity } from "lucide-react"
 
 interface ScanLogEntry {
@@ -67,24 +59,28 @@ export function ScanActivityLog({ eventId }: { eventId: string }) {
   function getResultIcon(result: string) {
     switch (result) {
       case "SUCCESS":
-        return <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+        return <CheckCircle className="h-3.5 w-3.5 text-green-400 shrink-0" />
       case "ALREADY_CHECKED_IN":
-        return <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
+        return <AlertTriangle className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
       default:
-        return <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+        return <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />
     }
   }
 
-  function getResultBadge(result: string) {
-    const map: Record<string, { variant: "default" | "secondary" | "destructive"; label: string }> = {
-      SUCCESS: { variant: "default", label: "Success" },
-      ALREADY_CHECKED_IN: { variant: "secondary", label: "Duplicate" },
-      INVALID_TICKET: { variant: "destructive", label: "Invalid" },
-      CANCELLED_TICKET: { variant: "destructive", label: "Cancelled" },
-      WRONG_EVENT: { variant: "destructive", label: "Wrong Event" },
+  function getResultLabel(result: string) {
+    const map: Record<string, { color: string; label: string }> = {
+      SUCCESS: { color: "text-green-400 border-green-400/30 bg-green-400/5", label: "Success" },
+      ALREADY_CHECKED_IN: { color: "text-yellow-500 border-yellow-500/30 bg-yellow-500/5", label: "Duplicate" },
+      INVALID_TICKET: { color: "text-red-400 border-red-400/30 bg-red-400/5", label: "Invalid" },
+      CANCELLED_TICKET: { color: "text-red-400 border-red-400/30 bg-red-400/5", label: "Cancelled" },
+      WRONG_EVENT: { color: "text-red-400 border-red-400/30 bg-red-400/5", label: "Wrong Event" },
     }
-    const config = map[result] || { variant: "secondary" as const, label: result }
-    return <Badge variant={config.variant}>{config.label}</Badge>
+    const config = map[result] || { color: "text-white/40 border-white/10", label: result }
+    return (
+      <span className={`text-[9px] font-mono tracking-wider px-1.5 py-0.5 border ${config.color}`}>
+        {config.label.toUpperCase()}
+      </span>
+    )
   }
 
   const totalScans = stats?.byResult
@@ -96,101 +92,100 @@ export function ScanActivityLog({ eventId }: { eventId: string }) {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Loading scan activity...
-        </CardContent>
-      </Card>
+      <div className="border border-white/10 bg-white/[0.02]">
+        <div className="p-8 text-center">
+          <div className="w-5 h-5 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin mx-auto" />
+        </div>
+      </div>
     )
   }
 
   if (totalScans === 0) {
-    return null // Don't show card if no scans yet
+    return null
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Scan Activity
-        </CardTitle>
-        <CardDescription>
-          Real-time check-in activity (updates every 10s)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Stats */}
-        <div className="grid gap-4 grid-cols-3">
-          <div className="bg-muted rounded-lg p-4">
-            <p className="text-sm text-muted-foreground">Total Scans</p>
-            <p className="text-2xl font-bold">{totalScans}</p>
-          </div>
-          <div className="bg-muted rounded-lg p-4">
-            <p className="text-sm text-muted-foreground">Successful</p>
-            <p className="text-2xl font-bold text-green-500">
-              {successCount}
-            </p>
-          </div>
-          <div className="bg-muted rounded-lg p-4">
-            <p className="text-sm text-muted-foreground">Success Rate</p>
-            <p className="text-2xl font-bold">{successRate}%</p>
-          </div>
+    <div className="border border-white/10 bg-white/[0.02]">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-white/30" />
+          <span className="text-[10px] font-mono text-white/40 tracking-widest">SCAN ACTIVITY</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+          <span className="text-[10px] font-mono text-white/30">LIVE</span>
+        </div>
+      </div>
 
-        {/* Scans by Scanner */}
-        {stats && stats.byScanner.length > 0 && (
-          <div>
-            <p className="text-sm font-medium mb-2">By Scanner</p>
-            <div className="space-y-1">
-              {stats.byScanner.map((s) => (
-                <div
-                  key={s.scannerId}
-                  className="flex items-center justify-between text-sm py-1"
-                >
-                  <span className="text-muted-foreground">
-                    {s.scannerName}
-                  </span>
-                  <Badge variant="secondary">{s.count} scans</Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Stats */}
+      <div className="grid grid-cols-3 border-b border-white/10">
+        <div className="p-4 text-center border-r border-white/5">
+          <p className="text-2xl font-mono font-bold">{totalScans}</p>
+          <p className="text-[10px] font-mono text-white/40 tracking-widest mt-1">TOTAL SCANS</p>
+        </div>
+        <div className="p-4 text-center border-r border-white/5">
+          <p className="text-2xl font-mono font-bold text-green-400">{successCount}</p>
+          <p className="text-[10px] font-mono text-white/40 tracking-widest mt-1">SUCCESSFUL</p>
+        </div>
+        <div className="p-4 text-center">
+          <p className="text-2xl font-mono font-bold">{successRate}%</p>
+          <p className="text-[10px] font-mono text-white/40 tracking-widest mt-1">SUCCESS RATE</p>
+        </div>
+      </div>
 
-        {/* Recent Activity */}
-        <div>
-          <p className="text-sm font-medium mb-2">Recent Activity</p>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
-            {logs.slice(0, 50).map((log) => (
+      {/* By Scanner */}
+      {stats && stats.byScanner.length > 0 && (
+        <div className="px-4 py-3 border-b border-white/10">
+          <p className="text-[10px] font-mono text-white/30 tracking-widest mb-2">BY SCANNER</p>
+          <div className="space-y-1.5">
+            {stats.byScanner.map((s) => (
               <div
-                key={log.id}
-                className="flex items-start gap-3 p-3 rounded-lg border text-sm"
+                key={s.scannerId}
+                className="flex items-center justify-between text-sm font-mono"
               >
-                {getResultIcon(log.result)}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {getResultBadge(log.result)}
-                    <span className="text-muted-foreground text-xs">
-                      by {log.scanner.name}
-                    </span>
-                  </div>
-                  {log.ticket && (
-                    <p className="text-muted-foreground text-xs mt-1 truncate">
-                      {log.ticket.ticketNumber} · {log.ticket.ticketTier.name}
-                      {log.ticket.user.firstName &&
-                        ` · ${log.ticket.user.firstName} ${log.ticket.user.lastName || ""}`}
-                    </p>
-                  )}
-                </div>
-                <time className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-                  {new Date(log.scannedAt).toLocaleTimeString()}
-                </time>
+                <span className="text-white/50 text-xs">{s.scannerName}</span>
+                <span className="text-[10px] text-white/40 px-2 py-0.5 border border-white/10">
+                  {s.count} scans
+                </span>
               </div>
             ))}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Recent Activity */}
+      <div className="px-4 py-3">
+        <p className="text-[10px] font-mono text-white/30 tracking-widest mb-3">RECENT ACTIVITY</p>
+        <div className="space-y-0 max-h-80 overflow-y-auto divide-y divide-white/5">
+          {logs.slice(0, 50).map((log) => (
+            <div
+              key={log.id}
+              className="flex items-start gap-3 py-2.5"
+            >
+              {getResultIcon(log.result)}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {getResultLabel(log.result)}
+                  <span className="text-[10px] font-mono text-white/30">
+                    by {log.scanner.name}
+                  </span>
+                </div>
+                {log.ticket && (
+                  <p className="text-[10px] font-mono text-white/25 mt-0.5 truncate">
+                    {log.ticket.ticketNumber} · {log.ticket.ticketTier.name}
+                    {log.ticket.user.firstName &&
+                      ` · ${log.ticket.user.firstName} ${log.ticket.user.lastName || ""}`}
+                  </p>
+                )}
+              </div>
+              <time className="text-[10px] font-mono text-white/25 whitespace-nowrap shrink-0">
+                {new Date(log.scannedAt).toLocaleTimeString()}
+              </time>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }

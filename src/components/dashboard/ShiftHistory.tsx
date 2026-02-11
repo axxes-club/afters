@@ -1,14 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Clock } from "lucide-react"
 
 interface Shift {
@@ -52,57 +44,55 @@ export function ShiftHistory({ eventId }: { eventId: string }) {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Loading shifts...
-        </CardContent>
-      </Card>
+      <div className="border border-white/10 bg-white/[0.02]">
+        <div className="p-8 text-center">
+          <div className="w-5 h-5 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin mx-auto" />
+        </div>
+      </div>
     )
   }
 
   if (shifts.length === 0) {
-    return null // Don't show if no shifts
+    return null
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Shift History
-        </CardTitle>
-        <CardDescription>Staff punch in/out records</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {shifts.map((shift) => (
-            <div
-              key={shift.id}
-              className="flex items-center justify-between p-3 rounded-lg border"
-            >
-              <div>
-                <p className="font-medium text-sm">{shift.scanner.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(shift.punchedInAt).toLocaleString()}
-                  {shift.punchedOutAt &&
-                    ` — ${new Date(shift.punchedOutAt).toLocaleTimeString()}`}
-                </p>
-              </div>
-              <div>
-                {shift.punchedOutAt ? (
-                  <Badge variant="secondary">
-                    {formatDuration(shift.punchedInAt, shift.punchedOutAt)}
-                  </Badge>
-                ) : (
-                  <Badge variant="default">
-                    Active · {formatDuration(shift.punchedInAt, null)}
-                  </Badge>
-                )}
-              </div>
+    <div className="border border-white/10 bg-white/[0.02]">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
+        <Clock className="w-4 h-4 text-white/30" />
+        <span className="text-[10px] font-mono text-white/40 tracking-widest">SHIFT HISTORY</span>
+      </div>
+
+      {/* Shifts */}
+      <div className="divide-y divide-white/5">
+        {shifts.map((shift) => (
+          <div
+            key={shift.id}
+            className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-all"
+          >
+            <div>
+              <p className="font-mono text-sm">{shift.scanner.name}</p>
+              <p className="text-[10px] font-mono text-white/30 mt-0.5">
+                {new Date(shift.punchedInAt).toLocaleString()}
+                {shift.punchedOutAt &&
+                  ` — ${new Date(shift.punchedOutAt).toLocaleTimeString()}`}
+              </p>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <div>
+              {shift.punchedOutAt ? (
+                <span className="text-[9px] font-mono text-white/40 tracking-wider px-2 py-0.5 border border-white/10">
+                  {formatDuration(shift.punchedInAt, shift.punchedOutAt)}
+                </span>
+              ) : (
+                <span className="text-[9px] font-mono text-[#ff1493] tracking-wider px-2 py-0.5 border border-[#ff1493]/30 bg-[#ff1493]/5">
+                  ACTIVE · {formatDuration(shift.punchedInAt, null)}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
