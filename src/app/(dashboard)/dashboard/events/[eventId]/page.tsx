@@ -178,7 +178,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
     try {
       const res = await fetch(`/api/events/${eventId}/publish`, { method: "POST" })
       if (res.ok) {
-        toast.success("Event published!")
+        toast.success("Party published!")
         fetchEvent()
       } else {
         const data = await res.json()
@@ -198,7 +198,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
     const url = `${window.location.origin}/e/${event?.slug}`
     navigator.clipboard.writeText(url)
     setCopied(true)
-    toast.success("Event URL copied!")
+    toast.success("Party URL copied!")
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -229,7 +229,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   if (!event) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Event not found</p>
+        <p className="text-muted-foreground">Party not found</p>
       </div>
     )
   }
@@ -268,7 +268,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
               <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 -ml-2" asChild>
                 <Link href="/dashboard/events">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Back to Events</span>
+                  <span className="hidden sm:inline">Back to Parties</span>
                   <span className="sm:hidden">Back</span>
                 </Link>
               </Button>
@@ -393,7 +393,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{copied ? "Copied!" : "Event URL"}</p>
+                <p className="text-sm text-muted-foreground">{copied ? "Copied!" : "Party URL"}</p>
                 <p className="text-sm font-mono truncate max-w-[120px] text-cyan-400">/e/{event.slug}</p>
               </div>
               <div className={cn(
@@ -488,7 +488,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
                   <Circle className="h-5 w-5 text-muted-foreground" />
                 )}
                 <span className={cn("flex-1", event.description ? "text-green-400" : "text-muted-foreground")}>
-                  {event.description ? "Event description added" : "Add event description (optional)"}
+                  {event.description ? "Party description added" : "Add party description (optional)"}
                 </span>
               </div>
             </div>
@@ -518,7 +518,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold font-mono text-green-400">Event is Live!</h3>
+                  <h3 className="font-bold font-mono text-green-400">Party is Live!</h3>
                   <p className="text-sm text-muted-foreground">Share your event to start selling tickets</p>
                 </div>
               </div>
@@ -582,7 +582,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
             <Card className="glass-card border-white/10 overflow-hidden group">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-mono">Event Flyer</CardTitle>
+                  <CardTitle className="text-sm font-mono">Party Flyer</CardTitle>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -719,7 +719,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
               <div className="p-3 rounded-xl bg-pink/10 group-hover:bg-pink/20 transition-colors">
                 <Copy className="h-6 w-6 text-pink" />
               </div>
-              <span className="font-medium">Copy Event Link</span>
+              <span className="font-medium">Copy Party Link</span>
             </Button>
           </div>
         </TabsContent>
@@ -860,7 +860,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
         <TabsContent value="settings" className="space-y-6">
           <Card className="glass-card border-white/10">
             <CardHeader>
-              <CardTitle className="font-mono">Event Details</CardTitle>
+              <CardTitle className="font-mono">Party Details</CardTitle>
               <CardDescription>Basic information about your event</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -959,7 +959,7 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
       <Dialog open={showFlyerDialog} onOpenChange={setShowFlyerDialog}>
         <DialogContent className="glass-card border-white/10">
           <DialogHeader>
-            <DialogTitle className="font-mono">Update Event Flyer</DialogTitle>
+            <DialogTitle className="font-mono">Update Party Flyer</DialogTitle>
             <DialogDescription>Upload a new flyer image</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

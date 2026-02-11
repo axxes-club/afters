@@ -123,11 +123,11 @@ function NewEventForm() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || "Failed to create event");
+        throw new Error(error.message || "Failed to create party");
       }
 
       const event = await res.json();
-      toast.success("Event created! Now add ticket tiers.");
+      toast.success("Party created! Now add ticket tiers.");
       router.push(`/dashboard/events/${event.id}`);
     } catch (error) {
       toast.error(
@@ -149,13 +149,13 @@ function NewEventForm() {
           className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm">Back to events</span>
+          <span className="text-sm">Back to parties</span>
         </Link>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight font-display">
           <span className="text-gradient">CREATE</span>
           <span className="text-white"> EVENT</span>
         </h1>
-        <p className="text-white/50 mt-2">Set up your event and start selling tickets</p>
+        <p className="text-white/50 mt-2">Set up your party and start selling tickets</p>
       </div>
 
       <form onSubmit={onSubmit}>
@@ -173,7 +173,7 @@ function NewEventForm() {
               }}
             >
               <div className="p-4 border-b border-white/10 bg-white/[0.02]">
-                <h3 className="font-bold text-sm tracking-wider uppercase text-white/60">Event Flyer</h3>
+                <h3 className="font-bold text-sm tracking-wider uppercase text-white/60">Party Flyer</h3>
               </div>
               <div className="p-4">
                 <FlyerUpload
@@ -202,7 +202,7 @@ function NewEventForm() {
                     )}
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-lg truncate" style={{ color: title ? 'white' : 'rgba(255,255,255,0.3)' }}>
-                        {title || 'Event Title'}
+                        {title || 'Party Title'}
                       </h4>
                       <p className="text-sm text-white/40 truncate">
                         {city || 'City'} • {ageRestriction === 'all' ? 'All Ages' : `${ageRestriction}+`}
@@ -216,7 +216,7 @@ function NewEventForm() {
 
           {/* Right Column - Form */}
           <div className="space-y-6">
-            {/* Event Details Section */}
+            {/* Party Details Section */}
             <section
               className="rounded-2xl border border-white/10 overflow-hidden animate-fade-in-up"
               style={{ animationDelay: '0.3s', opacity: 0 }}
@@ -227,14 +227,14 @@ function NewEventForm() {
                     <Sparkles className="h-5 w-5 text-[#ff1493]" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-lg">Event Details</h2>
-                    <p className="text-sm text-white/40">Basic information about your event</p>
+                    <h2 className="font-bold text-lg">Party Details</h2>
+                    <p className="text-sm text-white/40">Basic information about your party</p>
                   </div>
                 </div>
               </div>
               <div className="p-5 space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-white/70">Event Title *</Label>
+                  <Label htmlFor="title" className="text-white/70">Party Title *</Label>
                   <Input
                     id="title"
                     name="title"
@@ -323,7 +323,7 @@ function NewEventForm() {
                   </div>
                   <div>
                     <h2 className="font-bold text-lg">Venue</h2>
-                    <p className="text-sm text-white/40">Where is this event happening?</p>
+                    <p className="text-sm text-white/40">Where is this party happening?</p>
                   </div>
                 </div>
               </div>
@@ -503,7 +503,7 @@ function NewEventForm() {
                   </div>
                   <div>
                     <h2 className="font-bold text-lg">Page Style</h2>
-                    <p className="text-sm text-white/40">Customize your event page look</p>
+                    <p className="text-sm text-white/40">Customize your party page look</p>
                   </div>
                 </div>
               </div>
@@ -585,10 +585,10 @@ function NewEventForm() {
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    Creating Event...
+                    Creating Party...
                   </span>
                 ) : (
-                  "Create Event"
+                  "Create Party"
                 )}
               </Button>
             </div>
