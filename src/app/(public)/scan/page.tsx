@@ -154,7 +154,7 @@ export default function ScannerEntryPage() {
             <div className="w-3 h-3 bg-[#ff1493] animate-pulse" />
           </div>
 
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-white">
+          <h1 className="text-6xl sm:text-7xl font-headline tracking-wide text-white">
             AFTERS<span className="text-[#ff1493]">.</span>
           </h1>
 
