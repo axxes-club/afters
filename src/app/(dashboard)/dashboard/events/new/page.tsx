@@ -67,7 +67,6 @@ function NewEventForm() {
   const [city, setCity] = useState<string>("");
   const [timezone, setTimezone] = useState<string>("America/New_York");
   const [ageRestriction, setAgeRestriction] = useState<string>("21");
-  const [ticketingType, setTicketingType] = useState<string>("AFTERS");
   
   // Underground features
   const [isAddressHidden, setIsAddressHidden] = useState(false);
@@ -116,8 +115,6 @@ function NewEventForm() {
       state: formData.get("state"),
       ageRestriction: ageRestriction === "all" ? null : parseInt(ageRestriction),
       flyerUrl: flyerUrl,
-      ticketingType: ticketingType,
-      externalTicketingUrl: formData.get("externalTicketingUrl") || null,
       // Underground features
       isAddressHidden,
       pageTheme,
@@ -453,45 +450,6 @@ function NewEventForm() {
           </CardContent>
         </Card>
 
-        {/* Ticketing Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ticketing</CardTitle>
-            <CardDescription>
-              How will tickets be sold?
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="ticketingType">Ticketing Platform</Label>
-              <Select value={ticketingType} onValueChange={setTicketingType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AFTERS">Afters Direct (Default)</SelectItem>
-                  <SelectItem value="POSH">Posh.vip</SelectItem>
-                  <SelectItem value="DICE">Dice.fm</SelectItem>
-                  <SelectItem value="TICKETMASTER">Ticketmaster</SelectItem>
-                  <SelectItem value="LIVENATION">Live Nation</SelectItem>
-                  <SelectItem value="EVENTBRITE">Eventbrite</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {ticketingType !== "AFTERS" && (
-              <div className="space-y-2">
-                <Label htmlFor="externalTicketingUrl">External Ticket URL</Label>
-                <Input
-                  id="externalTicketingUrl"
-                  name="externalTicketingUrl"
-                  placeholder="https://posh.vip/e/..."
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading ? "Creating..." : "Create Event"}

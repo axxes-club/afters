@@ -176,16 +176,7 @@ function LivePlayer({ radioState, trackProgress }: { radioState: RadioState; tra
             <h2 className="text-2xl sm:text-3xl font-bold text-white font-display mb-1">
               {track.title}
             </h2>
-            {track.artistSlug && track.artistSlug !== "unknown" ? (
-              <Link
-                href={`/a/${track.artistSlug}`}
-                className="text-lg text-white/60 hover:text-pink transition-colors"
-              >
-                {track.artistName}
-              </Link>
-            ) : (
-              <p className="text-lg text-white/60">{track.artistName}</p>
-            )}
+            <p className="text-lg text-white/60">{track.artistName}</p>
 
             {/* Progress bar */}
             <div className="mt-4 mb-2">
@@ -332,16 +323,7 @@ function ScheduleTimeline({ timeline }: { timeline: TimelineTrack[] }) {
                 >
                   {track.title}
                 </p>
-                {track.artistSlug && track.artistSlug !== "unknown" ? (
-                  <Link
-                    href={`/a/${track.artistSlug}`}
-                    className="text-xs text-white/40 hover:text-pink transition-colors truncate block"
-                  >
-                    {track.artistName}
-                  </Link>
-                ) : (
-                  <p className="text-xs text-white/40 truncate">{track.artistName}</p>
-                )}
+                <p className="text-xs text-white/40 truncate">{track.artistName}</p>
               </div>
 
               {/* Duration */}

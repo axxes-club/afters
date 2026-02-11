@@ -1,22 +1,14 @@
 import Link from "next/link";
 
 const footerLinks = {
-  Discover: [
-    { label: "Browse Events", href: "/events" },
+  Platform: [
     { label: "Radio", href: "/radio" },
-    { label: "Pricing", href: "/pricing" },
     { label: "Status", href: "/status" },
   ],
   Organizers: [
-    { label: "Host an Event", href: "/dashboard/events/new" },
     { label: "Dashboard", href: "/dashboard" },
-    { label: "Organizer Settings", href: "/dashboard/settings" },
-  ],
-  Account: [
-    { label: "Sign In", href: "/sign-in" },
-    { label: "Sign Up", href: "/sign-up" },
-    { label: "My Tickets", href: "/my-tickets" },
-    { label: "Saved Events", href: "/saved-events" },
+    { label: "New Event", href: "/dashboard/events/new" },
+    { label: "Settings", href: "/dashboard/settings" },
   ],
 };
 

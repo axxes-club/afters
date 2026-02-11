@@ -76,14 +76,6 @@ export default async function ArtistPage() {
             Manage your artist profile and submit tracks to AFTERS RADIO.
           </p>
         </div>
-        {artistProfile && (
-          <Button asChild className="w-full sm:w-auto">
-            <Link href={`/a/${artistProfile.slug}`} target="_blank">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View Profile
-            </Link>
-          </Button>
-        )}
       </div>
 
       {/* Stats */}

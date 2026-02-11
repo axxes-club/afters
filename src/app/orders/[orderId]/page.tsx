@@ -183,9 +183,6 @@ export default async function OrderConfirmationPage({
                   </div>
                 ))}
               </div>
-              <Button asChild className="w-full mt-4">
-                <Link href="/my-tickets">View All My Tickets</Link>
-              </Button>
             </CardContent>
           </Card>
         )}

@@ -10,6 +10,7 @@ import {
   Settings,
   User,
   LayoutDashboard,
+  ScanLine,
 } from "lucide-react";
 
 const GHOST_BANNER_HEIGHT = 44; // px - must match GhostBanner.tsx
@@ -29,11 +30,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useTranslations } from "next-intl";
 
 export function Header() {
-  const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isGhosting, setIsGhosting] = useState(false);
@@ -83,21 +81,14 @@ export function Header() {
               href="/dashboard"
               className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              {t("dashboard")}
+              DASHBOARD
             </Link>
-          </SignedIn>
-          <Link
-            href="/events"
-            className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
-          >
-            {t("events")}
-          </Link>
-          <SignedIn>
             <Link
-              href="/my-tickets"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
+              href="/scan"
+              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase flex items-center gap-1.5"
             >
-              {t("myTickets")}
+              <ScanLine className="h-4 w-4" />
+              SCAN
             </Link>
             {isSuperAdmin && (
               <Link
@@ -109,28 +100,22 @@ export function Header() {
               </Link>
             )}
           </SignedIn>
-          <LanguageSwitcher />
         </nav>
 
         <div className="flex items-center gap-3 md:gap-4">
-          {/* Mobile Language Switcher */}
-          <div className="md:hidden">
-            <LanguageSwitcher />
-          </div>
-
           <SignedOut>
             {/* Desktop auth buttons */}
             <Link
               href="/sign-in"
               className="hidden md:block text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
             >
-              {t("signIn")}
+              SIGN IN
             </Link>
             <Link
               href="/sign-up"
               className="hidden md:block text-sm px-4 py-2 bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors"
             >
-              {t("signUp")}
+              SIGN UP
             </Link>
           </SignedOut>
           <SignedIn>
@@ -225,23 +210,15 @@ export function Header() {
                     onClick={closeMenu}
                     className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
                   >
-                    {t("dashboard")}
+                    DASHBOARD
                   </Link>
-                </SignedIn>
-                <Link
-                  href="/events"
-                  onClick={closeMenu}
-                  className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
-                >
-                  {t("events")}
-                </Link>
-                <SignedIn>
                   <Link
-                    href="/my-tickets"
+                    href="/scan"
                     onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
+                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase gap-2"
                   >
-                    {t("myTickets")}
+                    <ScanLine className="h-4 w-4" />
+                    SCAN
                   </Link>
                   {isSuperAdmin && (
                     <Link
@@ -250,7 +227,7 @@ export function Header() {
                       className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest text-[#ff1493] hover:bg-[#ff1493]/10 transition-colors gap-2"
                     >
                       <ShieldCheck className="h-4 w-4" />
-                      SUPERADMIN
+                      ADMIN
                     </Link>
                   )}
                 </SignedIn>
@@ -262,14 +239,14 @@ export function Header() {
                       onClick={closeMenu}
                       className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest border border-[#ff1493]/30 hover:bg-[#ff1493]/10 transition-colors uppercase"
                     >
-                      {t("signIn")}
+                      SIGN IN
                     </Link>
                     <Link
                       href="/sign-up"
                       onClick={closeMenu}
                       className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase"
                     >
-                      {t("signUp")}
+                      SIGN UP
                     </Link>
                   </div>
                 </SignedOut>

@@ -105,20 +105,12 @@ export default async function OrganizerPage() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/o/${profile.slug}`} target="_blank">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View Public Page
-            </Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/dashboard/events/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Event
-            </Link>
-          </Button>
-        </div>
+        <Button asChild size="sm">
+          <Link href="/dashboard/events/new">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Event
+          </Link>
+        </Button>
       </div>
 
       {/* Stripe Status Banner */}

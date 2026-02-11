@@ -6,11 +6,7 @@ function createStripe() {
     // Return a placeholder during build time
     return null
   }
-  return new Stripe(key, {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    apiVersion: '2025-12-18.acacia' as any,
-    typescript: true,
-  })
+  return new Stripe(key)
 }
 
 let _stripe: Stripe | null = null

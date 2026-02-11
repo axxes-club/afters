@@ -453,18 +453,9 @@ export function AftersRadio() {
                     <p className="text-sm font-semibold text-white truncate">
                       {radioState.currentTrack.title}
                     </p>
-                    {radioState.currentTrack.artistSlug && radioState.currentTrack.artistSlug !== "unknown" ? (
-                      <Link 
-                        href={`/a/${radioState.currentTrack.artistSlug}`}
-                        className="text-xs text-white/60 hover:text-[#ff1493] transition-colors truncate block"
-                      >
-                        {radioState.currentTrack.artistName}
-                      </Link>
-                    ) : (
-                      <p className="text-xs text-white/60 truncate">
-                        {radioState.currentTrack.artistName}
-                      </p>
-                    )}
+                    <p className="text-xs text-white/60 truncate">
+                      {radioState.currentTrack.artistName}
+                    </p>
                     <div className="flex items-center gap-2 mt-1 text-[10px] text-white/40">
                       <span>{formatTime(trackProgress)}</span>
                       <span>/</span>
@@ -548,16 +539,7 @@ export function AftersRadio() {
                           )}>
                             {track.title}
                           </p>
-                          {track.artistSlug && track.artistSlug !== "unknown" ? (
-                            <Link 
-                              href={`/a/${track.artistSlug}`}
-                              className="text-[10px] text-white/40 hover:text-[#ff1493] transition-colors truncate block"
-                            >
-                              {track.artistName}
-                            </Link>
-                          ) : (
-                            <p className="text-[10px] text-white/40 truncate">{track.artistName}</p>
-                          )}
+                          <p className="text-[10px] text-white/40 truncate">{track.artistName}</p>
                         </div>
                         <span className="text-[10px] text-white/30">
                           {formatTime(track.duration)}

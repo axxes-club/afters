@@ -46,8 +46,6 @@ interface Event {
   flyerUrl: string | null
   status: string
   isPublished: boolean
-  ticketingType: string
-  externalTicketingUrl: string | null
   ticketTiers: TicketTier[]
 }
 
@@ -57,10 +55,8 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   const [loading, setLoading] = useState(true)
   const [showTierDialog, setShowTierDialog] = useState(false)
   const [showFlyerDialog, setShowFlyerDialog] = useState(false)
-  const [showTicketingDialog, setShowTicketingDialog] = useState(false)
   const [tierLoading, setTierLoading] = useState(false)
   const [flyerLoading, setFlyerLoading] = useState(false)
-  const [ticketingLoading, setTicketingLoading] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [tempFlyerUrl, setTempFlyerUrl] = useState<string | null>(null)
 
@@ -154,37 +150,6 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
       toast.error("Failed to update flyer")
     } finally {
       setFlyerLoading(false)
-    }
-  }
-
-  async function updateTicketing(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setTicketingLoading(true)
-
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      ticketingType: formData.get("ticketingType"),
-      externalTicketingUrl: formData.get("externalTicketingUrl"),
-    }
-
-    try {
-      const res = await fetch(`/api/events/${eventId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-
-      if (res.ok) {
-        toast.success("Ticketing settings updated")
-        setShowTicketingDialog(false)
-        fetchEvent()
-      } else {
-        toast.error("Failed to update settings")
-      }
-    } catch {
-      toast.error("Failed to update settings")
-    } finally {
-      setTicketingLoading(false)
     }
   }
 
@@ -522,32 +487,6 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
         <TabsContent value="settings" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Ticketing Settings</CardTitle>
-              <CardDescription>Configure how tickets are sold for this event</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg border">
-                <div>
-                  <p className="font-medium">Platform</p>
-                  <p className="text-sm text-muted-foreground">
-                    {event.ticketingType === 'AFTERS' ? 'Afters (Internal)' : event.ticketingType}
-                  </p>
-                  {event.externalTicketingUrl && (
-                    <p className="text-xs text-muted-foreground truncate max-w-xs">
-                      {event.externalTicketingUrl}
-                    </p>
-                  )}
-                </div>
-                <Button variant="outline" size="sm" onClick={() => setShowTicketingDialog(true)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle>Event Details</CardTitle>
               <CardDescription>Basic information about your event</CardDescription>
             </CardHeader>
@@ -664,44 +603,6 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
         </DialogContent>
       </Dialog>
 
-      {/* Ticketing Dialog */}
-      <Dialog open={showTicketingDialog} onOpenChange={setShowTicketingDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ticketing Settings</DialogTitle>
-            <DialogDescription>Configure your ticketing platform</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={updateTicketing} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="ticketingType">Platform</Label>
-              <select 
-                name="ticketingType" 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                defaultValue={event.ticketingType}
-              >
-                <option value="AFTERS">Afters (Default)</option>
-                <option value="POSH">Posh.vip</option>
-                <option value="DICE">Dice.fm</option>
-                <option value="TICKETMASTER">Ticketmaster</option>
-                <option value="LIVENATION">Live Nation</option>
-                <option value="EVENTBRITE">Eventbrite</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="externalTicketingUrl">External URL</Label>
-              <Input
-                name="externalTicketingUrl"
-                defaultValue={event.externalTicketingUrl || ""}
-                placeholder="https://..."
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={ticketingLoading}>
-              {ticketingLoading ? "Saving..." : "Save Settings"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

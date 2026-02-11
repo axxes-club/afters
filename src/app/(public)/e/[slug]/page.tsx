@@ -7,7 +7,7 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
-import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ExternalLink } from "lucide-react"
+import { CalendarDays, MapPin, Clock, Users, Lock, Instagram } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
 import { auth } from "@clerk/nextjs/server"
 import { SaveEventButton } from "@/components/SaveEventButton"
@@ -176,10 +176,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <div className="relative z-10 w-full p-6 md:p-10 pb-8">
           <div className="container mx-auto max-w-4xl">
             {/* Organizer */}
-            <Link 
-              href={`/o/${event.organizer.slug}`}
-              className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors mb-4"
-            >
+            <div className="inline-flex items-center gap-2 text-sm text-white/60 mb-4">
               {event.organizer.logoUrl && (
                 <Image
                   src={event.organizer.logoUrl}
@@ -190,7 +187,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 />
               )}
               {event.organizer.displayName}
-            </Link>
+            </div>
             
             {/* Title */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
@@ -242,24 +239,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
             </p>
           </div>
-          {event.externalTicketingUrl ? (
-            <Button 
-              size="lg" 
-              className="flex-1 max-w-[200px] font-bold"
-              style={{ backgroundColor: accentColor }}
-              asChild
-            >
-              <a 
-                href={event.externalTicketingUrl.startsWith('http') ? event.externalTicketingUrl : `https://${event.externalTicketingUrl}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                Get Tickets
-              </a>
-            </Button>
-          ) : totalAvailable > 0 ? (
-            <Button 
-              size="lg" 
+          {totalAvailable > 0 ? (
+            <Button
+              size="lg"
               className="flex-1 max-w-[200px] font-bold"
               style={{ backgroundColor: accentColor }}
               asChild
@@ -407,28 +389,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   })}
                 </div>
 
-                {event.externalTicketingUrl ? (
-                  <Button 
-                    className="w-full font-bold"
-                    size="lg"
-                    style={{ backgroundColor: accentColor }}
-                    asChild
-                  >
-                    <a 
-                      href={event.externalTicketingUrl.startsWith('http') ? event.externalTicketingUrl : `https://${event.externalTicketingUrl}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Get Tickets
-                    </a>
-                  </Button>
-                ) : event.ticketingType !== 'AFTERS' ? (
-                  <Button className="w-full" size="lg" disabled>
-                    Tickets Coming Soon
-                  </Button>
-                ) : totalAvailable > 0 ? (
-                  <Button 
+                {totalAvailable > 0 ? (
+                  <Button
                     className="w-full font-bold"
                     size="lg"
                     style={{ backgroundColor: accentColor }}
@@ -446,10 +408,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
                 {/* Organizer Card */}
                 <div className="mt-6 pt-6 border-t border-white/10">
-                  <Link 
-                    href={`/o/${event.organizer.slug}`}
-                    className="flex items-center gap-3 group"
-                  >
+                  <div className="flex items-center gap-3">
                     {event.organizer.logoUrl ? (
                       <Image
                         src={event.organizer.logoUrl}
@@ -459,7 +418,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                         className="rounded-full"
                       />
                     ) : (
-                      <div 
+                      <div
                         className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
                         style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
                       >
@@ -468,11 +427,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white/50">Presented by</p>
-                      <p className="font-medium group-hover:text-white/80 transition-colors truncate">
+                      <p className="font-medium truncate">
                         {event.organizer.displayName}
                       </p>
                     </div>
-                  </Link>
+                  </div>
                 </div>
               </div>
             </div>

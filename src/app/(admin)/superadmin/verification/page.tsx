@@ -273,15 +273,7 @@ export default function VerificationManagementPage() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-2 shrink-0">
-                        {request.artistProfile?.slug && (
-                          <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-                            <a href={`/a/${request.artistProfile.slug}`} target="_blank">
-                              <ExternalLink className="h-4 w-4 mr-1" />
-                              Profile
-                            </a>
-                          </Button>
-                        )}
-                        <Button 
+                        <Button
                           variant={request.status === "PENDING" ? "default" : "outline"}
                           size="sm"
                           onClick={() => {
