@@ -10,25 +10,10 @@ import {
   User,
   LayoutDashboard,
   ScanLine,
+  X,
 } from "lucide-react";
 
-const GHOST_BANNER_HEIGHT = 44; // px - must match GhostBanner.tsx
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+const GHOST_BANNER_HEIGHT = 44;
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -47,7 +32,6 @@ export function Header() {
       })
       .catch(() => {});
 
-    // Check if in ghost mode
     fetch("/api/admin/ghost")
       .then((res) => res.json())
       .then((data) => {
@@ -61,193 +45,187 @@ export function Header() {
   const closeMenu = () => setOpen(false);
 
   return (
-    <header
-      className="fixed left-0 right-0 z-50 glass transition-all duration-200"
-      style={{ top: isGhosting ? `${GHOST_BANNER_HEIGHT}px` : "0" }}
-    >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link
-          href="/"
-          className="text-xl md:text-2xl font-bold font-display tracking-tight"
-        >
-          AFTERS<span className="text-[#ff1493]">.</span>
-        </Link>
+    <>
+      <header
+        className="fixed left-0 right-0 z-50 bg-black border-b border-white/5 font-mono"
+        style={{ top: isGhosting ? `${GHOST_BANNER_HEIGHT}px` : "0" }}
+      >
+        <div className="container mx-auto flex h-14 items-center justify-between px-4">
+          <Link href="/" className="text-lg font-bold tracking-tight">
+            AFTERS<span className="text-[#ff1493]">.</span>
+          </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
-          <SignedIn>
-            <Link
-              href="/dashboard"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
-            >
-              DASHBOARD
-            </Link>
-            <Link
-              href="/scan"
-              className="text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase flex items-center gap-1.5"
-            >
-              <ScanLine className="h-4 w-4" />
-              SCAN
-            </Link>
-            {isSuperAdmin && (
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-6">
+            <SignedIn>
               <Link
-                href="/superadmin"
-                className="text-sm tracking-widest text-[#ff1493] hover:text-[#ff69b4] transition-colors flex items-center gap-1"
+                href="/dashboard"
+                className="text-xs tracking-wider text-white/50 hover:text-white transition-colors uppercase"
               >
-                <ShieldCheck className="h-4 w-4" />
-                ADMIN
+                Dashboard
               </Link>
-            )}
-          </SignedIn>
-        </nav>
-
-        <div className="flex items-center gap-3 md:gap-4">
-          <SignedOut>
-            {/* Desktop auth buttons */}
-            <Link
-              href="/sign-in"
-              className="hidden md:block text-sm tracking-widest hover:text-[#ff1493] transition-colors uppercase"
-            >
-              SIGN IN
-            </Link>
-            <Link
-              href="/sign-up"
-              className="hidden md:block text-sm px-4 py-2 bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors"
-            >
-              SIGN UP
-            </Link>
-          </SignedOut>
-          <SignedIn>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="focus:outline-none focus:ring-2 focus:ring-[#ff1493]/50 rounded-full">
-                  <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-[#ff1493]/50 hover:border-[#ff1493] transition-colors cursor-pointer">
-                    <AvatarImage src={user?.imageUrl} />
-                    <AvatarFallback className="bg-[#ff1493]/10 text-[#ff1493] text-sm">
-                      {user?.firstName?.[0] ||
-                        user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.emailAddresses?.[0]?.emailAddress}
-                  </p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="cursor-pointer">
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/account" className="cursor-pointer">
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                {isSuperAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/superadmin"
-                        className="cursor-pointer text-[#ff1493]"
-                      >
-                        <ShieldCheck className="h-4 w-4 mr-2" />
-                        Superadmin
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => signOut({ redirectUrl: "/" })}
-                  className="cursor-pointer text-red-500 focus:text-red-500"
+              <Link
+                href="/scan"
+                className="text-xs tracking-wider text-white/50 hover:text-white transition-colors uppercase flex items-center gap-1.5"
+              >
+                <ScanLine className="h-3 w-3" />
+                Scan
+              </Link>
+              {isSuperAdmin && (
+                <Link
+                  href="/superadmin"
+                  className="text-xs tracking-wider text-[#ff1493] hover:text-[#ff69b4] transition-colors flex items-center gap-1"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SignedIn>
+                  <ShieldCheck className="h-3 w-3" />
+                  Admin
+                </Link>
+              )}
+            </SignedIn>
+          </nav>
 
-          {/* Mobile Menu */}
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-72 bg-background/95 backdrop-blur-lg border-l border-[#ff1493]/20"
-            >
-              <SheetHeader className="border-b border-[#ff1493]/20 pb-4">
-                <SheetTitle className="text-left font-display text-xl tracking-tight">
-                  AFTERS<span className="text-[#ff1493]">.</span>
-                </SheetTitle>
-              </SheetHeader>
-
-              <nav className="flex flex-col gap-1 mt-6">
-                <SignedIn>
-                  <Link
-                    href="/dashboard"
-                    onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase"
+          <div className="flex items-center gap-3">
+            <SignedOut>
+              <Link
+                href="/sign-in"
+                className="hidden md:block text-xs tracking-wider text-white/50 hover:text-white transition-colors uppercase"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/sign-up"
+                className="hidden md:block text-xs px-4 py-2 bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase tracking-wider"
+              >
+                Sign Up
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              {/* User Menu Desktop */}
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  href="/dashboard/account"
+                  className="flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/20 transition-colors"
+                >
+                  <div
+                    className="w-6 h-6 flex items-center justify-center text-xs font-bold"
+                    style={{ backgroundColor: '#ff149320', color: '#ff1493' }}
                   >
-                    DASHBOARD
-                  </Link>
-                  <Link
-                    href="/scan"
-                    onClick={closeMenu}
-                    className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest hover:bg-[#ff1493]/10 hover:text-[#ff1493] transition-colors uppercase gap-2"
-                  >
-                    <ScanLine className="h-4 w-4" />
-                    SCAN
-                  </Link>
-                  {isSuperAdmin && (
-                    <Link
-                      href="/superadmin"
-                      onClick={closeMenu}
-                      className="flex items-center h-12 px-4 rounded-lg text-sm tracking-widest text-[#ff1493] hover:bg-[#ff1493]/10 transition-colors gap-2"
-                    >
-                      <ShieldCheck className="h-4 w-4" />
-                      ADMIN
-                    </Link>
-                  )}
-                </SignedIn>
-
-                <SignedOut>
-                  <div className="border-t border-[#ff1493]/20 mt-4 pt-4 space-y-2">
-                    <Link
-                      href="/sign-in"
-                      onClick={closeMenu}
-                      className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest border border-[#ff1493]/30 hover:bg-[#ff1493]/10 transition-colors uppercase"
-                    >
-                      SIGN IN
-                    </Link>
-                    <Link
-                      href="/sign-up"
-                      onClick={closeMenu}
-                      className="flex items-center justify-center h-12 px-4 rounded-lg text-sm tracking-widest bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase"
-                    >
-                      SIGN UP
-                    </Link>
+                    {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
                   </div>
-                </SignedOut>
-              </nav>
-            </SheetContent>
-          </Sheet>
+                  <span className="text-xs text-white/70">{user?.firstName || 'Account'}</span>
+                </Link>
+                <button
+                  onClick={() => signOut({ redirectUrl: "/" })}
+                  className="p-2 text-white/30 hover:text-white/60 transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            </SignedIn>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setOpen(true)}
+              className="md:hidden p-2 text-white/50 hover:text-white transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {open && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/80"
+            onClick={closeMenu}
+          />
+          <div className="absolute right-0 top-0 bottom-0 w-72 bg-black border-l border-white/5 font-mono">
+            <div className="flex items-center justify-between h-14 px-4 border-b border-white/5">
+              <span className="text-lg font-bold">
+                AFTERS<span className="text-[#ff1493]">.</span>
+              </span>
+              <button
+                onClick={closeMenu}
+                className="p-2 text-white/50 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <nav className="p-4 space-y-1">
+              <SignedIn>
+                <Link
+                  href="/dashboard"
+                  onClick={closeMenu}
+                  className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-white/70 hover:text-white hover:bg-white/5 transition-colors uppercase"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Link
+                  href="/scan"
+                  onClick={closeMenu}
+                  className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-white/70 hover:text-white hover:bg-white/5 transition-colors uppercase"
+                >
+                  <ScanLine className="h-4 w-4" />
+                  Scan
+                </Link>
+                <Link
+                  href="/dashboard/account"
+                  onClick={closeMenu}
+                  className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-white/70 hover:text-white hover:bg-white/5 transition-colors uppercase"
+                >
+                  <User className="h-4 w-4" />
+                  Account
+                </Link>
+                {isSuperAdmin && (
+                  <Link
+                    href="/superadmin"
+                    onClick={closeMenu}
+                    className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-[#ff1493] hover:bg-[#ff1493]/10 transition-colors uppercase"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    Superadmin
+                  </Link>
+                )}
+                <div className="border-t border-white/5 mt-4 pt-4">
+                  <button
+                    onClick={() => {
+                      closeMenu();
+                      signOut({ redirectUrl: "/" });
+                    }}
+                    className="flex items-center gap-3 w-full h-11 px-3 text-xs tracking-wider text-red-400 hover:bg-red-500/10 transition-colors uppercase"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </SignedIn>
+
+              <SignedOut>
+                <div className="space-y-2 pt-2">
+                  <Link
+                    href="/sign-in"
+                    onClick={closeMenu}
+                    className="flex items-center justify-center h-11 text-xs tracking-wider border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors uppercase"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    onClick={closeMenu}
+                    className="flex items-center justify-center h-11 text-xs tracking-wider bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              </SignedOut>
+            </nav>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

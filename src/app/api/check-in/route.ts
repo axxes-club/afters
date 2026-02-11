@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Ticket ID required" }, { status: 400 })
     }
 
-    // Get ticket
+    // Get ticket with order for guest name
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
       include: {
@@ -26,6 +26,12 @@ export async function POST(req: Request) {
           },
         },
         ticketTier: true,
+        order: {
+          select: {
+            guestName: true,
+            email: true,
+          },
+        },
         user: {
           select: {
             firstName: true,
@@ -64,6 +70,11 @@ export async function POST(req: Request) {
       )
     }
 
+    // Determine holder name - guest name or user name
+    const holderName = ticket.user
+      ? (`${ticket.user.firstName || ""} ${ticket.user.lastName || ""}`.trim() || ticket.user.email)
+      : (ticket.order?.guestName || ticket.order?.email || "Guest")
+
     // Check ticket status
     if (ticket.status === "CHECKED_IN") {
       return NextResponse.json({
@@ -72,7 +83,7 @@ export async function POST(req: Request) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           tierName: ticket.ticketTier.name,
-          holderName: `${ticket.user.firstName || ""} ${ticket.user.lastName || ""}`.trim() || ticket.user.email,
+          holderName,
           checkedInAt: ticket.checkedInAt,
         },
       })
@@ -106,7 +117,7 @@ export async function POST(req: Request) {
       ticket: {
         ticketNumber: ticket.ticketNumber,
         tierName: ticket.ticketTier.name,
-        holderName: `${ticket.user.firstName || ""} ${ticket.user.lastName || ""}`.trim() || ticket.user.email,
+        holderName,
         checkedInAt: updatedTicket.checkedInAt,
       },
     })

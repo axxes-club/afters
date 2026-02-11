@@ -66,9 +66,15 @@ export async function POST(req: Request) {
                 orderId: order.id,
                 eventId: order.eventId,
                 ticketTierId: item.ticketTierId,
-                userId: order.userId,
+                userId: order.userId || null, // null for guest orders
               },
             })
+
+            // Determine holder name - use guest name or user name
+            const holderName = order.guestName
+              || (order.user?.firstName && order.user?.lastName
+                ? `${order.user.firstName} ${order.user.lastName}`
+                : undefined)
 
             createdTickets.push({
               ticketNumber: ticket.ticketNumber,
@@ -85,9 +91,7 @@ export async function POST(req: Request) {
               }),
               venueName: order.event.venueName,
               venueAddress: `${order.event.venueAddress}, ${order.event.city}${order.event.state ? `, ${order.event.state}` : ''}`,
-              holderName: order.user.firstName && order.user.lastName 
-                ? `${order.user.firstName} ${order.user.lastName}`
-                : undefined,
+              holderName,
               isTestTicket: false,
             })
           }

@@ -1,25 +1,18 @@
-import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth()
-
-    if (!userId) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
-    }
-
     const { orderId } = await req.json()
 
     if (!orderId) {
       return NextResponse.json({ message: "Order ID required" }, { status: 400 })
     }
 
-    // Get order with event and organizer
+    // Get order with event and organizer - no userId requirement for guest checkout
     const order = await prisma.order.findUnique({
-      where: { id: orderId, userId },
+      where: { id: orderId },
       include: {
         event: {
           include: {
@@ -65,8 +58,10 @@ export async function POST(req: Request) {
       metadata: {
         orderId: order.id,
         eventId: order.eventId,
-        userId: order.userId,
+        userId: order.userId || "guest",
+        email: order.email,
       },
+      receipt_email: order.email,
       description: `Tickets for ${order.event.title}`,
     })
 

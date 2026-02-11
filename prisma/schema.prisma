@@ -319,7 +319,7 @@ model TicketTier {
 model Order {
   id                    String      @id @default(cuid())
   orderNumber           String      @unique
-  userId                String
+  userId                String?     // Optional - null for guest checkout
   eventId               String
   subtotal              Int
   platformFee           Int
@@ -329,11 +329,12 @@ model Order {
   stripeChargeId        String?
   status                OrderStatus @default(PENDING)
   email                 String
+  guestName             String?     // Name for guest checkout
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
   paidAt                DateTime?
   event                 Event       @relation(fields: [eventId], references: [id])
-  user                  User        @relation(fields: [userId], references: [id])
+  user                  User?       @relation(fields: [userId], references: [id])
   items                 OrderItem[]
   tickets               Ticket[]
 
@@ -360,7 +361,7 @@ model Ticket {
   orderId      String
   eventId      String
   ticketTierId String
-  userId       String
+  userId       String?      // Optional - null for guest checkout
   qrCodeUrl    String?
   status       TicketStatus @default(VALID)
   isTestTicket Boolean      @default(false) // Test ticket for organizer testing
@@ -371,7 +372,7 @@ model Ticket {
   event        Event        @relation(fields: [eventId], references: [id])
   order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
   ticketTier   TicketTier   @relation(fields: [ticketTierId], references: [id])
-  user         User         @relation(fields: [userId], references: [id])
+  user         User?        @relation(fields: [userId], references: [id])
   scanLogs     ScanLog[]
 
   @@index([eventId])

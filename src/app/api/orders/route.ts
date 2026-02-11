@@ -5,18 +5,33 @@ import { calculateFees } from "@/lib/stripe"
 
 export async function POST(req: Request) {
   try {
+    // Try to get authenticated user, but don't require it
     const { userId } = await auth()
-    const user = await currentUser()
+    const user = userId ? await currentUser() : null
 
-    if (!userId || !user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
-    }
-
-    const { eventId, items } = await req.json()
+    const { eventId, items, email: guestEmail, guestName } = await req.json()
 
     if (!eventId || !items || items.length === 0) {
       return NextResponse.json(
         { message: "Event ID and items are required" },
+        { status: 400 }
+      )
+    }
+
+    // Determine email - use authenticated user's email or guest email
+    const email = user?.emailAddresses[0]?.emailAddress || guestEmail
+
+    if (!email) {
+      return NextResponse.json(
+        { message: "Email is required" },
+        { status: 400 }
+      )
+    }
+
+    // For guest checkout, guestName is required
+    if (!userId && !guestName) {
+      return NextResponse.json(
+        { message: "Name is required for guest checkout" },
         { status: 400 }
       )
     }
@@ -79,17 +94,18 @@ export async function POST(req: Request) {
     // Generate order number
     const orderNumber = `AFT-${Date.now().toString(36).toUpperCase()}`
 
-    // Create order
+    // Create order - userId is optional for guest checkout
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        userId,
+        userId: userId || null,
         eventId,
         subtotal: fees.subtotal,
         platformFee: fees.platformFee,
         stripeFee: 0, // Will be calculated by Stripe
         total: fees.total,
-        email: user.emailAddresses[0]?.emailAddress || "",
+        email,
+        guestName: userId ? null : guestName, // Only set for guest orders
         items: {
           create: orderItems,
         },

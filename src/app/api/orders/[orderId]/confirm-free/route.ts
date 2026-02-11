@@ -1,4 +1,3 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
@@ -9,17 +8,11 @@ export async function POST(
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const { userId } = await auth()
-    const user = await currentUser()
     const { orderId } = await params
 
-    if (!userId || !user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
-    }
-
-    // Get order with items
+    // Get order with items - no auth required for guest checkout
     const order = await prisma.order.findUnique({
-      where: { id: orderId, userId },
+      where: { id: orderId },
       include: {
         items: {
           include: {
@@ -27,6 +20,7 @@ export async function POST(
           },
         },
         event: true,
+        user: true, // May be null for guest orders
       },
     })
 
@@ -81,9 +75,15 @@ export async function POST(
             orderId: updatedOrder.id,
             eventId: updatedOrder.eventId,
             ticketTierId: item.ticketTierId,
-            userId: updatedOrder.userId,
+            userId: updatedOrder.userId || null, // null for guest orders
           },
         })
+
+        // Determine holder name - use guest name or user name
+        const holderName = updatedOrder.guestName
+          || (updatedOrder.user?.firstName && updatedOrder.user?.lastName
+            ? `${updatedOrder.user.firstName} ${updatedOrder.user.lastName}`
+            : undefined)
 
         createdTickets.push({
           ticketNumber: ticket.ticketNumber,
@@ -100,9 +100,7 @@ export async function POST(
           }),
           venueName: updatedOrder.event.venueName,
           venueAddress: `${updatedOrder.event.venueAddress}, ${updatedOrder.event.city}${updatedOrder.event.state ? `, ${updatedOrder.event.state}` : ''}`,
-          holderName: updatedOrder.user.firstName && updatedOrder.user.lastName
-            ? `${updatedOrder.user.firstName} ${updatedOrder.user.lastName}`
-            : undefined,
+          holderName,
           isTestTicket: false,
         })
       }

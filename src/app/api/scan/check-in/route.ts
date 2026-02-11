@@ -55,6 +55,9 @@ export async function POST(req: NextRequest) {
       include: {
         event: true,
         ticketTier: true,
+        order: {
+          select: { guestName: true, email: true },
+        },
         user: {
           select: { firstName: true, lastName: true, email: true },
         },
@@ -95,6 +98,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Determine holder name - guest name or user name
+    const holderName = ticket.user
+      ? (`${ticket.user.firstName || ""} ${ticket.user.lastName || ""}`.trim() || ticket.user.email)
+      : (ticket.order?.guestName || ticket.order?.email || "Guest")
+
     if (ticket.status === "CHECKED_IN") {
       await logScan(
         session.scannerId,
@@ -111,9 +119,7 @@ export async function POST(req: NextRequest) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           tierName: ticket.ticketTier.name,
-          holderName:
-            `${ticket.user.firstName || ""} ${ticket.user.lastName || ""}`.trim() ||
-            ticket.user.email,
+          holderName,
           checkedInAt: ticket.checkedInAt,
         },
       })
@@ -161,9 +167,7 @@ export async function POST(req: NextRequest) {
       ticket: {
         ticketNumber: ticket.ticketNumber,
         tierName: ticket.ticketTier.name,
-        holderName:
-          `${ticket.user.firstName || ""} ${ticket.user.lastName || ""}`.trim() ||
-          ticket.user.email,
+        holderName,
         checkedInAt: updatedTicket.checkedInAt,
         isTestTicket: ticket.isTestTicket,
       },
