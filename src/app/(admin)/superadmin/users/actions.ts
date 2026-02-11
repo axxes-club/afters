@@ -9,6 +9,16 @@ import { clerkClient } from "@clerk/nextjs/server"
 export async function updateUserRole(userId: string, role: UserRole) {
   await requireSuperAdmin()
   
+  // Check if target user is a SUPERADMIN - they cannot have their role changed
+  const targetUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true }
+  })
+  
+  if (targetUser?.role === "SUPERADMIN") {
+    throw new Error("Cannot change the role of a superadmin")
+  }
+  
   await prisma.user.update({
     where: { id: userId },
     data: { role }
