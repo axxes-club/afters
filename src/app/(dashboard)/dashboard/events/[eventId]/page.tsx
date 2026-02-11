@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, use } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -15,7 +16,8 @@ import {
   ArrowLeft, Plus, Trash2, ExternalLink, QrCode, ImageIcon, Pencil,
   BarChart3, Ticket, Users, DollarSign, Calendar, MapPin,
   Copy, Eye, EyeOff, AlertTriangle, Sparkles, Check, Share2,
-  CheckCircle2, Circle, ChevronRight
+  CheckCircle2, Circle, ChevronRight, Zap, ScanLine, Radio, UserCheck,
+  Settings, Link2, Globe, Lock, Clock
 } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
 import { FlyerUpload } from "@/components/FlyerUpload"
@@ -53,6 +55,7 @@ interface Event {
 
 export default function EventDashboardPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params)
+  const router = useRouter()
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
   const [showTierDialog, setShowTierDialog] = useState(false)
@@ -64,10 +67,16 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
   const [stripeEnabled, setStripeEnabled] = useState<boolean | null>(null)
   const [showPublishDialog, setShowPublishDialog] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [doorStats, setDoorStats] = useState<{ checkedIn: number; total: number } | null>(null)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     fetchEvent()
     fetchStripeStatus()
+    fetchDoorStats()
   }, [eventId])
 
   async function fetchStripeStatus() {
@@ -79,6 +88,100 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
       }
     } catch (error) {
       console.error("Failed to fetch Stripe status:", error)
+    }
+  }
+
+  async function fetchDoorStats() {
+    try {
+      const res = await fetch(`/api/events/${eventId}/analytics`)
+      if (res.ok) {
+        const data = await res.json()
+        setDoorStats({
+          checkedIn: data.summary.checkedInCount,
+          total: data.summary.totalTicketsSold,
+        })
+      }
+    } catch (error) {
+      console.error("Failed to fetch door stats:", error)
+    }
+  }
+
+  async function updateEvent(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setEditLoading(true)
+
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      title: formData.get("title"),
+      description: formData.get("description") || null,
+      venueName: formData.get("venueName"),
+      venueAddress: formData.get("venueAddress"),
+      city: formData.get("city"),
+      state: formData.get("state") || null,
+      startsAt: formData.get("startsAt"),
+      endsAt: formData.get("endsAt") || null,
+    }
+
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (res.ok) {
+        toast.success("Event updated")
+        setShowEditDialog(false)
+        fetchEvent()
+      } else {
+        toast.error("Failed to update event")
+      }
+    } catch {
+      toast.error("Failed to update event")
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  async function deleteEvent() {
+    setDeleteLoading(true)
+
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "DELETE",
+      })
+
+      if (res.ok) {
+        toast.success("Event deleted")
+        router.push("/dashboard/events")
+      } else {
+        const data = await res.json()
+        toast.error(data.message || "Failed to delete event")
+      }
+    } catch {
+      toast.error("Failed to delete event")
+    } finally {
+      setDeleteLoading(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
+  async function unpublishEvent() {
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublished: false, status: "DRAFT" }),
+      })
+
+      if (res.ok) {
+        toast.success("Event unpublished")
+        fetchEvent()
+      } else {
+        toast.error("Failed to unpublish event")
+      }
+    } catch {
+      toast.error("Failed to unpublish event")
     }
   }
 
@@ -652,94 +755,291 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
         </TabsContent>
 
         {/* DOOR TAB */}
-        <TabsContent value="door" className="space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Link
-              href={`/dashboard/events/${eventId}/check-in`}
-              className="p-6 rounded-xl bg-cyan-500/[0.05] border border-cyan-500/20 hover:border-cyan-400/40 transition-colors group"
-            >
-              <QrCode className="h-8 w-8 text-cyan-400 mb-3 group-hover:scale-110 transition-transform" />
-              <p className="font-bold text-cyan-400">Open Scanner</p>
-              <p className="text-xs text-white/50 mt-1">Scan tickets at the door</p>
-            </Link>
-            <div className="p-6 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-4xl font-bold font-mono text-pink">{totalSold}</p>
-                <p className="text-xs text-white/40 mt-1">tickets to scan</p>
+        <TabsContent value="door" className="space-y-6">
+          {/* Hero Stats Panel */}
+          <div className="relative overflow-hidden border border-white/[0.08] bg-black">
+            {/* Accent stripe */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink via-pink/50 to-transparent" />
+
+            <div className="p-6">
+              {/* Check-in Progress */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 border border-pink/30 bg-pink/10 flex items-center justify-center">
+                    <UserCheck className="h-5 w-5 text-pink" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Check-in Progress</p>
+                    <p className="text-2xl font-bold font-mono tracking-tight">
+                      <span className="text-pink">{doorStats?.checkedIn ?? 0}</span>
+                      <span className="text-white/20 mx-1">/</span>
+                      <span className="text-white/60">{doorStats?.total ?? totalSold}</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-4xl font-bold font-mono text-pink">
+                    {doorStats?.total ? Math.round((doorStats.checkedIn / doorStats.total) * 100) : 0}%
+                  </p>
+                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">Checked In</p>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="h-2 bg-white/[0.06] overflow-hidden mb-6">
+                <div
+                  className="h-full bg-gradient-to-r from-pink to-pink/60 transition-all duration-500"
+                  style={{ width: `${doorStats?.total ? (doorStats.checkedIn / doorStats.total) * 100 : 0}%` }}
+                />
+              </div>
+
+              {/* Action Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Scanner Button */}
+                <Link
+                  href={`/dashboard/events/${eventId}/check-in`}
+                  className="group relative overflow-hidden border border-cyan-500/30 bg-cyan-500/[0.05] hover:bg-cyan-500/10 hover:border-cyan-400/50 transition-all"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <ScanLine className="h-6 w-6 text-cyan-400" />
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    </div>
+                    <p className="font-bold font-mono text-cyan-400 uppercase tracking-wider text-sm">Open Scanner</p>
+                    <p className="text-[10px] text-white/40 mt-1 font-mono">Scan tickets at door</p>
+                  </div>
+                </Link>
+
+                {/* Test Ticket Button */}
+                <Link
+                  href={`/e/${event.slug}/test-ticket`}
+                  target="_blank"
+                  className="group relative overflow-hidden border border-orange-500/30 bg-orange-500/[0.05] hover:bg-orange-500/10 hover:border-orange-400/50 transition-all"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Zap className="h-6 w-6 text-orange-400" />
+                      <span className="text-[9px] font-mono text-orange-400/80 uppercase tracking-wider px-1.5 py-0.5 border border-orange-400/30">Training</span>
+                    </div>
+                    <p className="font-bold font-mono text-orange-400 uppercase tracking-wider text-sm">Test Ticket</p>
+                    <p className="text-[10px] text-white/40 mt-1 font-mono">Staff training mode</p>
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            {/* Bottom Stats Bar */}
+            <div className="border-t border-white/[0.06] bg-white/[0.02]">
+              <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
+                <div className="p-4 text-center">
+                  <p className="text-lg font-bold font-mono text-white">{totalSold}</p>
+                  <p className="text-[9px] font-mono text-white/30 uppercase tracking-wider">Total Tickets</p>
+                </div>
+                <div className="p-4 text-center">
+                  <p className="text-lg font-bold font-mono text-green-400">{doorStats?.checkedIn ?? 0}</p>
+                  <p className="text-[9px] font-mono text-white/30 uppercase tracking-wider">Checked In</p>
+                </div>
+                <div className="p-4 text-center">
+                  <p className="text-lg font-bold font-mono text-white/60">{(doorStats?.total ?? totalSold) - (doorStats?.checkedIn ?? 0)}</p>
+                  <p className="text-[9px] font-mono text-white/30 uppercase tracking-wider">Remaining</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <GuestlistManagement eventId={eventId} />
-          <ScannerManagement eventId={eventId} />
-          <ScanActivityLog eventId={eventId} />
-          <ShiftHistory eventId={eventId} />
+          {/* Management Sections */}
+          <div className="space-y-4">
+            <GuestlistManagement eventId={eventId} />
+            <ScannerManagement eventId={eventId} />
+            <ScanActivityLog eventId={eventId} />
+            <ShiftHistory eventId={eventId} />
+          </div>
         </TabsContent>
 
         {/* SETTINGS TAB */}
-        <TabsContent value="settings" className="space-y-4">
-          <Card className="border-white/[0.06] bg-white/[0.01]">
-            <CardHeader className="pb-3">
-              <CardTitle className="font-mono text-base">Party Details</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                  <p className="text-[10px] font-mono text-pink uppercase tracking-wider mb-1">Venue</p>
-                  <p className="font-medium text-sm">{event.venueName}</p>
-                  <p className="text-xs text-white/40">{event.venueAddress}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                  <p className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider mb-1">Location</p>
-                  <p className="font-medium text-sm">{event.city}{event.state ? `, ${event.state}` : ''}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                  <p className="text-[10px] font-mono text-green-400 uppercase tracking-wider mb-1">Start</p>
-                  <p className="font-medium text-sm">
-                    {new Date(event.startsAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  </p>
-                  <p className="text-xs text-white/40">
-                    {new Date(event.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                  </p>
-                </div>
-                {event.endsAt && (
-                  <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                    <p className="text-[10px] font-mono text-orange-400 uppercase tracking-wider mb-1">End</p>
-                    <p className="font-medium text-sm">
-                      {new Date(event.endsAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </p>
-                    <p className="text-xs text-white/40">
-                      {new Date(event.endsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+        <TabsContent value="settings" className="space-y-6">
+          {/* Event URL & Visibility */}
+          <div className="relative overflow-hidden border border-white/[0.08] bg-black">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-cyan-500/50 to-transparent" />
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 border border-cyan-500/30 bg-cyan-500/10 flex items-center justify-center">
+                    {event.isPublished ? <Globe className="h-5 w-5 text-cyan-400" /> : <Lock className="h-5 w-5 text-white/40" />}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Event Status</p>
+                    <p className="font-bold font-mono">
+                      {event.isPublished ? (
+                        <span className="text-cyan-400">PUBLISHED</span>
+                      ) : (
+                        <span className="text-white/50">DRAFT</span>
+                      )}
                     </p>
                   </div>
+                </div>
+                {event.isPublished ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={unpublishEvent}
+                    className="border-white/20 hover:border-orange-500/50 hover:text-orange-400 font-mono text-xs"
+                  >
+                    <EyeOff className="mr-1.5 h-3 w-3" />
+                    Unpublish
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => setShowPublishDialog(true)}
+                    disabled={publishing || event.ticketTiers.length === 0}
+                    className="bg-pink hover:bg-pink/90 text-white font-mono text-xs"
+                  >
+                    <Sparkles className="mr-1.5 h-3 w-3" />
+                    Publish
+                  </Button>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {!event.isPublished && (
-            <Card className="border-pink/20 bg-pink/[0.03]">
-              <CardHeader className="pb-3">
+              {/* Event URL */}
+              <div className="p-4 bg-white/[0.02] border border-white/[0.06]">
+                <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Event URL</p>
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-pink" />
-                  <CardTitle className="font-mono text-base">Ready to Go Live?</CardTitle>
+                  <code className="flex-1 text-sm font-mono text-cyan-400 truncate">
+                    {typeof window !== 'undefined' ? window.location.origin : ''}/e/{event.slug}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={copyEventUrl}
+                    className="h-8 px-3 border border-white/10 hover:border-cyan-500/30"
+                  >
+                    {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="h-8 px-3 border border-white/10 hover:border-cyan-500/30"
+                  >
+                    <Link href={`/e/${event.slug}`} target="_blank">
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  </Button>
                 </div>
-                <CardDescription className="text-xs">Publishing makes your event visible to everyone</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
+              </div>
+            </div>
+          </div>
+
+          {/* Event Details - Editable */}
+          <div className="relative overflow-hidden border border-white/[0.08] bg-black">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink via-pink/50 to-transparent" />
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 border border-pink/30 bg-pink/10 flex items-center justify-center">
+                    <Settings className="h-5 w-5 text-pink" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Party Details</p>
+                    <p className="font-bold font-mono text-white">{event.title}</p>
+                  </div>
+                </div>
                 <Button
-                  onClick={() => setShowPublishDialog(true)}
-                  disabled={publishing || event.ticketTiers.length === 0}
-                  className="bg-pink hover:bg-pink/90 text-white font-bold"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowEditDialog(true)}
+                  className="border-white/20 hover:border-pink/50 hover:text-pink font-mono text-xs"
                 >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {publishing ? "Publishing..." : "Publish Event"}
+                  <Pencil className="mr-1.5 h-3 w-3" />
+                  Edit
                 </Button>
-                {event.ticketTiers.length === 0 && (
-                  <p className="text-xs text-white/40 mt-2">Add at least one ticket tier first</p>
-                )}
-              </CardContent>
-            </Card>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="p-4 bg-white/[0.02] border border-white/[0.06]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="h-3 w-3 text-pink" />
+                    <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider">Venue</p>
+                  </div>
+                  <p className="font-medium text-sm">{event.venueName}</p>
+                  <p className="text-xs text-white/40 mt-0.5">{event.venueAddress}</p>
+                  <p className="text-xs text-white/30 mt-0.5">{event.city}{event.state ? `, ${event.state}` : ''}</p>
+                </div>
+                <div className="p-4 bg-white/[0.02] border border-white/[0.06]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-3 w-3 text-green-400" />
+                    <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider">Date & Time</p>
+                  </div>
+                  <p className="font-medium text-sm">
+                    {new Date(event.startsAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                  <p className="text-xs text-white/40 mt-0.5">
+                    {new Date(event.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    {event.endsAt && ` - ${new Date(event.endsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
+                  </p>
+                </div>
+              </div>
+
+              {event.description && (
+                <div className="mt-3 p-4 bg-white/[0.02] border border-white/[0.06]">
+                  <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Description</p>
+                  <p className="text-sm text-white/70 whitespace-pre-wrap">{event.description}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Danger Zone */}
+          {event.status === "DRAFT" && (
+            <div className="relative overflow-hidden border border-red-500/20 bg-red-500/[0.03]">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-red-500/50 to-transparent" />
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 border border-red-500/30 bg-red-500/10 flex items-center justify-center">
+                      <AlertTriangle className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-mono text-red-400/60 uppercase tracking-[0.2em]">Danger Zone</p>
+                      <p className="text-sm text-white/50">Permanently delete this event</p>
+                    </div>
+                  </div>
+                  {showDeleteConfirm ? (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowDeleteConfirm(false)}
+                        className="font-mono text-xs"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={deleteEvent}
+                        disabled={deleteLoading}
+                        className="bg-red-500 hover:bg-red-600 text-white font-mono text-xs"
+                      >
+                        {deleteLoading ? "Deleting..." : "Confirm Delete"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 font-mono text-xs"
+                    >
+                      <Trash2 className="mr-1.5 h-3 w-3" />
+                      Delete Event
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -868,6 +1168,119 @@ export default function EventDashboardPage({ params }: { params: Promise<{ event
               {publishing ? "Publishing..." : "Publish"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Event Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="border-white/[0.06] bg-black max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-mono flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-pink" />
+              Edit Event
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Update your event details
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={updateEvent} className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="edit-title" className="text-xs font-mono text-white/50">Title</Label>
+                <Input
+                  id="edit-title"
+                  name="title"
+                  defaultValue={event?.title}
+                  required
+                  className="mt-1 bg-white/[0.02] border-white/10 focus:border-pink font-mono"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-description" className="text-xs font-mono text-white/50">Description</Label>
+                <textarea
+                  id="edit-description"
+                  name="description"
+                  defaultValue={event?.description || ''}
+                  rows={3}
+                  className="mt-1 w-full px-3 py-2 bg-white/[0.02] border border-white/10 focus:border-pink focus:outline-none font-mono text-sm resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="edit-venueName" className="text-xs font-mono text-white/50">Venue Name</Label>
+                  <Input
+                    id="edit-venueName"
+                    name="venueName"
+                    defaultValue={event?.venueName}
+                    required
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-pink font-mono"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-venueAddress" className="text-xs font-mono text-white/50">Address</Label>
+                  <Input
+                    id="edit-venueAddress"
+                    name="venueAddress"
+                    defaultValue={event?.venueAddress}
+                    required
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-pink font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="edit-city" className="text-xs font-mono text-white/50">City</Label>
+                  <Input
+                    id="edit-city"
+                    name="city"
+                    defaultValue={event?.city}
+                    required
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-pink font-mono"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-state" className="text-xs font-mono text-white/50">State</Label>
+                  <Input
+                    id="edit-state"
+                    name="state"
+                    defaultValue={event?.state || ''}
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-pink font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="edit-startsAt" className="text-xs font-mono text-white/50">Start Date & Time</Label>
+                  <Input
+                    id="edit-startsAt"
+                    name="startsAt"
+                    type="datetime-local"
+                    defaultValue={event?.startsAt ? new Date(event.startsAt).toISOString().slice(0, 16) : ''}
+                    required
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-pink font-mono"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-endsAt" className="text-xs font-mono text-white/50">End Date & Time</Label>
+                  <Input
+                    id="edit-endsAt"
+                    name="endsAt"
+                    type="datetime-local"
+                    defaultValue={event?.endsAt ? new Date(event.endsAt).toISOString().slice(0, 16) : ''}
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-pink font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} disabled={editLoading} className="border-white/10">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={editLoading} className="bg-pink hover:bg-pink/90 text-white">
+                {editLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

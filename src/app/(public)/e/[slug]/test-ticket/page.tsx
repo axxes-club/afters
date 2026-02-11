@@ -45,11 +45,6 @@ export default async function TestTicketPage({ params }: { params: Promise<{ slu
           logoUrl: true,
         },
       },
-      ticketTiers: {
-        where: { isVisible: true },
-        orderBy: { sortOrder: "asc" },
-        take: 1,
-      },
     },
   })
 
@@ -77,11 +72,6 @@ export default async function TestTicketPage({ params }: { params: Promise<{ slu
                 logoUrl: true,
               },
             },
-            ticketTiers: {
-              where: { isVisible: true },
-              orderBy: { sortOrder: "asc" },
-              take: 1,
-            },
           },
         })
         if (event) break
@@ -93,11 +83,7 @@ export default async function TestTicketPage({ params }: { params: Promise<{ slu
     notFound()
   }
 
-  // Generate a deterministic test ticket ID based on event ID
-  const testTicketId = `TEST-${event.id.slice(0, 8).toUpperCase()}`
-
   const eventDate = new Date(event.startsAt)
-  const tierName = event.ticketTiers[0]?.name || "General Admission"
 
   return (
     <TestTicketClient
@@ -114,8 +100,6 @@ export default async function TestTicketPage({ params }: { params: Promise<{ slu
         accentColor: event.accentColor,
         organizer: event.organizer,
       }}
-      ticketId={testTicketId}
-      tierName={tierName}
       eventDate={eventDate.toLocaleDateString("en-US", {
         weekday: "long",
         month: "long",

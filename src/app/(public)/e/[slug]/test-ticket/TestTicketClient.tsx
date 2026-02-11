@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Share, AlertTriangle, ArrowLeft, Calendar, MapPin, Clock, QrCode, Check, Download } from "lucide-react"
+import { Share, AlertTriangle, ArrowLeft, Calendar, MapPin, Clock, Check, RotateCcw, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import QRCode from "qrcode"
 
 interface TestTicketClientProps {
   event: {
@@ -24,21 +25,77 @@ interface TestTicketClientProps {
       logoUrl: string | null
     }
   }
-  ticketId: string
-  tierName: string
   eventDate: string
   eventTime: string
 }
 
-export function TestTicketClient({ event, ticketId, tierName, eventDate, eventTime }: TestTicketClientProps) {
+export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClientProps) {
   const [isSharing, setIsSharing] = useState(false)
   const [copied, setCopied] = useState(false)
-  const ticketRef = useRef<HTMLDivElement>(null)
+  const [loading, setLoading] = useState(true)
+  const [resetting, setResetting] = useState(false)
+  const [ticketData, setTicketData] = useState<{
+    ticketId: string
+    ticketNumber: string
+    tierName: string
+  } | null>(null)
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
 
   const accentColor = event.accentColor || '#ff1493'
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/e/${event.slug}/test-ticket`
     : ''
+
+  useEffect(() => {
+    fetchTestTicket()
+  }, [event.id])
+
+  async function fetchTestTicket() {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/events/${event.id}/test-ticket`)
+      if (res.ok) {
+        const data = await res.json()
+        setTicketData(data)
+
+        // Generate QR code with ticket ID
+        const qrDataUrl = await QRCode.toDataURL(data.ticketId, {
+          width: 200,
+          margin: 1,
+          color: {
+            dark: '#ff8c00',
+            light: '#00000000',
+          },
+        })
+        setQrCodeUrl(qrDataUrl)
+      } else {
+        toast.error("Failed to load test ticket")
+      }
+    } catch (error) {
+      console.error("Failed to fetch test ticket:", error)
+      toast.error("Failed to load test ticket")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function resetTicket() {
+    setResetting(true)
+    try {
+      const res = await fetch(`/api/events/${event.id}/test-ticket`, {
+        method: "POST",
+      })
+      if (res.ok) {
+        toast.success("Test ticket reset - ready to scan again!")
+      } else {
+        toast.error("Failed to reset ticket")
+      }
+    } catch (error) {
+      toast.error("Failed to reset ticket")
+    } finally {
+      setResetting(false)
+    }
+  }
 
   const handleShare = async () => {
     setIsSharing(true)
@@ -124,7 +181,6 @@ export function TestTicketClient({ event, ticketId, tierName, eventDate, eventTi
 
           {/* Ticket Card */}
           <div
-            ref={ticketRef}
             className="relative overflow-hidden border border-white/10"
             style={{
               background: 'linear-gradient(180deg, #0a0a0a 0%, #000000 100%)',
@@ -170,7 +226,7 @@ export function TestTicketClient({ event, ticketId, tierName, eventDate, eventTi
 
               {/* Tier */}
               <p className="text-sm" style={{ color: accentColor }}>
-                {tierName}
+                {loading ? "Loading..." : ticketData?.tierName || "Staff Training"}
               </p>
             </div>
 
@@ -217,15 +273,24 @@ export function TestTicketClient({ event, ticketId, tierName, eventDate, eventTi
                 className="w-48 h-48 flex items-center justify-center border-2 mb-4"
                 style={{
                   borderColor: '#ff8c00',
-                  background: 'repeating-linear-gradient(45deg, #ff8c0008, #ff8c0008 10px, transparent 10px, transparent 20px)'
+                  background: loading ? '#0a0a0a' : 'transparent',
                 }}
               >
-                <div className="flex flex-col items-center gap-2 text-center p-4">
-                  <QrCode className="h-16 w-16" style={{ color: '#ff8c00' }} />
-                  <p className="text-[10px] text-white/40 uppercase tracking-wider">
-                    Scan to test check-in
-                  </p>
-                </div>
+                {loading ? (
+                  <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#ff8c00' }} />
+                ) : qrCodeUrl ? (
+                  <Image
+                    src={qrCodeUrl}
+                    alt="QR Code"
+                    width={192}
+                    height={192}
+                    className="w-full h-full"
+                  />
+                ) : (
+                  <div className="text-center p-4">
+                    <p className="text-xs text-white/40">Failed to load QR</p>
+                  </div>
+                )}
               </div>
 
               {/* Ticket ID */}
@@ -235,7 +300,7 @@ export function TestTicketClient({ event, ticketId, tierName, eventDate, eventTi
                   className="text-lg font-bold tracking-widest"
                   style={{ color: '#ff8c00' }}
                 >
-                  {ticketId}
+                  {loading ? "..." : ticketData?.ticketNumber || "—"}
                 </p>
               </div>
             </div>
@@ -270,29 +335,45 @@ export function TestTicketClient({ event, ticketId, tierName, eventDate, eventTi
             </div>
           </div>
 
-          {/* Share Button - Fixed at bottom */}
+          {/* Action Buttons - Fixed at bottom */}
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-black border-t border-white/5 safe-area-bottom">
-            <div className="max-w-sm mx-auto">
-              <button
-                onClick={handleShare}
-                disabled={isSharing}
-                className="w-full h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
-                style={{ backgroundColor: '#ff8c00', color: '#000' }}
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Link Copied
-                  </>
-                ) : (
-                  <>
-                    <Share className="h-4 w-4" />
-                    Share Test Ticket
-                  </>
-                )}
-              </button>
-              <p className="text-[10px] text-white/20 text-center mt-2 uppercase tracking-wider">
-                AirDrop • Messages • Copy Link
+            <div className="max-w-sm mx-auto space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={resetTicket}
+                  disabled={resetting || loading}
+                  className="h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 border border-white/20 hover:border-white/40"
+                >
+                  {resetting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <RotateCcw className="h-4 w-4" />
+                      Reset
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleShare}
+                  disabled={isSharing}
+                  className="h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
+                  style={{ backgroundColor: '#ff8c00', color: '#000' }}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Share className="h-4 w-4" />
+                      Share
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-[10px] text-white/20 text-center uppercase tracking-wider">
+                Scan with check-in scanner • Reset after each scan
               </p>
             </div>
           </div>
