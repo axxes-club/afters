@@ -328,11 +328,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                           />
                         ) : (
                           <div
-                            className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold font-mono ring-2 transition-all"
+                            className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold font-mono ring-2 ring-white/20 transition-all"
                             style={{
                               backgroundColor: `${accentColor}20`,
-                              color: accentColor,
-                              ringColor: `${accentColor}30`
+                              color: accentColor
                             }}
                           >
                             {artist.name.charAt(0)}
