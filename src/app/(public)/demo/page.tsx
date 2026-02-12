@@ -16,6 +16,9 @@ import {
   ChevronRight,
   Zap,
   Calendar,
+  Users,
+  BarChart3,
+  Smartphone,
 } from "lucide-react"
 
 const QrScanner = dynamic(
@@ -29,8 +32,8 @@ type DemoStep =
   | "welcome"
   | "event-name"
   | "venue"
-  | "tiers"
-  | "lead-name"
+  | "city"
+  | "tier-select"
   | "generating"
   | "ticket-ready"
   | "scanner"
@@ -42,8 +45,7 @@ interface DemoEvent {
   venue: string
   city: string
   date: string
-  tiers: { name: string; price: number }[]
-  leadName: string
+  tier: { name: string; price: number }
   ticketNumber: string
   ticketId: string
 }
@@ -78,25 +80,14 @@ function genTicketNumber() {
   return `TK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 }
 
-function encodeTicket(ev: DemoEvent): string {
-  return btoa(
-    JSON.stringify({
-      id: ev.ticketId,
-      e: ev.name,
-      v: ev.venue,
-      c: ev.city,
-      d: ev.date,
-      t: ev.tiers[0]?.name || "General",
-      p: ev.tiers[0]?.price || 0,
-      h: ev.leadName,
-      n: ev.ticketNumber,
-    })
-  )
-}
-
-function ticketUrl(ev: DemoEvent): string {
-  const origin = typeof window !== "undefined" ? window.location.origin : ""
-  return `${origin}/demo/ticket?d=${encodeTicket(ev)}`
+// Encode ticket data into the ticketId so scanner can read it
+function genTicketId(ev: DemoEvent): string {
+  const data = btoa(JSON.stringify({
+    n: ev.ticketNumber,
+    t: ev.tier.name,
+    e: ev.name,
+  }))
+  return `demo-${Date.now()}-${data}`
 }
 
 // ─── Sub-components ──────────────────────────────────
@@ -123,7 +114,6 @@ function TypingDots() {
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70dvh] text-center px-4">
-      {/* Logo */}
       <div className="mb-10 animate-fade-in">
         <div className="inline-flex items-center gap-2.5 mb-5">
           <div className="w-2 h-2 bg-[#ff1493] animate-pulse" />
@@ -138,11 +128,32 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         </h1>
 
         <p className="mt-5 text-white/40 font-body text-sm max-w-[280px] mx-auto leading-relaxed">
-          See how we power the best events — tickets, scanning, and check-in. All in one.
+          The complete event platform. Create events, sell tickets, scan at the door.
         </p>
       </div>
 
-      {/* Start */}
+      {/* Feature highlights */}
+      <div className="grid grid-cols-3 gap-4 mb-10 max-w-xs">
+        <div className="text-center">
+          <div className="w-10 h-10 mx-auto mb-2 border border-white/10 flex items-center justify-center">
+            <Ticket className="w-5 h-5 text-[#ff1493]" />
+          </div>
+          <span className="text-[10px] font-mono text-white/40">TICKETS</span>
+        </div>
+        <div className="text-center">
+          <div className="w-10 h-10 mx-auto mb-2 border border-white/10 flex items-center justify-center">
+            <Camera className="w-5 h-5 text-[#ff1493]" />
+          </div>
+          <span className="text-[10px] font-mono text-white/40">SCANNER</span>
+        </div>
+        <div className="text-center">
+          <div className="w-10 h-10 mx-auto mb-2 border border-white/10 flex items-center justify-center">
+            <Users className="w-5 h-5 text-[#ff1493]" />
+          </div>
+          <span className="text-[10px] font-mono text-white/40">GUESTLIST</span>
+        </div>
+      </div>
+
       <button
         onClick={onStart}
         className="group px-10 py-4 bg-[#ff1493] text-black font-mono text-sm tracking-widest uppercase active:scale-[0.97] transition-all animate-fade-in-up stagger-2 btn-glow"
@@ -198,96 +209,26 @@ function TextInput({
   )
 }
 
-/* ---------- Venue Input ---------- */
-function VenueInput({
-  onSubmit,
-}: {
-  onSubmit: (venue: string, city: string) => void
-}) {
-  const [venue, setVenue] = useState("")
-  const [city, setCity] = useState("")
-  const ref = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    ref.current?.focus()
-  }, [])
-
-  const submit = () => {
-    if (venue.trim() && city.trim()) onSubmit(venue.trim(), city.trim())
-  }
-
-  return (
-    <div className="p-4 space-y-2 animate-fade-in-up" style={{ animationDuration: "0.25s" }}>
-      <input
-        ref={ref}
-        type="text"
-        value={venue}
-        onChange={(e) => setVenue(e.target.value)}
-        placeholder="Venue name..."
-        className="w-full bg-white/[0.04] border border-white/10 px-4 py-3.5 text-white text-sm font-body placeholder:text-white/25 focus:outline-none focus:border-[#ff1493] transition-colors"
-      />
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="City..."
-          className="flex-1 bg-white/[0.04] border border-white/10 px-4 py-3.5 text-white text-sm font-body placeholder:text-white/25 focus:outline-none focus:border-[#ff1493] transition-colors"
-        />
-        <button
-          onClick={submit}
-          disabled={!venue.trim() || !city.trim()}
-          className="p-3.5 bg-[#ff1493] text-black disabled:opacity-20 disabled:bg-white/5 disabled:text-white/20 transition-all active:scale-95"
-        >
-          <Send className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  )
-}
-
 /* ---------- Tier Selector ---------- */
 function TierSelector({
   onSubmit,
 }: {
-  onSubmit: (tiers: { name: string; price: number }[]) => void
+  onSubmit: (tier: { name: string; price: number }) => void
 }) {
-  const [sel, setSel] = useState<number[]>([0, 1])
-  const toggle = (i: number) =>
-    setSel((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]))
-
   return (
     <div className="p-4 space-y-3 animate-fade-in-up" style={{ animationDuration: "0.25s" }}>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="space-y-2">
         {TIER_PRESETS.map((tier, i) => (
           <button
             key={i}
-            onClick={() => toggle(i)}
-            className={`p-3 border text-center transition-all active:scale-[0.97] ${
-              sel.includes(i)
-                ? "bg-[#ff1493]/10 border-[#ff1493] text-[#ff1493]"
-                : "bg-white/[0.02] border-white/10 text-white/40"
-            }`}
+            onClick={() => onSubmit(tier)}
+            className="w-full p-4 border border-white/10 bg-white/[0.02] flex items-center justify-between hover:border-[#ff1493]/50 hover:bg-white/[0.04] transition-all active:scale-[0.98]"
           >
-            <div className="text-[10px] font-mono font-bold leading-tight">
-              {tier.name}
-            </div>
-            <div className="text-xl font-headline mt-1">${tier.price}</div>
+            <span className="text-sm font-mono text-white">{tier.name}</span>
+            <span className="text-lg font-headline text-[#ff1493]">${tier.price}</span>
           </button>
         ))}
       </div>
-      <button
-        onClick={() => {
-          const tiers = sel
-            .sort((a, b) => a - b)
-            .map((i) => TIER_PRESETS[i])
-          if (tiers.length) onSubmit(tiers)
-        }}
-        disabled={sel.length === 0}
-        className="w-full py-3.5 bg-[#ff1493] text-black font-mono text-xs tracking-widest disabled:opacity-20 transition-all active:scale-[0.98]"
-      >
-        CONFIRM TIERS
-      </button>
     </div>
   )
 }
@@ -305,14 +246,13 @@ function GeneratingSequence({ event }: { event: DemoEvent }) {
   }, [])
 
   const lines = [
-    `Setting up ${event.name}...`,
-    "Creating ticket tiers...",
+    `Creating ${event.name}...`,
+    "Setting up ticket tier...",
     "Generating QR code...",
   ]
 
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      {/* Scan line */}
       <div
         className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#ff1493]/60 to-transparent"
         style={{ animation: "genScan 2s ease-in-out infinite" }}
@@ -321,13 +261,7 @@ function GeneratingSequence({ event }: { event: DemoEvent }) {
         {lines.map((text, i) => (
           <div
             key={i}
-            className={`font-mono text-sm tracking-wider transition-all duration-500 flex items-center justify-center gap-2 ${
-              line > i
-                ? "text-[#ff1493]"
-                : line === i
-                  ? "text-white/60"
-                  : "text-white/0"
-            }`}
+            className={`font-mono text-sm tracking-wider transition-all duration-500 flex items-center justify-center gap-2 ${line > i ? "text-[#ff1493]" : line === i ? "text-white/60" : "text-white/0"}`}
           >
             <span>{text}</span>
             {line > i && (
@@ -335,7 +269,6 @@ function GeneratingSequence({ event }: { event: DemoEvent }) {
             )}
           </div>
         ))}
-        {/* Progress bar */}
         <div className="w-48 h-[2px] bg-white/10 mx-auto mt-6 overflow-hidden">
           <div
             className="h-full bg-[#ff1493] transition-all duration-[2200ms] ease-out"
@@ -347,7 +280,7 @@ function GeneratingSequence({ event }: { event: DemoEvent }) {
   )
 }
 
-/* ---------- Ticket Overlay ---------- */
+/* ---------- Ticket Overlay (matches PDF design) ---------- */
 function TicketOverlay({
   event,
   onScanner,
@@ -355,7 +288,6 @@ function TicketOverlay({
   event: DemoEvent
   onScanner: () => void
 }) {
-  const url = ticketUrl(event)
   const [copied, setCopied] = useState(false)
   const [canShare, setCanShare] = useState(false)
 
@@ -367,16 +299,16 @@ function TicketOverlay({
     try {
       await navigator.share({
         title: `${event.name} — Ticket`,
-        text: `Your ticket to ${event.name}`,
-        url,
+        text: `Ticket to ${event.name}`,
+        url: window.location.href,
       })
     } catch {
-      copyLink()
+      copyTicketNumber()
     }
   }
 
-  function copyLink() {
-    navigator.clipboard.writeText(url)
+  function copyTicketNumber() {
+    navigator.clipboard.writeText(event.ticketNumber)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -384,74 +316,78 @@ function TicketOverlay({
   return (
     <div className="relative z-20 flex-1 overflow-y-auto safe-area-bottom">
       <div className="flex flex-col items-center px-5 py-6 min-h-full">
-        {/* Ticket Card */}
+        {/* Ticket Card - matches PDF design */}
         <div className="w-full max-w-sm animate-scale-in">
           <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden relative">
-            {/* Top accent */}
-            <div className="h-1 bg-gradient-to-r from-[#ff1493] to-[#ff69b4]" />
+            {/* Hot pink header bar with AFTERS logo */}
+            <div className="h-14 bg-[#ff1493] flex items-center px-5">
+              <span className="font-headline text-xl text-black tracking-wide">
+                AFTERS.
+              </span>
+            </div>
 
-            <div className="p-6">
-              {/* Badge */}
-              <div className="flex items-center gap-2 mb-5">
-                <div className="w-1.5 h-1.5 bg-[#ff1493]" />
-                <span className="text-[10px] font-mono tracking-[0.3em] text-white/35 uppercase">
-                  AFTERS Demo Ticket
-                </span>
-              </div>
-
-              {/* Event Name */}
-              <h2 className="font-headline text-4xl sm:text-5xl text-white tracking-wide leading-[0.95] mb-5">
+            <div className="p-5">
+              {/* Event Title */}
+              <h2 className="font-headline text-2xl text-white tracking-wide leading-tight mb-1">
                 {event.name.toUpperCase()}
               </h2>
 
-              {/* Details */}
-              <div className="space-y-2 mb-5">
-                <div className="flex items-center gap-2 text-white/45 text-sm font-body">
-                  <MapPin className="w-3.5 h-3.5 shrink-0" />
-                  <span>
-                    {event.venue} &middot; {event.city}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-white/45 text-sm font-body">
-                  <Calendar className="w-3.5 h-3.5 shrink-0" />
-                  <span>{event.date}</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/45 text-sm font-body">
-                  <Ticket className="w-3.5 h-3.5 shrink-0" />
-                  <span>
-                    {event.tiers[0]?.name} &middot; ${event.tiers[0]?.price}
-                  </span>
-                </div>
+              {/* Tier */}
+              <div className="inline-block text-sm font-mono text-[#ff1493] mb-5">
+                {event.tier.name}
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-dashed border-white/10 my-5" />
-
-              {/* QR Code */}
-              <div className="flex justify-center mb-5">
-                <div className="bg-white p-3 inline-block">
-                  <QRCodeSVG value={url} size={180} level="M" />
-                </div>
-              </div>
-
-              {/* Footer row */}
-              <div className="flex justify-between items-end">
+              {/* Event Details */}
+              <div className="space-y-4 mb-5">
                 <div>
-                  <div className="text-[10px] font-mono text-white/25 mb-0.5 tracking-wider">
-                    ATTENDEE
+                  <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">
+                    DATE
                   </div>
-                  <div className="text-sm font-body text-white">
-                    {event.leadName}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-mono text-white/25 mb-0.5 tracking-wider">
-                    TICKET
-                  </div>
-                  <div className="text-sm font-mono text-[#ff1493]">
-                    {event.ticketNumber}
+                  <div className="text-sm font-mono text-white">
+                    {event.date}
                   </div>
                 </div>
+                <div>
+                  <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">
+                    VENUE
+                  </div>
+                  <div className="text-sm font-mono text-white">
+                    {event.venue}
+                  </div>
+                  <div className="text-xs font-mono text-white/50">
+                    {event.city}
+                  </div>
+                </div>
+              </div>
+
+              {/* Dashed tear line */}
+              <div className="border-t border-dashed border-white/20 my-5" />
+
+              {/* QR Code - just encodes ticketId */}
+              <div className="flex justify-center mb-4">
+                <div className="bg-black p-3 inline-block border border-white/10">
+                  <QRCodeSVG
+                    value={event.ticketId}
+                    size={160}
+                    level="M"
+                    bgColor="#000000"
+                    fgColor="#ffffff"
+                  />
+                </div>
+              </div>
+
+              {/* Ticket number */}
+              <div className="text-center mb-4">
+                <div className="text-xs font-mono text-white/40 mb-1">
+                  #{event.ticketNumber}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center">
+                <p className="text-[10px] font-mono text-white/30">
+                  Scan QR code at the door
+                </p>
               </div>
             </div>
           </div>
@@ -462,22 +398,18 @@ function TicketOverlay({
           {canShare ? (
             <button
               onClick={share}
-              className="w-full py-4 bg-[#ff1493] text-black font-mono text-xs tracking-widest flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform btn-premium"
+              className="w-full py-4 bg-[#ff1493] text-black font-mono text-xs tracking-widest flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform"
             >
               <Share2 className="w-4 h-4" />
-              AIRDROP / SHARE TICKET
+              SHARE TICKET
             </button>
           ) : (
             <button
-              onClick={copyLink}
-              className="w-full py-4 bg-[#ff1493] text-black font-mono text-xs tracking-widest flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform btn-premium"
+              onClick={copyTicketNumber}
+              className="w-full py-4 bg-[#ff1493] text-black font-mono text-xs tracking-widest flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform"
             >
-              {copied ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-              {copied ? "LINK COPIED!" : "COPY TICKET LINK"}
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copied ? "COPIED!" : "COPY TICKET NUMBER"}
             </button>
           )}
 
@@ -486,7 +418,7 @@ function TicketOverlay({
             className="w-full py-4 border border-[#ff1493]/40 text-[#ff1493] font-mono text-xs tracking-widest flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all hover:border-[#ff1493]"
           >
             <Camera className="w-4 h-4" />
-            OPEN SCANNER
+            TRY THE SCANNER
           </button>
         </div>
       </div>
@@ -496,9 +428,11 @@ function TicketOverlay({
 
 /* ---------- Scanner Overlay ---------- */
 function ScannerOverlay({
+  event,
   onScan,
   onClose,
 }: {
+  event: DemoEvent
   onScan: (v: string) => void
   onClose: () => void
 }) {
@@ -514,7 +448,8 @@ function ScannerOverlay({
   function simulate() {
     if (!scanned) {
       setScanned(true)
-      onScan("demo-simulate")
+      // Scan our own ticket
+      onScan(event.ticketId)
     }
   }
 
@@ -551,7 +486,6 @@ function ScannerOverlay({
             <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#ff1493]" />
             <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#ff1493]" />
             <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#ff1493]" />
-            {/* Scan line */}
             <div
               className="absolute left-2 right-2 h-[2px] bg-[#ff1493]/70"
               style={{ animation: "viewfinderLine 2.5s ease-in-out infinite" }}
@@ -603,11 +537,7 @@ function CheckInResult({
       />
 
       {/* Content */}
-      <div
-        className={`text-center transition-all duration-700 ease-out ${
-          show ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4"
-        }`}
-      >
+      <div className={`text-center transition-all duration-700 ease-out ${show ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4"}`}>
         {/* Checkmark */}
         <div className="w-20 h-20 border-2 border-[#ff1493] flex items-center justify-center mx-auto mb-8 glow-pink">
           <Check className="w-10 h-10 text-[#ff1493]" />
@@ -621,13 +551,9 @@ function CheckInResult({
         </p>
 
         <div className="space-y-1.5 mb-12">
-          <p className="text-white font-body text-lg">{event.leadName}</p>
-          <p className="text-white/45 font-body text-sm">
-            {event.tiers[0]?.name} &middot; {event.name}
-          </p>
-          <p className="text-white/25 font-mono text-xs">
-            {event.ticketNumber}
-          </p>
+          <p className="text-white font-body text-lg">{event.tier.name}</p>
+          <p className="text-white/45 font-body text-sm">{event.name}</p>
+          <p className="text-white/25 font-mono text-xs">{event.ticketNumber}</p>
         </div>
 
         <button
@@ -651,15 +577,12 @@ export default function DemoPage() {
     venue: "",
     city: "",
     date: getNextSaturday(),
-    tiers: [],
-    leadName: "",
+    tier: TIER_PRESETS[0],
     ticketNumber: genTicketNumber(),
-    ticketId: `demo-${Date.now()}`,
+    ticketId: "",
   })
   const [typing, setTyping] = useState(false)
-  const [overlay, setOverlay] = useState<
-    "ticket" | "scanner" | "result" | null
-  >(null)
+  const [overlay, setOverlay] = useState<"ticket" | "scanner" | "result" | null>(null)
   const idRef = useRef(0)
   const chatEnd = useRef<HTMLDivElement>(null)
 
@@ -684,10 +607,10 @@ export default function DemoPage() {
     [addMsg]
   )
 
-  // ─── Step Handlers ───
+  // ─── Step Handlers (one question at a time) ───
 
   async function startDemo() {
-    await botSay("Let's build your event in 60 seconds.", 500)
+    await botSay("Let's create your event.", 500)
     await wait(300)
     await botSay("What's your event called?", 400)
     setStep("event-name")
@@ -696,30 +619,30 @@ export default function DemoPage() {
   async function onEventName(name: string) {
     addMsg("user", name)
     setEvent((p) => ({ ...p, name }))
-    await botSay(`"${name}" — love it. Where's it happening?`, 500)
+    await botSay("Where's the venue?", 500)
     setStep("venue")
   }
 
-  async function onVenue(venue: string, city: string) {
-    addMsg("user", `${venue}, ${city}`)
-    setEvent((p) => ({ ...p, venue, city }))
-    await botSay("Pick your ticket tiers.", 500)
-    setStep("tiers")
+  async function onVenue(venue: string) {
+    addMsg("user", venue)
+    setEvent((p) => ({ ...p, venue }))
+    await botSay("What city?", 400)
+    setStep("city")
   }
 
-  async function onTiers(tiers: { name: string; price: number }[]) {
-    addMsg(
-      "user",
-      tiers.map((t) => `${t.name} $${t.price}`).join(" / ")
-    )
-    setEvent((p) => ({ ...p, tiers }))
-    await botSay("Almost done — who should I make this ticket out to?", 500)
-    setStep("lead-name")
+  async function onCity(city: string) {
+    addMsg("user", city)
+    setEvent((p) => ({ ...p, city }))
+    await botSay("Pick a ticket tier:", 500)
+    setStep("tier-select")
   }
 
-  async function onLeadName(name: string) {
-    addMsg("user", name)
-    setEvent((p) => ({ ...p, leadName: name }))
+  async function onTier(tier: { name: string; price: number }) {
+    addMsg("user", `${tier.name} — $${tier.price}`)
+    const ticketNumber = genTicketNumber()
+    const updatedEvent = { ...event, tier, ticketNumber }
+    updatedEvent.ticketId = genTicketId(updatedEvent)
+    setEvent(updatedEvent)
     setStep("generating")
     await wait(2400)
     setOverlay("ticket")
@@ -732,16 +655,11 @@ export default function DemoPage() {
   }
 
   function onScanResult(raw: string) {
-    // Accept any scan as valid for the demo
-    try {
-      const u = new URL(raw)
-      if (u.searchParams.get("d")) {
-        setOverlay("result")
-        setStep("scan-result")
-        return
-      }
-    } catch {
-      /* not a URL */
+    // Accept demo tickets or any ticket-like value
+    if (raw.startsWith("demo-") || raw.includes("TK-")) {
+      setOverlay("result")
+      setStep("scan-result")
+      return
     }
     // Fallback: accept any value for demo
     setOverlay("result")
@@ -750,10 +668,7 @@ export default function DemoPage() {
 
   async function onComplete() {
     setOverlay(null)
-    await botSay(
-      "That's AFTERS. Tickets, scanners, check-in — all in one platform.",
-      300
-    )
+    await botSay("That's AFTERS — tickets, scanning, guestlists, analytics. All in one platform.", 300)
     setStep("complete")
   }
 
@@ -765,10 +680,9 @@ export default function DemoPage() {
       venue: "",
       city: "",
       date: getNextSaturday(),
-      tiers: [],
-      leadName: "",
+      tier: TIER_PRESETS[0],
       ticketNumber: genTicketNumber(),
-      ticketId: `demo-${Date.now()}`,
+      ticketId: "",
     })
     setTyping(false)
     setOverlay(null)
@@ -777,10 +691,7 @@ export default function DemoPage() {
   // ─── Render ───
 
   const showChat = !overlay
-  const showInput =
-    !overlay &&
-    !typing &&
-    ["event-name", "venue", "tiers", "lead-name"].includes(step)
+  const showInput = !overlay && !typing && ["event-name", "venue", "city", "tier-select"].includes(step)
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden flex flex-col">
@@ -789,10 +700,7 @@ export default function DemoPage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,20,147,0.5) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,20,147,0.5) 1px, transparent 1px)
-            `,
+            backgroundImage: `linear-gradient(rgba(255,20,147,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,20,147,0.5) 1px, transparent 1px)`,
             backgroundSize: "80px 80px",
           }}
         />
@@ -836,16 +744,8 @@ export default function DemoPage() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in-up`}
                   style={{ animationDuration: "0.3s" }}
                 >
-                  <div
-                    className={`max-w-[85%] px-4 py-3 ${
-                      msg.role === "bot"
-                        ? "bg-white/[0.04] border border-white/[0.08] text-white/85"
-                        : "bg-[#ff1493] text-black"
-                    }`}
-                  >
-                    <p className="text-sm font-body leading-relaxed">
-                      {msg.text}
-                    </p>
+                  <div className={`max-w-[85%] px-4 py-3 ${msg.role === "bot" ? "bg-white/[0.04] border border-white/[0.08] text-white/85" : "bg-[#ff1493] text-black"}`}>
+                    <p className="text-sm font-body leading-relaxed">{msg.text}</p>
                   </div>
                 </div>
               ))}
@@ -860,7 +760,27 @@ export default function DemoPage() {
 
           {/* Complete */}
           {step === "complete" && (
-            <div className="max-w-lg mx-auto mt-8 animate-fade-in-up">
+            <div className="max-w-lg mx-auto mt-8 space-y-4 animate-fade-in-up">
+              {/* Feature summary */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="border border-white/10 p-4 text-center">
+                  <Ticket className="w-6 h-6 mx-auto mb-2 text-[#ff1493]" />
+                  <span className="text-xs font-mono text-white/50">TICKETS</span>
+                </div>
+                <div className="border border-white/10 p-4 text-center">
+                  <Camera className="w-6 h-6 mx-auto mb-2 text-[#ff1493]" />
+                  <span className="text-xs font-mono text-white/50">SCANNER</span>
+                </div>
+                <div className="border border-white/10 p-4 text-center">
+                  <Users className="w-6 h-6 mx-auto mb-2 text-[#ff1493]" />
+                  <span className="text-xs font-mono text-white/50">GUESTLIST</span>
+                </div>
+                <div className="border border-white/10 p-4 text-center">
+                  <BarChart3 className="w-6 h-6 mx-auto mb-2 text-[#ff1493]" />
+                  <span className="text-xs font-mono text-white/50">ANALYTICS</span>
+                </div>
+              </div>
+
               <button
                 onClick={reset}
                 className="w-full py-4 bg-[#ff1493] text-black font-mono text-xs tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
@@ -877,16 +797,15 @@ export default function DemoPage() {
       {showInput && (
         <div className="relative z-10 border-t border-white/[0.06] bg-black/80 backdrop-blur-sm">
           {step === "event-name" && (
-            <TextInput
-              placeholder="e.g. MIDNIGHT SESSIONS"
-              onSubmit={onEventName}
-            />
+            <TextInput placeholder="e.g. MIDNIGHT SESSIONS" onSubmit={onEventName} />
           )}
-          {step === "venue" && <VenueInput onSubmit={onVenue} />}
-          {step === "tiers" && <TierSelector onSubmit={onTiers} />}
-          {step === "lead-name" && (
-            <TextInput placeholder="Their name..." onSubmit={onLeadName} />
+          {step === "venue" && (
+            <TextInput placeholder="Venue name..." onSubmit={onVenue} />
           )}
+          {step === "city" && (
+            <TextInput placeholder="City..." onSubmit={onCity} />
+          )}
+          {step === "tier-select" && <TierSelector onSubmit={onTier} />}
         </div>
       )}
 
@@ -895,13 +814,7 @@ export default function DemoPage() {
         <TicketOverlay event={event} onScanner={openScanner} />
       )}
       {overlay === "scanner" && (
-        <ScannerOverlay
-          onScan={onScanResult}
-          onClose={() => {
-            setOverlay("ticket")
-            setStep("ticket-ready")
-          }}
-        />
+        <ScannerOverlay event={event} onScan={onScanResult} onClose={() => { setOverlay("ticket"); setStep("ticket-ready") }} />
       )}
       {overlay === "result" && (
         <CheckInResult event={event} onDone={onComplete} />
@@ -910,56 +823,24 @@ export default function DemoPage() {
       {/* Custom keyframes */}
       <style jsx>{`
         @keyframes dotBounce {
-          0%,
-          60%,
-          100% {
-            opacity: 0.3;
-            transform: translateY(0);
-          }
-          30% {
-            opacity: 1;
-            transform: translateY(-4px);
-          }
+          0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-4px); }
         }
         @keyframes genScan {
-          0% {
-            top: 20%;
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
-          100% {
-            top: 80%;
-            opacity: 0;
-          }
+          0% { top: 20%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { top: 80%; opacity: 0; }
         }
         @keyframes viewfinderLine {
-          0%,
-          100% {
-            top: 8px;
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
-          50% {
-            top: calc(100% - 10px);
-          }
+          0%, 100% { top: 8px; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          50% { top: calc(100% - 10px); }
         }
         @keyframes pinkFlash {
-          0% {
-            opacity: 0.7;
-          }
-          100% {
-            opacity: 0;
-          }
+          0% { opacity: 0.7; }
+          100% { opacity: 0; }
         }
       `}</style>
     </div>

@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { QRCodeSVG } from "qrcode.react"
-import { MapPin, Calendar, Ticket, Check } from "lucide-react"
+import { Check } from "lucide-react"
 
 interface TicketData {
   id: string
@@ -13,7 +13,6 @@ interface TicketData {
   d: string // date
   t: string // tier name
   p: number // price
-  h: string // holder name
   n: string // ticket number
 }
 
@@ -32,7 +31,6 @@ function TicketView() {
     try {
       const parsed = JSON.parse(atob(d)) as TicketData
       setData(parsed)
-      // Stagger entrance
       setTimeout(() => setReady(true), 100)
     } catch {
       setError(true)
@@ -62,7 +60,8 @@ function TicketView() {
     )
   }
 
-  const qrUrl = typeof window !== "undefined" ? window.location.href : ""
+  // Generate a ticketId that the scanner can recognize
+  const ticketId = data.id || `demo-${Date.now()}-${btoa(JSON.stringify({ n: data.n, t: data.t, e: data.e }))}`
 
   return (
     <div className="min-h-dvh bg-black relative overflow-hidden">
@@ -71,10 +70,7 @@ function TicketView() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,20,147,0.5) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,20,147,0.5) 1px, transparent 1px)
-            `,
+            backgroundImage: `linear-gradient(rgba(255,20,147,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,20,147,0.5) 1px, transparent 1px)`,
             backgroundSize: "80px 80px",
           }}
         />
@@ -82,11 +78,7 @@ function TicketView() {
 
       <div className="relative z-10 flex flex-col items-center px-5 py-8 safe-area-top safe-area-bottom min-h-dvh">
         {/* Header */}
-        <div
-          className={`text-center mb-6 transition-all duration-700 ${
-            ready ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-          }`}
-        >
+        <div className={`text-center mb-6 transition-all duration-700 ${ready ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}>
           <div className="inline-flex items-center gap-2 mb-2">
             <div className="w-1.5 h-1.5 bg-[#ff1493] animate-pulse" />
             <span className="text-[10px] font-mono tracking-[0.3em] text-white/30 uppercase">
@@ -94,55 +86,66 @@ function TicketView() {
             </span>
             <div className="w-1.5 h-1.5 bg-[#ff1493] animate-pulse" />
           </div>
-          <h1 className="font-headline text-3xl text-white tracking-wide">
-            AFTERS<span className="text-[#ff1493]">.</span>
-          </h1>
         </div>
 
-        {/* Ticket Card */}
-        <div
-          className={`w-full max-w-sm transition-all duration-700 delay-150 ${
-            ready ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-6 scale-[0.97]"
-          }`}
-        >
+        {/* Ticket Card - matches PDF design */}
+        <div className={`w-full max-w-sm transition-all duration-700 delay-150 ${ready ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-6 scale-[0.97]"}`}>
           <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-            {/* Top accent */}
-            <div className="h-1.5 bg-gradient-to-r from-[#ff1493] to-[#ff69b4]" />
+            {/* Hot pink header bar with AFTERS logo */}
+            <div className="h-14 bg-[#ff1493] flex items-center px-5">
+              <span className="font-headline text-xl text-black tracking-wide">
+                AFTERS.
+              </span>
+            </div>
 
-            <div className="p-6">
-              {/* Event Name */}
-              <h2 className="font-headline text-4xl sm:text-5xl text-white tracking-wide leading-[0.95] mb-5">
+            <div className="p-5">
+              {/* Event Title */}
+              <h2 className="font-headline text-2xl text-white tracking-wide leading-tight mb-1">
                 {data.e.toUpperCase()}
               </h2>
 
-              {/* Details */}
-              <div className="space-y-2.5 mb-5">
-                <div className="flex items-center gap-2.5 text-white/50 text-sm font-body">
-                  <MapPin className="w-3.5 h-3.5 shrink-0 text-[#ff1493]/60" />
-                  <span>
-                    {data.v} &middot; {data.c}
-                  </span>
+              {/* Tier */}
+              <div className="inline-block text-sm font-mono text-[#ff1493] mb-5">
+                {data.t}
+              </div>
+
+              {/* Event Details */}
+              <div className="space-y-4 mb-5">
+                <div>
+                  <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">
+                    DATE
+                  </div>
+                  <div className="text-sm font-mono text-white">
+                    {data.d}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2.5 text-white/50 text-sm font-body">
-                  <Calendar className="w-3.5 h-3.5 shrink-0 text-[#ff1493]/60" />
-                  <span>{data.d}</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-white/50 text-sm font-body">
-                  <Ticket className="w-3.5 h-3.5 shrink-0 text-[#ff1493]/60" />
-                  <span>
-                    {data.t} &middot; ${data.p}
-                  </span>
+                <div>
+                  <div className="text-[10px] font-mono text-white/40 tracking-wider mb-1">
+                    VENUE
+                  </div>
+                  <div className="text-sm font-mono text-white">
+                    {data.v}
+                  </div>
+                  <div className="text-xs font-mono text-white/50">
+                    {data.c}
+                  </div>
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-dashed border-white/10 my-6" />
+              {/* Dashed tear line */}
+              <div className="border-t border-dashed border-white/20 my-5" />
 
-              {/* QR Code */}
-              <div className="flex justify-center mb-6">
+              {/* QR Code - encodes ticketId for scanner */}
+              <div className="flex justify-center mb-4">
                 <div className="relative">
-                  <div className="bg-white p-4 inline-block">
-                    <QRCodeSVG value={qrUrl} size={200} level="M" />
+                  <div className="bg-black p-3 inline-block border border-white/10">
+                    <QRCodeSVG
+                      value={ticketId}
+                      size={180}
+                      level="M"
+                      bgColor="#000000"
+                      fgColor="#ffffff"
+                    />
                   </div>
                   {/* Corner accents */}
                   <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-[#ff1493]" />
@@ -152,29 +155,23 @@ function TicketView() {
                 </div>
               </div>
 
-              {/* Attendee row */}
-              <div className="flex justify-between items-end">
-                <div>
-                  <div className="text-[10px] font-mono text-white/20 mb-0.5 tracking-wider">
-                    ATTENDEE
-                  </div>
-                  <div className="text-sm font-body text-white">
-                    {data.h}
-                  </div>
+              {/* Ticket number */}
+              <div className="text-center mb-4">
+                <div className="text-xs font-mono text-white/40">
+                  #{data.n}
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-mono text-white/20 mb-0.5 tracking-wider">
-                    TICKET
-                  </div>
-                  <div className="text-sm font-mono text-[#ff1493]">
-                    {data.n}
-                  </div>
-                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center">
+                <p className="text-[10px] font-mono text-white/30">
+                  Scan QR code at the door
+                </p>
               </div>
             </div>
 
             {/* Bottom bar */}
-            <div className="border-t border-white/[0.06] px-6 py-3 flex items-center justify-between">
+            <div className="border-t border-white/[0.06] px-5 py-3 flex items-center justify-between">
               <span className="text-[10px] font-mono text-white/20 tracking-wider">
                 POWERED BY AFTERS
               </span>
@@ -189,11 +186,7 @@ function TicketView() {
         </div>
 
         {/* Footer instructions */}
-        <div
-          className={`mt-8 text-center transition-all duration-700 delay-300 ${
-            ready ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-          }`}
-        >
+        <div className={`mt-8 text-center transition-all duration-700 delay-300 ${ready ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}>
           <p className="text-white/25 font-mono text-[10px] tracking-wider leading-relaxed max-w-[260px] mx-auto">
             Present this QR code at the door for check-in.
           </p>
