@@ -18,8 +18,9 @@ export async function POST(req: Request) {
       )
     }
 
-    // Determine email - use authenticated user's email or guest email
-    const email = user?.emailAddresses[0]?.emailAddress || guestEmail
+    // Always use the email provided in checkout (guestEmail)
+    // This is what the customer entered, regardless of auth status
+    const email = guestEmail || user?.emailAddresses[0]?.emailAddress
 
     if (!email) {
       return NextResponse.json(
