@@ -72,13 +72,6 @@ export default async function DashboardPage() {
             upcoming
           </p>
         </div>
-        <Link
-          href="/d/events/new"
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all flex-shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          NEW EVENT
-        </Link>
       </div>
 
       {/* Stats Grid - Control Room Style */}

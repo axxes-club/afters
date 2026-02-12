@@ -498,7 +498,7 @@ export default function ScannerPage({
           <div className="flex-1 flex flex-col">
             {result ? (
               /* Result Screen */
-              <div className="flex-1 flex flex-col items-center justify-center p-6">
+              <div className={`flex-1 flex flex-col items-center justify-center p-6 ${isOrganizer ? "pb-24" : ""}`}>
                 <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-6 ${
                   result.valid 
                     ? "bg-green-500/20" 
@@ -650,12 +650,12 @@ export default function ScannerPage({
           <div className="flex-1 flex flex-col p-4">
             {result ? (
               /* Result Screen */
-              <div className="flex-1 flex flex-col items-center justify-center">
+              <div className={`flex-1 flex flex-col items-center justify-center ${isOrganizer ? "pb-24" : ""}`}>
                 <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-6 ${
-                  result.valid 
-                    ? "bg-green-500/20" 
-                    : result.result === "ALREADY_CHECKED_IN" 
-                      ? "bg-yellow-500/20" 
+                  result.valid
+                    ? "bg-green-500/20"
+                    : result.result === "ALREADY_CHECKED_IN"
+                      ? "bg-yellow-500/20"
                       : "bg-red-500/20"
                 }`}>
                   {result.valid ? (
@@ -668,10 +668,10 @@ export default function ScannerPage({
                 </div>
 
                 <p className="text-2xl font-bold font-display mb-2">
-                  {result.valid 
-                    ? "CHECKED IN" 
-                    : result.result === "ALREADY_CHECKED_IN" 
-                      ? "ALREADY SCANNED" 
+                  {result.valid
+                    ? "CHECKED IN"
+                    : result.result === "ALREADY_CHECKED_IN"
+                      ? "ALREADY SCANNED"
                       : "INVALID"}
                 </p>
                 <p className="text-white/40 text-center mb-8">
