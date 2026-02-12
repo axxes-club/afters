@@ -690,20 +690,34 @@ export default function EventDashboardPage({
           </div>
 
           {/* Door Actions */}
-          <Link
-            href={`/e/${event.slug}/test-ticket`}
-            target="_blank"
-            className="block border border-orange-500/30 bg-orange-500/5 p-4 sm:p-6 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
-          >
-            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-              <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
-              <span className="text-[9px] font-mono text-orange-400/80 tracking-wider px-1.5 py-0.5 border border-orange-400/30">
-                TRAINING
-              </span>
-            </div>
-            <p className="font-mono font-bold text-orange-400 text-sm tracking-wider">TEST TICKET</p>
-            <p className="text-[10px] text-white/40 font-mono mt-1">Staff training mode</p>
-          </Link>
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/scan"
+              className="border border-cyan-500/30 bg-cyan-500/5 p-4 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all group"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <ScanLine className="w-5 h-5 text-cyan-400" />
+                <div className="w-2 h-2 bg-cyan-400 animate-pulse" />
+              </div>
+              <p className="font-mono font-bold text-cyan-400 text-sm tracking-wider">SCANNER</p>
+              <p className="text-[10px] text-white/40 font-mono mt-1">Scan tickets</p>
+            </Link>
+
+            <Link
+              href={`/d/events/${eventId}/test-ticket`}
+              target="_blank"
+              className="border border-orange-500/30 bg-orange-500/5 p-4 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="w-5 h-5 text-orange-400" />
+                <span className="text-[9px] font-mono text-orange-400/80 tracking-wider px-1.5 py-0.5 border border-orange-400/30">
+                  TRAINING
+                </span>
+              </div>
+              <p className="font-mono font-bold text-orange-400 text-sm tracking-wider">TEST TICKET</p>
+              <p className="text-[10px] text-white/40 font-mono mt-1">Staff practice</p>
+            </Link>
+          </div>
 
           {/* Management Components */}
           <GuestlistManagement eventId={eventId} />
