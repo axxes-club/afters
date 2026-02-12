@@ -43,6 +43,7 @@ import { ScannerManagement } from "@/components/dashboard/ScannerManagement";
 import { ScanActivityLog } from "@/components/dashboard/ScanActivityLog";
 import { ShiftHistory } from "@/components/dashboard/ShiftHistory";
 import { GuestlistManagement } from "@/components/guestlist-management";
+import { EventDesignTab } from "@/components/dashboard/EventDesignTab";
 
 interface TicketTier {
   id: string;
@@ -694,18 +695,7 @@ export default function EventDashboardPage({
       )}
 
       {activeSection === "design" && (
-        <div className="space-y-6">
-          {/* Design Coming Soon */}
-          <div className="border border-white/10 bg-white/[0.02] p-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 border border-purple-500/30 bg-purple-500/5 flex items-center justify-center">
-              <span className="text-2xl">🎨</span>
-            </div>
-            <h3 className="font-mono font-bold text-lg mb-2">Design Studio</h3>
-            <p className="text-white/40 text-sm font-mono max-w-sm mx-auto">
-              Customize your event page appearance, colors, and branding. Coming soon.
-            </p>
-          </div>
-        </div>
+        <EventDesignTab eventId={eventId} />
       )}
 
       {activeSection === "settings" && (
