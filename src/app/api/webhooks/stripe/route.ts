@@ -5,6 +5,7 @@ import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
 import { sendEmail, generateTicketEmailHtml } from "@/lib/email"
+import { waitUntil } from "@vercel/functions"
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -107,42 +108,45 @@ export async function POST(req: Request) {
           })
         }
 
-        // Generate PDF and send email
-        try {
-          const pdfBuffer = await generateTicketPDF(createdTickets)
-          
-          const emailHtml = generateTicketEmailHtml({
-            eventTitle: order.event.title,
-            eventDate: new Date(order.event.startsAt).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-            }),
-            venueName: order.event.venueName,
-            venueAddress: `${order.event.venueAddress}, ${order.event.city}${order.event.state ? `, ${order.event.state}` : ''}`,
-            ticketCount: createdTickets.length,
-            orderNumber: order.orderNumber,
-          })
+        // Generate PDF and send email in background
+        waitUntil(
+          (async () => {
+            try {
+              const pdfBuffer = await generateTicketPDF(createdTickets)
+              
+              const emailHtml = generateTicketEmailHtml({
+                eventTitle: order.event.title,
+                eventDate: new Date(order.event.startsAt).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                }),
+                venueName: order.event.venueName,
+                venueAddress: `${order.event.venueAddress}, ${order.event.city}${order.event.state ? `, ${order.event.state}` : ''}`,
+                ticketCount: createdTickets.length,
+                orderNumber: order.orderNumber,
+              })
 
-          await sendEmail({
-            to: order.email,
-            subject: `Your Tickets for ${order.event.title}`,
-            html: emailHtml,
-            attachments: [{
-              filename: `tickets-${order.orderNumber}.pdf`,
-              content: pdfBuffer,
-              contentType: 'application/pdf',
-            }],
-          })
+              await sendEmail({
+                to: order.email,
+                subject: `Your Tickets for ${order.event.title}`,
+                html: emailHtml,
+                attachments: [{
+                  filename: `tickets-${order.orderNumber}.pdf`,
+                  content: pdfBuffer,
+                  contentType: 'application/pdf',
+                }],
+              })
 
-          console.log(`Sent ${createdTickets.length} tickets to ${order.email}`)
-        } catch (emailError) {
-          console.error('Failed to send ticket email:', emailError)
-          // Don't fail the webhook - tickets are still created
-        }
+              console.log(`Sent ${createdTickets.length} tickets to ${order.email}`)
+            } catch (emailError) {
+              console.error('Failed to send ticket email:', emailError)
+            }
+          })()
+        )
       }
       break
     }

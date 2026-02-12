@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
 import { sendEmail, generateTicketEmailHtml } from "@/lib/email"
+import { waitUntil } from "@vercel/functions"
 
 export async function POST(
   req: Request,
@@ -62,7 +63,17 @@ export async function POST(
       },
     })
 
-    const createdTickets = []
+    const createdTickets: Array<{
+      ticketNumber: string
+      ticketId: string
+      tierName: string
+      eventTitle: string
+      eventDate: string
+      venueName: string
+      venueAddress: string
+      holderName?: string
+      isTestTicket: boolean
+    }> = []
 
     // Generate tickets for each order item
     for (const item of updatedOrder.items) {
@@ -85,6 +96,8 @@ export async function POST(
             ? `${updatedOrder.user.firstName} ${updatedOrder.user.lastName}`
             : undefined)
 
+        const venueAddress = `${updatedOrder.event.venueAddress}, ${updatedOrder.event.city}${updatedOrder.event.state ? `, ${updatedOrder.event.state}` : ''}`
+
         createdTickets.push({
           ticketNumber: ticket.ticketNumber,
           ticketId: ticket.id,
@@ -99,7 +112,7 @@ export async function POST(
             minute: '2-digit',
           }),
           venueName: updatedOrder.event.venueName,
-          venueAddress: `${updatedOrder.event.venueAddress}, ${updatedOrder.event.city}${updatedOrder.event.state ? `, ${updatedOrder.event.state}` : ''}`,
+          venueAddress,
           holderName,
           isTestTicket: false,
         })
@@ -116,43 +129,50 @@ export async function POST(
       })
     }
 
-    // Generate PDF and send email
-    try {
-      const pdfBuffer = await generateTicketPDF(createdTickets)
+    // Generate PDF and send email in background using waitUntil
+    // This allows us to return a response immediately while the email sends
+    const venueAddress = `${updatedOrder.event.venueAddress}, ${updatedOrder.event.city}${updatedOrder.event.state ? `, ${updatedOrder.event.state}` : ''}`
+    
+    waitUntil(
+      (async () => {
+        try {
+          const pdfBuffer = await generateTicketPDF(createdTickets)
 
-      const emailHtml = generateTicketEmailHtml({
-        eventTitle: updatedOrder.event.title,
-        eventDate: new Date(updatedOrder.event.startsAt).toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-        }),
-        venueName: updatedOrder.event.venueName,
-        venueAddress: `${updatedOrder.event.venueAddress}, ${updatedOrder.event.city}${updatedOrder.event.state ? `, ${updatedOrder.event.state}` : ''}`,
-        ticketCount: createdTickets.length,
-        orderNumber: updatedOrder.orderNumber,
-      })
+          const emailHtml = generateTicketEmailHtml({
+            eventTitle: updatedOrder.event.title,
+            eventDate: new Date(updatedOrder.event.startsAt).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            }),
+            venueName: updatedOrder.event.venueName,
+            venueAddress,
+            ticketCount: createdTickets.length,
+            orderNumber: updatedOrder.orderNumber,
+          })
 
-      await sendEmail({
-        to: updatedOrder.email,
-        subject: `Your Tickets for ${updatedOrder.event.title}`,
-        html: emailHtml,
-        attachments: [{
-          filename: `tickets-${updatedOrder.orderNumber}.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf',
-        }],
-      })
+          await sendEmail({
+            to: updatedOrder.email,
+            subject: `Your Tickets for ${updatedOrder.event.title}`,
+            html: emailHtml,
+            attachments: [{
+              filename: `tickets-${updatedOrder.orderNumber}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            }],
+          })
 
-      console.log(`Sent ${createdTickets.length} free tickets to ${updatedOrder.email}`)
-    } catch (emailError) {
-      console.error('Failed to send ticket email:', emailError)
-      // Don't fail the request - tickets are still created
-    }
+          console.log(`Sent ${createdTickets.length} free tickets to ${updatedOrder.email}`)
+        } catch (emailError) {
+          console.error('Failed to send ticket email:', emailError)
+        }
+      })()
+    )
 
+    // Return immediately - email sends in background
     return NextResponse.json({ success: true, orderId: updatedOrder.id })
   } catch (error) {
     console.error("Error confirming free order:", error)
