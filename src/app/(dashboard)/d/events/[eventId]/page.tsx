@@ -690,34 +690,20 @@ export default function EventDashboardPage({
           </div>
 
           {/* Door Actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <Link
-              href={`/d/events/${eventId}/check-in`}
-              className="border border-cyan-500/30 bg-cyan-500/5 p-4 sm:p-6 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all group"
-            >
-              <div className="flex items-center gap-3 mb-2 sm:mb-3">
-                <ScanLine className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
-                <div className="w-2 h-2 bg-cyan-400 animate-pulse" />
-              </div>
-              <p className="font-mono font-bold text-cyan-400 text-sm tracking-wider">OPEN SCANNER</p>
-              <p className="text-[10px] text-white/40 font-mono mt-1">Scan tickets at door</p>
-            </Link>
-
-            <Link
-              href={`/e/${event.slug}/test-ticket`}
-              target="_blank"
-              className="border border-orange-500/30 bg-orange-500/5 p-4 sm:p-6 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
-            >
-              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
-                <span className="text-[9px] font-mono text-orange-400/80 tracking-wider px-1.5 py-0.5 border border-orange-400/30">
-                  TRAINING
-                </span>
-              </div>
-              <p className="font-mono font-bold text-orange-400 text-sm tracking-wider">TEST TICKET</p>
-              <p className="text-[10px] text-white/40 font-mono mt-1">Staff training mode</p>
-            </Link>
-          </div>
+          <Link
+            href={`/e/${event.slug}/test-ticket`}
+            target="_blank"
+            className="block border border-orange-500/30 bg-orange-500/5 p-4 sm:p-6 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
+          >
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
+              <span className="text-[9px] font-mono text-orange-400/80 tracking-wider px-1.5 py-0.5 border border-orange-400/30">
+                TRAINING
+              </span>
+            </div>
+            <p className="font-mono font-bold text-orange-400 text-sm tracking-wider">TEST TICKET</p>
+            <p className="text-[10px] text-white/40 font-mono mt-1">Staff training mode</p>
+          </Link>
 
           {/* Management Components */}
           <GuestlistManagement eventId={eventId} />
