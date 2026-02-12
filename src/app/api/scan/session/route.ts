@@ -27,8 +27,12 @@ export async function GET() {
       }
     })
 
+    // Check if this is an organizer session (organizer scanner IDs start with "organizer-")
+    const isOrganizer = session.scannerId.startsWith("organizer-")
+
     return NextResponse.json({
       authenticated: true,
+      isOrganizer,
       scanner: {
         scannerId: session.scannerId,
         eventId: session.eventId,

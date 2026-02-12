@@ -71,6 +71,7 @@ export default function ScannerPage({
   const [isPunchedIn, setIsPunchedIn] = useState(false)
   const [punchLoading, setPunchLoading] = useState(false)
   const [checkingSession, setCheckingSession] = useState(true)
+  const [isOrganizer, setIsOrganizer] = useState(false)
   const [guestlistSearch, setGuestlistSearch] = useState("")
   const [guestlistEntries, setGuestlistEntries] = useState<GuestlistEntry[]>([])
   const [stats, setStats] = useState({ scanned: 0, total: 0 })
@@ -93,11 +94,18 @@ export default function ScannerPage({
         })
         setAuthenticated(true)
         setStats(data.stats || { scanned: 0, total: 0 })
-        // Check shift status
-        const shiftRes = await fetch("/api/scan/punch")
-        if (shiftRes.ok) {
-          const shiftData = await shiftRes.json()
-          setIsPunchedIn(shiftData.isPunchedIn)
+
+        // Organizers are automatically "punched in" - no shift tracking needed
+        if (data.isOrganizer) {
+          setIsOrganizer(true)
+          setIsPunchedIn(true)
+        } else {
+          // Check shift status for staff scanners
+          const shiftRes = await fetch("/api/scan/punch")
+          if (shiftRes.ok) {
+            const shiftData = await shiftRes.json()
+            setIsPunchedIn(shiftData.isPunchedIn)
+          }
         }
       }
     } catch {
@@ -383,29 +391,36 @@ export default function ScannerPage({
             </div>
           </div>
           
-          {/* Shift Status */}
-          <button
-            onClick={togglePunch}
-            disabled={punchLoading}
-            className={`flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider transition-all ${
-              isPunchedIn
-                ? "bg-green-500/10 border border-green-500/30 text-green-400"
-                : "bg-white/5 border border-white/10 text-white/60"
-            }`}
-          >
-            {isPunchedIn ? (
-              <>
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="hidden sm:inline">ON SHIFT</span>
-                <LogOut className="w-3.5 h-3.5 sm:hidden" />
-              </>
-            ) : (
-              <>
-                <LogIn className="w-3.5 h-3.5" />
-                <span>PUNCH IN</span>
-              </>
-            )}
-          </button>
+          {/* Shift Status - Organizers see status only, staff can punch in/out */}
+          {isOrganizer ? (
+            <div className="flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider bg-[#ff1493]/10 border border-[#ff1493]/30 text-[#ff1493]">
+              <div className="w-2 h-2 bg-[#ff1493] rounded-full animate-pulse" />
+              <span className="hidden sm:inline">ORGANIZER</span>
+            </div>
+          ) : (
+            <button
+              onClick={togglePunch}
+              disabled={punchLoading}
+              className={`flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider transition-all ${
+                isPunchedIn
+                  ? "bg-green-500/10 border border-green-500/30 text-green-400"
+                  : "bg-white/5 border border-white/10 text-white/60"
+              }`}
+            >
+              {isPunchedIn ? (
+                <>
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="hidden sm:inline">ON SHIFT</span>
+                  <LogOut className="w-3.5 h-3.5 sm:hidden" />
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>PUNCH IN</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </header>
 

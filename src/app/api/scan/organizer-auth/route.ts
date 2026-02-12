@@ -125,6 +125,7 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({
       valid: true,
+      isOrganizer: true,
       scanner: {
         id: scannerId,
         name: scannerName,
