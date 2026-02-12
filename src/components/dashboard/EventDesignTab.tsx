@@ -85,11 +85,9 @@ export function EventDesignTab({
   )
 
   const carouselRef = useRef<HTMLDivElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [startX, setStartX] = useState(0)
-  const [scrollLeft, setScrollLeft] = useState(0)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Scroll to active template on mount and when activeIndex changes
+  // Scroll to active template on mount
   useEffect(() => {
     scrollToIndex(activeIndex, false)
   }, [])
@@ -97,68 +95,52 @@ export function EventDesignTab({
   const scrollToIndex = (index: number, smooth = true) => {
     if (!carouselRef.current) return
     const container = carouselRef.current
-    const cardWidth = container.offsetWidth * 0.75 // 75% of container width
-    const gap = 16
-    const scrollPosition = index * (cardWidth + gap) - (container.offsetWidth - cardWidth) / 2 + gap / 2
+    const cards = container.querySelectorAll('[data-template-card]')
+    if (cards[index]) {
+      const card = cards[index] as HTMLElement
+      const containerWidth = container.offsetWidth
+      const cardLeft = card.offsetLeft
+      const cardWidth = card.offsetWidth
+      const scrollPosition = cardLeft - (containerWidth - cardWidth) / 2
 
-    container.scrollTo({
-      left: scrollPosition,
-      behavior: smooth ? "smooth" : "auto",
-    })
-  }
-
-  const handleScroll = () => {
-    if (!carouselRef.current || isDragging) return
-    const container = carouselRef.current
-    const cardWidth = container.offsetWidth * 0.75
-    const gap = 16
-    const scrollPos = container.scrollLeft + (container.offsetWidth - cardWidth) / 2
-    const newIndex = Math.round(scrollPos / (cardWidth + gap))
-    const clampedIndex = Math.max(0, Math.min(newIndex, TEMPLATES.length - 1))
-
-    if (clampedIndex !== activeIndex) {
-      setActiveIndex(clampedIndex)
+      container.scrollTo({
+        left: scrollPosition,
+        behavior: smooth ? "smooth" : "auto",
+      })
     }
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleScroll = () => {
     if (!carouselRef.current) return
-    setIsDragging(true)
-    setStartX(e.pageX - carouselRef.current.offsetLeft)
-    setScrollLeft(carouselRef.current.scrollLeft)
-  }
 
-  const handleMouseUp = () => {
-    setIsDragging(false)
-    // Snap to nearest card
-    scrollToIndex(activeIndex)
-  }
+    // Debounce to detect when scrolling stops
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+    }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !carouselRef.current) return
-    e.preventDefault()
-    const x = e.pageX - carouselRef.current.offsetLeft
-    const walk = (x - startX) * 1.5
-    carouselRef.current.scrollLeft = scrollLeft - walk
-  }
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (!carouselRef.current) return
+      const container = carouselRef.current
+      const containerCenter = container.scrollLeft + container.offsetWidth / 2
+      const cards = container.querySelectorAll('[data-template-card]')
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!carouselRef.current) return
-    setIsDragging(true)
-    setStartX(e.touches[0].pageX - carouselRef.current.offsetLeft)
-    setScrollLeft(carouselRef.current.scrollLeft)
-  }
+      let closestIndex = 0
+      let closestDistance = Infinity
 
-  const handleTouchEnd = () => {
-    setIsDragging(false)
-    scrollToIndex(activeIndex)
-  }
+      cards.forEach((card, index) => {
+        const cardElement = card as HTMLElement
+        const cardCenter = cardElement.offsetLeft + cardElement.offsetWidth / 2
+        const distance = Math.abs(containerCenter - cardCenter)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestIndex = index
+        }
+      })
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !carouselRef.current) return
-    const x = e.touches[0].pageX - carouselRef.current.offsetLeft
-    const walk = (x - startX) * 1.5
-    carouselRef.current.scrollLeft = scrollLeft - walk
+      if (closestIndex !== activeIndex) {
+        setActiveIndex(closestIndex)
+      }
+    }, 50)
   }
 
   const selectTemplate = (templateId: string, index: number) => {
@@ -239,18 +221,10 @@ export function EventDesignTab({
           <div
             ref={carouselRef}
             onScroll={handleScroll}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onTouchMove={handleTouchMove}
-            className="flex gap-4 overflow-x-auto scrollbar-hide px-4 sm:px-0 snap-x snap-mandatory scroll-smooth"
+            className="flex gap-4 overflow-x-auto scrollbar-hide px-4 sm:px-0"
             style={{
               scrollSnapType: "x mandatory",
               WebkitOverflowScrolling: "touch",
-              cursor: isDragging ? "grabbing" : "grab",
             }}
           >
             {TEMPLATES.map((template, index) => {
@@ -260,6 +234,7 @@ export function EventDesignTab({
               return (
                 <div
                   key={template.id}
+                  data-template-card
                   onClick={() => selectTemplate(template.id, index)}
                   className="flex-shrink-0 snap-center"
                   style={{ width: "75%", minWidth: "280px", maxWidth: "400px" }}
@@ -474,13 +449,16 @@ export function EventDesignTab({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div
+          className="flex gap-3 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {ACCENT_COLORS.map((color) => (
             <button
               key={color.value}
               onClick={() => setAccentColor(color.value)}
               className={`
-                w-12 h-12 transition-all relative group
+                w-12 h-12 flex-shrink-0 transition-all relative group
                 ${accentColor === color.value
                   ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
                   : "hover:scale-105"
@@ -498,7 +476,7 @@ export function EventDesignTab({
           ))}
 
           {/* Custom color picker */}
-          <div className="relative w-12 h-12 border-2 border-dashed border-white/20 overflow-hidden hover:border-white/40 transition-colors">
+          <div className="relative w-12 h-12 flex-shrink-0 border-2 border-dashed border-white/20 overflow-hidden hover:border-white/40 transition-colors">
             <input
               type="color"
               value={accentColor}
