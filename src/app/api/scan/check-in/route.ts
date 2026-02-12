@@ -29,16 +29,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Verify scanner is still active
-    const scanner = await prisma.eventScanner.findUnique({
-      where: { id: session.scannerId },
-    })
+    // Verify scanner is still active (skip for organizer sessions)
+    const isOrganizer = session.scannerId.startsWith("organizer-")
 
-    if (!scanner || !scanner.isActive) {
-      return NextResponse.json(
-        { error: "Scanner has been deactivated", valid: false },
-        { status: 403 }
-      )
+    if (!isOrganizer) {
+      const scanner = await prisma.eventScanner.findUnique({
+        where: { id: session.scannerId },
+      })
+
+      if (!scanner || !scanner.isActive) {
+        return NextResponse.json(
+          { error: "Scanner has been deactivated", valid: false },
+          { status: 403 }
+        )
+      }
     }
 
     const { ticketId } = await req.json()
