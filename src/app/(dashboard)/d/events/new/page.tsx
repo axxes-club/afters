@@ -374,7 +374,9 @@ function NewEventForm() {
                         </p>
                       </div>
                     </div>
-                    <Switch checked={isAddressHidden} onCheckedChange={setIsAddressHidden} />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Switch checked={isAddressHidden} onCheckedChange={setIsAddressHidden} />
+                    </div>
                   </button>
                 </div>
               </SectionCard>
