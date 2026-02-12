@@ -367,64 +367,59 @@ export default function ScannerPage({
       
       {/* Header */}
       <header className="flex-shrink-0 px-4 py-3 border-b border-white/10 bg-black/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between relative">
+          {/* Left side - back button */}
+          <div className="w-10 flex-shrink-0">
             {viewMode !== "home" && (
-              <button 
+              <button
                 onClick={resetAndGoHome}
                 className="p-2 -ml-2 hover:bg-white/5 transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
             )}
-            <div>
-              <p className="text-xl font-headline tracking-wide">
-                {viewMode === "home" ? (
-                  <>AFTERS<span className="text-[#ff1493]">.</span></>
-                ) : viewMode === "scan" ? (
-                  "SCAN TICKET"
-                ) : viewMode === "guestlist" ? (
-                  "GUESTLIST"
-                ) : (
-                  "MANUAL ENTRY"
-                )}
-              </p>
-              {viewMode === "home" && scanner && (
-                <p className="text-xs text-white/40">{scanner.name}</p>
-              )}
-            </div>
           </div>
-          
-          {/* Shift Status - Organizers see status only, staff can punch in/out */}
-          {isOrganizer ? (
-            <div className="flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider bg-[#ff1493]/10 border border-[#ff1493]/30 text-[#ff1493]">
-              <div className="w-2 h-2 bg-[#ff1493] rounded-full animate-pulse" />
-              <span className="hidden sm:inline">ORGANIZER</span>
-            </div>
-          ) : (
-            <button
-              onClick={togglePunch}
-              disabled={punchLoading}
-              className={`flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider transition-all ${
-                isPunchedIn
-                  ? "bg-green-500/10 border border-green-500/30 text-green-400"
-                  : "bg-white/5 border border-white/10 text-white/60"
-              }`}
-            >
-              {isPunchedIn ? (
-                <>
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="hidden sm:inline">ON SHIFT</span>
-                  <LogOut className="w-3.5 h-3.5 sm:hidden" />
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>PUNCH IN</span>
-                </>
-              )}
-            </button>
-          )}
+
+          {/* Center - Event title */}
+          <div className="absolute left-1/2 -translate-x-1/2 text-center">
+            <p className="text-sm font-headline tracking-wide truncate max-w-[200px]">
+              {scanner?.eventTitle || "SCANNER"}
+            </p>
+            {viewMode !== "home" && (
+              <p className="text-[10px] font-mono text-white/40 tracking-wider">
+                {viewMode === "scan" ? "SCAN MODE" : viewMode === "guestlist" ? "GUESTLIST" : "MANUAL"}
+              </p>
+            )}
+          </div>
+
+          {/* Right side - Shift Status */}
+          <div className="flex-shrink-0">
+            {isOrganizer ? (
+              <div className="flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider bg-[#ff1493]/10 border border-[#ff1493]/30 text-[#ff1493]">
+                <div className="w-2 h-2 bg-[#ff1493] rounded-full animate-pulse" />
+                <span className="hidden sm:inline">ORGANIZER</span>
+              </div>
+            ) : (
+              <button
+                onClick={togglePunch}
+                disabled={punchLoading}
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider transition-all ${isPunchedIn ? "bg-green-500/10 border border-green-500/30 text-green-400" : "bg-white/5 border border-white/10 text-white/60"}`}
+              >
+                {isPunchedIn ? (
+                  <>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    <span className="hidden sm:inline">ON SHIFT</span>
+                    <LogOut className="w-3.5 h-3.5 sm:hidden" />
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>PUNCH IN</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
