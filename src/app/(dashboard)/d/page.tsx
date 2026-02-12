@@ -62,19 +62,19 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-mono font-bold tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
             CONTROL CENTER
           </h1>
-          <p className="text-white/40 text-sm font-mono mt-1">
+          <p className="text-white/40 text-sm font-mono mt-1 truncate">
             {profile.displayName || "Operator"} • {upcomingEvents.length}{" "}
             upcoming
           </p>
         </div>
         <Link
           href="/d/events/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
           NEW EVENT
@@ -130,22 +130,24 @@ export default async function DashboardPage() {
                   {nextEvent.title}
                 </h2>
                 <div
-                  className="flex items-center gap-4 mt-2 text-sm text-white/40"
+                  className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-2 text-sm text-white/40"
                   data-testid="event-details"
                 >
                   <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    {new Date(nextEvent.startsAt).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
+                    <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">
+                      {new Date(nextEvent.startsAt).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {nextEvent.venueName}
+                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">{nextEvent.venueName}</span>
                   </span>
                 </div>
               </div>
@@ -231,34 +233,34 @@ export default async function DashboardPage() {
                 <Link
                   key={event.id}
                   href={`/d/events/${event.id}`}
-                  className={`flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-all ${isPast ? "opacity-50" : ""}`}
+                  className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-white/[0.02] transition-all ${isPast ? "opacity-50" : ""}`}
                 >
                   {/* Date Block */}
-                  <div className="w-12 h-12 bg-white/5 flex flex-col items-center justify-center flex-shrink-0">
-                    <span className="text-[10px] font-mono text-white/40">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/5 flex flex-col items-center justify-center flex-shrink-0">
+                    <span className="text-[9px] sm:text-[10px] font-mono text-white/40">
                       {new Date(event.startsAt)
                         .toLocaleDateString("en-US", { month: "short" })
                         .toUpperCase()}
                     </span>
-                    <span className="text-lg font-mono font-bold">
+                    <span className="text-base sm:text-lg font-mono font-bold">
                       {new Date(event.startsAt).getDate()}
                     </span>
                   </div>
 
                   {/* Event Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-mono font-medium truncate">
+                    <p className="font-mono font-medium truncate text-sm sm:text-base">
                       {event.title}
                     </p>
-                    <p className="text-xs text-white/40 font-mono">
+                    <p className="text-xs text-white/40 font-mono truncate">
                       {event.venueName}
                     </p>
                   </div>
 
                   {/* Status */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <span
-                      className={`text-xs font-mono px-2 py-1 ${
+                      className={`text-[10px] sm:text-xs font-mono px-1.5 sm:px-2 py-0.5 sm:py-1 ${
                         isPast
                           ? "bg-white/5 text-white/30"
                           : event.isPublished
@@ -268,7 +270,7 @@ export default async function DashboardPage() {
                     >
                       {isPast ? "PAST" : event.isPublished ? "LIVE" : "DRAFT"}
                     </span>
-                    <span className="text-sm font-mono text-white/60 w-16 text-right">
+                    <span className="text-xs sm:text-sm font-mono text-white/60 hidden sm:block w-16 text-right">
                       {soldCount}/{totalCount}
                     </span>
                   </div>

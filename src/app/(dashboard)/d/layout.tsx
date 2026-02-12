@@ -24,7 +24,7 @@ export default function DashboardLayout({
   const pathname = usePathname()
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen bg-black text-white flex overflow-x-hidden">
       {/* Desktop Sidebar - Hidden on mobile */}
       <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
         {/* Logo */}
@@ -143,7 +143,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <div className="p-4 md:p-6 pb-24 md:pb-6">
+        <div className="p-4 md:p-6 pb-24 md:pb-6 overflow-x-hidden">
           {children}
         </div>
       </main>

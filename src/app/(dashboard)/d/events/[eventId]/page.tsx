@@ -374,15 +374,15 @@ export default function EventDashboardPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           {/* Flyer Thumbnail */}
           <button
             onClick={() => {
               setTempFlyerUrl(event.flyerUrl);
               setShowFlyerDialog(true);
             }}
-            className="relative w-16 h-20 border border-white/10 bg-white/5 flex-shrink-0 overflow-hidden group hover:border-[#ff1493]/50 transition-colors"
+            className="relative w-14 h-[70px] sm:w-16 sm:h-20 border border-white/10 bg-white/5 flex-shrink-0 overflow-hidden group hover:border-[#ff1493]/50 transition-colors"
           >
             {event.flyerUrl ? (
               <>
@@ -404,14 +404,14 @@ export default function EventDashboardPage({
           </button>
 
           {/* Event Info */}
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <Link
                 href="/d/events"
                 className="text-white/40 hover:text-white text-xs font-mono flex items-center gap-1"
               >
                 <ArrowLeft className="w-3 h-3" />
-                EVENTS
+                <span className="hidden sm:inline">EVENTS</span>
               </Link>
               <span className="text-white/20">/</span>
               <span
@@ -424,41 +424,43 @@ export default function EventDashboardPage({
                 {event.isPublished ? "LIVE" : "DRAFT"}
               </span>
             </div>
-            <h1 className="text-2xl font-mono font-bold tracking-tight">{event.title}</h1>
-            <div className="flex items-center gap-4 mt-1 text-xs text-white/40 font-mono">
+            <h1 className="text-lg sm:text-2xl font-mono font-bold tracking-tight truncate">{event.title}</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 mt-1 text-xs text-white/40 font-mono">
               <span className="flex items-center gap-1.5">
-                <Calendar className="w-3 h-3" />
-                {new Date(event.startsAt).toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
+                <Calendar className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">
+                  {new Date(event.startsAt).toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </span>
               </span>
               <span className="flex items-center gap-1.5">
-                <MapPin className="w-3 h-3" />
-                {event.venueName}
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{event.venueName}</span>
               </span>
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2">
           {event.isPublished ? (
             <>
               <Link
                 href={`/e/${event.slug}`}
                 target="_blank"
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 text-xs font-mono text-white/60 hover:border-white/20 hover:text-white transition-all"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 border border-white/10 text-xs font-mono text-white/60 hover:border-white/20 hover:text-white transition-all"
               >
                 <ExternalLink className="w-3 h-3" />
                 VIEW
               </Link>
               <button
                 onClick={shareEvent}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 text-xs font-mono text-white/60 hover:border-white/20 hover:text-white transition-all"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 border border-white/10 text-xs font-mono text-white/60 hover:border-white/20 hover:text-white transition-all"
               >
                 <Share2 className="w-3 h-3" />
                 SHARE
@@ -468,7 +470,7 @@ export default function EventDashboardPage({
             <button
               onClick={() => setShowPublishDialog(true)}
               disabled={publishing || event.ticketTiers.length === 0}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-3.5 h-3.5" />
               PUBLISH
@@ -478,7 +480,7 @@ export default function EventDashboardPage({
       </div>
 
       {/* Section Nav */}
-      <div className="flex items-center gap-1 border-b border-white/10">
+      <div className="flex items-center gap-1 border-b border-white/10 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
         {[
           { id: "overview" as const, label: "OVERVIEW" },
           { id: "tickets" as const, label: "TICKETS" },
@@ -488,7 +490,7 @@ export default function EventDashboardPage({
           <button
             key={section.id}
             onClick={() => setActiveSection(section.id)}
-            className={`px-4 py-2.5 text-xs font-mono tracking-wider transition-colors border-b-2 -mb-[1px] ${
+            className={`px-3 sm:px-4 py-2.5 text-xs font-mono tracking-wider transition-colors border-b-2 -mb-[1px] whitespace-nowrap ${
               activeSection === section.id
                 ? "text-[#ff1493] border-[#ff1493]"
                 : "text-white/40 border-transparent hover:text-white/60"
@@ -539,31 +541,31 @@ export default function EventDashboardPage({
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <Link
               href={`/d/events/${eventId}/check-in`}
-              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-cyan-500/50 hover:bg-white/[0.02] transition-all group"
+              className="border border-white/10 p-3 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-cyan-500/50 hover:bg-white/[0.02] transition-all group"
             >
-              <QrCode className="w-5 h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
-              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
+              <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
+              <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
                 SCANNER
               </span>
             </Link>
             <Link
               href={`/d/events/${eventId}/analytics`}
-              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-purple-500/50 hover:bg-white/[0.02] transition-all group"
+              className="border border-white/10 p-3 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-purple-500/50 hover:bg-white/[0.02] transition-all group"
             >
-              <BarChart3 className="w-5 h-5 text-white/30 group-hover:text-purple-400 transition-colors" />
-              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-white/30 group-hover:text-purple-400 transition-colors" />
+              <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
                 ANALYTICS
               </span>
             </Link>
             <button
               onClick={copyEventUrl}
-              className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-[#ff1493]/50 hover:bg-white/[0.02] transition-all group"
+              className="border border-white/10 p-3 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-[#ff1493]/50 hover:bg-white/[0.02] transition-all group"
             >
-              <Copy className="w-5 h-5 text-white/30 group-hover:text-[#ff1493] transition-colors" />
-              <span className="text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
+              <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-white/30 group-hover:text-[#ff1493] transition-colors" />
+              <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
                 COPY LINK
               </span>
             </button>
@@ -688,13 +690,13 @@ export default function EventDashboardPage({
           </div>
 
           {/* Door Actions */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Link
               href={`/d/events/${eventId}/check-in`}
-              className="border border-cyan-500/30 bg-cyan-500/5 p-6 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all group"
+              className="border border-cyan-500/30 bg-cyan-500/5 p-4 sm:p-6 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all group"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <ScanLine className="w-6 h-6 text-cyan-400" />
+              <div className="flex items-center gap-3 mb-2 sm:mb-3">
+                <ScanLine className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
                 <div className="w-2 h-2 bg-cyan-400 animate-pulse" />
               </div>
               <p className="font-mono font-bold text-cyan-400 text-sm tracking-wider">OPEN SCANNER</p>
@@ -704,10 +706,10 @@ export default function EventDashboardPage({
             <Link
               href={`/e/${event.slug}/test-ticket`}
               target="_blank"
-              className="border border-orange-500/30 bg-orange-500/5 p-6 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
+              className="border border-orange-500/30 bg-orange-500/5 p-4 sm:p-6 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <Zap className="w-6 h-6 text-orange-400" />
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
                 <span className="text-[9px] font-mono text-orange-400/80 tracking-wider px-1.5 py-0.5 border border-orange-400/30">
                   TRAINING
                 </span>
@@ -769,15 +771,15 @@ export default function EventDashboardPage({
                 )}
               </div>
 
-              <div className="mt-4 p-3 bg-white/5 border border-white/10">
+              <div className="mt-4 p-3 bg-white/5 border border-white/10 overflow-hidden">
                 <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">EVENT URL</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm font-mono text-[#ff1493] truncate">
-                    {typeof window !== "undefined" ? window.location.origin : ""}/e/{event.slug}
+                  <code className="flex-1 text-xs sm:text-sm font-mono text-[#ff1493] truncate min-w-0">
+                    /e/{event.slug}
                   </code>
                   <button
                     onClick={copyEventUrl}
-                    className="p-1.5 border border-white/10 hover:border-[#ff1493]/30 transition-all"
+                    className="p-1.5 border border-white/10 hover:border-[#ff1493]/30 transition-all flex-shrink-0"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
