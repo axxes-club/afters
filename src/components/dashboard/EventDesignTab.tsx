@@ -167,11 +167,11 @@ export function EventDesignTab({
   const handleSave = async () => {
     setSaving(true)
     try {
-      const res = await fetch(`/api/events/${eventId}/design`, {
-        method: "PUT",
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          template: selectedTemplate,
+          pageTheme: selectedTemplate,
           typography: selectedTypography,
           accentColor,
         }),
@@ -180,13 +180,20 @@ export function EventDesignTab({
       if (res.ok) {
         toast.success("Design saved!")
       } else {
-        toast.error("Failed to save design")
+        const data = await res.json()
+        toast.error(data.message || "Failed to save design")
       }
     } catch {
       toast.error("Failed to save design")
     } finally {
       setSaving(false)
     }
+  }
+
+  // Get the selected typography class
+  const getTypographyClass = () => {
+    const font = TYPOGRAPHY_OPTIONS.find(f => f.id === selectedTypography)
+    return font?.className || "font-headline"
   }
 
   return (
@@ -272,19 +279,27 @@ export function EventDesignTab({
                       {template.id === "brutalist" && (
                         <div className="absolute inset-0 p-3 flex flex-col">
                           {/* Header bar */}
-                          <div className="w-full h-2 bg-white mb-3" />
+                          <div className="w-full h-2 mb-3" style={{ backgroundColor: accentColor }} />
                           {/* Flyer placeholder */}
-                          <div className="w-full aspect-[4/5] max-h-[45%] bg-white/10 border-2 border-white mb-2" />
+                          <div
+                            className="w-full aspect-[4/5] max-h-[45%] bg-white/10 border-2 mb-2"
+                            style={{ borderColor: accentColor }}
+                          />
                           {/* Title */}
-                          <div className="font-mono text-[8px] text-white font-bold tracking-wider mb-1">EVENT NAME</div>
+                          <div className={`text-[8px] text-white font-bold tracking-wider mb-1 ${getTypographyClass()}`}>
+                            EVENT NAME
+                          </div>
                           <div className="flex gap-1 mb-2">
                             <div className="w-8 h-2 bg-white/40" />
                             <div className="w-6 h-2 bg-white/40" />
                           </div>
                           {/* CTA */}
                           <div className="mt-auto flex gap-1">
-                            <div className="flex-1 h-4 border-2 border-white flex items-center justify-center">
-                              <span className="text-[6px] font-mono text-white">GET TICKETS</span>
+                            <div
+                              className="flex-1 h-4 border-2 flex items-center justify-center"
+                              style={{ borderColor: accentColor }}
+                            >
+                              <span className="text-[6px] font-mono" style={{ color: accentColor }}>GET TICKETS</span>
                             </div>
                           </div>
                         </div>
@@ -303,7 +318,7 @@ export function EventDesignTab({
                           />
                           {/* Title */}
                           <div
-                            className="text-[9px] font-mono font-bold tracking-wider mb-1"
+                            className={`text-[9px] font-bold tracking-wider mb-1 ${getTypographyClass()}`}
                             style={{ color: accentColor }}
                           >
                             EVENT NAME
@@ -325,14 +340,20 @@ export function EventDesignTab({
                       {template.id === "minimal" && (
                         <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent">
                           {/* Subtle flyer hint */}
-                          <div className="absolute top-3 left-3 w-6 h-6 border border-white/20" />
+                          <div
+                            className="absolute top-3 left-3 w-6 h-6 border"
+                            style={{ borderColor: `${accentColor}40` }}
+                          />
                           {/* Title - elegant placement */}
-                          <div className="text-[10px] font-serif text-white font-medium tracking-wide mb-0.5">
+                          <div className={`text-[10px] text-white font-medium tracking-wide mb-0.5 ${getTypographyClass()}`}>
                             Event Name
                           </div>
                           <div className="text-[6px] text-white/40 mb-2">January 15, 2025</div>
                           {/* Minimal CTA */}
-                          <div className="w-12 h-3 bg-white flex items-center justify-center">
+                          <div
+                            className="w-12 h-3 flex items-center justify-center"
+                            style={{ backgroundColor: accentColor }}
+                          >
                             <span className="text-[5px] font-mono text-black tracking-wider">RSVP</span>
                           </div>
                         </div>
@@ -343,18 +364,18 @@ export function EventDesignTab({
                           {/* Chaotic background shapes */}
                           <div
                             className="absolute -top-2 -left-2 w-16 h-16 border-4 rotate-12"
-                            style={{ borderColor: "#00ff88" }}
+                            style={{ borderColor: accentColor }}
                           />
                           <div
                             className="absolute -bottom-4 -right-4 w-20 h-20 -rotate-12"
-                            style={{ backgroundColor: "#00ff88", opacity: 0.3 }}
+                            style={{ backgroundColor: accentColor, opacity: 0.3 }}
                           />
                           <div className="absolute top-1/4 right-2 w-8 h-8 border-2 border-white rotate-45" />
                           {/* Central content */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center p-3">
                             <div
-                              className="text-[11px] font-mono font-black tracking-tight transform -rotate-2 mb-1"
-                              style={{ color: "#00ff88" }}
+                              className={`text-[11px] font-black tracking-tight transform -rotate-2 mb-1 ${getTypographyClass()}`}
+                              style={{ color: accentColor }}
                             >
                               EVENT
                             </div>
@@ -363,7 +384,7 @@ export function EventDesignTab({
                             </div>
                             <div
                               className="px-2 py-1 transform -rotate-1"
-                              style={{ backgroundColor: "#00ff88" }}
+                              style={{ backgroundColor: accentColor }}
                             >
                               <span className="text-[6px] font-mono font-bold text-black">TICKETS</span>
                             </div>

@@ -69,6 +69,10 @@ interface Event {
   status: string;
   isPublished: boolean;
   ticketTiers: TicketTier[];
+  // Design settings
+  pageTheme: string;
+  accentColor: string | null;
+  typography: string;
 }
 
 export default function EventDashboardPage({
@@ -698,8 +702,13 @@ export default function EventDashboardPage({
         </div>
       )}
 
-      {activeSection === "design" && (
-        <EventDesignTab eventId={eventId} />
+      {activeSection === "design" && event && (
+        <EventDesignTab
+          eventId={eventId}
+          initialTemplate={event.pageTheme}
+          initialTypography={event.typography}
+          initialAccentColor={event.accentColor || "#ff1493"}
+        />
       )}
 
       {activeSection === "settings" && (
