@@ -68,29 +68,21 @@ export default function HomePage() {
           <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#ff1493]/30 to-transparent" />
         </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
-          <Link
-            href="/d"
-            className="group flex items-center gap-3 px-8 py-4 bg-[#ff1493] text-black text-xs tracking-[0.2em] uppercase font-bold hover:bg-[#ff1493]/90 transition-all"
+        {/* CTA Button */}
+        <Link
+          href="/d"
+          className="group flex items-center gap-3 px-8 py-4 bg-[#ff1493] text-black text-xs tracking-[0.2em] uppercase font-bold hover:bg-[#ff1493]/90 transition-all mt-4"
+        >
+          <span>Host a Party</span>
+          <svg
+            className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <span>Host a Party</span>
-            <svg
-              className="w-4 h-4 group-hover:translate-x-1 transition-transform"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
-          <Link
-            href="/events"
-            className="group flex items-center gap-2 px-8 py-4 text-xs tracking-[0.2em] uppercase text-white/50 border border-white/10 hover:border-[#ff1493]/50 hover:text-white transition-all"
-          >
-            <span>Find Events</span>
-          </Link>
-        </div>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </Link>
       </main>
 
       {/* Footer */}
