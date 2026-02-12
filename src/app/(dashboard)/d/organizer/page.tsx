@@ -106,7 +106,7 @@ export default async function OrganizerPage() {
           </div>
         </div>
         <Button asChild size="sm">
-          <Link href="/dashboard/events/new">
+          <Link href="/d/events/new">
             <Plus className="h-4 w-4 mr-2" />
             Create Event
           </Link>
@@ -126,7 +126,7 @@ export default async function OrganizerPage() {
                 </div>
               </div>
               <Button asChild size="sm" className="shrink-0">
-                <Link href="/dashboard/settings/payouts">
+                <Link href="/d/settings/payouts">
                   <CreditCard className="h-4 w-4 mr-2" />
                   Setup Payouts
                 </Link>
@@ -253,7 +253,7 @@ export default async function OrganizerPage() {
                           </div>
                           <div className="flex flex-wrap gap-2 mt-3">
                             <Button asChild variant="outline" size="sm">
-                              <Link href={`/dashboard/events/${event.id}`}>Manage</Link>
+                              <Link href={`/d/events/${event.id}`}>Manage</Link>
                             </Button>
                             <Button asChild variant="ghost" size="sm">
                               <Link href={`/e/${event.slug}`} target="_blank">
@@ -289,7 +289,7 @@ export default async function OrganizerPage() {
                           </p>
                         </div>
                         <Button asChild variant="ghost" size="sm">
-                          <Link href={`/dashboard/events/${event.id}/analytics`}>
+                          <Link href={`/d/events/${event.id}/analytics`}>
                             <TrendingUp className="h-4 w-4" />
                           </Link>
                         </Button>
@@ -310,7 +310,7 @@ export default async function OrganizerPage() {
                   Create your first event to start selling tickets.
                 </p>
                 <Button asChild>
-                  <Link href="/dashboard/events/new">
+                  <Link href="/d/events/new">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Event
                   </Link>

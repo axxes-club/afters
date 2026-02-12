@@ -27,7 +27,7 @@ export function Footer() {
           {/* Links */}
           <div className="flex items-center gap-8">
             <Link
-              href="/dashboard"
+              href="/d"
               className="text-[11px] text-white/30 hover:text-[#ff1493] transition-colors font-mono tracking-wider uppercase"
             >
               Dashboard

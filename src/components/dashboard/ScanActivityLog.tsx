@@ -13,11 +13,11 @@ interface ScanLogEntry {
   ticket?: {
     ticketNumber: string
     ticketTier: { name: string }
-    user: {
+    user?: {
       firstName: string | null
       lastName: string | null
       email: string
-    }
+    } | null
   } | null
 }
 
@@ -174,7 +174,7 @@ export function ScanActivityLog({ eventId }: { eventId: string }) {
                 {log.ticket && (
                   <p className="text-[10px] font-mono text-white/25 mt-0.5 truncate">
                     {log.ticket.ticketNumber} · {log.ticket.ticketTier.name}
-                    {log.ticket.user.firstName &&
+                    {log.ticket.user?.firstName &&
                       ` · ${log.ticket.user.firstName} ${log.ticket.user.lastName || ""}`}
                   </p>
                 )}

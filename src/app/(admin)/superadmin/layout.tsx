@@ -11,7 +11,7 @@ export default async function SuperadminLayout({
   try {
     await requireSuperAdmin()
   } catch (error) {
-    redirect("/dashboard")
+    redirect("/d")
   }
 
   return (

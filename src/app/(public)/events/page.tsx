@@ -23,7 +23,7 @@ export default async function EventsPage() {
     });
     
     if (isOrg) {
-      redirect("/dashboard/events");
+      redirect("/d/events");
     }
     
     redirect("/");

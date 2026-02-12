@@ -73,7 +73,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/events/new"
+          href="/d/events/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
         >
           <Plus className="w-4 h-4" />
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <Link
-            href={`/dashboard/events/${nextEvent.id}`}
+            href={`/d/events/${nextEvent.id}`}
             className="block p-6 hover:bg-white/[0.02] transition-all group"
           >
             <div className="flex items-start justify-between gap-6">
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
             ALL EVENTS
           </span>
           <Link
-            href="/dashboard/events"
+            href="/d/events"
             className="text-xs font-mono text-[#ff1493] hover:underline flex items-center gap-1"
           >
             VIEW ALL <ArrowRight className="w-3 h-3" />
@@ -207,7 +207,7 @@ export default async function DashboardPage() {
             <Calendar className="w-10 h-10 mx-auto text-white/10 mb-3" />
             <p className="text-white/40 font-mono text-sm">No events yet</p>
             <Link
-              href="/dashboard/events/new"
+              href="/d/events/new"
               className="inline-flex items-center gap-2 mt-4 px-4 py-2 border border-white/20 text-xs font-mono hover:bg-white/5 transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -230,7 +230,7 @@ export default async function DashboardPage() {
               return (
                 <Link
                   key={event.id}
-                  href={`/dashboard/events/${event.id}`}
+                  href={`/d/events/${event.id}`}
                   className={`flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-all ${isPast ? "opacity-50" : ""}`}
                 >
                   {/* Date Block */}
@@ -282,22 +282,22 @@ export default async function DashboardPage() {
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <QuickAction
-          href="/dashboard/events/new"
+          href="/d/events/new"
           label="NEW EVENT"
           icon={<Plus className="w-5 h-5" />}
         />
         <QuickAction
-          href="/dashboard/events"
+          href="/d/events"
           label="ALL EVENTS"
           icon={<Calendar className="w-5 h-5" />}
         />
         <QuickAction
-          href="/dashboard/staff"
+          href="/d/staff"
           label="MANAGE CREW"
           icon={<Ticket className="w-5 h-5" />}
         />
         <QuickAction
-          href="/dashboard/settings"
+          href="/d/settings"
           label="SETTINGS"
           icon={<TrendingUp className="w-5 h-5" />}
         />

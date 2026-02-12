@@ -175,8 +175,8 @@ export async function POST(req: NextRequest) {
           ? { trial_period_days: 7 }
           : {}),
       },
-      success_url: `${baseUrl}/dashboard/settings?subscription=success`,
-      cancel_url: `${baseUrl}/dashboard/settings?subscription=cancelled`,
+      success_url: `${baseUrl}/d/settings?subscription=success`,
+      cancel_url: `${baseUrl}/d/settings?subscription=cancelled`,
       metadata: {
         organizerProfileId: profile.id,
         userId,

@@ -29,7 +29,7 @@ export default function HomePage() {
 
         {/* CTA */}
         <Link
-          href="/dashboard"
+          href="/d"
           className="group flex items-center gap-2 px-6 py-3 text-xs tracking-wider uppercase text-white/50 border border-white/10 hover:border-[#ff1493]/50 hover:text-white transition-all"
         >
           <span>Host a Party</span>

@@ -59,7 +59,7 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-6">
             <SignedIn>
               <Link
-                href="/dashboard"
+                href="/d"
                 className="text-xs tracking-wider text-white/50 hover:text-white transition-colors uppercase"
               >
                 Dashboard
@@ -102,7 +102,7 @@ export function Header() {
               {/* User Menu Desktop */}
               <div className="hidden md:flex items-center gap-3">
                 <Link
-                  href="/dashboard/account"
+                  href="/d/account"
                   className="flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/20 transition-colors"
                 >
                   <div
@@ -157,7 +157,7 @@ export function Header() {
             <nav className="p-4 space-y-1">
               <SignedIn>
                 <Link
-                  href="/dashboard"
+                  href="/d"
                   onClick={closeMenu}
                   className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-white/70 hover:text-white hover:bg-white/5 transition-colors uppercase"
                 >
@@ -173,7 +173,7 @@ export function Header() {
                   Scan
                 </Link>
                 <Link
-                  href="/dashboard/account"
+                  href="/d/account"
                   onClick={closeMenu}
                   className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-white/70 hover:text-white hover:bg-white/5 transition-colors uppercase"
                 >

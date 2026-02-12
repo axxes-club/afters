@@ -78,7 +78,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
     <div className="max-w-lg mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href={`/dashboard/events/${eventId}`}>
+          <Link href={`/d/events/${eventId}`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

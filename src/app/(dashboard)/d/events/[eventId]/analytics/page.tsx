@@ -93,7 +93,7 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/dashboard/events/${eventId}`}>
+            <Link href={`/d/events/${eventId}`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>

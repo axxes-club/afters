@@ -29,23 +29,23 @@ interface NavItem {
 const mainNavItems: NavItem[] = [
   {
     titleKey: "dashboard",
-    href: "/dashboard",
+    href: "/d",
     icon: LayoutDashboard,
     exact: true,
   },
   {
     titleKey: "events",
-    href: "/dashboard/events",
+    href: "/d/events",
     icon: CalendarDays,
   },
   {
     titleKey: "payouts",
-    href: "/dashboard/settings/payouts",
+    href: "/d/settings/payouts",
     icon: CreditCard,
   },
   {
     titleKey: "settings",
-    href: "/dashboard/settings",
+    href: "/d/settings",
     icon: Settings,
     exact: true,
   },
@@ -54,7 +54,7 @@ const mainNavItems: NavItem[] = [
 const organizerNavItems: NavItem[] = [
   {
     titleKey: "staff",
-    href: "/dashboard/staff",
+    href: "/d/staff",
     icon: Users,
   },
   {
@@ -99,19 +99,19 @@ export function DashboardSidebar({
   if (isOrganizer) {
     profileItems.push({
       titleKey: "organizerProfile",
-      href: "/dashboard/organizer",
+      href: "/d/organizer",
       icon: Building2,
     });
   } else if (isArtist) {
     profileItems.push({
       titleKey: "artistProfile",
-      href: "/dashboard/artist",
+      href: "/d/artist",
       icon: Music,
     });
   } else if (isPersonal) {
     profileItems.push({
       titleKey: "personalProfile",
-      href: "/dashboard/account",
+      href: "/d/account",
       icon: UserCircle,
     });
   }

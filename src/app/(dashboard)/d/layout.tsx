@@ -10,8 +10,8 @@ import {
 import { UserButton } from "@clerk/nextjs"
 
 const navItems = [
-  { href: "/dashboard", label: "CONTROL", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/events", label: "EVENTS", icon: Calendar },
+  { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
+  { href: "/d/events", label: "EVENTS", icon: Calendar },
 ]
 
 export default function DashboardLayout({
@@ -27,7 +27,7 @@ export default function DashboardLayout({
       <aside className="w-16 md:w-56 border-r border-white/5 flex flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
         {/* Logo */}
         <div className="h-16 flex items-center px-4 border-b border-white/5">
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href="/d" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#ff1493] flex items-center justify-center">
               <Zap className="w-5 h-5 text-black" />
             </div>

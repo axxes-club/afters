@@ -58,8 +58,8 @@ export async function POST() {
 
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
-      refresh_url: `${baseUrl}/dashboard/settings/payouts?refresh=true`,
-      return_url: `${baseUrl}/dashboard/settings/payouts?success=true`,
+      refresh_url: `${baseUrl}/d/settings/payouts?refresh=true`,
+      return_url: `${baseUrl}/d/settings/payouts?success=true`,
       type: "account_onboarding",
     })
 

@@ -131,7 +131,7 @@ export default function OnboardingPage() {
       }
 
       toast.success(t("profileCreated"));
-      router.push("/dashboard");
+      router.push("/d");
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : tErrors("generic"));

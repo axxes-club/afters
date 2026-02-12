@@ -128,7 +128,7 @@ function NewEventForm() {
 
       const event = await res.json();
       toast.success("Party created! Now add ticket tiers.");
-      router.push(`/dashboard/events/${event.id}`);
+      router.push(`/d/events/${event.id}`);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong",
@@ -145,7 +145,7 @@ function NewEventForm() {
       {/* Header */}
       <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
         <Link
-          href="/dashboard/events"
+          href="/d/events"
           className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />

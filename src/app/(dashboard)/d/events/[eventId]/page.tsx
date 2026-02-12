@@ -182,7 +182,7 @@ export default function EventDashboardPage({
 
       if (res.ok) {
         toast.success("Event deleted");
-        router.push("/dashboard/events");
+        router.push("/d/events");
       } else {
         const data = await res.json();
         toast.error(data.message || "Failed to delete event");
@@ -407,7 +407,7 @@ export default function EventDashboardPage({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Link
-                href="/dashboard/events"
+                href="/d/events"
                 className="text-white/40 hover:text-white text-xs font-mono flex items-center gap-1"
               >
                 <ArrowLeft className="w-3 h-3" />
@@ -541,7 +541,7 @@ export default function EventDashboardPage({
           {/* Quick Actions */}
           <div className="grid grid-cols-3 gap-4">
             <Link
-              href={`/dashboard/events/${eventId}/check-in`}
+              href={`/d/events/${eventId}/check-in`}
               className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-cyan-500/50 hover:bg-white/[0.02] transition-all group"
             >
               <QrCode className="w-5 h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
@@ -550,7 +550,7 @@ export default function EventDashboardPage({
               </span>
             </Link>
             <Link
-              href={`/dashboard/events/${eventId}/analytics`}
+              href={`/d/events/${eventId}/analytics`}
               className="border border-white/10 p-4 flex flex-col items-center gap-2 hover:border-purple-500/50 hover:bg-white/[0.02] transition-all group"
             >
               <BarChart3 className="w-5 h-5 text-white/30 group-hover:text-purple-400 transition-colors" />
@@ -690,7 +690,7 @@ export default function EventDashboardPage({
           {/* Door Actions */}
           <div className="grid grid-cols-2 gap-4">
             <Link
-              href={`/dashboard/events/${eventId}/check-in`}
+              href={`/d/events/${eventId}/check-in`}
               className="border border-cyan-500/30 bg-cyan-500/5 p-6 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all group"
             >
               <div className="flex items-center gap-3 mb-3">
@@ -1022,7 +1022,7 @@ export default function EventDashboardPage({
                     Paid tiers will be hidden until you set up Stripe.
                   </p>
                   <Link
-                    href="/dashboard/organizer"
+                    href="/d/organizer"
                     className="text-xs text-yellow-500 hover:underline"
                   >
                     Configure Stripe →

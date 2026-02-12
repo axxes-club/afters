@@ -50,7 +50,7 @@ export default async function EventsPage() {
           </p>
         </div>
         <Link 
-          href="/dashboard/events/new"
+          href="/d/events/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
         >
           <Plus className="w-4 h-4" />
@@ -96,7 +96,7 @@ export default async function EventsPage() {
             Create your first event to start selling tickets
           </p>
           <Link 
-            href="/dashboard/events/new"
+            href="/d/events/new"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -116,7 +116,7 @@ function EventCard({ event }: { event: any }) {
 
   return (
     <Link 
-      href={`/dashboard/events/${event.id}`}
+      href={`/d/events/${event.id}`}
       className="group border border-white/10 bg-white/[0.02] hover:border-[#ff1493]/30 transition-all overflow-hidden"
     >
       {/* Flyer */}
@@ -192,7 +192,7 @@ function PastEventRow({ event }: { event: any }) {
 
   return (
     <Link 
-      href={`/dashboard/events/${event.id}`}
+      href={`/d/events/${event.id}`}
       className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-all opacity-60 hover:opacity-100"
     >
       {/* Date */}
