@@ -1,6 +1,7 @@
 "use client"
 
 import { use, useState, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import {
   CheckCircle,
@@ -19,6 +20,9 @@ import {
   Ticket,
   Clock,
   Zap,
+  LayoutDashboard,
+  Calendar,
+  ScanLine,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -428,7 +432,7 @@ export default function ScannerPage({
       <main className="flex-1 overflow-hidden flex flex-col">
         {viewMode === "home" ? (
           /* Home Screen with Action Buttons */
-          <div className="flex-1 flex flex-col p-4 pb-8">
+          <div className={`flex-1 flex flex-col p-4 ${isOrganizer ? "pb-24" : "pb-8"}`}>
             {/* Stats Bar */}
             <div className="flex gap-3 mb-6">
               <div className="flex-1 bg-white/[0.03] border border-white/10 p-4 text-center">
@@ -798,9 +802,35 @@ export default function ScannerPage({
           </div>
         ) : null}
       </main>
-      
+
+      {/* Mobile Toolbar for Organizers */}
+      {isOrganizer && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/10 safe-area-bottom">
+          <div className="flex items-center justify-around h-16 px-2">
+            <Link
+              href="/d"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-white/40"
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span className="text-[10px] font-mono tracking-wider">CONTROL</span>
+            </Link>
+            <Link
+              href="/d/events"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-white/40"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] font-mono tracking-wider">EVENTS</span>
+            </Link>
+            <div className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-[#ff1493]">
+              <ScanLine className="w-5 h-5" />
+              <span className="text-[10px] font-mono tracking-wider">SCANNER</span>
+            </div>
+          </div>
+        </nav>
+      )}
+
       {/* Safe area bottom */}
-      <div className="bg-black safe-area-bottom" />
+      {!isOrganizer && <div className="bg-black safe-area-bottom" />}
     </div>
   )
 }
