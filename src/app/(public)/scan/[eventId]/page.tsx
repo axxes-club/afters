@@ -370,14 +370,21 @@ export default function ScannerPage({
         <div className="flex items-center justify-between relative">
           {/* Left side - back button */}
           <div className="w-10 flex-shrink-0">
-            {viewMode !== "home" && (
+            {viewMode !== "home" ? (
               <button
                 onClick={resetAndGoHome}
                 className="p-2 -ml-2 hover:bg-white/5 transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-            )}
+            ) : isOrganizer ? (
+              <Link
+                href="/scan"
+                className="flex items-center justify-center w-8 h-8 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Link>
+            ) : null}
           </div>
 
           {/* Center - Event title */}

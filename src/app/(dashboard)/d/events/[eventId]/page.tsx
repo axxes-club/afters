@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Plus,
   Trash2,
   ExternalLink,
@@ -403,16 +402,9 @@ export default function EventDashboardPage({
           {/* Event Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <Link
-                href="/d/events"
-                className="text-white/40 hover:text-white text-xs font-mono flex items-center gap-1"
-              >
-                <ArrowLeft className="w-3 h-3" />
-                <span className="hidden sm:inline">EVENTS</span>
-              </Link>
-              <span className="text-white/20">/</span>
+              <h1 className="text-lg sm:text-2xl font-mono font-bold tracking-tight truncate">{event.title}</h1>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 ${
+                className={`text-[10px] font-mono px-2 py-0.5 flex-shrink-0 ${
                   event.isPublished
                     ? "bg-[#ff1493]/10 text-[#ff1493]"
                     : "bg-yellow-500/10 text-yellow-500"
@@ -421,7 +413,6 @@ export default function EventDashboardPage({
                 {event.isPublished ? "LIVE" : "DRAFT"}
               </span>
             </div>
-            <h1 className="text-lg sm:text-2xl font-mono font-bold tracking-tight truncate">{event.title}</h1>
             <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 mt-1 text-xs text-white/40 font-mono">
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3 h-3 flex-shrink-0" />
