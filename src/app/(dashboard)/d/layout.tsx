@@ -129,19 +129,17 @@ export default function DashboardLayout({
       {/* Main Content */}
       <main className="flex-1 md:ml-56">
         {/* Mobile Header */}
-        <header className="md:hidden h-14 border-b border-white/5 flex items-center justify-center px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
-          {/* Back button - left side */}
-          <div className="absolute left-4">
-            {pathname !== "/d" && (
-              <Link
-                href={pathname.startsWith("/d/events/") && pathname !== "/d/events" ? "/d/events" : "/d"}
-                className="flex items-center justify-center w-8 h-8 text-white/50 hover:text-white transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Link>
-            )}
-          </div>
-          {/* Centered logo */}
+        <header className="md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
+          {/* Back button */}
+          {pathname !== "/d" && (
+            <Link
+              href={pathname.startsWith("/d/events/") && pathname !== "/d/events" ? "/d/events" : "/d"}
+              className="flex items-center justify-center w-8 h-8 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Link>
+          )}
+          {/* Left-aligned logo */}
           <Link href="/d">
             <span className="font-headline text-xl text-white tracking-wide">
               AFTERS<span className="text-[#ff1493]">.</span>

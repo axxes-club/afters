@@ -1,9 +1,7 @@
 "use client"
 
 import { useEffect, useState, use } from "react"
-import Link from "next/link"
 import {
-  ArrowLeft,
   Eye,
   ShoppingCart,
   Ticket,
@@ -107,17 +105,9 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/d/events/${eventId}`}
-            className="flex items-center justify-center w-8 h-8 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">ANALYTICS</h1>
-            <p className="text-white/40 text-xs font-mono mt-0.5">Performance metrics</p>
-          </div>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">ANALYTICS</h1>
+          <p className="text-white/40 text-xs font-mono mt-0.5">Performance metrics</p>
         </div>
         <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1">
           {[

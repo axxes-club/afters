@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import {
-  ArrowLeft,
   Plus,
   Trash2,
   Lock,
@@ -29,7 +28,6 @@ import {
   Clock,
   Zap,
 } from "lucide-react"
-import Link from "next/link"
 import Image from "next/image"
 import { FlyerUpload } from "@/components/FlyerUpload"
 import { AuthGuard } from "@/components/AuthGuard"
@@ -143,40 +141,23 @@ function NewEventForm() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Mobile Header - Fixed */}
-      <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/5 md:hidden">
-        <div className="flex items-center justify-between px-4 h-14">
-          <Link href="/d/events" className="flex items-center gap-2 text-white/50">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <span className="font-mono text-xs tracking-widest text-white/40">NEW EVENT</span>
-          <div className="w-5" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">NEW EVENT</h1>
+          <p className="text-white/40 text-xs font-mono mt-0.5">Set up your party and start selling</p>
         </div>
-      </header>
+        <button
+          type="button"
+          className="flex items-center gap-2 px-4 py-2.5 border border-purple-500/30 bg-purple-500/5 text-purple-400 text-xs font-mono tracking-wider hover:border-purple-500/50 hover:bg-purple-500/10 transition-all"
+        >
+          <span>🪄</span>
+          <span>Afty AI</span>
+        </button>
+      </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6 md:py-12">
-        {/* Desktop Header */}
-        <div className="hidden md:block mb-8">
-          <Link
-            href="/d/events"
-            className="inline-flex items-center gap-2 text-white/40 hover:text-white font-mono text-xs tracking-wider mb-6 transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            BACK TO EVENTS
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="w-1 h-12 bg-[#ff1493]" style={{ backgroundColor: accentColor }} />
-            <div>
-              <h1 className="text-4xl font-mono font-bold tracking-tight">
-                CREATE EVENT
-              </h1>
-              <p className="text-white/40 font-mono text-sm mt-1">
-                Set up your party and start selling tickets
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-6xl mx-auto">
 
         <form onSubmit={onSubmit}>
           <div className="grid lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">

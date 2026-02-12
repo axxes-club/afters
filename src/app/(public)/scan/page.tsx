@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Radio, Lock, Zap, AlertCircle, Calendar, MapPin, ChevronRight, User } from "lucide-react"
+import Link from "next/link"
+import { Radio, Lock, Zap, AlertCircle, Calendar, MapPin, ChevronRight, User, LayoutDashboard, ScanLine } from "lucide-react"
 import { toast } from "sonner"
 
 interface OrganizerEvent {
@@ -317,7 +318,7 @@ export default function ScannerEntryPage() {
           </div>
 
           {/* Staff code entry link */}
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center pb-16">
             <button
               onClick={() => setIsOrganizer(false)}
               className="text-white/30 font-mono text-xs hover:text-white/50 transition-colors"
@@ -326,6 +327,30 @@ export default function ScannerEntryPage() {
             </button>
           </div>
         </div>
+
+        {/* Mobile Toolbar for Organizers */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/10 safe-area-bottom">
+          <div className="flex items-center justify-around h-16 px-2">
+            <Link
+              href="/d"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-white/40"
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span className="text-[10px] font-mono tracking-wider">CONTROL</span>
+            </Link>
+            <Link
+              href="/d/events"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-white/40"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] font-mono tracking-wider">EVENTS</span>
+            </Link>
+            <div className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-[#ff1493]">
+              <ScanLine className="w-5 h-5" />
+              <span className="text-[10px] font-mono tracking-wider">SCANNER</span>
+            </div>
+          </div>
+        </nav>
       </div>
     )
   }
