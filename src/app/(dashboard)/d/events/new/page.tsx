@@ -143,17 +143,18 @@ function NewEventForm() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">NEW EVENT</h1>
           <p className="text-white/40 text-xs font-mono mt-0.5">Set up your party and start selling</p>
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 px-4 py-2.5 border border-purple-500/30 bg-purple-500/5 text-purple-400 text-xs font-mono tracking-wider hover:border-purple-500/50 hover:bg-purple-500/10 transition-all"
+          onClick={() => toast("Afty AI coming soon!", { icon: "🪄" })}
+          className="flex items-center gap-2 px-3 py-2 border border-purple-500/30 bg-purple-500/5 text-purple-400 text-xs font-mono tracking-wider hover:border-purple-500/50 hover:bg-purple-500/10 transition-all flex-shrink-0"
         >
           <span>🪄</span>
-          <span>Afty AI</span>
+          <span className="hidden sm:inline">Afty AI</span>
         </button>
       </div>
 

@@ -20,7 +20,8 @@ export async function GET() {
       include: {
         events: {
           where: {
-            // Only show events from the last 3 days
+            // Only show published events from the last 3 days
+            isPublished: true,
             OR: [
               { endsAt: { gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } },
               { endsAt: null, startsAt: { gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } },
