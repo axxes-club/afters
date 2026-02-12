@@ -6,7 +6,8 @@ import {
   Calendar,
   LayoutDashboard,
   ScanLine,
-  Zap
+  Zap,
+  ChevronLeft
 } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
 
@@ -131,6 +132,29 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <main className="flex-1 md:ml-56">
+        {/* Mobile Header */}
+        <header className="md:hidden h-14 border-b border-white/5 flex items-center justify-between px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
+          <div className="flex items-center gap-3">
+            {/* Conditional back button - show when not on main control page */}
+            {pathname !== "/d" && (
+              <Link
+                href={pathname.startsWith("/d/events/") && pathname !== "/d/events" ? "/d/events" : "/d"}
+                className="flex items-center justify-center w-8 h-8 -ml-1 text-white/50 hover:text-white transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Link>
+            )}
+            <Link href="/d" className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-[#ff1493] flex items-center justify-center">
+                <Zap className="w-4 h-4 text-black" />
+              </div>
+              <span className="font-mono text-sm font-bold tracking-tight">
+                AFTERS<span className="text-[#ff1493]">.</span>
+              </span>
+            </Link>
+          </div>
+        </header>
+
         {/* Top Bar - Desktop only */}
         <header className="hidden md:flex h-16 border-b border-white/5 items-center justify-between px-6 sticky top-0 bg-black/80 backdrop-blur-sm z-40">
           <div className="flex items-center gap-4">

@@ -160,7 +160,7 @@ export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClie
         </div>
       </header>
 
-      <main className="pt-20 pb-32 px-4">
+      <main className="pt-20 pb-52 px-4">
         <div className="max-w-sm mx-auto">
           {/* Warning Banner */}
           <div
@@ -335,8 +335,8 @@ export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClie
             </div>
           </div>
 
-          {/* Action Buttons - Fixed at bottom */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-black border-t border-white/5 safe-area-bottom">
+          {/* Action Buttons - Fixed at bottom, above mobile nav */}
+          <div className="fixed bottom-20 md:bottom-0 left-0 right-0 p-4 bg-black border-t border-white/5 md:safe-area-bottom">
             <div className="max-w-sm mx-auto space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <button

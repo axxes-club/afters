@@ -20,7 +20,6 @@ import {
   Plus,
   Trash2,
   ExternalLink,
-  QrCode,
   ImageIcon,
   Pencil,
   BarChart3,
@@ -36,10 +35,8 @@ import {
   Check,
   Share2,
   Zap,
-  ScanLine,
   UserCheck,
   Clock,
-  Users,
 } from "lucide-react";
 import { formatCents } from "@/lib/stripe";
 import { FlyerUpload } from "@/components/FlyerUpload";
@@ -541,16 +538,7 @@ export default function EventDashboardPage({
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <Link
-              href={`/d/events/${eventId}/check-in`}
-              className="border border-white/10 p-3 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-cyan-500/50 hover:bg-white/[0.02] transition-all group"
-            >
-              <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-white/30 group-hover:text-cyan-400 transition-colors" />
-              <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
-                SCANNER
-              </span>
-            </Link>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <Link
               href={`/d/events/${eventId}/analytics`}
               className="border border-white/10 p-3 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-purple-500/50 hover:bg-white/[0.02] transition-all group"
@@ -689,41 +677,27 @@ export default function EventDashboardPage({
             </div>
           </div>
 
-          {/* Door Actions */}
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              href="/scan"
-              className="border border-cyan-500/30 bg-cyan-500/5 p-4 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all group"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <ScanLine className="w-5 h-5 text-cyan-400" />
-                <div className="w-2 h-2 bg-cyan-400 animate-pulse" />
-              </div>
-              <p className="font-mono font-bold text-cyan-400 text-sm tracking-wider">SCANNER</p>
-              <p className="text-[10px] text-white/40 font-mono mt-1">Scan tickets</p>
-            </Link>
-
-            <Link
-              href={`/d/events/${eventId}/test-ticket`}
-              target="_blank"
-              className="border border-orange-500/30 bg-orange-500/5 p-4 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-5 h-5 text-orange-400" />
-                <span className="text-[9px] font-mono text-orange-400/80 tracking-wider px-1.5 py-0.5 border border-orange-400/30">
-                  TRAINING
-                </span>
-              </div>
-              <p className="font-mono font-bold text-orange-400 text-sm tracking-wider">TEST TICKET</p>
-              <p className="text-[10px] text-white/40 font-mono mt-1">Staff practice</p>
-            </Link>
-          </div>
-
           {/* Management Components */}
           <GuestlistManagement eventId={eventId} />
           <ScannerManagement eventId={eventId} />
           <ScanActivityLog eventId={eventId} />
           <ShiftHistory eventId={eventId} />
+
+          {/* Test Ticket - Staff Training */}
+          <Link
+            href={`/d/events/${eventId}/test-ticket`}
+            target="_blank"
+            className="block border border-orange-500/30 bg-orange-500/5 p-4 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-5 h-5 text-orange-400" />
+              <span className="text-[9px] font-mono text-orange-400/80 tracking-wider px-1.5 py-0.5 border border-orange-400/30">
+                TRAINING
+              </span>
+            </div>
+            <p className="font-mono font-bold text-orange-400 text-sm tracking-wider">TEST TICKET</p>
+            <p className="text-[10px] text-white/40 font-mono mt-1">Staff practice</p>
+          </Link>
         </div>
       )}
 

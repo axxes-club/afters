@@ -282,7 +282,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <QuickAction
           href="/d/events/new"
           label="NEW EVENT"
@@ -292,16 +292,6 @@ export default async function DashboardPage() {
           href="/d/events"
           label="ALL EVENTS"
           icon={<Calendar className="w-5 h-5" />}
-        />
-        <QuickAction
-          href="/d/staff"
-          label="MANAGE CREW"
-          icon={<Ticket className="w-5 h-5" />}
-        />
-        <QuickAction
-          href="/d/settings"
-          label="SETTINGS"
-          icon={<TrendingUp className="w-5 h-5" />}
         />
       </div>
     </div>

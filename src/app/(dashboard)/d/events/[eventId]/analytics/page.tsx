@@ -2,10 +2,17 @@
 
 import { useEffect, useState, use } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Eye, ShoppingCart, Ticket, DollarSign, Users, TrendingUp, ExternalLink } from "lucide-react"
+import {
+  ArrowLeft,
+  Eye,
+  ShoppingCart,
+  Ticket,
+  DollarSign,
+  Users,
+  TrendingUp,
+  ExternalLink,
+  BarChart3,
+} from "lucide-react"
 
 interface AnalyticsData {
   summary: {
@@ -36,15 +43,15 @@ function formatCurrency(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`
 }
 
-function MiniChart({ data, color = "bg-pink-500" }: { data: number[]; color?: string }) {
+function MiniChart({ data, color = "bg-[#ff1493]" }: { data: number[]; color?: string }) {
   const max = Math.max(...data, 1)
-  
+
   return (
-    <div className="flex items-end gap-0.5 h-12">
+    <div className="flex items-end gap-0.5 h-10 mt-3">
       {data.map((value, i) => (
         <div
           key={i}
-          className={`w-1.5 ${color} rounded-t opacity-80`}
+          className={`flex-1 ${color} opacity-80`}
           style={{ height: `${(value / max) * 100}%`, minHeight: value > 0 ? "2px" : "0" }}
         />
       ))}
@@ -78,11 +85,20 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
   }, [eventId, timeRange])
 
   if (loading) {
-    return <div className="text-center py-8">Loading analytics...</div>
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-6 h-6 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin" />
+      </div>
+    )
   }
 
   if (!data) {
-    return <div className="text-center py-8">Failed to load analytics</div>
+    return (
+      <div className="text-center py-12">
+        <BarChart3 className="w-10 h-10 mx-auto text-white/10 mb-3" />
+        <p className="text-white/40 font-mono text-sm">Failed to load analytics</p>
+      </div>
+    )
   }
 
   const { summary, viewsByDay, ordersByDay, referrers, tierBreakdown } = data
@@ -90,159 +106,117 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/d/events/${eventId}`}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/d/events/${eventId}`}
+            className="flex items-center justify-center w-8 h-8 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
           <div>
-            <h1 className="text-3xl font-bold">Event Analytics</h1>
-            <p className="text-muted-foreground">Track your event&apos;s performance</p>
+            <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">ANALYTICS</h1>
+            <p className="text-white/40 text-xs font-mono mt-0.5">Performance metrics</p>
           </div>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1">
+          {[
+            { value: "7", label: "7D" },
+            { value: "30", label: "30D" },
+            { value: "90", label: "90D" },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setTimeRange(option.value)}
+              className={`px-3 py-1.5 text-xs font-mono tracking-wider transition-all ${
+                timeRange === option.value
+                  ? "bg-[#ff1493] text-black"
+                  : "text-white/50 hover:text-white"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Page Views</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.totalViews.toLocaleString()}</div>
-            <MiniChart data={viewsByDay.slice(-14).map((d) => d.count)} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.totalOrders}</div>
-            <p className="text-xs text-muted-foreground">
-              {summary.conversionRate}% conversion rate
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
-            <Ticket className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.totalTicketsSold} / {summary.totalCapacity}
-            </div>
-            <div className="w-full bg-muted rounded-full h-2 mt-2">
-              <div
-                className="bg-pink-500 h-2 rounded-full"
-                style={{
-                  width: `${summary.totalCapacity > 0 ? (summary.totalTicketsSold / summary.totalCapacity) * 100 : 0}%`,
-                }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summary.totalRevenue)}</div>
-            <MiniChart data={ordersByDay.slice(-14).map((d) => d.revenue)} color="bg-green-500" />
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard
+          label="PAGE VIEWS"
+          value={summary.totalViews.toLocaleString()}
+          icon={<Eye className="w-4 h-4" />}
+          chart={<MiniChart data={viewsByDay.slice(-14).map((d) => d.count)} />}
+        />
+        <StatCard
+          label="ORDERS"
+          value={summary.totalOrders.toString()}
+          icon={<ShoppingCart className="w-4 h-4" />}
+          subtext={`${summary.conversionRate}% conversion`}
+        />
+        <StatCard
+          label="TICKETS SOLD"
+          value={`${summary.totalTicketsSold}/${summary.totalCapacity}`}
+          icon={<Ticket className="w-4 h-4" />}
+          progress={summary.totalCapacity > 0 ? (summary.totalTicketsSold / summary.totalCapacity) * 100 : 0}
+          highlight
+        />
+        <StatCard
+          label="REVENUE"
+          value={formatCurrency(summary.totalRevenue)}
+          icon={<DollarSign className="w-4 h-4" />}
+          chart={<MiniChart data={ordersByDay.slice(-14).map((d) => d.revenue)} color="bg-green-500" />}
+        />
       </div>
 
       {/* Second Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Check-ins</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.checkedInCount} / {summary.totalTicketsSold}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {summary.checkInRate}% check-in rate
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.conversionRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              Views → Purchases
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avg Order Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.totalOrders > 0
-                ? formatCurrency(summary.totalRevenue / summary.totalOrders)
-                : "$0.00"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Per order
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatCard
+          label="CHECK-INS"
+          value={`${summary.checkedInCount}/${summary.totalTicketsSold}`}
+          icon={<Users className="w-4 h-4" />}
+          subtext={`${summary.checkInRate}% attendance`}
+        />
+        <StatCard
+          label="CONVERSION"
+          value={`${summary.conversionRate}%`}
+          icon={<TrendingUp className="w-4 h-4" />}
+          subtext="Views → Sales"
+        />
+        <StatCard
+          label="AVG ORDER"
+          value={summary.totalOrders > 0 ? formatCurrency(summary.totalRevenue / summary.totalOrders) : "$0.00"}
+          icon={<DollarSign className="w-4 h-4" />}
+          subtext="Per transaction"
+        />
       </div>
 
       {/* Tier Breakdown & Referrers */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ticket Tiers</CardTitle>
-            <CardDescription>Sales breakdown by tier</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Ticket Tiers */}
+        <div className="border border-white/10 bg-white/[0.02]">
+          <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+            <span className="text-xs font-mono text-white/40 tracking-widest">TICKET TIERS</span>
+            <Ticket className="w-4 h-4 text-white/20" />
+          </div>
+          <div className="p-4">
             {tierBreakdown.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No ticket tiers</p>
+              <p className="text-white/30 text-center py-6 text-xs font-mono">No ticket tiers</p>
             ) : (
               <div className="space-y-4">
                 {tierBreakdown.map((tier) => (
                   <div key={tier.id} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium">{tier.name}</span>
-                      <span className="text-muted-foreground">
-                        {tier.sold} / {tier.sold + tier.available} ({Math.round(tier.percentSold)}%)
+                    <div className="flex justify-between text-sm font-mono">
+                      <span className="text-white/80">{tier.name}</span>
+                      <span className="text-white/40">
+                        <span className="text-[#ff1493]">{tier.sold}</span>
+                        <span className="text-white/20 mx-1">/</span>
+                        {tier.sold + tier.available}
                       </span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
+                    <div className="h-1.5 bg-white/5">
                       <div
-                        className="bg-pink-500 h-2 rounded-full transition-all"
+                        className="h-full bg-[#ff1493] transition-all"
                         style={{ width: `${tier.percentSold}%` }}
                       />
                     </div>
@@ -250,82 +224,137 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Referrers</CardTitle>
-            <CardDescription>Where your traffic comes from</CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Top Referrers */}
+        <div className="border border-white/10 bg-white/[0.02]">
+          <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+            <span className="text-xs font-mono text-white/40 tracking-widest">TOP REFERRERS</span>
+            <ExternalLink className="w-4 h-4 text-white/20" />
+          </div>
+          <div className="p-4">
             {referrers.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No referrer data yet</p>
+              <p className="text-white/30 text-center py-6 text-xs font-mono">No referrer data</p>
             ) : (
               <div className="space-y-3">
-                {referrers.slice(0, 5).map((ref, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 truncate">
-                      <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm truncate">
-                        {ref.referrer === "Direct" ? "Direct / None" : new URL(ref.referrer).hostname}
-                      </span>
+                {referrers.slice(0, 5).map((ref, i) => {
+                  const maxCount = referrers[0]?.count || 1
+                  return (
+                    <div key={i} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-sm font-mono">
+                        <span className="text-white/60 truncate pr-4">
+                          {ref.referrer === "Direct" ? "Direct / None" : (() => {
+                            try {
+                              return new URL(ref.referrer).hostname
+                            } catch {
+                              return ref.referrer
+                            }
+                          })()}
+                        </span>
+                        <span className="text-[#ff1493] flex-shrink-0">{ref.count}</span>
+                      </div>
+                      <div className="h-1 bg-white/5">
+                        <div
+                          className="h-full bg-white/20 transition-all"
+                          style={{ width: `${(ref.count / maxCount) * 100}%` }}
+                        />
+                      </div>
                     </div>
-                    <span className="text-sm font-medium">{ref.count}</span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Daily Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Daily Activity</CardTitle>
-          <CardDescription>Views and orders over time</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="border border-white/10 bg-white/[0.02]">
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+          <span className="text-xs font-mono text-white/40 tracking-widest">DAILY ACTIVITY</span>
+          <BarChart3 className="w-4 h-4 text-white/20" />
+        </div>
+        <div className="overflow-x-auto">
           {viewsByDay.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No data for this period</p>
+            <p className="text-white/30 text-center py-8 text-xs font-mono">No data for this period</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Date</th>
-                    <th className="text-right py-2">Views</th>
-                    <th className="text-right py-2">Orders</th>
-                    <th className="text-right py-2">Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {viewsByDay.slice(-14).reverse().map((day, i) => {
-                    const orderDay = ordersByDay.find((o) => o.date === day.date)
-                    return (
-                      <tr key={day.date} className={i % 2 === 0 ? "bg-muted/30" : ""}>
-                        <td className="py-2">
-                          {new Date(day.date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </td>
-                        <td className="text-right py-2">{day.count}</td>
-                        <td className="text-right py-2">{orderDay?.count || 0}</td>
-                        <td className="text-right py-2">
-                          {orderDay ? formatCurrency(orderDay.revenue) : "$0.00"}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <table className="w-full text-sm font-mono">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="text-left py-3 px-4 text-[10px] text-white/30 tracking-widest font-normal">DATE</th>
+                  <th className="text-right py-3 px-4 text-[10px] text-white/30 tracking-widest font-normal">VIEWS</th>
+                  <th className="text-right py-3 px-4 text-[10px] text-white/30 tracking-widest font-normal">ORDERS</th>
+                  <th className="text-right py-3 px-4 text-[10px] text-white/30 tracking-widest font-normal">REVENUE</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {viewsByDay.slice(-14).reverse().map((day) => {
+                  const orderDay = ordersByDay.find((o) => o.date === day.date)
+                  return (
+                    <tr key={day.date} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-4 text-white/60">
+                        {new Date(day.date).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </td>
+                      <td className="text-right py-3 px-4 text-white/80">{day.count}</td>
+                      <td className="text-right py-3 px-4 text-white/80">{orderDay?.count || 0}</td>
+                      <td className="text-right py-3 px-4 text-[#ff1493]">
+                        {orderDay ? formatCurrency(orderDay.revenue) : "$0.00"}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+  subtext,
+  progress,
+  chart,
+  highlight = false,
+}: {
+  label: string
+  value: string
+  icon: React.ReactNode
+  subtext?: string
+  progress?: number
+  chart?: React.ReactNode
+  highlight?: boolean
+}) {
+  return (
+    <div
+      className={`border p-4 ${
+        highlight ? "border-[#ff1493]/50 bg-[#ff1493]/5" : "border-white/10 bg-white/[0.02]"
+      }`}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <span className={`${highlight ? "text-[#ff1493]" : "text-white/30"}`}>{icon}</span>
+        <span className="text-[10px] font-mono text-white/30 tracking-widest">{label}</span>
+      </div>
+      <p className={`text-xl font-mono font-bold ${highlight ? "text-[#ff1493]" : ""}`}>{value}</p>
+      {subtext && <p className="text-[10px] font-mono text-white/40 mt-1">{subtext}</p>}
+      {progress !== undefined && (
+        <div className="mt-3 h-1.5 bg-white/5">
+          <div
+            className={`h-full ${highlight ? "bg-[#ff1493]" : "bg-white/20"}`}
+            style={{ width: `${Math.min(100, progress)}%` }}
+          />
+        </div>
+      )}
+      {chart}
     </div>
   )
 }
