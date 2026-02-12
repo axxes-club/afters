@@ -199,22 +199,33 @@ export async function DELETE(
     // Verify ownership and check if deletable
     const existingEvent = await prisma.event.findUnique({
       where: { id: eventId },
+      include: {
+        _count: {
+          select: { tickets: true, orders: true },
+        },
+      },
     })
 
     if (!existingEvent || existingEvent.organizerId !== profile.id) {
       return NextResponse.json({ message: "Event not found" }, { status: 404 })
     }
 
-    if (existingEvent.status !== "DRAFT") {
+    // Prevent deletion if tickets have been sold
+    if (existingEvent._count.tickets > 0) {
       return NextResponse.json(
-        { message: "Only draft events can be deleted" },
+        { message: "Cannot delete event with sold tickets" },
         { status: 400 }
       )
     }
 
-    await prisma.event.delete({
-      where: { id: eventId },
-    })
+    // Delete related records first (cascade doesn't always work with all relations)
+    await prisma.$transaction([
+      prisma.eventView.deleteMany({ where: { eventId } }),
+      prisma.eventScanner.deleteMany({ where: { eventId } }),
+      prisma.ticketTier.deleteMany({ where: { eventId } }),
+      prisma.guestlistEntry.deleteMany({ where: { eventId } }),
+      prisma.event.delete({ where: { id: eventId } }),
+    ])
 
     return NextResponse.json({ message: "Event deleted" })
   } catch (error) {

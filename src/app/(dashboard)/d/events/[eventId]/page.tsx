@@ -469,7 +469,7 @@ export default function EventDashboardPage({
       </div>
 
       {/* Section Nav */}
-      <div className="flex items-center gap-1 border-b border-white/10 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="flex items-center gap-1 border-b border-white/10 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
         {[
           { id: "overview" as const, label: "OVERVIEW" },
           { id: "tickets" as const, label: "TICKETS" },
@@ -818,44 +818,50 @@ export default function EventDashboardPage({
           </div>
 
           {/* Danger Zone */}
-          {event.status === "DRAFT" && (
-            <div className="border border-red-500/20 bg-red-500/5">
-              <div className="px-4 py-2 border-b border-red-500/20">
-                <span className="text-[10px] font-mono text-red-400/60 tracking-widest">DANGER ZONE</span>
-              </div>
-              <div className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-mono text-sm">Delete Event</p>
-                  <p className="text-xs text-white/40">Permanently delete this event</p>
-                </div>
-                {showDeleteConfirm ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="px-3 py-1.5 text-xs font-mono text-white/60 hover:text-white transition-colors"
-                    >
-                      CANCEL
-                    </button>
-                    <button
-                      onClick={deleteEvent}
-                      disabled={deleteLoading}
-                      className="px-3 py-1.5 bg-red-500 text-white text-xs font-mono font-bold hover:bg-red-600 transition-all"
-                    >
-                      {deleteLoading ? "DELETING..." : "CONFIRM"}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-red-500/30 text-red-400 text-xs font-mono hover:bg-red-500/10 transition-all"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    DELETE
-                  </button>
-                )}
-              </div>
+          <div className="border border-red-500/20 bg-red-500/5">
+            <div className="px-4 py-2 border-b border-red-500/20">
+              <span className="text-[10px] font-mono text-red-400/60 tracking-widest">DANGER ZONE</span>
             </div>
-          )}
+            <div className="p-4 flex items-center justify-between">
+              <div>
+                <p className="font-mono text-sm">Delete Event</p>
+                <p className="text-xs text-white/40">
+                  {totalSold > 0
+                    ? "Cannot delete - tickets have been sold"
+                    : "Permanently delete this event"}
+                </p>
+              </div>
+              {totalSold > 0 ? (
+                <span className="text-xs font-mono text-white/30 px-3 py-1.5">
+                  {totalSold} tickets sold
+                </span>
+              ) : showDeleteConfirm ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="px-3 py-1.5 text-xs font-mono text-white/60 hover:text-white transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={deleteEvent}
+                    disabled={deleteLoading}
+                    className="px-3 py-1.5 bg-red-500 text-white text-xs font-mono font-bold hover:bg-red-600 transition-all"
+                  >
+                    {deleteLoading ? "DELETING..." : "CONFIRM"}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-red-500/30 text-red-400 text-xs font-mono hover:bg-red-500/10 transition-all"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  DELETE
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
