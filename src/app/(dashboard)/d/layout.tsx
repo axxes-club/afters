@@ -6,7 +6,6 @@ import {
   Calendar,
   LayoutDashboard,
   ScanLine,
-  Zap,
   ChevronLeft
 } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
@@ -29,12 +28,9 @@ export default function DashboardLayout({
       {/* Desktop Sidebar - Hidden on mobile */}
       <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
         {/* Logo */}
-        <div className="h-16 flex items-center px-4 border-b border-white/5">
-          <Link href="/d" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#ff1493] flex items-center justify-center">
-              <Zap className="w-5 h-5 text-black" />
-            </div>
-            <span className="font-mono text-sm font-bold tracking-tight">
+        <div className="h-16 flex items-center justify-center px-4 border-b border-white/5">
+          <Link href="/d">
+            <span className="font-headline text-xl text-white tracking-wide">
               AFTERS<span className="text-[#ff1493]">.</span>
             </span>
           </Link>
@@ -133,26 +129,24 @@ export default function DashboardLayout({
       {/* Main Content */}
       <main className="flex-1 md:ml-56">
         {/* Mobile Header */}
-        <header className="md:hidden h-14 border-b border-white/5 flex items-center justify-between px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
-          <div className="flex items-center gap-3">
-            {/* Conditional back button - show when not on main control page */}
+        <header className="md:hidden h-14 border-b border-white/5 flex items-center justify-center px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
+          {/* Back button - left side */}
+          <div className="absolute left-4">
             {pathname !== "/d" && (
               <Link
                 href={pathname.startsWith("/d/events/") && pathname !== "/d/events" ? "/d/events" : "/d"}
-                className="flex items-center justify-center w-8 h-8 -ml-1 text-white/50 hover:text-white transition-colors"
+                className="flex items-center justify-center w-8 h-8 text-white/50 hover:text-white transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Link>
             )}
-            <Link href="/d" className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-[#ff1493] flex items-center justify-center">
-                <Zap className="w-4 h-4 text-black" />
-              </div>
-              <span className="font-mono text-sm font-bold tracking-tight">
-                AFTERS<span className="text-[#ff1493]">.</span>
-              </span>
-            </Link>
           </div>
+          {/* Centered logo */}
+          <Link href="/d">
+            <span className="font-headline text-xl text-white tracking-wide">
+              AFTERS<span className="text-[#ff1493]">.</span>
+            </span>
+          </Link>
         </header>
 
         {/* Top Bar - Desktop only */}
