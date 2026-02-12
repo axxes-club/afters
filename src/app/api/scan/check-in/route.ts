@@ -11,6 +11,11 @@ async function logScan(
   result: ScanResult,
   message: string
 ) {
+  // Skip logging for organizer sessions (they don't have a real scanner record)
+  if (scannerId.startsWith("organizer-")) {
+    return
+  }
+
   await prisma.scanLog.create({
     data: { scannerId, eventId, ticketId, ticketNumber, result, message },
   })
