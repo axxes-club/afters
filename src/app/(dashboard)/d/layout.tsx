@@ -100,7 +100,7 @@ export default function DashboardLayout({
                 key={item.href}
                 href={item.href}
                 className={`
-                  flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] transition-all
+                  flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all
                   ${isActive
                     ? "text-[#ff1493]"
                     : "text-white/40"
@@ -112,17 +112,6 @@ export default function DashboardLayout({
               </Link>
             )
           })}
-          {/* User button on mobile */}
-          <div className="flex flex-col items-center justify-center gap-1 px-3 py-2">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-6 h-6",
-                }
-              }}
-            />
-            <span className="text-[10px] font-mono tracking-wider text-white/40">YOU</span>
-          </div>
         </div>
       </nav>
 

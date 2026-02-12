@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { SignOutButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -6,12 +7,12 @@ import {
   Calendar,
   Ticket,
   DollarSign,
-  TrendingUp,
   ArrowRight,
   Clock,
   MapPin,
   Zap,
   Plus,
+  LogOut,
 } from "lucide-react";
 import { formatCents } from "@/lib/stripe";
 
@@ -286,6 +287,16 @@ export default async function DashboardPage() {
           label="ALL EVENTS"
           icon={<Calendar className="w-5 h-5" />}
         />
+      </div>
+
+      {/* Logout - Mobile only */}
+      <div className="md:hidden pt-4 border-t border-white/5">
+        <SignOutButton>
+          <button className="flex items-center gap-2 text-white/30 hover:text-white/50 text-xs font-mono tracking-wider transition-colors">
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Logout</span>
+          </button>
+        </SignOutButton>
       </div>
     </div>
   );

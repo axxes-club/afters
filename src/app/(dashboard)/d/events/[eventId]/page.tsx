@@ -96,7 +96,7 @@ export default function EventDashboardPage({
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "settings">("overview");
+  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "settings">("overview");
 
   useEffect(() => {
     fetchEvent();
@@ -473,6 +473,7 @@ export default function EventDashboardPage({
           { id: "overview" as const, label: "OVERVIEW" },
           { id: "tickets" as const, label: "TICKETS" },
           { id: "door" as const, label: "DOOR" },
+          { id: "design" as const, label: "DESIGN" },
           { id: "settings" as const, label: "SETTINGS" },
         ].map((section) => (
           <button
@@ -689,6 +690,21 @@ export default function EventDashboardPage({
             <p className="font-mono font-bold text-orange-400 text-sm tracking-wider">TEST TICKET</p>
             <p className="text-[10px] text-white/40 font-mono mt-1">Staff practice</p>
           </Link>
+        </div>
+      )}
+
+      {activeSection === "design" && (
+        <div className="space-y-6">
+          {/* Design Coming Soon */}
+          <div className="border border-white/10 bg-white/[0.02] p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 border border-purple-500/30 bg-purple-500/5 flex items-center justify-center">
+              <span className="text-2xl">🎨</span>
+            </div>
+            <h3 className="font-mono font-bold text-lg mb-2">Design Studio</h3>
+            <p className="text-white/40 text-sm font-mono max-w-sm mx-auto">
+              Customize your event page appearance, colors, and branding. Coming soon.
+            </p>
+          </div>
         </div>
       )}
 
