@@ -25,41 +25,26 @@ const TEMPLATES = [
     id: "brutalist",
     name: "BRUTALIST",
     description: "Raw, industrial, no-frills",
-    preview: {
-      bg: "bg-black",
-      accent: "border-white",
-      layout: "asymmetric",
-    },
   },
   {
     id: "neon",
-    name: "NEON UNDERGROUND",
+    name: "NEON",
     description: "Glowing accents, dark atmosphere",
-    preview: {
-      bg: "bg-black",
-      accent: "border-[#ff1493]",
-      layout: "centered",
-    },
   },
   {
     id: "minimal",
     name: "MINIMAL",
     description: "Clean, focused, elegant",
-    preview: {
-      bg: "bg-zinc-950",
-      accent: "border-white/20",
-      layout: "minimal",
-    },
   },
   {
     id: "rave",
     name: "RAVE",
     description: "High energy, bold graphics",
-    preview: {
-      bg: "bg-black",
-      accent: "border-[#00ff88]",
-      layout: "chaotic",
-    },
+  },
+  {
+    id: "editorial",
+    name: "EDITORIAL",
+    description: "Magazine-style, sophisticated",
   },
 ]
 
@@ -86,16 +71,26 @@ export function EventDesignTab({
 
   const carouselRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Scroll to active template on mount
+  // Detect mobile on mount and resize
   useEffect(() => {
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      scrollToIndex(activeIndex, false)
-    }, 100)
-    return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  // Scroll to active template on mount (mobile only)
+  useEffect(() => {
+    if (isMobile) {
+      const timer = setTimeout(() => {
+        scrollToIndex(activeIndex, false)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile])
 
   const scrollToIndex = (index: number, smooth = true) => {
     if (!carouselRef.current) return
@@ -116,9 +111,10 @@ export function EventDesignTab({
   }
 
   const handleScroll = () => {
+    // Only apply carousel behavior on mobile
+    if (!isMobile) return
     if (!carouselRef.current) return
 
-    // Debounce to detect when scrolling stops
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
     }
@@ -144,7 +140,6 @@ export function EventDesignTab({
 
       if (closestIndex !== activeIndex) {
         setActiveIndex(closestIndex)
-        // Auto-select the visible template
         setSelectedTemplate(TEMPLATES[closestIndex].id)
       }
     }, 150)
@@ -153,7 +148,10 @@ export function EventDesignTab({
   const selectTemplate = (templateId: string, index: number) => {
     setSelectedTemplate(templateId)
     setActiveIndex(index)
-    scrollToIndex(index)
+    // Only scroll on mobile
+    if (isMobile) {
+      scrollToIndex(index)
+    }
   }
 
   const navigateCarousel = (direction: "prev" | "next") => {
@@ -190,10 +188,281 @@ export function EventDesignTab({
     }
   }
 
-  // Get the selected typography class
   const getTypographyClass = () => {
     const font = TYPOGRAPHY_OPTIONS.find(f => f.id === selectedTypography)
     return font?.className || "font-headline"
+  }
+
+  // Template preview components with unique aesthetics
+  const renderTemplatePreview = (templateId: string) => {
+    const typographyClass = getTypographyClass()
+
+    switch (templateId) {
+      case "brutalist":
+        return (
+          <div className="absolute inset-0 bg-black flex flex-col">
+            {/* Harsh header bar */}
+            <div className="h-3" style={{ backgroundColor: accentColor }} />
+
+            {/* Content area with exposed grid */}
+            <div className="flex-1 p-3 relative">
+              {/* Grid lines */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white" />
+                <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white" />
+                <div className="absolute top-1/3 left-0 right-0 h-px bg-white" />
+              </div>
+
+              {/* Flyer - stark bordered */}
+              <div
+                className="w-full aspect-[3/4] max-h-[40%] border-4 bg-white/5 mb-2"
+                style={{ borderColor: accentColor }}
+              />
+
+              {/* Title - harsh, uppercase */}
+              <div className={`text-[9px] text-white font-black tracking-widest uppercase mb-1 ${typographyClass}`}>
+                EVENT TITLE
+              </div>
+
+              {/* Date - monospace */}
+              <div className="font-mono text-[7px] text-white/50 tracking-wider mb-3">
+                15.01.2025 // 22:00
+              </div>
+
+              {/* CTA - bordered, stark */}
+              <div
+                className="absolute bottom-3 left-3 right-3 h-6 border-2 flex items-center justify-center"
+                style={{ borderColor: accentColor }}
+              >
+                <span className="font-mono text-[7px] font-bold tracking-widest" style={{ color: accentColor }}>
+                  GET TICKETS →
+                </span>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "neon":
+        return (
+          <div className="absolute inset-0 bg-black overflow-hidden">
+            {/* Ambient glow */}
+            <div
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full blur-3xl opacity-30"
+              style={{ backgroundColor: accentColor }}
+            />
+
+            {/* Content centered */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+              {/* Glowing flyer frame */}
+              <div
+                className="w-3/4 aspect-[4/5] max-h-[45%] mb-3 relative"
+                style={{
+                  boxShadow: `0 0 30px ${accentColor}50, 0 0 60px ${accentColor}20, inset 0 0 20px ${accentColor}10`,
+                  border: `2px solid ${accentColor}`,
+                  backgroundColor: `${accentColor}05`,
+                }}
+              >
+                {/* Inner glow lines */}
+                <div
+                  className="absolute top-2 left-2 right-2 h-px opacity-50"
+                  style={{ backgroundColor: accentColor }}
+                />
+                <div
+                  className="absolute bottom-2 left-2 right-2 h-px opacity-50"
+                  style={{ backgroundColor: accentColor }}
+                />
+              </div>
+
+              {/* Title - glowing */}
+              <div
+                className={`text-[10px] font-bold tracking-wider mb-1 ${typographyClass}`}
+                style={{
+                  color: accentColor,
+                  textShadow: `0 0 10px ${accentColor}80, 0 0 20px ${accentColor}40`,
+                }}
+              >
+                EVENT NAME
+              </div>
+
+              {/* Date */}
+              <div className="text-[6px] text-white/40 tracking-widest mb-3">
+                SAT · JAN 15 · 10PM
+              </div>
+
+              {/* CTA - neon button */}
+              <div
+                className="px-4 py-1.5"
+                style={{
+                  border: `1px solid ${accentColor}`,
+                  boxShadow: `0 0 15px ${accentColor}40, inset 0 0 15px ${accentColor}10`,
+                }}
+              >
+                <span
+                  className="font-mono text-[6px] tracking-widest"
+                  style={{ color: accentColor }}
+                >
+                  GET TICKETS
+                </span>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "minimal":
+        return (
+          <div className="absolute inset-0 bg-zinc-950">
+            {/* Subtle gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950" />
+
+            {/* Content - elegant spacing */}
+            <div className="absolute inset-0 p-4 flex flex-col">
+              {/* Small accent line */}
+              <div
+                className="w-8 h-0.5 mb-3 opacity-60"
+                style={{ backgroundColor: accentColor }}
+              />
+
+              {/* Subtle flyer hint */}
+              <div className="w-full aspect-[4/5] max-h-[35%] bg-white/[0.03] border border-white/[0.08] mb-auto" />
+
+              {/* Bottom content - refined */}
+              <div className="mt-auto">
+                {/* Title - elegant, not all caps */}
+                <div className={`text-[11px] text-white font-medium tracking-wide mb-1 ${typographyClass}`}>
+                  Event Name
+                </div>
+
+                {/* Date - refined */}
+                <div className="text-[7px] text-white/30 tracking-wide mb-3">
+                  January 15, 2025
+                </div>
+
+                {/* CTA - minimal pill */}
+                <div
+                  className="inline-flex items-center px-3 py-1"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  <span className="text-[6px] text-black font-medium tracking-wider">
+                    RSVP
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "rave":
+        return (
+          <div className="absolute inset-0 bg-black overflow-hidden">
+            {/* Chaotic background elements */}
+            <div
+              className="absolute -top-4 -left-4 w-20 h-20 border-[6px] rotate-[15deg]"
+              style={{ borderColor: accentColor }}
+            />
+            <div
+              className="absolute -bottom-6 -right-6 w-24 h-24 -rotate-[20deg]"
+              style={{ backgroundColor: accentColor, opacity: 0.25 }}
+            />
+            <div className="absolute top-1/3 right-0 w-12 h-12 border-4 border-white rotate-45 opacity-30" />
+            <div
+              className="absolute bottom-1/4 left-2 w-6 h-6"
+              style={{ backgroundColor: accentColor, opacity: 0.4 }}
+            />
+
+            {/* Diagonal stripe */}
+            <div
+              className="absolute top-0 left-1/2 w-1 h-full rotate-[30deg] origin-top"
+              style={{ backgroundColor: accentColor, opacity: 0.3 }}
+            />
+
+            {/* Central content - chaotic alignment */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+              {/* Title - bold, rotated */}
+              <div
+                className={`text-[14px] font-black tracking-tight -rotate-3 mb-1 ${typographyClass}`}
+                style={{ color: accentColor }}
+              >
+                EVENT
+              </div>
+
+              {/* Date - counter rotated */}
+              <div className="font-mono text-[8px] text-white rotate-2 mb-4 tracking-wider">
+                SAT 15 JAN
+              </div>
+
+              {/* CTA - rotated solid block */}
+              <div
+                className="px-3 py-1.5 -rotate-2"
+                style={{ backgroundColor: accentColor }}
+              >
+                <span className="font-mono text-[7px] font-black text-black tracking-wider">
+                  TICKETS
+                </span>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "editorial":
+        return (
+          <div className="absolute inset-0 bg-neutral-900 overflow-hidden">
+            {/* Layered composition */}
+            <div className="absolute inset-0">
+              {/* Background texture hint */}
+              <div className="absolute inset-0 opacity-[0.03]"
+                style={{
+                  backgroundImage: `repeating-linear-gradient(0deg, white 0px, white 1px, transparent 1px, transparent 4px)`,
+                }}
+              />
+
+              {/* Large flyer - editorial crop */}
+              <div className="absolute top-0 left-0 right-4 bottom-1/3 bg-white/[0.08]">
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent" />
+              </div>
+
+              {/* Editorial text layout */}
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                {/* Category tag */}
+                <div
+                  className="text-[5px] font-mono tracking-[0.3em] mb-1 uppercase"
+                  style={{ color: accentColor }}
+                >
+                  Music Event
+                </div>
+
+                {/* Title - editorial style */}
+                <div className={`text-[12px] font-medium tracking-tight leading-tight mb-1.5 ${typographyClass}`}>
+                  <span className="text-white">Event</span>
+                  <br />
+                  <span className="text-white/60">Name</span>
+                </div>
+
+                {/* Meta info - magazine style */}
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-[6px] text-white/40 font-mono">JAN 15</div>
+                  <div className="w-px h-2 bg-white/20" />
+                  <div className="text-[6px] text-white/40 font-mono">10PM</div>
+                </div>
+
+                {/* CTA - understated */}
+                <div className="flex items-center gap-1">
+                  <div
+                    className="w-4 h-4 flex items-center justify-center"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    <span className="text-[6px] text-black font-bold">→</span>
+                  </div>
+                  <span className="text-[6px] text-white/50 font-mono tracking-wider">TICKETS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      default:
+        return null
+    }
   }
 
   return (
@@ -211,8 +480,8 @@ export function EventDesignTab({
             </div>
           </div>
 
-          {/* Navigation arrows - desktop */}
-          <div className="hidden sm:flex items-center gap-2">
+          {/* Navigation arrows - mobile only */}
+          <div className="flex sm:hidden items-center gap-2">
             <button
               onClick={() => navigateCarousel("prev")}
               disabled={activeIndex === 0}
@@ -230,19 +499,21 @@ export function EventDesignTab({
           </div>
         </div>
 
-        {/* Carousel Container */}
-        <div className="relative -mx-4 sm:mx-0 max-w-[100vw] sm:max-w-full">
+        {/* Template Cards Container */}
+        {/* Mobile: Carousel with snap | Desktop: Horizontal scroll grid */}
+        <div className="relative -mx-4 sm:mx-0">
           <div
             ref={carouselRef}
             onScroll={handleScroll}
-            className="flex gap-3 overflow-x-auto scrollbar-hide"
+            className={`flex gap-3 overflow-x-auto scrollbar-hide sm:pb-2 ${isMobile ? "px-[20%]" : "px-0"}`}
             style={{
-              scrollSnapType: "x mandatory",
+              scrollSnapType: isMobile ? "x mandatory" : "none",
               WebkitOverflowScrolling: "touch",
-              paddingLeft: "20%",
-              paddingRight: "20%",
             }}
           >
+            {/* Mobile padding spacer */}
+            <div className="sm:hidden flex-shrink-0 w-[calc(20%-6px)]" />
+
             {TEMPLATES.map((template, index) => {
               const isSelected = selectedTemplate === template.id
               const isActive = activeIndex === index
@@ -252,17 +523,19 @@ export function EventDesignTab({
                   key={template.id}
                   data-template-card
                   onClick={() => selectTemplate(template.id, index)}
-                  className="flex-shrink-0 snap-center"
-                  style={{ width: "60%", minWidth: "240px", maxWidth: "320px" }}
+                  className="flex-shrink-0 snap-center sm:snap-none"
+                  style={{
+                    width: "clamp(200px, 60%, 280px)",
+                  }}
                 >
                   <div
                     className={`
                       relative border-2 transition-all duration-300 cursor-pointer group
                       ${isSelected
                         ? "border-[#ff1493] bg-[#ff1493]/5"
-                        : isActive
+                        : isActive && isMobile
                           ? "border-white/30 bg-white/[0.02]"
-                          : "border-white/10 bg-white/[0.01] opacity-60"
+                          : "border-white/10 bg-white/[0.01] sm:hover:border-white/30"
                       }
                     `}
                   >
@@ -273,157 +546,45 @@ export function EventDesignTab({
                       </div>
                     )}
 
-                    {/* Template Preview - Realistic mini event page */}
-                    <div className={`h-48 sm:h-56 ${template.preview.bg} relative overflow-hidden`}>
-                      {/* Template-specific preview showing actual page layout */}
-                      {template.id === "brutalist" && (
-                        <div className="absolute inset-0 p-3 flex flex-col">
-                          {/* Header bar */}
-                          <div className="w-full h-2 mb-3" style={{ backgroundColor: accentColor }} />
-                          {/* Flyer placeholder */}
-                          <div
-                            className="w-full aspect-[4/5] max-h-[45%] bg-white/10 border-2 mb-2"
-                            style={{ borderColor: accentColor }}
-                          />
-                          {/* Title */}
-                          <div className={`text-[8px] text-white font-bold tracking-wider mb-1 ${getTypographyClass()}`}>
-                            EVENT NAME
-                          </div>
-                          <div className="flex gap-1 mb-2">
-                            <div className="w-8 h-2 bg-white/40" />
-                            <div className="w-6 h-2 bg-white/40" />
-                          </div>
-                          {/* CTA */}
-                          <div className="mt-auto flex gap-1">
-                            <div
-                              className="flex-1 h-4 border-2 flex items-center justify-center"
-                              style={{ borderColor: accentColor }}
-                            >
-                              <span className="text-[6px] font-mono" style={{ color: accentColor }}>GET TICKETS</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                    {/* Template Preview */}
+                    <div className="h-48 sm:h-52 relative overflow-hidden">
+                      {renderTemplatePreview(template.id)}
 
-                      {template.id === "neon" && (
-                        <div className="absolute inset-0 p-3 flex flex-col items-center text-center">
-                          {/* Glowing flyer */}
-                          <div
-                            className="w-3/4 aspect-[4/5] max-h-[50%] border-2 mb-2"
-                            style={{
-                              borderColor: accentColor,
-                              boxShadow: `0 0 20px ${accentColor}40, inset 0 0 30px ${accentColor}10`,
-                              backgroundColor: `${accentColor}05`
-                            }}
-                          />
-                          {/* Title */}
-                          <div
-                            className={`text-[9px] font-bold tracking-wider mb-1 ${getTypographyClass()}`}
-                            style={{ color: accentColor }}
-                          >
-                            EVENT NAME
-                          </div>
-                          <div className="text-[6px] text-white/40 mb-2">SAT, JAN 15 • 10PM</div>
-                          {/* CTA */}
-                          <div
-                            className="px-3 py-1.5 border mt-auto"
-                            style={{
-                              borderColor: accentColor,
-                              boxShadow: `0 0 10px ${accentColor}30`
-                            }}
-                          >
-                            <span className="text-[6px] font-mono" style={{ color: accentColor }}>GET TICKETS</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {template.id === "minimal" && (
-                        <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent">
-                          {/* Subtle flyer hint */}
-                          <div
-                            className="absolute top-3 left-3 w-6 h-6 border"
-                            style={{ borderColor: `${accentColor}40` }}
-                          />
-                          {/* Title - elegant placement */}
-                          <div className={`text-[10px] text-white font-medium tracking-wide mb-0.5 ${getTypographyClass()}`}>
-                            Event Name
-                          </div>
-                          <div className="text-[6px] text-white/40 mb-2">January 15, 2025</div>
-                          {/* Minimal CTA */}
-                          <div
-                            className="w-12 h-3 flex items-center justify-center"
-                            style={{ backgroundColor: accentColor }}
-                          >
-                            <span className="text-[5px] font-mono text-black tracking-wider">RSVP</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {template.id === "rave" && (
-                        <div className="absolute inset-0 overflow-hidden">
-                          {/* Chaotic background shapes */}
-                          <div
-                            className="absolute -top-2 -left-2 w-16 h-16 border-4 rotate-12"
-                            style={{ borderColor: accentColor }}
-                          />
-                          <div
-                            className="absolute -bottom-4 -right-4 w-20 h-20 -rotate-12"
-                            style={{ backgroundColor: accentColor, opacity: 0.3 }}
-                          />
-                          <div className="absolute top-1/4 right-2 w-8 h-8 border-2 border-white rotate-45" />
-                          {/* Central content */}
-                          <div className="absolute inset-0 flex flex-col items-center justify-center p-3">
-                            <div
-                              className={`text-[11px] font-black tracking-tight transform -rotate-2 mb-1 ${getTypographyClass()}`}
-                              style={{ color: accentColor }}
-                            >
-                              EVENT
-                            </div>
-                            <div className="text-[7px] font-mono text-white transform rotate-1 mb-3">
-                              SAT 15 JAN
-                            </div>
-                            <div
-                              className="px-2 py-1 transform -rotate-1"
-                              style={{ backgroundColor: accentColor }}
-                            >
-                              <span className="text-[6px] font-mono font-bold text-black">TICKETS</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Hover overlay */}
+                      {/* Hover overlay - desktop only */}
                       <div className={`
-                        absolute inset-0 bg-black/70 flex items-center justify-center opacity-0
-                        group-hover:opacity-100 transition-opacity duration-200
+                        absolute inset-0 bg-black/70 flex items-center justify-center
+                        opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200
                         ${isSelected ? "hidden" : ""}
                       `}>
                         <span className="text-[10px] font-mono tracking-wider text-white/90">
-                          TAP TO SELECT
+                          CLICK TO SELECT
                         </span>
                       </div>
                     </div>
 
                     {/* Template Info */}
-                    <div className="p-4 border-t border-white/10">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-mono font-bold text-sm tracking-wide">{template.name}</h4>
+                    <div className="p-3 border-t border-white/10">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <h4 className="font-mono font-bold text-xs tracking-wide">{template.name}</h4>
                         {isSelected && (
-                          <span className="text-[9px] font-mono px-2 py-0.5 bg-[#ff1493] text-black">
+                          <span className="text-[8px] font-mono px-1.5 py-0.5 bg-[#ff1493] text-black">
                             ACTIVE
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] font-mono text-white/40">{template.description}</p>
+                      <p className="text-[10px] font-mono text-white/40">{template.description}</p>
                     </div>
                   </div>
                 </div>
               )
             })}
+
+            {/* Mobile padding spacer */}
+            <div className="sm:hidden flex-shrink-0 w-[calc(20%-6px)]" />
           </div>
 
-          {/* Carousel indicators */}
-          <div className="flex justify-center gap-2 mt-4">
+          {/* Carousel indicators - mobile only */}
+          <div className="flex sm:hidden justify-center gap-2 mt-4">
             {TEMPLATES.map((_, index) => (
               <button
                 key={index}
@@ -557,15 +718,6 @@ export function EventDesignTab({
               {accentColor.toUpperCase()}
             </div>
           </div>
-          <button
-            className="px-3 py-1.5 text-[10px] font-mono tracking-wider border transition-all"
-            style={{
-              borderColor: accentColor,
-              color: accentColor,
-            }}
-          >
-            PREVIEW
-          </button>
         </div>
       </div>
 
