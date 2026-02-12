@@ -23,6 +23,8 @@ import {
   LayoutDashboard,
   Calendar,
   ScanLine,
+  Smartphone,
+  Share,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -301,11 +303,113 @@ export default function ScannerPage({
   // Code entry screen
   if (!authenticated) {
     return (
-      <div className="fixed inset-0 bg-black text-white flex flex-col">
-        {/* Safe area top */}
-        <div className="safe-area-top" />
-        
-        <div className="flex-1 flex items-center justify-center p-6">
+      <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
+        {/* Animated grid background */}
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(255,20,147,0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,20,147,0.5) 1px, transparent 1px)
+              `,
+              backgroundSize: "60px 60px",
+            }}
+          />
+        </div>
+
+        {/* Scanning line animation */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div
+            className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#ff1493]/30 to-transparent"
+            style={{
+              animation: "scanLine 4s ease-in-out infinite",
+            }}
+          />
+        </div>
+
+        {/* Corner bracket accents */}
+        <div className="absolute top-0 left-0 w-16 h-16 pointer-events-none">
+          <div className="absolute top-3 left-3 w-8 h-[2px] bg-[#ff1493]/40" />
+          <div className="absolute top-3 left-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        </div>
+        <div className="absolute top-0 right-0 w-16 h-16 pointer-events-none">
+          <div className="absolute top-3 right-3 w-8 h-[2px] bg-[#ff1493]/40" />
+          <div className="absolute top-3 right-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        </div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 pointer-events-none">
+          <div className="absolute bottom-3 left-3 w-8 h-[2px] bg-[#ff1493]/40" />
+          <div className="absolute bottom-3 left-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        </div>
+        <div className="absolute bottom-0 right-0 w-16 h-16 pointer-events-none">
+          <div className="absolute bottom-3 right-3 w-8 h-[2px] bg-[#ff1493]/40" />
+          <div className="absolute bottom-3 right-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        </div>
+
+        {/* Desktop Message Overlay */}
+        <div className="hidden md:flex fixed inset-0 z-50 bg-black flex-col items-center justify-center p-8">
+          <div className="max-w-md text-center">
+            <div className="w-20 h-20 border-2 border-[#ff1493]/30 bg-[#ff1493]/5 flex items-center justify-center mx-auto mb-6">
+              <Smartphone className="w-10 h-10 text-[#ff1493]" />
+            </div>
+            <h2 className="text-2xl font-headline tracking-wide text-white mb-4">
+              MOBILE DEVICE REQUIRED
+            </h2>
+            <p className="text-white/50 font-mono text-sm mb-8">
+              Scanning tickets requires a mobile device with a camera. Open this page on your phone to start scanning.
+            </p>
+            <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-8 h-8 bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center flex-shrink-0">
+                  <Share className="w-4 h-4 text-[#ff1493]" />
+                </div>
+                <div>
+                  <p className="text-white font-mono text-sm">AirDrop this link</p>
+                  <p className="text-white/40 font-mono text-xs">Share directly to your iPhone</p>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
+                <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all">
+                  {typeof window !== 'undefined' ? window.location.href : `/scan/${eventId}`}
+                </code>
+              </div>
+            </div>
+            <Link
+              href="/d"
+              className="inline-flex items-center gap-2 mt-8 text-white/40 hover:text-white font-mono text-xs transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Go to Dashboard
+            </Link>
+          </div>
+        </div>
+
+        {/* CSS for animations */}
+        <style jsx>{`
+          @keyframes scanLine {
+            0%, 100% {
+              top: 0%;
+              opacity: 0;
+            }
+            10% {
+              opacity: 1;
+            }
+            50% {
+              top: 100%;
+              opacity: 1;
+            }
+            60% {
+              opacity: 0;
+            }
+          }
+        `}</style>
+
+        {/* Safe area top - mobile only */}
+        <div className="safe-area-top md:hidden" />
+
+        {/* Main content - mobile only */}
+        <div className="flex-1 flex items-center justify-center p-6 relative z-10 md:hidden">
           <div className="w-full max-w-sm">
             {/* Logo */}
             <div className="text-center mb-12">
@@ -319,7 +423,7 @@ export default function ScannerPage({
 
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center mx-auto mb-4">
                   <QrCode className="w-8 h-8 text-[#ff1493]" />
                 </div>
                 <h1 className="text-xl font-bold font-display">SCANNER ACCESS</h1>
@@ -352,9 +456,9 @@ export default function ScannerPage({
             </div>
           </div>
         </div>
-        
-        {/* Safe area bottom */}
-        <div className="safe-area-bottom" />
+
+        {/* Safe area bottom - mobile only */}
+        <div className="safe-area-bottom md:hidden" />
       </div>
     )
   }
@@ -362,11 +466,112 @@ export default function ScannerPage({
   // Main Scanner Interface - Full viewport
   return (
     <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
+      {/* Animated grid background */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,20,147,0.5) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,20,147,0.5) 1px, transparent 1px)
+            `,
+            backgroundSize: "60px 60px",
+          }}
+        />
+      </div>
+
+      {/* Scanning line animation */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
+        <div
+          className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#ff1493]/30 to-transparent"
+          style={{
+            animation: "scanLine 4s ease-in-out infinite",
+          }}
+        />
+      </div>
+
+      {/* Corner bracket accents */}
+      <div className="absolute top-0 left-0 w-16 h-16 pointer-events-none z-[5]">
+        <div className="absolute top-3 left-3 w-8 h-[2px] bg-[#ff1493]/40" />
+        <div className="absolute top-3 left-3 w-[2px] h-8 bg-[#ff1493]/40" />
+      </div>
+      <div className="absolute top-0 right-0 w-16 h-16 pointer-events-none z-[5]">
+        <div className="absolute top-3 right-3 w-8 h-[2px] bg-[#ff1493]/40" />
+        <div className="absolute top-3 right-3 w-[2px] h-8 bg-[#ff1493]/40" />
+      </div>
+      <div className="absolute bottom-0 left-0 w-16 h-16 pointer-events-none z-[5]">
+        <div className="absolute bottom-3 left-3 w-8 h-[2px] bg-[#ff1493]/40" />
+        <div className="absolute bottom-3 left-3 w-[2px] h-8 bg-[#ff1493]/40" />
+      </div>
+      <div className="absolute bottom-0 right-0 w-16 h-16 pointer-events-none z-[5]">
+        <div className="absolute bottom-3 right-3 w-8 h-[2px] bg-[#ff1493]/40" />
+        <div className="absolute bottom-3 right-3 w-[2px] h-8 bg-[#ff1493]/40" />
+      </div>
+
+      {/* Desktop Message Overlay */}
+      <div className="hidden md:flex fixed inset-0 z-50 bg-black flex-col items-center justify-center p-8">
+        <div className="max-w-md text-center">
+          <div className="w-20 h-20 border-2 border-[#ff1493]/30 bg-[#ff1493]/5 flex items-center justify-center mx-auto mb-6">
+            <Smartphone className="w-10 h-10 text-[#ff1493]" />
+          </div>
+          <h2 className="text-2xl font-headline tracking-wide text-white mb-4">
+            MOBILE DEVICE REQUIRED
+          </h2>
+          <p className="text-white/50 font-mono text-sm mb-8">
+            Scanning tickets requires a mobile device with a camera. Open this page on your phone to start scanning.
+          </p>
+          <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+            <div className="flex items-center gap-3 text-left">
+              <div className="w-8 h-8 bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center flex-shrink-0">
+                <Share className="w-4 h-4 text-[#ff1493]" />
+              </div>
+              <div>
+                <p className="text-white font-mono text-sm">AirDrop this link</p>
+                <p className="text-white/40 font-mono text-xs">Share directly to your iPhone</p>
+              </div>
+            </div>
+            <div className="pt-4 border-t border-white/10">
+              <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
+              <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all">
+                {typeof window !== 'undefined' ? window.location.href : `/scan/${eventId}`}
+              </code>
+            </div>
+          </div>
+          <Link
+            href="/d"
+            className="inline-flex items-center gap-2 mt-8 text-white/40 hover:text-white font-mono text-xs transition-colors"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+
+      {/* CSS for animations */}
+      <style jsx>{`
+        @keyframes scanLine {
+          0%, 100% {
+            top: 0%;
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          50% {
+            top: 100%;
+            opacity: 1;
+          }
+          60% {
+            opacity: 0;
+          }
+        }
+      `}</style>
+
       {/* Safe area top */}
-      <div className="bg-black safe-area-top" />
-      
-      {/* Header */}
-      <header className="flex-shrink-0 px-4 py-3 border-b border-white/10 bg-black/80 backdrop-blur-sm">
+      <div className="bg-black safe-area-top md:hidden" />
+
+      {/* Header - mobile only */}
+      <header className="flex-shrink-0 px-4 py-3 border-b border-white/10 bg-black/80 backdrop-blur-sm md:hidden">
         <div className="flex items-center justify-between relative">
           {/* Left side - back button */}
           <div className="w-10 flex-shrink-0">
@@ -430,8 +635,8 @@ export default function ScannerPage({
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-hidden flex flex-col">
+      {/* Main Content - mobile only */}
+      <main className="flex-1 overflow-hidden flex flex-col md:hidden">
         {viewMode === "home" ? (
           /* Home Screen with Action Buttons */
           <div className={`flex-1 flex flex-col p-4 ${isOrganizer ? "pb-24" : "pb-8"}`}>
@@ -831,8 +1036,8 @@ export default function ScannerPage({
         </nav>
       )}
 
-      {/* Safe area bottom */}
-      {!isOrganizer && <div className="bg-black safe-area-bottom" />}
+      {/* Safe area bottom - mobile only */}
+      {!isOrganizer && <div className="bg-black safe-area-bottom md:hidden" />}
     </div>
   )
 }

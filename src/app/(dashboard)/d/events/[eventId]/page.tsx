@@ -469,7 +469,10 @@ export default function EventDashboardPage({
       </div>
 
       {/* Section Nav */}
-      <div className="flex items-center gap-1 border-b border-white/10 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="max-w-[100vw] -mx-4 sm:mx-0">
+        <div className="flex items-center gap-1 border-b border-white/10 overflow-x-auto overflow-y-hidden scrollbar-hide px-4 sm:px-0"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
         {[
           { id: "overview" as const, label: "OVERVIEW" },
           { id: "tickets" as const, label: "TICKETS" },
@@ -489,6 +492,7 @@ export default function EventDashboardPage({
             {section.label}
           </button>
         ))}
+        </div>
       </div>
 
       {/* Content */}

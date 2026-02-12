@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Radio, Lock, Zap, AlertCircle, Calendar, MapPin, ChevronRight, User, LayoutDashboard, ScanLine } from "lucide-react"
+import { Radio, Lock, Zap, AlertCircle, Calendar, MapPin, ChevronRight, User, LayoutDashboard, ScanLine, Monitor, Smartphone, Share } from "lucide-react"
 import { toast } from "sonner"
 
 interface OrganizerEvent {
@@ -200,6 +200,16 @@ export default function ScannerEntryPage() {
           />
         </div>
 
+        {/* Scanning line animation */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div
+            className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#ff1493]/40 to-transparent"
+            style={{
+              animation: "scanLine 4s ease-in-out infinite",
+            }}
+          />
+        </div>
+
         {/* Corner accents */}
         <div className="absolute top-0 left-0 w-24 h-24">
           <div className="absolute top-4 left-4 w-12 h-[2px] bg-[#ff1493]/50" />
@@ -209,9 +219,56 @@ export default function ScannerEntryPage() {
           <div className="absolute top-4 right-4 w-12 h-[2px] bg-[#ff1493]/50" />
           <div className="absolute top-4 right-4 w-[2px] h-12 bg-[#ff1493]/50" />
         </div>
+        <div className="absolute bottom-0 left-0 w-24 h-24">
+          <div className="absolute bottom-4 left-4 w-12 h-[2px] bg-[#ff1493]/50" />
+          <div className="absolute bottom-4 left-4 w-[2px] h-12 bg-[#ff1493]/50" />
+        </div>
+        <div className="absolute bottom-0 right-0 w-24 h-24">
+          <div className="absolute bottom-4 right-4 w-12 h-[2px] bg-[#ff1493]/50" />
+          <div className="absolute bottom-4 right-4 w-[2px] h-12 bg-[#ff1493]/50" />
+        </div>
 
-        {/* Main content */}
-        <div className="relative z-10 min-h-screen flex flex-col px-6 py-12 safe-area-top safe-area-bottom">
+        {/* Desktop Message Overlay */}
+        <div className="hidden md:flex fixed inset-0 z-50 bg-black flex-col items-center justify-center p-8">
+          <div className="max-w-md text-center">
+            <div className="w-20 h-20 border-2 border-[#ff1493]/30 bg-[#ff1493]/5 flex items-center justify-center mx-auto mb-6">
+              <Smartphone className="w-10 h-10 text-[#ff1493]" />
+            </div>
+            <h2 className="text-2xl font-headline tracking-wide text-white mb-4">
+              MOBILE DEVICE REQUIRED
+            </h2>
+            <p className="text-white/50 font-mono text-sm mb-8">
+              Scanning tickets requires a mobile device with a camera. Open this page on your phone to start scanning.
+            </p>
+            <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-8 h-8 bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center flex-shrink-0">
+                  <Share className="w-4 h-4 text-[#ff1493]" />
+                </div>
+                <div>
+                  <p className="text-white font-mono text-sm">AirDrop this link</p>
+                  <p className="text-white/40 font-mono text-xs">Share directly to your iPhone</p>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
+                <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all">
+                  {typeof window !== 'undefined' ? window.location.href : '/scan'}
+                </code>
+              </div>
+            </div>
+            <Link
+              href="/d"
+              className="inline-flex items-center gap-2 mt-8 text-white/40 hover:text-white font-mono text-xs transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Go to Dashboard
+            </Link>
+          </div>
+        </div>
+
+        {/* Main content - mobile only */}
+        <div className="relative z-10 min-h-screen flex flex-col px-6 py-12 safe-area-top safe-area-bottom md:hidden">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-3 mb-4">
@@ -400,8 +457,47 @@ export default function ScannerEntryPage() {
         <div className="absolute bottom-4 right-4 w-[2px] h-12 bg-[#ff1493]/50" />
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-12">
+      {/* Desktop Message Overlay */}
+      <div className="hidden md:flex fixed inset-0 z-50 bg-black flex-col items-center justify-center p-8">
+        <div className="max-w-md text-center">
+          <div className="w-20 h-20 border-2 border-[#ff1493]/30 bg-[#ff1493]/5 flex items-center justify-center mx-auto mb-6">
+            <Smartphone className="w-10 h-10 text-[#ff1493]" />
+          </div>
+          <h2 className="text-2xl font-headline tracking-wide text-white mb-4">
+            MOBILE DEVICE REQUIRED
+          </h2>
+          <p className="text-white/50 font-mono text-sm mb-8">
+            Scanning tickets requires a mobile device with a camera. Open this page on your phone to start scanning.
+          </p>
+          <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+            <div className="flex items-center gap-3 text-left">
+              <div className="w-8 h-8 bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center flex-shrink-0">
+                <Share className="w-4 h-4 text-[#ff1493]" />
+              </div>
+              <div>
+                <p className="text-white font-mono text-sm">AirDrop this link</p>
+                <p className="text-white/40 font-mono text-xs">Share directly to your iPhone</p>
+              </div>
+            </div>
+            <div className="pt-4 border-t border-white/10">
+              <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
+              <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all">
+                {typeof window !== 'undefined' ? window.location.href : '/scan'}
+              </code>
+            </div>
+          </div>
+          <Link
+            href="/d"
+            className="inline-flex items-center gap-2 mt-8 text-white/40 hover:text-white font-mono text-xs transition-colors"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+
+      {/* Main content - mobile only */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-12 md:hidden">
         {/* Logo section */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-3 mb-4">

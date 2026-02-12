@@ -89,7 +89,12 @@ export function EventDesignTab({
 
   // Scroll to active template on mount
   useEffect(() => {
-    scrollToIndex(activeIndex, false)
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      scrollToIndex(activeIndex, false)
+    }, 100)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const scrollToIndex = (index: number, smooth = true) => {
@@ -139,8 +144,10 @@ export function EventDesignTab({
 
       if (closestIndex !== activeIndex) {
         setActiveIndex(closestIndex)
+        // Auto-select the visible template
+        setSelectedTemplate(TEMPLATES[closestIndex].id)
       }
-    }, 50)
+    }, 150)
   }
 
   const selectTemplate = (templateId: string, index: number) => {
@@ -183,7 +190,7 @@ export function EventDesignTab({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-full overflow-x-hidden">
       {/* Template Selector */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -217,14 +224,16 @@ export function EventDesignTab({
         </div>
 
         {/* Carousel Container */}
-        <div className="relative -mx-4 sm:mx-0">
+        <div className="relative -mx-4 sm:mx-0 max-w-[100vw] sm:max-w-full">
           <div
             ref={carouselRef}
             onScroll={handleScroll}
-            className="flex gap-4 overflow-x-auto scrollbar-hide px-4 sm:px-0"
+            className="flex gap-3 overflow-x-auto scrollbar-hide"
             style={{
               scrollSnapType: "x mandatory",
               WebkitOverflowScrolling: "touch",
+              paddingLeft: "20%",
+              paddingRight: "20%",
             }}
           >
             {TEMPLATES.map((template, index) => {
@@ -237,7 +246,7 @@ export function EventDesignTab({
                   data-template-card
                   onClick={() => selectTemplate(template.id, index)}
                   className="flex-shrink-0 snap-center"
-                  style={{ width: "75%", minWidth: "280px", maxWidth: "400px" }}
+                  style={{ width: "60%", minWidth: "240px", maxWidth: "320px" }}
                 >
                   <div
                     className={`
@@ -257,92 +266,118 @@ export function EventDesignTab({
                       </div>
                     )}
 
-                    {/* Template Preview */}
-                    <div className={`h-40 sm:h-48 ${template.preview.bg} relative overflow-hidden`}>
-                      {/* Grid background */}
-                      <div
-                        className="absolute inset-0 opacity-[0.03]"
-                        style={{
-                          backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
-                          backgroundSize: "20px 20px",
-                        }}
-                      />
-
-                      {/* Template-specific preview */}
+                    {/* Template Preview - Realistic mini event page */}
+                    <div className={`h-48 sm:h-56 ${template.preview.bg} relative overflow-hidden`}>
+                      {/* Template-specific preview showing actual page layout */}
                       {template.id === "brutalist" && (
-                        <div className="absolute inset-4 flex flex-col justify-between">
-                          <div className="w-full h-3 bg-white" />
-                          <div className="space-y-2">
-                            <div className="w-3/4 h-6 bg-white" />
-                            <div className="w-1/2 h-3 bg-white/50" />
+                        <div className="absolute inset-0 p-3 flex flex-col">
+                          {/* Header bar */}
+                          <div className="w-full h-2 bg-white mb-3" />
+                          {/* Flyer placeholder */}
+                          <div className="w-full aspect-[4/5] max-h-[45%] bg-white/10 border-2 border-white mb-2" />
+                          {/* Title */}
+                          <div className="font-mono text-[8px] text-white font-bold tracking-wider mb-1">EVENT NAME</div>
+                          <div className="flex gap-1 mb-2">
+                            <div className="w-8 h-2 bg-white/40" />
+                            <div className="w-6 h-2 bg-white/40" />
                           </div>
-                          <div className="flex gap-2">
-                            <div className="w-20 h-8 border-2 border-white" />
-                            <div className="w-20 h-8 bg-white" />
+                          {/* CTA */}
+                          <div className="mt-auto flex gap-1">
+                            <div className="flex-1 h-4 border-2 border-white flex items-center justify-center">
+                              <span className="text-[6px] font-mono text-white">GET TICKETS</span>
+                            </div>
                           </div>
                         </div>
                       )}
 
                       {template.id === "neon" && (
-                        <div className="absolute inset-4 flex flex-col items-center justify-center text-center">
+                        <div className="absolute inset-0 p-3 flex flex-col items-center text-center">
+                          {/* Glowing flyer */}
                           <div
-                            className="w-16 h-16 mb-3 border-2"
+                            className="w-3/4 aspect-[4/5] max-h-[50%] border-2 mb-2"
                             style={{
                               borderColor: accentColor,
-                              boxShadow: `0 0 20px ${accentColor}40`,
+                              boxShadow: `0 0 20px ${accentColor}40, inset 0 0 30px ${accentColor}10`,
+                              backgroundColor: `${accentColor}05`
                             }}
                           />
+                          {/* Title */}
                           <div
-                            className="w-32 h-4 mb-2"
-                            style={{ backgroundColor: accentColor }}
-                          />
-                          <div className="w-24 h-2 bg-white/30" />
+                            className="text-[9px] font-mono font-bold tracking-wider mb-1"
+                            style={{ color: accentColor }}
+                          >
+                            EVENT NAME
+                          </div>
+                          <div className="text-[6px] text-white/40 mb-2">SAT, JAN 15 • 10PM</div>
+                          {/* CTA */}
                           <div
-                            className="w-28 h-8 mt-4 border"
-                            style={{ borderColor: accentColor }}
-                          />
+                            className="px-3 py-1.5 border mt-auto"
+                            style={{
+                              borderColor: accentColor,
+                              boxShadow: `0 0 10px ${accentColor}30`
+                            }}
+                          >
+                            <span className="text-[6px] font-mono" style={{ color: accentColor }}>GET TICKETS</span>
+                          </div>
                         </div>
                       )}
 
                       {template.id === "minimal" && (
-                        <div className="absolute inset-6 flex flex-col justify-end">
-                          <div className="w-8 h-8 border border-white/20 mb-4" />
-                          <div className="w-full h-4 bg-white/80 mb-2" />
-                          <div className="w-2/3 h-2 bg-white/30 mb-4" />
-                          <div className="flex gap-3">
-                            <div className="w-16 h-6 bg-white" />
+                        <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent">
+                          {/* Subtle flyer hint */}
+                          <div className="absolute top-3 left-3 w-6 h-6 border border-white/20" />
+                          {/* Title - elegant placement */}
+                          <div className="text-[10px] font-serif text-white font-medium tracking-wide mb-0.5">
+                            Event Name
+                          </div>
+                          <div className="text-[6px] text-white/40 mb-2">January 15, 2025</div>
+                          {/* Minimal CTA */}
+                          <div className="w-12 h-3 bg-white flex items-center justify-center">
+                            <span className="text-[5px] font-mono text-black tracking-wider">RSVP</span>
                           </div>
                         </div>
                       )}
 
                       {template.id === "rave" && (
-                        <div className="absolute inset-0">
+                        <div className="absolute inset-0 overflow-hidden">
+                          {/* Chaotic background shapes */}
                           <div
-                            className="absolute top-2 left-2 w-20 h-20 border-4 rotate-12"
+                            className="absolute -top-2 -left-2 w-16 h-16 border-4 rotate-12"
                             style={{ borderColor: "#00ff88" }}
                           />
                           <div
-                            className="absolute bottom-4 right-4 w-16 h-16 -rotate-6"
-                            style={{ backgroundColor: "#00ff88" }}
+                            className="absolute -bottom-4 -right-4 w-20 h-20 -rotate-12"
+                            style={{ backgroundColor: "#00ff88", opacity: 0.3 }}
                           />
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <div className="w-32 h-6 bg-white transform -rotate-3" />
+                          <div className="absolute top-1/4 right-2 w-8 h-8 border-2 border-white rotate-45" />
+                          {/* Central content */}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center p-3">
                             <div
-                              className="w-24 h-4 mt-2 transform rotate-1"
+                              className="text-[11px] font-mono font-black tracking-tight transform -rotate-2 mb-1"
+                              style={{ color: "#00ff88" }}
+                            >
+                              EVENT
+                            </div>
+                            <div className="text-[7px] font-mono text-white transform rotate-1 mb-3">
+                              SAT 15 JAN
+                            </div>
+                            <div
+                              className="px-2 py-1 transform -rotate-1"
                               style={{ backgroundColor: "#00ff88" }}
-                            />
+                            >
+                              <span className="text-[6px] font-mono font-bold text-black">TICKETS</span>
+                            </div>
                           </div>
-                          <div className="absolute bottom-3 left-3 w-12 h-12 border-2 border-white rotate-45" />
                         </div>
                       )}
 
                       {/* Hover overlay */}
                       <div className={`
-                        absolute inset-0 bg-black/60 flex items-center justify-center opacity-0
+                        absolute inset-0 bg-black/70 flex items-center justify-center opacity-0
                         group-hover:opacity-100 transition-opacity duration-200
                         ${isSelected ? "hidden" : ""}
                       `}>
-                        <span className="text-xs font-mono tracking-wider text-white/80">
+                        <span className="text-[10px] font-mono tracking-wider text-white/90">
                           TAP TO SELECT
                         </span>
                       </div>
@@ -450,7 +485,7 @@ export function EventDesignTab({
         </div>
 
         <div
-          className="flex gap-3 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap"
+          className="flex items-center gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {ACCENT_COLORS.map((color) => (
@@ -458,7 +493,7 @@ export function EventDesignTab({
               key={color.value}
               onClick={() => setAccentColor(color.value)}
               className={`
-                w-12 h-12 flex-shrink-0 transition-all relative group
+                w-10 h-10 flex-shrink-0 transition-all relative
                 ${accentColor === color.value
                   ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
                   : "hover:scale-105"
@@ -469,14 +504,14 @@ export function EventDesignTab({
             >
               {accentColor === color.value && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Check className="w-5 h-5 text-black drop-shadow-lg" />
+                  <Check className="w-4 h-4 text-black drop-shadow-lg" />
                 </div>
               )}
             </button>
           ))}
 
           {/* Custom color picker */}
-          <div className="relative w-12 h-12 flex-shrink-0 border-2 border-dashed border-white/20 overflow-hidden hover:border-white/40 transition-colors">
+          <div className="relative w-10 h-10 flex-shrink-0 border-2 border-dashed border-white/20 overflow-hidden hover:border-white/40 transition-colors">
             <input
               type="color"
               value={accentColor}
@@ -484,7 +519,7 @@ export function EventDesignTab({
               className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
             />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <Plus className="w-5 h-5 text-white/40" />
+              <Plus className="w-4 h-4 text-white/40" />
             </div>
           </div>
         </div>
