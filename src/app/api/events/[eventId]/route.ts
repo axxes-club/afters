@@ -123,6 +123,56 @@ export async function PUT(
   }
 }
 
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ eventId: string }> }
+) {
+  try {
+    const { userId } = await auth()
+    const { eventId } = await params
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    const profile = await prisma.organizerProfile.findUnique({
+      where: { userId },
+    })
+
+    if (!profile) {
+      return NextResponse.json(
+        { message: "Organizer profile required" },
+        { status: 400 }
+      )
+    }
+
+    // Verify ownership
+    const existingEvent = await prisma.event.findUnique({
+      where: { id: eventId },
+    })
+
+    if (!existingEvent || existingEvent.organizerId !== profile.id) {
+      return NextResponse.json({ message: "Event not found" }, { status: 404 })
+    }
+
+    const body = await req.json()
+
+    // PATCH only updates provided fields
+    const event = await prisma.event.update({
+      where: { id: eventId },
+      data: body,
+    })
+
+    return NextResponse.json(event)
+  } catch (error) {
+    console.error("Error patching event:", error)
+    return NextResponse.json(
+      { message: "Failed to update event" },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> }

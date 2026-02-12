@@ -5,8 +5,6 @@ import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
-import { auth } from "@clerk/nextjs/server"
-import { SaveEventButton } from "@/components/SaveEventButton"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -85,16 +83,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     notFound()
   }
 
-  const { userId } = await auth()
-  const isSaved = userId ? !!(await prisma.savedEvent.findUnique({
-    where: {
-      userId_eventId: {
-        userId,
-        eventId: event.id,
-      },
-    },
-  })) : false
-
   type TierType = typeof event.ticketTiers[number]
 
   const availableTiers = event.organizer.stripeChargesEnabled
@@ -132,21 +120,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
       {/* Noise texture overlay */}
       <div className="fixed inset-0 pointer-events-none grain z-50" />
-
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/5">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="font-headline text-2xl tracking-wide">
-            AFTERS<span style={{ color: accentColor }}>.</span>
-          </Link>
-          <SaveEventButton
-            eventId={event.id}
-            initialIsSaved={isSaved}
-            variant="icon"
-            className="text-white/50 hover:text-white transition-colors"
-          />
-        </div>
-      </header>
 
       {/* Hero Section */}
       <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-end overflow-hidden">
