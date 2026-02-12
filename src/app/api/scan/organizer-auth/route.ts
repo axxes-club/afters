@@ -20,13 +20,13 @@ export async function GET() {
       include: {
         events: {
           where: {
-            // Only show events that haven't ended
+            // Only show events from the last 3 days
             OR: [
-              { endsAt: { gte: new Date() } },
-              { endsAt: null, startsAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } }, // Started within last 24h
+              { endsAt: { gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } },
+              { endsAt: null, startsAt: { gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } },
             ],
           },
-          orderBy: { startsAt: "asc" },
+          orderBy: { startsAt: "desc" },
           select: {
             id: true,
             title: true,
