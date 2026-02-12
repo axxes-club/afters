@@ -26,7 +26,24 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       isPublished: true,
       slug: combinedSlug,
     },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      flyerUrl: true,
+      startsAt: true,
+      venueName: true,
+      venueAddress: true,
+      city: true,
+      state: true,
+      isAddressHidden: true,
+      ageRestriction: true,
+      lineup: true,
+      isPublished: true,
+      accentColor: true,
+      pageTheme: true,
+      typography: true,
       organizer: {
         select: {
           displayName: true,
@@ -58,7 +75,24 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             slug: eventSlug,
             organizer: { slug: org.slug },
           },
-          include: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            flyerUrl: true,
+            startsAt: true,
+            venueName: true,
+            venueAddress: true,
+            city: true,
+            state: true,
+            isAddressHidden: true,
+            ageRestriction: true,
+            lineup: true,
+            isPublished: true,
+            accentColor: true,
+            pageTheme: true,
+            typography: true,
             organizer: {
               select: {
                 displayName: true,
@@ -101,6 +135,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   const lineup = (event.lineup as LineupArtist[] | null) || []
   const accentColor = event.accentColor || '#ff1493'
+  const pageTheme = event.pageTheme || 'neon'
+  const typography = event.typography || 'headline'
+
+  // Map typography ID to Tailwind class
+  const getTypographyClass = () => {
+    const typographyMap: Record<string, string> = {
+      mono: 'font-mono',
+      headline: 'font-headline',
+      elegant: 'font-serif',
+      modern: 'font-sans',
+    }
+    return typographyMap[typography] || 'font-headline'
+  }
+
+  const typographyClass = getTypographyClass()
 
   const eventDate = new Date(event.startsAt)
   const dayStr = eventDate.toLocaleDateString("en-US", { weekday: "long" })
@@ -115,7 +164,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   })
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="min-h-screen bg-black text-white relative" data-template={pageTheme}>
       <ViewTracker eventId={event.id} />
 
       {/* Noise texture overlay */}
@@ -161,7 +210,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             className="w-24 h-24 flex flex-col items-center justify-center border-2"
             style={{ borderColor: accentColor, backgroundColor: 'rgba(0,0,0,0.8)' }}
           >
-            <span className="font-headline text-3xl" style={{ color: accentColor }}>{eventDate.getDate()}</span>
+            <span className={`${typographyClass} text-3xl`} style={{ color: accentColor }}>{eventDate.getDate()}</span>
             <span className="font-mono text-[10px] tracking-widest text-white/60 uppercase">
               {eventDate.toLocaleDateString("en-US", { month: "short" })}
             </span>
@@ -189,7 +238,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </div>
 
             {/* Title */}
-            <h1 className="reveal-up reveal-delay-2 font-headline text-5xl md:text-7xl lg:text-8xl tracking-wide mb-8 text-glitch">
+            <h1 className={`reveal-up reveal-delay-2 ${typographyClass} text-5xl md:text-7xl lg:text-8xl tracking-wide mb-8 text-glitch`}>
               {event.title}
             </h1>
 
@@ -237,20 +286,20 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {totalAvailable > 0 ? (
                 <Link
                   href={`/e/${combinedSlug}/checkout`}
-                  className="btn-premium group flex items-center gap-3 px-8 py-4 font-headline text-xl tracking-wider"
+                  className={`btn-premium group flex items-center gap-3 px-8 py-4 ${typographyClass} text-xl tracking-wider`}
                   style={{ backgroundColor: accentColor, color: '#000' }}
                 >
                   <span>GET TICKETS</span>
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Link>
               ) : (
-                <div className="px-8 py-4 font-headline text-xl tracking-wider bg-white/5 text-white/30">
+                <div className={`px-8 py-4 ${typographyClass} text-xl tracking-wider bg-white/5 text-white/30`}>
                   SOLD OUT
                 </div>
               )}
               <div className="flex flex-col">
                 <span className="font-body text-xs text-white/40 uppercase tracking-wider">Starting at</span>
-                <span className="font-headline text-3xl" style={{ color: accentColor }}>
+                <span className={`${typographyClass} text-3xl`} style={{ color: accentColor }}>
                   {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
                 </span>
               </div>
@@ -264,21 +313,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <div className="flex items-center justify-between p-4">
           <div>
             <p className="font-body text-[10px] text-white/40 uppercase tracking-wider">From</p>
-            <p className="font-headline text-2xl" style={{ color: accentColor }}>
+            <p className={`${typographyClass} text-2xl`} style={{ color: accentColor }}>
               {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
             </p>
           </div>
           {totalAvailable > 0 ? (
             <Link
               href={`/e/${combinedSlug}/checkout`}
-              className="btn-premium flex items-center gap-2 px-6 py-3.5 font-headline text-base tracking-wider"
+              className={`btn-premium flex items-center gap-2 px-6 py-3.5 ${typographyClass} text-base tracking-wider`}
               style={{ backgroundColor: accentColor, color: '#000' }}
             >
               <Ticket className="h-4 w-4" />
               GET TICKETS
             </Link>
           ) : (
-            <div className="px-6 py-3.5 font-headline text-base tracking-wider bg-white/5 text-white/30">
+            <div className={`px-6 py-3.5 ${typographyClass} text-base tracking-wider bg-white/5 text-white/30`}>
               SOLD OUT
             </div>
           )}
@@ -295,7 +344,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {lineup.length > 0 && (
                 <div className="reveal-up">
                   <div className="flex items-center gap-4 mb-8">
-                    <h2 className="font-headline text-3xl tracking-wide">LINEUP</h2>
+                    <h2 className={`${typographyClass} text-3xl tracking-wide`}>LINEUP</h2>
                     <div className="flex-1 h-px bg-gradient-to-r from-white/20 to-transparent" />
                   </div>
                   <div className="grid gap-3">
@@ -323,7 +372,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-headline text-xl tracking-wide group-hover:text-white transition-colors">
+                          <p className={`${typographyClass} text-xl tracking-wide group-hover:text-white transition-colors`}>
                             {artist.name}
                           </p>
                           {artist.role && (
@@ -350,7 +399,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {event.description && (
                 <div className="reveal-up">
                   <div className="flex items-center gap-4 mb-8">
-                    <h2 className="font-headline text-3xl tracking-wide">ABOUT</h2>
+                    <h2 className={`${typographyClass} text-3xl tracking-wide`}>ABOUT</h2>
                     <div className="flex-1 h-px bg-gradient-to-r from-white/20 to-transparent" />
                   </div>
                   <div className="relative pl-6 border-l-2" style={{ borderColor: `${accentColor}50` }}>
@@ -364,7 +413,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {/* Location Section */}
               <div className="reveal-up">
                 <div className="flex items-center gap-4 mb-8">
-                  <h2 className="font-headline text-3xl tracking-wide">LOCATION</h2>
+                  <h2 className={`${typographyClass} text-3xl tracking-wide`}>LOCATION</h2>
                   <div className="flex-1 h-px bg-gradient-to-r from-white/20 to-transparent" />
                 </div>
                 {event.isAddressHidden ? (
@@ -380,7 +429,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                         <Lock className="h-6 w-6" style={{ color: accentColor }} />
                       </div>
                       <div>
-                        <p className="font-headline text-xl tracking-wide">SECRET LOCATION</p>
+                        <p className={`${typographyClass} text-xl tracking-wide`}>SECRET LOCATION</p>
                         <p className="font-body text-sm text-white/50">{event.city}</p>
                       </div>
                     </div>
@@ -390,7 +439,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <p className="font-headline text-2xl tracking-wide">{event.venueName}</p>
+                    <p className={`${typographyClass} text-2xl tracking-wide`}>{event.venueName}</p>
                     <p className="font-body text-base text-white/60">{event.venueAddress}</p>
                     <p className="font-body text-sm text-white/40">
                       {event.city}{event.state ? `, ${event.state}` : ''}
@@ -414,7 +463,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                     style={{ backgroundColor: `${accentColor}08` }}
                   >
                     <div className="flex items-center justify-between">
-                      <h3 className="font-headline text-xl tracking-wider">TICKETS</h3>
+                      <h3 className={`${typographyClass} text-xl tracking-wider`}>TICKETS</h3>
                       <span className="font-mono text-[10px] text-white/40 uppercase tracking-wider">
                         {totalAvailable > 0 ? `${totalAvailable} left` : 'Sold out'}
                       </span>
@@ -443,7 +492,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                           <div className="flex justify-between items-start gap-4">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <p className="font-headline text-lg tracking-wide">{tier.name}</p>
+                                <p className={`${typographyClass} text-lg tracking-wide`}>{tier.name}</p>
                                 {almostGone && (
                                   <span
                                     className="px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider"
@@ -463,7 +512,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                                 </span>
                               </div>
                             </div>
-                            <p className="font-headline text-2xl" style={{ color: soldOut ? 'rgba(255,255,255,0.3)' : accentColor }}>
+                            <p className={`${typographyClass} text-2xl`} style={{ color: soldOut ? 'rgba(255,255,255,0.3)' : accentColor }}>
                               {tier.price === 0 ? 'FREE' : formatCents(tier.price)}
                             </p>
                           </div>
@@ -477,14 +526,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                     {totalAvailable > 0 ? (
                       <Link
                         href={`/e/${combinedSlug}/checkout`}
-                        className="btn-premium w-full flex items-center justify-center gap-2 py-4 font-headline text-lg tracking-wider"
+                        className={`btn-premium w-full flex items-center justify-center gap-2 py-4 ${typographyClass} text-lg tracking-wider`}
                         style={{ backgroundColor: accentColor, color: '#000' }}
                       >
                         <Ticket className="h-5 w-5" />
                         GET TICKETS
                       </Link>
                     ) : (
-                      <div className="w-full flex items-center justify-center py-4 font-headline text-lg tracking-wider bg-white/5 text-white/30">
+                      <div className={`w-full flex items-center justify-center py-4 ${typographyClass} text-lg tracking-wider bg-white/5 text-white/30`}>
                         SOLD OUT
                       </div>
                     )}
@@ -543,7 +592,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       {/* Footer */}
       <footer className="border-t border-white/5 py-8 px-4">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <Link href="/" className="font-headline text-xl tracking-wide text-white/40 hover:text-white transition-colors">
+          <Link href="/" className={`${typographyClass} text-xl tracking-wide text-white/40 hover:text-white transition-colors`}>
             AFTERS<span style={{ color: accentColor }}>.</span>
           </Link>
           <div className="flex items-center gap-6 text-white/30 font-body text-sm">
