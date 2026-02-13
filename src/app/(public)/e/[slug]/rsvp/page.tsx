@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { ArrowLeft, Users, Calendar, MapPin, Loader2, Mail, User, UserPlus, Check } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { Turnstile } from "@/components/Turnstile"
 
 interface Event {
   id: string
@@ -42,6 +43,7 @@ export default function RsvpPage({ params }: { params: Promise<{ slug: string }>
   const [phone, setPhone] = useState("")
   const [plusOnes, setPlusOnes] = useState(0)
   const [message, setMessage] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const fetchEvent = useCallback(async () => {
     try {
@@ -67,7 +69,7 @@ export default function RsvpPage({ params }: { params: Promise<{ slug: string }>
 
   // Validation
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-  const isFormValid = isValidEmail && name.trim().length >= 2
+  const isFormValid = isValidEmail && name.trim().length >= 2 && !!turnstileToken
 
   // Availability
   const spotsLeft = event?.rsvpCapacity ? event.rsvpCapacity - event.rsvpCount : null
@@ -99,6 +101,7 @@ export default function RsvpPage({ params }: { params: Promise<{ slug: string }>
           phone: phone.trim() || null,
           plusOnes,
           message: message.trim() || null,
+          turnstileToken,
         }),
       })
 
@@ -407,6 +410,12 @@ export default function RsvpPage({ params }: { params: Promise<{ slug: string }>
                   className="w-full px-4 py-3 bg-black border border-white/10 text-white placeholder:text-white/20 font-body text-base focus:outline-none focus:border-white/30 transition-colors resize-none"
                 />
               </div>
+
+              {/* Human Verification */}
+              <Turnstile
+                onVerify={setTurnstileToken}
+                className="flex justify-center"
+              />
 
               {/* Summary */}
               <div className="p-6 border border-white/10 bg-white/[0.02]">

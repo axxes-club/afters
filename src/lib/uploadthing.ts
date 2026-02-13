@@ -18,6 +18,13 @@ export const ourFileRouter = {
       console.log("Uploaded gallery image:", fileUrl)
       return { url: fileUrl }
     }),
+  // Feedback screenshots
+  feedbackScreenshot: f({ image: { maxFileSize: "4MB", maxFileCount: 3 } })
+    .onUploadComplete(async ({ file }) => {
+      const fileUrl = file.url || file.ufsUrl
+      console.log("Uploaded feedback screenshot:", fileUrl)
+      return { url: fileUrl }
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter

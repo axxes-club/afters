@@ -16,6 +16,7 @@ import {
   AftysCommandPalette,
   AftysKeyboardListener,
 } from "@/components/aftys"
+import { FeedbackButton } from "@/components/FeedbackButton"
 
 const navItems = [
   { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
@@ -75,9 +76,12 @@ export default function DashboardLayout({
             <span className="text-white/10">|</span>
             <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
-          <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            <span>SYSTEM ONLINE</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              <span>ONLINE</span>
+            </div>
+            <FeedbackButton />
           </div>
         </div>
 

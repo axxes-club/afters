@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { verifyTurnstileToken } from "@/components/Turnstile"
 
 export async function GET(req: Request) {
   try {
@@ -172,7 +173,20 @@ export async function POST(req: Request) {
       rsvpMaxPlusOnes,
       // Expiration
       expiresAfter,
+      // Human verification
+      turnstileToken,
     } = body
+
+    // Verify human
+    if (turnstileToken) {
+      const isHuman = await verifyTurnstileToken(turnstileToken)
+      if (!isHuman) {
+        return NextResponse.json(
+          { message: "Verification failed. Please try again." },
+          { status: 400 }
+        )
+      }
+    }
 
     if (!title || !startsAt || !venueName || !venueAddress || !city) {
       return NextResponse.json(

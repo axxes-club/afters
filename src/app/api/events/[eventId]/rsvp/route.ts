@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { Resend } from "resend"
+import { verifyTurnstileToken } from "@/components/Turnstile"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -10,7 +11,18 @@ export async function POST(
 ) {
   try {
     const { eventId } = await params
-    const { name, email, phone, plusOnes, message } = await req.json()
+    const { name, email, phone, plusOnes, message, turnstileToken } = await req.json()
+
+    // Verify human
+    if (turnstileToken) {
+      const isHuman = await verifyTurnstileToken(turnstileToken)
+      if (!isHuman) {
+        return NextResponse.json(
+          { message: "Verification failed. Please try again." },
+          { status: 400 }
+        )
+      }
+    }
 
     // Validate required fields
     if (!name || !email) {
