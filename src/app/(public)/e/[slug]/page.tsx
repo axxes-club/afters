@@ -6,7 +6,7 @@ import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
 import { getSessionUser } from "@/lib/auth-utils"
-import EventPageClient from "@/components/public/EventPageClient"
+import EditDesignOverlay from "@/components/public/EventPageClient"
 import EventInfoSections from "@/components/public/EventInfoSections"
 
 export const dynamic = "force-dynamic"
@@ -2120,21 +2120,23 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     )
   }
 
-  // Wrap with EventPageClient for live preview
+  // Render the page with optional edit overlay for owners
   return (
-    <EventPageClient
-      eventId={event.id}
-      initialDesign={{
-        accentColor: event.accentColor || '#ff1493',
-        typography: event.typography || 'headline',
-        pageTheme: event.pageTheme || 'neon',
-        showLocationOnPage: event.showLocationOnPage ?? false,
-        showMapOnPage: event.showMapOnPage ?? false,
-        isAddressHidden: event.isAddressHidden ?? false,
-      }}
-      isOwner={isOwner}
-    >
-      {renderEventPage}
-    </EventPageClient>
+    <>
+      {isOwner && (
+        <EditDesignOverlay
+          eventId={event.id}
+          initialDesign={{
+            accentColor: event.accentColor || '#ff1493',
+            typography: event.typography || 'headline',
+            pageTheme: event.pageTheme || 'neon',
+            showLocationOnPage: event.showLocationOnPage ?? false,
+            showMapOnPage: event.showMapOnPage ?? false,
+            isAddressHidden: event.isAddressHidden ?? false,
+          }}
+        />
+      )}
+      {renderEventPage()}
+    </>
   )
 }

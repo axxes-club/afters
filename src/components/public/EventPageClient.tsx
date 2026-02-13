@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import EditDesignButton from './EditDesignButton'
 
 interface DesignSettings {
@@ -12,26 +11,19 @@ interface DesignSettings {
   isAddressHidden: boolean
 }
 
-interface EventPageClientProps {
+interface EditDesignOverlayProps {
   eventId: string
   initialDesign: DesignSettings
-  isOwner: boolean
-  children: (design: DesignSettings) => React.ReactNode
 }
 
-export default function EventPageClient({ eventId, initialDesign, isOwner, children }: EventPageClientProps) {
-  const [liveDesign, setLiveDesign] = useState(initialDesign)
-
+// This is a simple client component that just shows the edit button
+// No live preview - changes require re-publish and page reload
+export default function EditDesignOverlay({ eventId, initialDesign }: EditDesignOverlayProps) {
   return (
-    <>
-      {isOwner && (
-        <EditDesignButton
-          eventId={eventId}
-          initialDesign={initialDesign}
-          onDesignChange={setLiveDesign}
-        />
-      )}
-      {children(liveDesign)}
-    </>
+    <EditDesignButton
+      eventId={eventId}
+      initialDesign={initialDesign}
+      onDesignChange={() => {}} // No live preview - changes saved on publish
+    />
   )
 }
