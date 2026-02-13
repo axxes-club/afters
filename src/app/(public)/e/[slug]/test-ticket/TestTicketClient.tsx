@@ -147,7 +147,7 @@ export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClie
             <span>Event</span>
           </Link>
           <Link href="/" className="text-lg font-bold tracking-tight">
-            AFTERS<span style={{ color: accentColor }}>.</span>
+            <span style={{ color: accentColor }} className="font-headline text-2xl">.</span>
           </Link>
           <button
             onClick={handleShare}
@@ -196,7 +196,7 @@ export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClie
             <div className="p-6 pb-4 border-b border-white/5">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-lg font-bold tracking-tight">
-                  AFTERS<span style={{ color: accentColor }}>.</span>
+                  <span style={{ color: accentColor }} className="font-headline text-2xl">.</span>
                 </span>
                 <span
                   className="text-[10px] px-2 py-1 uppercase tracking-wider font-bold"

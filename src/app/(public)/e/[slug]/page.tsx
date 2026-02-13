@@ -447,7 +447,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         {/* Footer */}
         <footer className="relative z-10 py-6 px-6 border-t-4" style={{ borderColor: accentColor }}>
           <div className="flex justify-between items-center text-xs tracking-widest uppercase text-white/30">
-            <span>AFTERS<span style={{ color: accentColor }}>.</span></span>
+            <span style={{ color: accentColor }} className="font-headline text-lg">.</span>
             <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
           </div>
         </footer>
@@ -1151,7 +1151,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           {/* Footer */}
           <footer className="p-6 md:p-10 border-t-4" style={{ borderColor: accentColor }}>
             <div className="flex justify-between items-center font-mono text-sm uppercase rotate-1">
-              <span>AFTERS<span style={{ color: accentColor }}>.</span></span>
+              <span style={{ color: accentColor }} className="font-headline text-lg">.</span>
               <a href="https://afters.am" className="hover:underline">afters.am</a>
             </div>
           </footer>

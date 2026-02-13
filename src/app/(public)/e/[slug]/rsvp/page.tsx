@@ -224,8 +224,8 @@ export default function RsvpPage({ params }: { params: Promise<{ slug: string }>
             <ArrowLeft className="h-4 w-4" />
             <span>Back to event</span>
           </Link>
-          <Link href="/" className="font-headline text-2xl tracking-wide">
-            AFTERS<span style={{ color: accentColor }}>.</span>
+          <Link href="/" className="font-headline text-3xl" style={{ color: accentColor }}>
+            .
           </Link>
           <div className="w-24" />
         </div>

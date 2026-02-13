@@ -76,8 +76,8 @@ export default async function OrderConfirmationPage({
             <ArrowLeft className="h-3 w-3" />
             <span>Event</span>
           </Link>
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            AFTERS<span style={{ color: accentColor }}>.</span>
+          <Link href="/" className="font-headline text-2xl" style={{ color: accentColor }}>
+            .
           </Link>
           <div className="w-16" />
         </div>

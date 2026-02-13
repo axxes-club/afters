@@ -91,11 +91,9 @@ function TicketView() {
         {/* Ticket Card - matches PDF design */}
         <div className={`w-full max-w-sm transition-all duration-700 delay-150 ${ready ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-6 scale-[0.97]"}`}>
           <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-            {/* Hot pink header bar with AFTERS logo */}
+            {/* Hot pink header bar with logo */}
             <div className="h-14 bg-[#ff1493] flex items-center px-5">
-              <span className="font-headline text-xl text-black tracking-wide">
-                AFTERS.
-              </span>
+              <span className="font-headline text-2xl text-black">.</span>
             </div>
 
             <div className="p-5">

@@ -547,8 +547,8 @@ export default function ScannerPage({
           <div className="w-full max-w-sm">
             {/* Logo */}
             <div className="text-center mb-12">
-              <p className="text-4xl font-headline tracking-wide">
-                AFTERS<span className="text-[#ff1493]">.</span>
+              <p className="text-5xl font-headline text-[#ff1493]">
+                .
               </p>
               <p className="text-xs tracking-[0.3em] text-white/40 font-mono mt-2">
                 SCANNER

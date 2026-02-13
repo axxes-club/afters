@@ -65,8 +65,8 @@ export function generateTicketEmailHtml(data: {
           <!-- Header -->
           <tr>
             <td style="text-align: center; padding-bottom: 30px;">
-              <h1 style="margin: 0; color: #fff; font-size: 28px; font-weight: bold;">
-                AFTERS<span style="color: #ff1493;">.</span>
+              <h1 style="margin: 0; color: #ff1493; font-size: 48px; font-weight: bold;">
+                .
               </h1>
             </td>
           </tr>

@@ -55,8 +55,8 @@ export default function BetaPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold font-display tracking-tight">
-            AFTERS<span className="text-[#ff1493]">.</span>
+          <Link href="/" className="text-3xl font-headline text-[#ff1493]">
+            .
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/events" className="text-sm hover:text-[#ff1493] transition-colors">

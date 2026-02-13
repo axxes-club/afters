@@ -6,9 +6,7 @@ export default function SignInPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
       {/* Logo */}
       <Link href="/" className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight text-white font-mono">
-          AFTERS<span className="text-[#ff1493]">.</span>
-        </h1>
+        <span className="text-5xl font-headline text-[#ff1493]">.</span>
       </Link>
 
       {/* Sign In Component */}

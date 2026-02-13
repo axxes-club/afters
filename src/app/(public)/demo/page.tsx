@@ -123,8 +123,8 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           <div className="w-2 h-2 bg-[#ff1493] animate-pulse" />
         </div>
 
-        <h1 className="font-headline text-7xl sm:text-8xl text-white tracking-wide leading-none">
-          AFTERS<span className="text-[#ff1493]">.</span>
+        <h1 className="font-headline text-8xl sm:text-9xl text-[#ff1493] leading-none">
+          .
         </h1>
 
         <p className="mt-5 text-white/40 font-body text-sm max-w-[280px] mx-auto leading-relaxed">
@@ -319,11 +319,9 @@ function TicketOverlay({
         {/* Ticket Card - matches PDF design */}
         <div className="w-full max-w-sm animate-scale-in">
           <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden relative">
-            {/* Hot pink header bar with AFTERS logo */}
+            {/* Hot pink header bar with logo */}
             <div className="h-14 bg-[#ff1493] flex items-center px-5">
-              <span className="font-headline text-xl text-black tracking-wide">
-                AFTERS.
-              </span>
+              <span className="font-headline text-2xl text-black">.</span>
             </div>
 
             <div className="p-5">
@@ -709,9 +707,7 @@ export default function DemoPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06] safe-area-top">
         <div className="flex items-center gap-2">
-          <span className="font-headline text-xl text-white tracking-wide">
-            AFTERS<span className="text-[#ff1493]">.</span>
-          </span>
+          <span className="font-headline text-2xl text-[#ff1493]">.</span>
         </div>
         <div className="flex items-center gap-3">
           {step !== "welcome" && (

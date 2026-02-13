@@ -30,9 +30,7 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="h-16 flex items-center justify-center px-4 border-b border-white/5">
           <Link href="/d">
-            <span className="font-headline text-xl text-white tracking-wide">
-              AFTERS<span className="text-[#ff1493]">.</span>
-            </span>
+            <span className="font-headline text-2xl text-[#ff1493]">.</span>
           </Link>
         </div>
 
@@ -135,9 +133,7 @@ export default function DashboardLayout({
           )}
           {/* Left-aligned logo */}
           <Link href="/d">
-            <span className="font-headline text-xl text-white tracking-wide">
-              AFTERS<span className="text-[#ff1493]">.</span>
-            </span>
+            <span className="font-headline text-2xl text-[#ff1493]">.</span>
           </Link>
         </header>
 

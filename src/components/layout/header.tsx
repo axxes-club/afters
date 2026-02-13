@@ -51,8 +51,8 @@ export function Header() {
         style={{ top: isGhosting ? `${GHOST_BANNER_HEIGHT}px` : "0" }}
       >
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            AFTERS<span className="text-[#ff1493]">.</span>
+          <Link href="/" className="text-2xl font-headline text-[#ff1493]">
+            .
           </Link>
 
           {/* Desktop Nav */}
@@ -143,9 +143,7 @@ export function Header() {
           />
           <div className="absolute right-0 top-0 bottom-0 w-72 bg-black border-l border-white/5 font-mono">
             <div className="flex items-center justify-between h-14 px-4 border-b border-white/5">
-              <span className="text-lg font-bold">
-                AFTERS<span className="text-[#ff1493]">.</span>
-              </span>
+              <span className="text-2xl font-headline text-[#ff1493]">.</span>
               <button
                 onClick={closeMenu}
                 className="p-2 text-white/50 hover:text-white transition-colors"

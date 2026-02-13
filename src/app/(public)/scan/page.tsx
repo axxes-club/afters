@@ -279,8 +279,8 @@ export default function ScannerEntryPage() {
               <div className="w-3 h-3 bg-[#ff1493] animate-pulse" />
             </div>
 
-            <h1 className="text-5xl sm:text-6xl font-headline tracking-wide text-white">
-              AFTERS<span className="text-[#ff1493]">.</span>
+            <h1 className="text-6xl sm:text-7xl font-headline text-[#ff1493]">
+              .
             </h1>
 
             <div className="mt-4 flex items-center justify-center gap-2 text-white/30">
@@ -510,8 +510,8 @@ export default function ScannerEntryPage() {
             <div className="w-3 h-3 bg-[#ff1493] animate-pulse" />
           </div>
 
-          <h1 className="text-6xl sm:text-7xl font-headline tracking-wide text-white">
-            AFTERS<span className="text-[#ff1493]">.</span>
+          <h1 className="text-7xl sm:text-8xl font-headline text-[#ff1493]">
+            .
           </h1>
 
           <div className="mt-4 flex items-center justify-center gap-2 text-white/30">

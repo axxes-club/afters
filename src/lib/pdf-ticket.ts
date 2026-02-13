@@ -41,11 +41,11 @@ export async function generateTicketPDF(tickets: TicketData[]): Promise<Buffer> 
       color: rgb(1, 0.08, 0.58), // #ff1493
     })
 
-    // AFTERS logo
-    page.drawText("AFTERS.", {
+    // Logo dot
+    page.drawText(".", {
       x: 20,
       y: height - 42,
-      size: 24,
+      size: 36,
       font: helveticaBold,
       color: rgb(0, 0, 0),
     })
