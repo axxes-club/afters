@@ -86,7 +86,7 @@ export async function POST(
         eventId,
         name,
         description,
-        price: Math.round(price * 100), // Convert to cents
+        price: 0, // Free during beta - ignore provided price
         quantity,
         salesStartAt: salesStartAt ? new Date(salesStartAt) : null,
         salesEndAt: salesEndAt ? new Date(salesEndAt) : null,
@@ -145,13 +145,16 @@ export async function PUT(
       return NextResponse.json({ message: "Tier ID required" }, { status: 400 })
     }
 
+    // Remove price from data - free during beta
+    const { price: _, ...safeData } = data
+
     const tier = await prisma.ticketTier.update({
       where: { id, eventId },
       data: {
-        ...data,
-        price: data.price !== undefined ? Math.round(data.price * 100) : undefined,
-        salesStartAt: data.salesStartAt ? new Date(data.salesStartAt) : undefined,
-        salesEndAt: data.salesEndAt ? new Date(data.salesEndAt) : undefined,
+        ...safeData,
+        // price changes disabled during beta
+        salesStartAt: safeData.salesStartAt ? new Date(safeData.salesStartAt) : undefined,
+        salesEndAt: safeData.salesEndAt ? new Date(safeData.salesEndAt) : undefined,
       },
     })
 

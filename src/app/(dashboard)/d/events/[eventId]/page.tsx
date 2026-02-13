@@ -282,7 +282,7 @@ function EventDashboardContent({
     const data = {
       name: formData.get("name"),
       description: formData.get("description"),
-      price: Math.round(parseFloat(formData.get("price") as string) * 100),
+      price: 0, // Free during beta
       quantity: parseInt(formData.get("quantity") as string),
     };
 
@@ -1057,10 +1057,11 @@ function EventDashboardContent({
                   type="number"
                   step="0.01"
                   min="0"
-                  placeholder="25.00"
-                  required
-                  className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                  value="0"
+                  disabled
+                  className="bg-white/[0.02] border-white/10 font-mono opacity-50 cursor-not-allowed"
                 />
+                <p className="text-[10px] font-mono text-[#ff1493]/60">Free during beta</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="quantity" className="text-xs font-mono text-white/50">
