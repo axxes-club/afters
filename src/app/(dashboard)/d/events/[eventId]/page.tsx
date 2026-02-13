@@ -43,7 +43,8 @@ import { ScannerManagement } from "@/components/dashboard/ScannerManagement";
 import { ScanActivityLog } from "@/components/dashboard/ScanActivityLog";
 import { ShiftHistory } from "@/components/dashboard/ShiftHistory";
 import { GuestlistManagement } from "@/components/guestlist-management";
-import { EventDesignTab } from "@/components/dashboard/EventDesignTab";
+import { EventDesignTab } from "@/components/dashboard/EventDesignTab"
+import { EventLocationSettings } from "@/components/dashboard/EventLocationSettings";
 
 interface TicketTier {
   id: string;
@@ -73,6 +74,14 @@ interface Event {
   pageTheme: string;
   accentColor: string | null;
   typography: string;
+  // Location settings
+  showLocationOnPage: boolean;
+  showLocationOnTicket: boolean;
+  showMapOnPage: boolean;
+  showMapOnTicket: boolean;
+  broadcastOnStart: boolean;
+  locationPrecision: string;
+  isAddressHidden: boolean;
 }
 
 export default function EventDashboardPage({
@@ -713,6 +722,20 @@ export default function EventDashboardPage({
 
       {activeSection === "settings" && (
         <div className="space-y-6">
+          {/* Location Broadcasting */}
+          <EventLocationSettings
+            eventId={eventId}
+            initialSettings={{
+              showLocationOnPage: event.showLocationOnPage,
+              showLocationOnTicket: event.showLocationOnTicket,
+              showMapOnPage: event.showMapOnPage,
+              showMapOnTicket: event.showMapOnTicket,
+              broadcastOnStart: event.broadcastOnStart,
+              locationPrecision: event.locationPrecision as "exact" | "area" | "city",
+              isAddressHidden: event.isAddressHidden,
+            }}
+          />
+
           {/* Event Status */}
           <div className="border border-white/10 bg-white/[0.02]">
             <div className="px-4 py-2 border-b border-white/10">

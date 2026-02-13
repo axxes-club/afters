@@ -267,10 +267,18 @@ model Event {
   // Underground event features
   isAddressHidden      Boolean          @default(false) // Hide address until ticket purchase
   lineup               Json?            // Array of artists: [{name, role?, imageUrl?, socialUrl?}]
-  pageTheme            String           @default("neon") // 'brutalist', 'neon', 'minimal', 'rave'
+  pageTheme            String           @default("neon") // 'brutalist', 'neon', 'minimal', 'tilt', 'editorial'
   accentColor          String?          // Custom accent color (hex)
   typography           String           @default("headline") // 'mono', 'headline', 'elegant', 'modern'
   hasGuestlist         Boolean          @default(false) // Enable guestlist for this event
+
+  // Location Broadcasting Settings (exclusivity controls)
+  showLocationOnPage   Boolean          @default(false) // Show location on public event page
+  showLocationOnTicket Boolean          @default(true)  // Show location on purchased ticket
+  showMapOnPage        Boolean          @default(false) // Show map on public event page
+  showMapOnTicket      Boolean          @default(false) // Show map on ticket
+  broadcastOnStart     Boolean          @default(false) // Email location when event starts
+  locationPrecision    String           @default("exact") // 'exact', 'area', 'city' - how precise to show
   
   isFlagged            Boolean          @default(false) // Superadmin internal flag (not visible to organizer)
   flaggedAt            DateTime?

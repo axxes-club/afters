@@ -37,9 +37,9 @@ const TEMPLATES = [
     description: "Clean, focused, elegant",
   },
   {
-    id: "rave",
-    name: "RAVE",
-    description: "High energy, bold graphics",
+    id: "tilt",
+    name: "TILT",
+    description: "High energy, chaotic graphics",
   },
   {
     id: "editorial",
@@ -351,7 +351,7 @@ export function EventDesignTab({
           </div>
         )
 
-      case "rave":
+      case "tilt":
         return (
           <div className="absolute inset-0 bg-black overflow-hidden">
             {/* Chaotic background elements */}

@@ -3,7 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
-import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket } from "lucide-react"
+import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
 
 export const dynamic = "force-dynamic"
@@ -44,6 +44,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       accentColor: true,
       pageTheme: true,
       typography: true,
+      showLocationOnPage: true,
+      showMapOnPage: true,
+      locationPrecision: true,
       organizer: {
         select: {
           displayName: true,
@@ -93,6 +96,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             accentColor: true,
             pageTheme: true,
             typography: true,
+            showLocationOnPage: true,
+            showMapOnPage: true,
+            locationPrecision: true,
             organizer: {
               select: {
                 displayName: true,
@@ -138,6 +144,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const pageTheme = event.pageTheme || 'neon'
   const typography = event.typography || 'headline'
 
+  // Location display logic
+  const showLocation = event.showLocationOnPage && !event.isAddressHidden
+  const showMap = event.showMapOnPage && showLocation
+  const locationPrecision = event.locationPrecision || 'exact'
+
   // Map typography ID to Tailwind class
   const typographyMap: Record<string, string> = {
     mono: 'font-mono',
@@ -158,128 +169,40 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     minute: "2-digit",
   })
 
-  // Template-specific styles
-  const getTemplateStyles = () => {
-    switch (pageTheme) {
-      case 'brutalist':
-        return {
-          pageBg: 'bg-black',
-          heroOverlay: 'bg-gradient-to-t from-black via-black/60 to-black/20',
-          cardBorder: `border-4`,
-          cardBorderColor: accentColor,
-          cardBg: 'bg-black',
-          sectionDivider: `border-t-4 border-[${accentColor}]`,
-          buttonStyle: `border-4 bg-transparent hover:bg-[${accentColor}]`,
-          buttonTextColor: accentColor,
-          pillStyle: `border-2 bg-transparent`,
-          accentBar: true,
-          glowEffects: false,
-          rotatedElements: false,
-          minimalStyle: false,
-          editorialStyle: false,
-        }
-      case 'neon':
-        return {
-          pageBg: 'bg-black',
-          heroOverlay: 'bg-gradient-to-t from-black via-black/70 to-transparent',
-          cardBorder: 'border',
-          cardBorderColor: `${accentColor}50`,
-          cardBg: 'bg-black/50',
-          sectionDivider: 'bg-gradient-to-r from-white/20 to-transparent h-px',
-          buttonStyle: 'border',
-          buttonTextColor: accentColor,
-          pillStyle: 'border',
-          accentBar: false,
-          glowEffects: true,
-          rotatedElements: false,
-          minimalStyle: false,
-          editorialStyle: false,
-        }
-      case 'minimal':
-        return {
-          pageBg: 'bg-zinc-950',
-          heroOverlay: 'bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent',
-          cardBorder: 'border',
-          cardBorderColor: 'rgba(255,255,255,0.08)',
-          cardBg: 'bg-white/[0.02]',
-          sectionDivider: 'bg-white/10 h-px',
-          buttonStyle: '',
-          buttonTextColor: '#000',
-          pillStyle: 'border border-white/10',
-          accentBar: false,
-          glowEffects: false,
-          rotatedElements: false,
-          minimalStyle: true,
-          editorialStyle: false,
-        }
-      case 'rave':
-        return {
-          pageBg: 'bg-black',
-          heroOverlay: 'bg-gradient-to-t from-black via-black/50 to-transparent',
-          cardBorder: 'border-2',
-          cardBorderColor: accentColor,
-          cardBg: 'bg-black',
-          sectionDivider: `bg-[${accentColor}] h-1 -rotate-1`,
-          buttonStyle: '-rotate-1 hover:rotate-0 transition-transform',
-          buttonTextColor: '#000',
-          pillStyle: 'border-2 -rotate-1',
-          accentBar: false,
-          glowEffects: false,
-          rotatedElements: true,
-          minimalStyle: false,
-          editorialStyle: false,
-        }
-      case 'editorial':
-        return {
-          pageBg: 'bg-neutral-950',
-          heroOverlay: 'bg-gradient-to-t from-neutral-950 via-neutral-950/90 to-neutral-950/50',
-          cardBorder: 'border',
-          cardBorderColor: 'rgba(255,255,255,0.1)',
-          cardBg: 'bg-neutral-900/50',
-          sectionDivider: 'bg-white/10 h-px',
-          buttonStyle: '',
-          buttonTextColor: '#000',
-          pillStyle: 'border border-white/10',
-          accentBar: false,
-          glowEffects: false,
-          rotatedElements: false,
-          minimalStyle: false,
-          editorialStyle: true,
-        }
-      default:
-        return {
-          pageBg: 'bg-black',
-          heroOverlay: 'bg-gradient-to-t from-black via-black/70 to-transparent',
-          cardBorder: 'border',
-          cardBorderColor: `${accentColor}50`,
-          cardBg: 'bg-black/50',
-          sectionDivider: 'bg-gradient-to-r from-white/20 to-transparent h-px',
-          buttonStyle: '',
-          buttonTextColor: '#000',
-          pillStyle: 'border',
-          accentBar: false,
-          glowEffects: true,
-          rotatedElements: false,
-          minimalStyle: false,
-          editorialStyle: false,
-        }
-    }
+  // Generate Google Maps URL
+  const getMapUrl = () => {
+    if (!showLocation) return null
+    const query = locationPrecision === 'exact'
+      ? `${event.venueAddress}, ${event.city}${event.state ? `, ${event.state}` : ''}`
+      : locationPrecision === 'area'
+        ? `${event.venueName}, ${event.city}`
+        : event.city
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
   }
 
-  const styles = getTemplateStyles()
+  const getMapEmbedUrl = () => {
+    if (!showMap) return null
+    const query = locationPrecision === 'exact'
+      ? `${event.venueAddress}, ${event.city}${event.state ? `, ${event.state}` : ''}`
+      : locationPrecision === 'area'
+        ? `${event.venueName}, ${event.city}`
+        : event.city
+    return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(query)}&zoom=${locationPrecision === 'exact' ? 16 : locationPrecision === 'area' ? 14 : 12}`
+  }
 
-  // Generate glow box shadow for neon template
-  const glowShadow = styles.glowEffects
-    ? `0 0 30px ${accentColor}40, 0 0 60px ${accentColor}20`
-    : 'none'
+  const mapUrl = getMapUrl()
+  const mapEmbedUrl = getMapEmbedUrl()
 
-  return (
-    <div className={`min-h-screen ${styles.pageBg} text-white relative`} data-template={pageTheme}>
-      <ViewTracker eventId={event.id} />
+  // ============================================
+  // BRUTALIST TEMPLATE - Raw, grid-exposed, stark
+  // ============================================
+  if (pageTheme === 'brutalist') {
+    return (
+      <div className="min-h-screen bg-black text-white font-mono">
+        <ViewTracker eventId={event.id} />
 
-      {/* Template-specific background effects */}
-      {pageTheme === 'brutalist' && (
-        <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]">
+        {/* Exposed grid background */}
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.04]">
           <div
             className="absolute inset-0"
             style={{
@@ -287,685 +210,1228 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 linear-gradient(${accentColor} 2px, transparent 2px),
                 linear-gradient(90deg, ${accentColor} 2px, transparent 2px)
               `,
-              backgroundSize: '80px 80px',
+              backgroundSize: '100px 100px',
             }}
           />
         </div>
-      )}
 
-      {pageTheme === 'neon' && (
-        <>
-          <div className="fixed inset-0 pointer-events-none grain z-50 opacity-30" />
-          <div
-            className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-[150px] opacity-20 pointer-events-none"
-            style={{ backgroundColor: accentColor }}
-          />
-        </>
-      )}
+        {/* Top accent bar */}
+        <div className="h-4 w-full" style={{ backgroundColor: accentColor }} />
 
-      {pageTheme === 'rave' && (
-        <>
-          <div
-            className="fixed -top-20 -left-20 w-80 h-80 border-[12px] rotate-12 pointer-events-none opacity-10"
-            style={{ borderColor: accentColor }}
-          />
-          <div
-            className="fixed -bottom-32 -right-32 w-96 h-96 -rotate-12 pointer-events-none opacity-20"
-            style={{ backgroundColor: accentColor }}
-          />
-          <div className="fixed top-1/3 right-10 w-20 h-20 border-4 border-white rotate-45 pointer-events-none opacity-10" />
-        </>
-      )}
-
-      {pageTheme === 'editorial' && (
-        <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.02]">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `repeating-linear-gradient(0deg, white 0px, white 1px, transparent 1px, transparent 8px)`,
-            }}
-          />
-        </div>
-      )}
-
-      {/* Hero Section */}
-      <section className={`relative min-h-[85vh] md:min-h-[90vh] flex items-end overflow-hidden ${pageTheme === 'rave' ? 'skew-y-0' : ''}`}>
-        {/* Background Image */}
-        {event.flyerUrl ? (
-          <div className="absolute inset-0 group">
-            <Image
-              src={event.flyerUrl}
-              alt={event.title}
-              fill
-              className={`object-cover ${pageTheme === 'minimal' ? 'opacity-60' : ''}`}
-              priority
-            />
-            <div className={`absolute inset-0 ${styles.heroOverlay}`} />
-            {pageTheme === 'neon' && (
-              <div className="absolute inset-0 scanlines opacity-40" />
-            )}
-            {pageTheme === 'brutalist' && (
-              <div className="absolute inset-0 bg-black/40" />
-            )}
-          </div>
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{
-              background: pageTheme === 'minimal'
-                ? 'linear-gradient(180deg, #18181b 0%, #09090b 100%)'
-                : pageTheme === 'editorial'
-                  ? 'linear-gradient(180deg, #171717 0%, #0a0a0a 100%)'
-                  : `
-                    radial-gradient(ellipse at 30% 20%, ${accentColor}15 0%, transparent 50%),
-                    radial-gradient(ellipse at 70% 80%, ${accentColor}10 0%, transparent 50%),
-                    linear-gradient(180deg, #0a0a0a 0%, #000000 100%)
-                  `
-            }}
-          />
-        )}
-
-        {/* Brutalist accent bar */}
-        {pageTheme === 'brutalist' && (
-          <div
-            className="absolute top-0 left-0 right-0 h-3 z-20"
-            style={{ backgroundColor: accentColor }}
-          />
-        )}
-
-        {/* Floating Date Badge - different per template */}
-        {pageTheme !== 'editorial' && (
-          <div
-            className={`absolute top-24 right-6 md:right-12 hidden md:block ${pageTheme === 'rave' ? '-rotate-6' : ''}`}
-          >
-            <div
-              className={`w-24 h-24 flex flex-col items-center justify-center ${pageTheme === 'brutalist' ? 'border-4' : 'border-2'}`}
-              style={{
-                borderColor: accentColor,
-                backgroundColor: pageTheme === 'minimal' ? 'rgba(24,24,27,0.9)' : 'rgba(0,0,0,0.8)',
-                boxShadow: styles.glowEffects ? glowShadow : 'none',
-              }}
-            >
-              <span className={`${typographyClass} text-3xl`} style={{ color: accentColor }}>
-                {eventDate.getDate()}
-              </span>
-              <span className="font-mono text-[10px] tracking-widest text-white/60 uppercase">
-                {eventDate.toLocaleDateString("en-US", { month: "short" })}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Hero Content */}
-        <div className="relative z-10 w-full p-6 md:p-12 lg:p-16 pb-10">
-          <div className="container mx-auto max-w-6xl">
-            {/* Editorial category tag */}
-            {pageTheme === 'editorial' && (
+        {/* Two-column harsh grid layout */}
+        <div className="relative z-10 grid lg:grid-cols-2 min-h-[calc(100vh-4rem)]">
+          {/* Left: Flyer with harsh border */}
+          <div className="relative p-6 lg:p-12 flex items-center justify-center border-b-4 lg:border-b-0 lg:border-r-4" style={{ borderColor: accentColor }}>
+            {event.flyerUrl ? (
+              <div className="relative w-full max-w-md aspect-[3/4] border-8" style={{ borderColor: accentColor }}>
+                <Image
+                  src={event.flyerUrl}
+                  alt={event.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            ) : (
               <div
-                className="font-mono text-[10px] tracking-[0.3em] uppercase mb-4"
-                style={{ color: accentColor }}
+                className="w-full max-w-md aspect-[3/4] border-8 flex items-center justify-center"
+                style={{ borderColor: accentColor, backgroundColor: `${accentColor}10` }}
               >
-                Music Event
+                <span className={`${typographyClass} text-6xl`} style={{ color: accentColor }}>
+                  {event.title.charAt(0)}
+                </span>
               </div>
             )}
+          </div>
 
-            {/* Organizer Tag */}
-            <div className={`flex items-center gap-3 mb-6 ${pageTheme === 'rave' ? '-rotate-1' : ''}`}>
-              {event.organizer.logoUrl && (
-                <div
-                  className={`relative w-8 h-8 overflow-hidden ${pageTheme === 'brutalist' ? 'border-2' : 'rounded-full border'}`}
-                  style={{ borderColor: pageTheme === 'brutalist' ? accentColor : 'rgba(255,255,255,0.2)' }}
-                >
-                  <Image
-                    src={event.organizer.logoUrl}
-                    alt={event.organizer.displayName}
-                    fill
-                    className="object-cover"
+          {/* Right: Info block */}
+          <div className="p-6 lg:p-12 flex flex-col justify-between">
+            {/* Header */}
+            <div>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-3 h-3" style={{ backgroundColor: accentColor }} />
+                <span className="text-xs tracking-[0.3em] uppercase text-white/50">
+                  {event.organizer.displayName}
+                </span>
+              </div>
+
+              <h1 className={`${typographyClass} text-5xl lg:text-7xl font-black tracking-tight mb-8 uppercase`}>
+                {event.title}
+              </h1>
+
+              {/* Date/Time in monospace blocks */}
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                <div className="border-2 p-4" style={{ borderColor: accentColor }}>
+                  <div className="text-[10px] tracking-widest uppercase text-white/40 mb-1">DATE</div>
+                  <div className="text-lg font-bold">{dateStr}</div>
+                </div>
+                <div className="border-2 p-4" style={{ borderColor: accentColor }}>
+                  <div className="text-[10px] tracking-widest uppercase text-white/40 mb-1">TIME</div>
+                  <div className="text-lg font-bold">{timeStr}</div>
+                </div>
+                <div className="border-2 p-4" style={{ borderColor: accentColor }}>
+                  <div className="text-[10px] tracking-widest uppercase text-white/40 mb-1">PRICE</div>
+                  <div className="text-lg font-bold" style={{ color: accentColor }}>
+                    {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              {showLocation ? (
+                <div className="border-l-4 pl-4 mb-8" style={{ borderColor: accentColor }}>
+                  <div className="text-xs tracking-widest uppercase text-white/40 mb-2">LOCATION</div>
+                  <div className="text-xl font-bold uppercase">{event.venueName}</div>
+                  {locationPrecision === 'exact' && (
+                    <div className="text-sm text-white/60 mt-1">{event.venueAddress}</div>
+                  )}
+                  <div className="text-sm text-white/40 mt-1">{event.city}{event.state ? `, ${event.state}` : ''}</div>
+                  {mapUrl && (
+                    <a
+                      href={mapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 mt-3 text-xs tracking-widest uppercase hover:underline"
+                      style={{ color: accentColor }}
+                    >
+                      VIEW MAP <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <div className="border-l-4 pl-4 mb-8" style={{ borderColor: accentColor }}>
+                  <div className="text-xs tracking-widest uppercase text-white/40 mb-2">LOCATION</div>
+                  <div className="text-xl font-bold uppercase flex items-center gap-3">
+                    <Lock className="w-5 h-5" style={{ color: accentColor }} />
+                    {event.city} // SECRET
+                  </div>
+                  <div className="text-xs text-white/40 mt-2">Address revealed on ticket</div>
+                </div>
+              )}
+
+              {/* Map embed */}
+              {showMap && mapEmbedUrl && (
+                <div className="mb-8 border-4" style={{ borderColor: accentColor }}>
+                  <iframe
+                    src={mapEmbedUrl}
+                    className="w-full h-48 grayscale contrast-125"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
                   />
                 </div>
               )}
-              <span className="font-body text-sm text-white/60 tracking-wide">
-                {pageTheme === 'editorial' ? 'Presented by ' : 'Presented by '}
-                <span className="text-white">{event.organizer.displayName}</span>
-              </span>
             </div>
 
-            {/* Title */}
-            <h1
-              className={`${typographyClass} text-5xl md:text-7xl lg:text-8xl tracking-wide mb-8 ${pageTheme === 'rave' ? '-rotate-1' : ''} ${pageTheme === 'minimal' ? 'font-light' : ''}`}
-              style={{
-                textShadow: styles.glowEffects ? `0 0 40px ${accentColor}60` : 'none',
-              }}
-            >
-              {pageTheme === 'editorial' ? (
-                <>
-                  <span className="text-white">{event.title.split(' ')[0]}</span>
-                  {event.title.split(' ').length > 1 && (
-                    <>
-                      <br />
-                      <span className="text-white/60">{event.title.split(' ').slice(1).join(' ')}</span>
-                    </>
-                  )}
-                </>
-              ) : (
-                event.title
-              )}
-            </h1>
-
-            {/* Info Pills */}
-            <div className={`flex flex-wrap gap-3 mb-8 ${pageTheme === 'rave' ? 'rotate-1' : ''}`}>
-              <div
-                className={`flex items-center gap-2.5 px-4 py-2.5 font-body text-sm ${styles.pillStyle} ${pageTheme === 'rave' ? '-rotate-2' : ''}`}
-                style={{
-                  backgroundColor: pageTheme === 'minimal' || pageTheme === 'editorial' ? 'transparent' : `${accentColor}15`,
-                  borderColor: pageTheme === 'brutalist' ? accentColor : pageTheme === 'rave' ? accentColor : undefined,
-                  borderLeftWidth: pageTheme !== 'brutalist' && pageTheme !== 'rave' ? '3px' : undefined,
-                  borderLeftColor: pageTheme !== 'brutalist' && pageTheme !== 'rave' ? accentColor : undefined,
-                }}
-              >
-                <CalendarDays className="h-4 w-4" style={{ color: accentColor }} />
-                <span className="text-white/90">{dayStr}, {dateStr}</span>
-              </div>
-              <div
-                className={`flex items-center gap-2.5 px-4 py-2.5 font-body text-sm ${styles.pillStyle} ${pageTheme === 'rave' ? 'rotate-1' : ''}`}
-                style={{
-                  backgroundColor: pageTheme === 'minimal' || pageTheme === 'editorial' ? 'transparent' : `${accentColor}15`,
-                  borderColor: pageTheme === 'brutalist' ? accentColor : pageTheme === 'rave' ? accentColor : undefined,
-                  borderLeftWidth: pageTheme !== 'brutalist' && pageTheme !== 'rave' ? '3px' : undefined,
-                  borderLeftColor: pageTheme !== 'brutalist' && pageTheme !== 'rave' ? accentColor : undefined,
-                }}
-              >
-                <Clock className="h-4 w-4" style={{ color: accentColor }} />
-                <span className="text-white/90">{timeStr}</span>
-              </div>
-              <div
-                className={`flex items-center gap-2.5 px-4 py-2.5 font-body text-sm ${styles.pillStyle} ${pageTheme === 'rave' ? '-rotate-1' : ''}`}
-                style={{
-                  backgroundColor: pageTheme === 'minimal' || pageTheme === 'editorial' ? 'transparent' : `${accentColor}15`,
-                  borderColor: pageTheme === 'brutalist' ? accentColor : pageTheme === 'rave' ? accentColor : undefined,
-                  borderLeftWidth: pageTheme !== 'brutalist' && pageTheme !== 'rave' ? '3px' : undefined,
-                  borderLeftColor: pageTheme !== 'brutalist' && pageTheme !== 'rave' ? accentColor : undefined,
-                }}
-              >
-                {event.isAddressHidden ? (
-                  <>
-                    <Lock className="h-4 w-4" style={{ color: accentColor }} />
-                    <span className="text-white/90">{event.city} {pageTheme === 'editorial' ? '—' : '•'} Secret Location</span>
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="h-4 w-4" style={{ color: accentColor }} />
-                    <span className="text-white/90">{event.venueName}, {event.city}</span>
-                  </>
-                )}
-              </div>
-              {event.ageRestriction && (
-                <div
-                  className={`flex items-center px-4 py-2.5 font-mono text-xs ${pageTheme === 'brutalist' ? 'border-2' : 'border'} ${pageTheme === 'rave' ? 'rotate-2' : ''}`}
-                  style={{ borderColor: pageTheme === 'brutalist' ? 'white' : 'rgba(255,255,255,0.2)' }}
-                >
-                  <span className="text-white/70">{event.ageRestriction}+ ONLY</span>
+            {/* Lineup */}
+            {lineup.length > 0 && (
+              <div className="mb-8">
+                <div className="text-xs tracking-widest uppercase text-white/40 mb-4">LINEUP</div>
+                <div className="flex flex-wrap gap-2">
+                  {lineup.map((artist, i) => (
+                    <span
+                      key={i}
+                      className="border-2 px-4 py-2 text-sm font-bold uppercase"
+                      style={{ borderColor: accentColor }}
+                    >
+                      {artist.name}
+                    </span>
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Desktop CTA */}
-            <div className={`hidden md:flex items-center gap-6 ${pageTheme === 'rave' ? '-rotate-1' : ''}`}>
+            {/* CTA */}
+            <div className="mt-auto">
               {totalAvailable > 0 ? (
                 <Link
                   href={`/e/${combinedSlug}/checkout`}
-                  className={`group flex items-center gap-3 px-8 py-4 ${typographyClass} text-xl tracking-wider transition-all ${styles.buttonStyle}`}
+                  className="block w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 hover:text-black transition-colors"
                   style={{
-                    backgroundColor: pageTheme === 'brutalist' ? 'transparent' : accentColor,
-                    color: pageTheme === 'brutalist' ? accentColor : '#000',
-                    borderColor: pageTheme === 'brutalist' ? accentColor : 'transparent',
-                    boxShadow: styles.glowEffects ? `0 0 20px ${accentColor}50` : 'none',
+                    borderColor: accentColor,
+                    color: accentColor,
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = accentColor}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <span>{pageTheme === 'brutalist' ? 'GET TICKETS →' : 'GET TICKETS'}</span>
-                  {pageTheme !== 'brutalist' && (
-                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                  )}
+                  GET TICKETS →
                 </Link>
               ) : (
-                <div className={`px-8 py-4 ${typographyClass} text-xl tracking-wider bg-white/5 text-white/30`}>
+                <div className="w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 border-white/20 text-white/30">
                   SOLD OUT
                 </div>
               )}
-              <div className="flex flex-col">
-                <span className="font-body text-xs text-white/40 uppercase tracking-wider">
-                  {pageTheme === 'editorial' ? 'From' : 'Starting at'}
-                </span>
-                <span
-                  className={`${typographyClass} text-3xl`}
-                  style={{
-                    color: accentColor,
-                    textShadow: styles.glowEffects ? `0 0 20px ${accentColor}60` : 'none',
-                  }}
-                >
-                  {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
-                </span>
-              </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Mobile Sticky CTA */}
-      <div
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t safe-area-bottom ${pageTheme === 'minimal' ? 'bg-zinc-950/95 border-white/5' : pageTheme === 'editorial' ? 'bg-neutral-950/95 border-white/5' : 'bg-black/95 border-white/10'}`}
-      >
-        <div className="flex items-center justify-between p-4">
-          <div>
-            <p className="font-body text-[10px] text-white/40 uppercase tracking-wider">From</p>
-            <p
-              className={`${typographyClass} text-2xl`}
-              style={{
-                color: accentColor,
-                textShadow: styles.glowEffects ? `0 0 15px ${accentColor}60` : 'none',
-              }}
-            >
-              {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
-            </p>
-          </div>
+        {/* Mobile sticky CTA */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-black border-t-4 z-50" style={{ borderColor: accentColor }}>
           {totalAvailable > 0 ? (
             <Link
               href={`/e/${combinedSlug}/checkout`}
-              className={`flex items-center gap-2 px-6 py-3.5 ${typographyClass} text-base tracking-wider ${styles.buttonStyle}`}
-              style={{
-                backgroundColor: pageTheme === 'brutalist' ? 'transparent' : accentColor,
-                color: pageTheme === 'brutalist' ? accentColor : '#000',
-                borderColor: pageTheme === 'brutalist' ? accentColor : 'transparent',
-                boxShadow: styles.glowEffects ? `0 0 15px ${accentColor}40` : 'none',
-              }}
+              className="block w-full p-4 text-center font-black tracking-widest uppercase"
+              style={{ backgroundColor: accentColor, color: '#000' }}
             >
-              <Ticket className="h-4 w-4" />
-              {pageTheme === 'brutalist' ? 'TICKETS' : 'GET TICKETS'}
+              GET TICKETS // {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
             </Link>
           ) : (
-            <div className={`px-6 py-3.5 ${typographyClass} text-base tracking-wider bg-white/5 text-white/30`}>
+            <div className="w-full p-4 text-center font-black tracking-widest uppercase bg-white/10 text-white/30">
+              SOLD OUT
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <footer className="relative z-10 py-6 px-6 border-t-4" style={{ borderColor: accentColor }}>
+          <div className="flex justify-between items-center text-xs tracking-widest uppercase text-white/30">
+            <span>AFTERS<span style={{ color: accentColor }}>.</span></span>
+            <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
+          </div>
+        </footer>
+      </div>
+    )
+  }
+
+  // ============================================
+  // NEON TEMPLATE - Glowing, centered, atmospheric
+  // ============================================
+  if (pageTheme === 'neon') {
+    return (
+      <div className="min-h-screen bg-black text-white relative overflow-hidden">
+        <ViewTracker eventId={event.id} />
+
+        {/* Ambient glow */}
+        <div
+          className="fixed top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full blur-[200px] opacity-20 pointer-events-none"
+          style={{ backgroundColor: accentColor }}
+        />
+        <div className="fixed inset-0 pointer-events-none grain z-50 opacity-30" />
+
+        {/* Centered content layout */}
+        <div className="relative z-10 min-h-screen flex flex-col items-center px-6 py-12">
+          {/* Organizer */}
+          <div className="flex items-center gap-3 mb-8">
+            {event.organizer.logoUrl && (
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor: `${accentColor}50` }}>
+                <Image src={event.organizer.logoUrl} alt={event.organizer.displayName} fill className="object-cover" />
+              </div>
+            )}
+            <span className="text-sm text-white/40">{event.organizer.displayName}</span>
+          </div>
+
+          {/* Flyer with glow */}
+          <div
+            className="relative w-full max-w-sm aspect-[3/4] mb-10"
+            style={{
+              boxShadow: `0 0 80px ${accentColor}40, 0 0 160px ${accentColor}20`,
+            }}
+          >
+            {event.flyerUrl ? (
+              <Image
+                src={event.flyerUrl}
+                alt={event.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            ) : (
+              <div
+                className="absolute inset-0 flex items-center justify-center border-2"
+                style={{ borderColor: accentColor, backgroundColor: `${accentColor}10` }}
+              >
+                <span className={`${typographyClass} text-8xl`} style={{ color: accentColor }}>
+                  {event.title.charAt(0)}
+                </span>
+              </div>
+            )}
+            {/* Glow border */}
+            <div
+              className="absolute inset-0 border-2 pointer-events-none"
+              style={{ borderColor: accentColor, boxShadow: `inset 0 0 30px ${accentColor}20` }}
+            />
+          </div>
+
+          {/* Title with glow */}
+          <h1
+            className={`${typographyClass} text-4xl md:text-6xl text-center mb-4`}
+            style={{
+              color: accentColor,
+              textShadow: `0 0 60px ${accentColor}80, 0 0 120px ${accentColor}40`,
+            }}
+          >
+            {event.title}
+          </h1>
+
+          {/* Date/Time */}
+          <div className="flex items-center gap-4 text-sm text-white/50 mb-8">
+            <span>{dayStr}</span>
+            <span className="w-1 h-1 rounded-full" style={{ backgroundColor: accentColor }} />
+            <span>{dateStr}</span>
+            <span className="w-1 h-1 rounded-full" style={{ backgroundColor: accentColor }} />
+            <span>{timeStr}</span>
+          </div>
+
+          {/* Location */}
+          <div
+            className="px-6 py-4 mb-8 border"
+            style={{
+              borderColor: `${accentColor}30`,
+              backgroundColor: `${accentColor}05`,
+              boxShadow: `0 0 30px ${accentColor}10`,
+            }}
+          >
+            {showLocation ? (
+              <div className="text-center">
+                <div className="text-lg font-medium mb-1">{event.venueName}</div>
+                {locationPrecision === 'exact' && (
+                  <div className="text-sm text-white/50">{event.venueAddress}</div>
+                )}
+                <div className="text-sm text-white/40">{event.city}{event.state ? `, ${event.state}` : ''}</div>
+                {mapUrl && (
+                  <a
+                    href={mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-3 text-xs hover:underline"
+                    style={{ color: accentColor }}
+                  >
+                    <MapPin className="w-3 h-3" /> Open in Maps
+                  </a>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 text-white/60">
+                <Lock className="w-4 h-4" style={{ color: accentColor }} />
+                <span>{event.city} &bull; Secret Location</span>
+              </div>
+            )}
+          </div>
+
+          {/* Map */}
+          {showMap && mapEmbedUrl && (
+            <div
+              className="w-full max-w-md mb-10 border rounded-lg overflow-hidden"
+              style={{ borderColor: `${accentColor}30`, boxShadow: `0 0 40px ${accentColor}20` }}
+            >
+              <iframe
+                src={mapEmbedUrl}
+                className="w-full h-48"
+                style={{ border: 0, filter: 'saturate(0.8) brightness(0.8)' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          )}
+
+          {/* Lineup */}
+          {lineup.length > 0 && (
+            <div className="w-full max-w-md mb-10">
+              <h2
+                className="text-center text-sm tracking-[0.3em] uppercase mb-6"
+                style={{ color: accentColor }}
+              >
+                Lineup
+              </h2>
+              <div className="space-y-3">
+                {lineup.map((artist, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 p-4 border rounded"
+                    style={{ borderColor: `${accentColor}20`, backgroundColor: `${accentColor}05` }}
+                  >
+                    {artist.imageUrl ? (
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden border" style={{ borderColor: `${accentColor}50` }}>
+                        <Image src={artist.imageUrl} alt={artist.name} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${accentColor}20` }}
+                      >
+                        <span style={{ color: accentColor }}>{artist.name.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div>
+                      <div className={`${typographyClass} text-lg`}>{artist.name}</div>
+                      {artist.role && <div className="text-sm text-white/40">{artist.role}</div>}
+                    </div>
+                    {artist.socialUrl && (
+                      <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-white/30 hover:text-white">
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          {event.description && (
+            <div className="w-full max-w-md mb-10 text-center">
+              <p className="text-white/60 leading-relaxed">{event.description}</p>
+            </div>
+          )}
+
+          {/* Tickets section */}
+          <div className="w-full max-w-md mb-10">
+            <h2
+              className="text-center text-sm tracking-[0.3em] uppercase mb-6"
+              style={{ color: accentColor }}
+            >
+              Tickets
+            </h2>
+            <div className="space-y-3">
+              {availableTiers.map((tier: TierType) => {
+                const available = tier.quantity - tier.quantitySold
+                const soldOut = available <= 0
+
+                return (
+                  <div
+                    key={tier.id}
+                    className={`p-4 border rounded ${soldOut ? 'opacity-50' : ''}`}
+                    style={{ borderColor: `${accentColor}30`, backgroundColor: `${accentColor}05` }}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className={`${typographyClass} text-lg`}>{tier.name}</div>
+                        {tier.description && <div className="text-sm text-white/40 mt-1">{tier.description}</div>}
+                        <div className="text-xs text-white/30 mt-2">{soldOut ? 'Sold out' : `${available} left`}</div>
+                      </div>
+                      <div
+                        className={`${typographyClass} text-2xl`}
+                        style={{ color: soldOut ? 'rgba(255,255,255,0.3)' : accentColor }}
+                      >
+                        {tier.price === 0 ? 'FREE' : formatCents(tier.price)}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* CTA */}
+          {totalAvailable > 0 ? (
+            <Link
+              href={`/e/${combinedSlug}/checkout`}
+              className="px-12 py-4 text-lg tracking-wider flex items-center gap-3 transition-all hover:scale-105"
+              style={{
+                backgroundColor: accentColor,
+                color: '#000',
+                boxShadow: `0 0 40px ${accentColor}50`,
+              }}
+            >
+              <Ticket className="w-5 h-5" />
+              GET TICKETS
+            </Link>
+          ) : (
+            <div className="px-12 py-4 text-lg tracking-wider bg-white/10 text-white/30">
+              SOLD OUT
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="mt-auto pt-20 text-center text-white/30 text-sm">
+            <Link href="/" className={`${typographyClass} text-xl hover:text-white transition-colors`}>
+              AFTERS<span style={{ color: accentColor }}>.</span>
+            </Link>
+            <div className="mt-2">
+              <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
+            </div>
+          </footer>
+        </div>
+
+        {/* Mobile sticky CTA */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-black/95 backdrop-blur border-t border-white/10 z-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs text-white/40">From</div>
+              <div className={`${typographyClass} text-xl`} style={{ color: accentColor }}>
+                {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
+              </div>
+            </div>
+            {totalAvailable > 0 ? (
+              <Link
+                href={`/e/${combinedSlug}/checkout`}
+                className="px-6 py-3 flex items-center gap-2"
+                style={{ backgroundColor: accentColor, color: '#000' }}
+              >
+                <Ticket className="w-4 h-4" />
+                GET TICKETS
+              </Link>
+            ) : (
+              <div className="px-6 py-3 bg-white/10 text-white/30">SOLD OUT</div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
+  // MINIMAL TEMPLATE - Elegant, refined, spacious
+  // ============================================
+  if (pageTheme === 'minimal') {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white">
+        <ViewTracker eventId={event.id} />
+
+        {/* Subtle gradient */}
+        <div className="fixed inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black pointer-events-none" />
+
+        <div className="relative z-10">
+          {/* Top nav */}
+          <nav className="flex items-center justify-between p-6 md:p-8">
+            <Link href="/" className={`${typographyClass} text-lg text-white/40 hover:text-white transition-colors`}>
+              afters<span style={{ color: accentColor }}>.</span>
+            </Link>
+            <span className="text-sm text-white/30">{event.organizer.displayName}</span>
+          </nav>
+
+          {/* Main content - asymmetric layout */}
+          <main className="px-6 md:px-12 lg:px-24 py-12 md:py-20">
+            <div className="max-w-7xl mx-auto">
+              {/* Small accent line */}
+              <div className="w-12 h-0.5 mb-8" style={{ backgroundColor: accentColor }} />
+
+              {/* Title - elegant, lowercase */}
+              <h1 className={`${typographyClass} text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6`}>
+                {event.title.toLowerCase()}
+              </h1>
+
+              {/* Date line */}
+              <p className="text-white/40 text-lg mb-16">
+                {dayStr.toLowerCase()}, {eventDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }).toLowerCase()} &bull; {timeStr.toLowerCase()}
+              </p>
+
+              {/* Two column layout */}
+              <div className="grid lg:grid-cols-[2fr_1fr] gap-16 lg:gap-24">
+                {/* Left column */}
+                <div>
+                  {/* Flyer - minimal frame */}
+                  {event.flyerUrl && (
+                    <div className="relative aspect-[4/5] mb-16 bg-white/[0.02] border border-white/5">
+                      <Image
+                        src={event.flyerUrl}
+                        alt={event.title}
+                        fill
+                        className="object-cover opacity-90"
+                        priority
+                      />
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {event.description && (
+                    <div className="mb-16">
+                      <div className="w-8 h-px bg-white/20 mb-6" />
+                      <p className="text-white/50 text-lg leading-relaxed max-w-xl">
+                        {event.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Lineup - horizontal */}
+                  {lineup.length > 0 && (
+                    <div className="mb-16">
+                      <div className="w-8 h-px bg-white/20 mb-6" />
+                      <h2 className="text-sm text-white/30 uppercase tracking-wider mb-6">Artists</h2>
+                      <div className="flex flex-wrap gap-x-8 gap-y-4">
+                        {lineup.map((artist, i) => (
+                          <div key={i} className="flex items-center gap-3">
+                            {artist.imageUrl && (
+                              <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/10">
+                                <Image src={artist.imageUrl} alt={artist.name} fill className="object-cover" />
+                              </div>
+                            )}
+                            <span className={`${typographyClass} text-xl font-light`}>{artist.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Location */}
+                  <div className="mb-16">
+                    <div className="w-8 h-px bg-white/20 mb-6" />
+                    <h2 className="text-sm text-white/30 uppercase tracking-wider mb-6">Location</h2>
+                    {showLocation ? (
+                      <div>
+                        <p className={`${typographyClass} text-2xl font-light mb-2`}>{event.venueName.toLowerCase()}</p>
+                        {locationPrecision === 'exact' && (
+                          <p className="text-white/40">{event.venueAddress.toLowerCase()}</p>
+                        )}
+                        <p className="text-white/30">{event.city.toLowerCase()}{event.state ? `, ${event.state.toLowerCase()}` : ''}</p>
+                        {mapUrl && (
+                          <a
+                            href={mapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 mt-4 text-sm hover:underline"
+                            style={{ color: accentColor }}
+                          >
+                            view map <ArrowRight className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 text-white/40">
+                        <Lock className="w-4 h-4" />
+                        <span>{event.city.toLowerCase()} &bull; location revealed on ticket</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Map */}
+                  {showMap && mapEmbedUrl && (
+                    <div className="mb-16 border border-white/5 rounded overflow-hidden">
+                      <iframe
+                        src={mapEmbedUrl}
+                        className="w-full h-64 opacity-80"
+                        style={{ border: 0, filter: 'grayscale(1) brightness(0.7)' }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Right column - Tickets */}
+                <div className="lg:sticky lg:top-8 lg:self-start">
+                  <div className="border border-white/5 bg-white/[0.02] p-6 md:p-8">
+                    <h2 className="text-sm text-white/30 uppercase tracking-wider mb-6">Tickets</h2>
+
+                    <div className="space-y-4 mb-8">
+                      {availableTiers.map((tier: TierType) => {
+                        const available = tier.quantity - tier.quantitySold
+                        const soldOut = available <= 0
+
+                        return (
+                          <div
+                            key={tier.id}
+                            className={`p-4 border border-white/5 ${soldOut ? 'opacity-40' : ''}`}
+                          >
+                            <div className="flex justify-between items-baseline mb-2">
+                              <span className={`${typographyClass} font-light`}>{tier.name}</span>
+                              <span style={{ color: soldOut ? 'rgba(255,255,255,0.3)' : accentColor }}>
+                                {tier.price === 0 ? 'Free' : formatCents(tier.price)}
+                              </span>
+                            </div>
+                            <div className="text-xs text-white/30">
+                              {soldOut ? 'sold out' : `${available} available`}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {totalAvailable > 0 ? (
+                      <Link
+                        href={`/e/${combinedSlug}/checkout`}
+                        className="w-full block py-4 text-center text-black transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: accentColor }}
+                      >
+                        Reserve
+                      </Link>
+                    ) : (
+                      <div className="w-full py-4 text-center bg-white/5 text-white/30">
+                        Sold Out
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+
+          {/* Footer */}
+          <footer className="px-6 md:px-12 lg:px-24 py-12 border-t border-white/5">
+            <div className="max-w-7xl mx-auto flex justify-between items-center text-sm text-white/30">
+              <span>&copy; {new Date().getFullYear()} afters</span>
+              <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
+            </div>
+          </footer>
+        </div>
+
+        {/* Mobile sticky CTA */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/95 backdrop-blur border-t border-white/5 z-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs text-white/30">from</div>
+              <div className="text-lg" style={{ color: accentColor }}>
+                {lowestPrice === 0 ? 'Free' : formatCents(lowestPrice)}
+              </div>
+            </div>
+            {totalAvailable > 0 ? (
+              <Link
+                href={`/e/${combinedSlug}/checkout`}
+                className="px-8 py-3 text-black"
+                style={{ backgroundColor: accentColor }}
+              >
+                Reserve
+              </Link>
+            ) : (
+              <div className="px-8 py-3 bg-white/5 text-white/30">Sold Out</div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
+  // TILT TEMPLATE - Chaotic, rotated, high energy
+  // ============================================
+  if (pageTheme === 'tilt') {
+    return (
+      <div className="min-h-screen bg-black text-white overflow-hidden">
+        <ViewTracker eventId={event.id} />
+
+        {/* Chaotic background shapes */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div
+            className="absolute -top-32 -left-32 w-96 h-96 border-[20px] rotate-[15deg]"
+            style={{ borderColor: accentColor, opacity: 0.1 }}
+          />
+          <div
+            className="absolute -bottom-48 -right-48 w-[500px] h-[500px] -rotate-[20deg]"
+            style={{ backgroundColor: accentColor, opacity: 0.15 }}
+          />
+          <div className="absolute top-1/3 right-20 w-32 h-32 border-8 border-white rotate-45 opacity-10" />
+          <div
+            className="absolute bottom-1/4 left-10 w-20 h-20"
+            style={{ backgroundColor: accentColor, opacity: 0.2 }}
+          />
+          <div
+            className="absolute top-1/2 left-1/3 w-2 h-[600px] rotate-[25deg]"
+            style={{ backgroundColor: accentColor, opacity: 0.1 }}
+          />
+        </div>
+
+        <div className="relative z-10">
+          {/* Header - tilted */}
+          <header className="p-6 md:p-10">
+            <div className="flex items-center justify-between -rotate-2">
+              <div className="flex items-center gap-4">
+                {event.organizer.logoUrl && (
+                  <div className="relative w-10 h-10 overflow-hidden border-2 rotate-6" style={{ borderColor: accentColor }}>
+                    <Image src={event.organizer.logoUrl} alt={event.organizer.displayName} fill className="object-cover" />
+                  </div>
+                )}
+                <span className="font-mono text-sm uppercase tracking-wider">{event.organizer.displayName}</span>
+              </div>
+              <div
+                className="px-4 py-2 font-mono text-xs uppercase tracking-wider rotate-3"
+                style={{ backgroundColor: accentColor, color: '#000' }}
+              >
+                {dateStr}
+              </div>
+            </div>
+          </header>
+
+          {/* Main content - chaotic grid */}
+          <main className="px-6 md:px-10 py-10">
+            {/* Title - large, tilted */}
+            <div className="-rotate-3 mb-12">
+              <h1
+                className={`${typographyClass} text-6xl md:text-8xl lg:text-9xl font-black uppercase`}
+                style={{ color: accentColor }}
+              >
+                {event.title}
+              </h1>
+            </div>
+
+            {/* Flyer and info - overlapping */}
+            <div className="relative mb-20">
+              {/* Flyer - rotated */}
+              {event.flyerUrl && (
+                <div className="relative w-full max-w-lg mx-auto md:ml-0 aspect-[3/4] rotate-3 border-4" style={{ borderColor: accentColor }}>
+                  <Image
+                    src={event.flyerUrl}
+                    alt={event.title}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              )}
+
+              {/* Info box - overlapping, counter-rotated */}
+              <div
+                className="relative md:absolute md:right-10 md:top-1/2 md:-translate-y-1/2 -rotate-2 mt-8 md:mt-0 p-6 border-4 bg-black max-w-sm"
+                style={{ borderColor: accentColor }}
+              >
+                <div className="font-mono text-xs uppercase tracking-wider text-white/40 mb-4">Event Info</div>
+
+                <div className="space-y-4">
+                  <div className="rotate-1">
+                    <div className="text-xs text-white/40 uppercase mb-1">When</div>
+                    <div className={`${typographyClass} text-xl`}>{dayStr}, {timeStr}</div>
+                  </div>
+
+                  <div className="-rotate-1">
+                    <div className="text-xs text-white/40 uppercase mb-1">Where</div>
+                    {showLocation ? (
+                      <>
+                        <div className={`${typographyClass} text-xl`}>{event.venueName}</div>
+                        <div className="text-sm text-white/50">{event.city}</div>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" style={{ color: accentColor }} />
+                        <span className={`${typographyClass} text-xl`}>SECRET</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rotate-2">
+                    <div className="text-xs text-white/40 uppercase mb-1">Price</div>
+                    <div className={`${typographyClass} text-3xl`} style={{ color: accentColor }}>
+                      {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Map - if enabled */}
+            {showMap && mapEmbedUrl && (
+              <div className="mb-20 -rotate-1 border-4 max-w-2xl mx-auto" style={{ borderColor: accentColor }}>
+                <iframe
+                  src={mapEmbedUrl}
+                  className="w-full h-64"
+                  style={{ border: 0, filter: 'contrast(1.2) saturate(0.8)' }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            )}
+
+            {/* Lineup - scattered */}
+            {lineup.length > 0 && (
+              <div className="mb-20">
+                <h2
+                  className={`${typographyClass} text-4xl md:text-5xl font-black uppercase rotate-2 mb-8`}
+                  style={{ color: accentColor }}
+                >
+                  LINEUP
+                </h2>
+                <div className="flex flex-wrap gap-4">
+                  {lineup.map((artist, i) => (
+                    <div
+                      key={i}
+                      className={`px-6 py-4 border-4 font-black text-xl uppercase ${i % 3 === 0 ? '-rotate-3' : i % 3 === 1 ? 'rotate-2' : '-rotate-1'}`}
+                      style={{ borderColor: accentColor }}
+                    >
+                      {artist.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Description */}
+            {event.description && (
+              <div className="mb-20 max-w-xl rotate-1 pl-6 border-l-4" style={{ borderColor: accentColor }}>
+                <p className="text-white/60">{event.description}</p>
+              </div>
+            )}
+
+            {/* Tickets - tilted cards */}
+            <div className="mb-20">
+              <h2
+                className={`${typographyClass} text-4xl md:text-5xl font-black uppercase -rotate-2 mb-8`}
+                style={{ color: accentColor }}
+              >
+                TICKETS
+              </h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {availableTiers.map((tier: TierType, i) => {
+                  const available = tier.quantity - tier.quantitySold
+                  const soldOut = available <= 0
+
+                  return (
+                    <div
+                      key={tier.id}
+                      className={`p-6 border-4 ${soldOut ? 'opacity-40' : ''} ${i % 2 === 0 ? '-rotate-2' : 'rotate-2'}`}
+                      style={{ borderColor: accentColor }}
+                    >
+                      <div className={`${typographyClass} text-2xl font-black uppercase mb-2`}>{tier.name}</div>
+                      <div
+                        className={`${typographyClass} text-4xl font-black`}
+                        style={{ color: soldOut ? 'rgba(255,255,255,0.3)' : accentColor }}
+                      >
+                        {tier.price === 0 ? 'FREE' : formatCents(tier.price)}
+                      </div>
+                      <div className="font-mono text-xs uppercase text-white/40 mt-2">
+                        {soldOut ? 'SOLD OUT' : `${available} LEFT`}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="text-center mb-20">
+              {totalAvailable > 0 ? (
+                <Link
+                  href={`/e/${combinedSlug}/checkout`}
+                  className={`inline-block px-16 py-6 ${typographyClass} text-2xl font-black uppercase -rotate-2 hover:rotate-0 transition-transform`}
+                  style={{ backgroundColor: accentColor, color: '#000' }}
+                >
+                  GET TICKETS NOW
+                </Link>
+              ) : (
+                <div className={`inline-block px-16 py-6 ${typographyClass} text-2xl font-black uppercase -rotate-2 bg-white/10 text-white/30`}>
+                  SOLD OUT
+                </div>
+              )}
+            </div>
+          </main>
+
+          {/* Footer */}
+          <footer className="p-6 md:p-10 border-t-4" style={{ borderColor: accentColor }}>
+            <div className="flex justify-between items-center font-mono text-sm uppercase rotate-1">
+              <span>AFTERS<span style={{ color: accentColor }}>.</span></span>
+              <a href="https://afters.am" className="hover:underline">afters.am</a>
+            </div>
+          </footer>
+        </div>
+
+        {/* Mobile sticky CTA */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-black border-t-4 z-50" style={{ borderColor: accentColor }}>
+          {totalAvailable > 0 ? (
+            <Link
+              href={`/e/${combinedSlug}/checkout`}
+              className="block w-full py-4 text-center font-black text-xl uppercase"
+              style={{ backgroundColor: accentColor, color: '#000' }}
+            >
+              GET TICKETS // {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
+            </Link>
+          ) : (
+            <div className="w-full py-4 text-center font-black text-xl uppercase bg-white/10 text-white/30">
               SOLD OUT
             </div>
           )}
         </div>
       </div>
+    )
+  }
 
-      {/* Content Section */}
-      <section className={`relative py-12 md:py-20 pb-32 md:pb-20 ${pageTheme === 'minimal' ? '' : pageTheme === 'editorial' ? '' : 'stripe-pattern'}`}>
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-[1fr_380px] gap-12 lg:gap-16">
-            {/* Main Content */}
-            <div className="space-y-16">
-              {/* Lineup Section */}
-              {lineup.length > 0 && (
-                <div className={pageTheme === 'rave' ? 'rotate-0' : ''}>
-                  <div className={`flex items-center gap-4 mb-8 ${pageTheme === 'rave' ? '-rotate-1' : ''}`}>
-                    <h2 className={`${typographyClass} text-3xl tracking-wide ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                      {pageTheme === 'editorial' ? 'Lineup' : 'LINEUP'}
-                    </h2>
-                    <div
-                      className={`flex-1 ${pageTheme === 'brutalist' ? 'h-1' : 'h-px'}`}
-                      style={{
-                        background: pageTheme === 'brutalist'
-                          ? accentColor
-                          : 'linear-gradient(to right, rgba(255,255,255,0.2), transparent)',
-                      }}
-                    />
+  // ============================================
+  // EDITORIAL TEMPLATE - Magazine-style, sophisticated
+  // ============================================
+  return (
+    <div className="min-h-screen bg-neutral-950 text-white">
+      <ViewTracker eventId={event.id} />
+
+      {/* Subtle texture */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.02]">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `repeating-linear-gradient(0deg, white 0px, white 1px, transparent 1px, transparent 8px)`,
+          }}
+        />
+      </div>
+
+      <div className="relative z-10">
+        {/* Magazine-style header */}
+        <header className="border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 flex items-center justify-between">
+            <Link href="/" className={`${typographyClass} text-xl tracking-tight`}>
+              AFTERS<span style={{ color: accentColor }}>.</span>
+            </Link>
+            <div className="flex items-center gap-6 text-sm">
+              <span className="text-white/40">{event.organizer.displayName}</span>
+              {event.organizer.instagramUrl && (
+                <a href={event.organizer.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white">
+                  <Instagram className="w-4 h-4" />
+                </a>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Hero - full-width image with editorial overlay */}
+        <section className="relative">
+          {event.flyerUrl ? (
+            <div className="relative h-[70vh] md:h-[80vh]">
+              <Image
+                src={event.flyerUrl}
+                alt={event.title}
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
+            </div>
+          ) : (
+            <div
+              className="h-[50vh] bg-gradient-to-br from-neutral-900 to-neutral-950"
+            />
+          )}
+
+          {/* Editorial text overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-16">
+            <div className="max-w-7xl mx-auto">
+              {/* Category tag */}
+              <div
+                className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4"
+                style={{ color: accentColor }}
+              >
+                Music Event
+              </div>
+
+              {/* Title - editorial split */}
+              <h1 className={`${typographyClass} text-5xl md:text-7xl lg:text-8xl tracking-tight leading-[0.9]`}>
+                <span className="text-white">{event.title.split(' ')[0]}</span>
+                {event.title.split(' ').length > 1 && (
+                  <>
+                    <br />
+                    <span className="text-white/50">{event.title.split(' ').slice(1).join(' ')}</span>
+                  </>
+                )}
+              </h1>
+
+              {/* Meta line */}
+              <div className="flex items-center gap-4 mt-6 text-sm text-white/40 font-mono">
+                <span>{eventDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
+                <span className="w-1 h-1 rounded-full bg-white/20" />
+                <span>{timeStr}</span>
+                <span className="w-1 h-1 rounded-full bg-white/20" />
+                <span>{event.city}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Editorial content grid */}
+        <section className="py-16 md:py-24">
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <div className="grid lg:grid-cols-[2fr_1fr] gap-16">
+              {/* Main column */}
+              <div>
+                {/* Intro section */}
+                <div className="mb-16">
+                  <div className="w-16 h-px mb-8" style={{ backgroundColor: accentColor }} />
+                  <p className={`${typographyClass} text-2xl md:text-3xl font-light leading-relaxed text-white/80`}>
+                    {event.description || `Join us for an unforgettable night featuring incredible music and atmosphere.`}
+                  </p>
+                </div>
+
+                {/* Details grid */}
+                <div className="grid md:grid-cols-2 gap-12 mb-16">
+                  {/* Date & Time */}
+                  <div>
+                    <h3 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/40 mb-4">When</h3>
+                    <p className={`${typographyClass} text-xl`}>{dayStr}</p>
+                    <p className="text-white/60">{eventDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+                    <p className="text-white/40 mt-1">{timeStr}</p>
                   </div>
-                  <div className="grid gap-3">
-                    {lineup.map((artist, i) => (
-                      <div
-                        key={i}
-                        className={`group flex items-center gap-5 p-5 transition-all ${styles.cardBorder} ${pageTheme === 'rave' ? (i % 2 === 0 ? '-rotate-1' : 'rotate-1') : ''}`}
-                        style={{
-                          borderColor: pageTheme === 'brutalist' ? accentColor : styles.cardBorderColor,
-                          backgroundColor: styles.cardBg.includes('bg-') ? undefined : 'rgba(255,255,255,0.02)',
-                          boxShadow: styles.glowEffects ? `0 0 20px ${accentColor}10` : 'none',
-                        }}
-                      >
-                        {artist.imageUrl ? (
-                          <div
-                            className={`relative w-14 h-14 overflow-hidden ${pageTheme === 'brutalist' ? 'border-2' : 'rounded-full border-2'}`}
-                            style={{ borderColor: `${accentColor}50` }}
-                          >
-                            <Image
-                              src={artist.imageUrl}
-                              alt={artist.name}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div
-                            className={`w-14 h-14 flex items-center justify-center ${typographyClass} text-2xl ${pageTheme === 'brutalist' ? '' : ''}`}
-                            style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
-                          >
-                            {artist.name.charAt(0)}
-                          </div>
+
+                  {/* Location */}
+                  <div>
+                    <h3 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/40 mb-4">Where</h3>
+                    {showLocation ? (
+                      <>
+                        <p className={`${typographyClass} text-xl`}>{event.venueName}</p>
+                        {locationPrecision === 'exact' && (
+                          <p className="text-white/60">{event.venueAddress}</p>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <p className={`${typographyClass} text-xl tracking-wide group-hover:text-white transition-colors ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                            {artist.name}
-                          </p>
-                          {artist.role && (
-                            <p className="font-body text-sm text-white/40 mt-0.5">{artist.role}</p>
-                          )}
-                        </div>
-                        {artist.socialUrl && (
+                        <p className="text-white/40 mt-1">{event.city}{event.state ? `, ${event.state}` : ''}</p>
+                        {mapUrl && (
                           <a
-                            href={artist.socialUrl}
+                            href={mapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-3 text-white/30 hover:text-white transition-colors hover:scale-110"
+                            className="inline-flex items-center gap-2 mt-3 text-sm"
+                            style={{ color: accentColor }}
                           >
-                            <Instagram className="h-5 w-5" />
+                            View on map <ArrowRight className="w-3 h-3" />
                           </a>
                         )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* About Section */}
-              {event.description && (
-                <div>
-                  <div className={`flex items-center gap-4 mb-8 ${pageTheme === 'rave' ? 'rotate-1' : ''}`}>
-                    <h2 className={`${typographyClass} text-3xl tracking-wide ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                      {pageTheme === 'editorial' ? 'About' : 'ABOUT'}
-                    </h2>
-                    <div
-                      className={`flex-1 ${pageTheme === 'brutalist' ? 'h-1' : 'h-px'}`}
-                      style={{
-                        background: pageTheme === 'brutalist'
-                          ? accentColor
-                          : 'linear-gradient(to right, rgba(255,255,255,0.2), transparent)',
-                      }}
-                    />
-                  </div>
-                  <div
-                    className={`relative pl-6 ${pageTheme === 'brutalist' ? 'border-l-4' : 'border-l-2'} ${pageTheme === 'rave' ? '-rotate-1' : ''}`}
-                    style={{ borderColor: `${accentColor}${pageTheme === 'minimal' ? '30' : '50'}` }}
-                  >
-                    <p className={`font-body text-base whitespace-pre-wrap leading-relaxed ${pageTheme === 'minimal' || pageTheme === 'editorial' ? 'text-white/60' : 'text-white/70'}`}>
-                      {event.description}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Location Section */}
-              <div>
-                <div className={`flex items-center gap-4 mb-8 ${pageTheme === 'rave' ? '-rotate-1' : ''}`}>
-                  <h2 className={`${typographyClass} text-3xl tracking-wide ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                    {pageTheme === 'editorial' ? 'Location' : 'LOCATION'}
-                  </h2>
-                  <div
-                    className={`flex-1 ${pageTheme === 'brutalist' ? 'h-1' : 'h-px'}`}
-                    style={{
-                      background: pageTheme === 'brutalist'
-                        ? accentColor
-                        : 'linear-gradient(to right, rgba(255,255,255,0.2), transparent)',
-                    }}
-                  />
-                </div>
-                {event.isAddressHidden ? (
-                  <div
-                    className={`p-6 ${pageTheme === 'brutalist' ? 'border-l-4' : 'border-l-4'} ${pageTheme === 'rave' ? 'rotate-1' : ''}`}
-                    style={{
-                      borderColor: accentColor,
-                      backgroundColor: `${accentColor}08`,
-                    }}
-                  >
-                    <div className="flex items-center gap-4 mb-3">
-                      <div
-                        className={`w-12 h-12 flex items-center justify-center ${pageTheme === 'brutalist' ? 'border-2' : ''}`}
-                        style={{
-                          backgroundColor: pageTheme === 'brutalist' ? 'transparent' : `${accentColor}20`,
-                          borderColor: pageTheme === 'brutalist' ? accentColor : undefined,
-                        }}
-                      >
-                        <Lock className="h-6 w-6" style={{ color: accentColor }} />
-                      </div>
-                      <div>
-                        <p className={`${typographyClass} text-xl tracking-wide ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                          {pageTheme === 'editorial' ? 'Secret Location' : 'SECRET LOCATION'}
+                      </>
+                    ) : (
+                      <>
+                        <p className={`${typographyClass} text-xl flex items-center gap-2`}>
+                          <Lock className="w-4 h-4" style={{ color: accentColor }} />
+                          Secret Location
                         </p>
-                        <p className="font-body text-sm text-white/50">{event.city}</p>
-                      </div>
-                    </div>
-                    <p className="font-body text-sm text-white/40 pl-16">
-                      The exact address will be revealed after you purchase tickets.
-                    </p>
+                        <p className="text-white/40 mt-1">{event.city}</p>
+                        <p className="text-sm text-white/30 mt-2">Address revealed after purchase</p>
+                      </>
+                    )}
                   </div>
-                ) : (
-                  <div className={`space-y-2 ${pageTheme === 'rave' ? 'rotate-1' : ''}`}>
-                    <p className={`${typographyClass} text-2xl tracking-wide ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                      {event.venueName}
-                    </p>
-                    <p className="font-body text-base text-white/60">{event.venueAddress}</p>
-                    <p className="font-body text-sm text-white/40">
-                      {event.city}{event.state ? `, ${event.state}` : ''}
-                    </p>
+                </div>
+
+                {/* Map */}
+                {showMap && mapEmbedUrl && (
+                  <div className="mb-16">
+                    <h3 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/40 mb-4">Location</h3>
+                    <div className="border border-white/10 rounded overflow-hidden">
+                      <iframe
+                        src={mapEmbedUrl}
+                        className="w-full h-80"
+                        style={{ border: 0, filter: 'grayscale(0.5) brightness(0.8)' }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Lineup */}
+                {lineup.length > 0 && (
+                  <div className="mb-16">
+                    <h3 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/40 mb-8">Featured Artists</h3>
+                    <div className="space-y-6">
+                      {lineup.map((artist, i) => (
+                        <div key={i} className="flex items-center gap-6 group">
+                          <span className="font-mono text-xs text-white/20">{String(i + 1).padStart(2, '0')}</span>
+                          {artist.imageUrl && (
+                            <div className="relative w-16 h-16 rounded-full overflow-hidden border border-white/10 group-hover:border-white/30 transition-colors">
+                              <Image src={artist.imageUrl} alt={artist.name} fill className="object-cover" />
+                            </div>
+                          )}
+                          <div>
+                            <p className={`${typographyClass} text-2xl group-hover:text-white transition-colors`}>{artist.name}</p>
+                            {artist.role && <p className="text-sm text-white/40">{artist.role}</p>}
+                          </div>
+                          {artist.socialUrl && (
+                            <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-white/20 hover:text-white transition-colors">
+                              <Instagram className="w-5 h-5" />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Sidebar - Desktop Ticket Panel */}
-            <div className="hidden lg:block">
-              <div className={`sticky top-20 ${pageTheme === 'rave' ? '-rotate-1' : ''}`}>
-                <div
-                  className={`relative overflow-hidden ${styles.cardBorder}`}
-                  style={{
-                    borderColor: pageTheme === 'brutalist' ? accentColor : styles.cardBorderColor,
-                    boxShadow: styles.glowEffects ? `0 0 40px ${accentColor}20` : 'none',
-                  }}
-                >
-                  {/* Accent top bar */}
-                  <div
-                    className={pageTheme === 'brutalist' ? 'h-3' : 'h-2'}
-                    style={{ backgroundColor: accentColor }}
-                  />
-
+              {/* Sidebar - Tickets */}
+              <div className="lg:sticky lg:top-8 lg:self-start">
+                <div className="border border-white/10 bg-neutral-900/50">
                   {/* Header */}
-                  <div
-                    className={`px-6 py-4 border-b`}
-                    style={{
-                      borderColor: pageTheme === 'brutalist' ? accentColor : 'rgba(255,255,255,0.1)',
-                      backgroundColor: `${accentColor}08`,
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className={`${typographyClass} text-xl tracking-wider ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                        {pageTheme === 'editorial' ? 'Tickets' : 'TICKETS'}
-                      </h3>
-                      <span className="font-mono text-[10px] text-white/40 uppercase tracking-wider">
-                        {totalAvailable > 0 ? `${totalAvailable} left` : 'Sold out'}
-                      </span>
-                    </div>
+                  <div className="p-6 border-b border-white/10">
+                    <h3 className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2">Admission</h3>
+                    <p className={`${typographyClass} text-3xl`} style={{ color: accentColor }}>
+                      {lowestPrice === 0 ? 'Free Entry' : `From ${formatCents(lowestPrice)}`}
+                    </p>
                   </div>
 
-                  {/* Ticket Tiers */}
-                  <div className="p-4 space-y-3">
-                    {availableTiers.map((tier: TierType, i: number) => {
+                  {/* Tiers */}
+                  <div className="p-6 space-y-4">
+                    {availableTiers.map((tier: TierType) => {
                       const available = tier.quantity - tier.quantitySold
                       const soldOut = available <= 0
-                      const almostGone = available > 0 && available <= 10
 
                       return (
                         <div
                           key={tier.id}
-                          className={`
-                            relative p-4 transition-all ${styles.cardBorder}
-                            ${soldOut
-                              ? 'opacity-50'
-                              : 'hover:border-white/20 cursor-pointer'
-                            }
-                            ${pageTheme === 'rave' ? (i % 2 === 0 ? '-rotate-1' : 'rotate-1') : ''}
-                          `}
-                          style={{
-                            borderColor: soldOut
-                              ? 'rgba(255,255,255,0.05)'
-                              : pageTheme === 'brutalist'
-                                ? accentColor
-                                : 'rgba(255,255,255,0.1)',
-                            borderLeftWidth: !soldOut && pageTheme !== 'brutalist' ? '3px' : undefined,
-                            borderLeftColor: !soldOut && pageTheme !== 'brutalist' ? accentColor : undefined,
-                          }}
+                          className={`p-4 border border-white/10 ${soldOut ? 'opacity-40' : ''}`}
                         >
-                          <div className="flex justify-between items-start gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className={`${typographyClass} text-lg tracking-wide ${pageTheme === 'minimal' ? 'font-light' : ''}`}>
-                                  {tier.name}
-                                </p>
-                                {almostGone && (
-                                  <span
-                                    className="px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider"
-                                    style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
-                                  >
-                                    {pageTheme === 'editorial' ? 'Few Left' : 'Almost Gone'}
-                                  </span>
-                                )}
-                              </div>
-                              {tier.description && (
-                                <p className="font-body text-xs text-white/40 mb-2">{tier.description}</p>
-                              )}
-                              <div className="flex items-center gap-2 text-white/30">
-                                <Users className="h-3 w-3" />
-                                <span className="font-mono text-[10px] uppercase tracking-wider">
-                                  {soldOut ? "Sold out" : `${available} available`}
-                                </span>
-                              </div>
-                            </div>
-                            <p
-                              className={`${typographyClass} text-2xl`}
-                              style={{
-                                color: soldOut ? 'rgba(255,255,255,0.3)' : accentColor,
-                                textShadow: !soldOut && styles.glowEffects ? `0 0 15px ${accentColor}60` : 'none',
-                              }}
-                            >
-                              {tier.price === 0 ? 'FREE' : formatCents(tier.price)}
-                            </p>
+                          <div className="flex justify-between items-baseline">
+                            <span className={`${typographyClass}`}>{tier.name}</span>
+                            <span style={{ color: soldOut ? 'rgba(255,255,255,0.3)' : accentColor }}>
+                              {tier.price === 0 ? 'Free' : formatCents(tier.price)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-white/30 mt-1">
+                            {soldOut ? 'Sold out' : `${available} remaining`}
                           </div>
                         </div>
                       )
                     })}
                   </div>
 
-                  {/* CTA Button */}
-                  <div className="p-4 pt-0">
+                  {/* CTA */}
+                  <div className="p-6 pt-0">
                     {totalAvailable > 0 ? (
                       <Link
                         href={`/e/${combinedSlug}/checkout`}
-                        className={`w-full flex items-center justify-center gap-2 py-4 ${typographyClass} text-lg tracking-wider transition-all ${styles.buttonStyle}`}
-                        style={{
-                          backgroundColor: pageTheme === 'brutalist' ? 'transparent' : accentColor,
-                          color: pageTheme === 'brutalist' ? accentColor : '#000',
-                          borderColor: pageTheme === 'brutalist' ? accentColor : 'transparent',
-                          boxShadow: styles.glowEffects ? `0 0 20px ${accentColor}40` : 'none',
-                        }}
+                        className="w-full block py-4 text-center text-black font-medium transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: accentColor }}
                       >
-                        <Ticket className="h-5 w-5" />
-                        {pageTheme === 'brutalist' ? 'GET TICKETS →' : 'GET TICKETS'}
+                        Get Tickets
                       </Link>
                     ) : (
-                      <div className={`w-full flex items-center justify-center py-4 ${typographyClass} text-lg tracking-wider bg-white/5 text-white/30`}>
-                        SOLD OUT
+                      <div className="w-full py-4 text-center bg-white/5 text-white/30">
+                        Sold Out
                       </div>
                     )}
                   </div>
+                </div>
 
-                  {/* Tear effect divider */}
-                  <div className="relative py-4">
-                    <div
-                      className="absolute left-0 top-1/2 w-4 h-8 -translate-y-1/2 -translate-x-1/2 rounded-r-full"
-                      style={{ backgroundColor: pageTheme === 'minimal' ? '#09090b' : pageTheme === 'editorial' ? '#0a0a0a' : '#000' }}
-                    />
-                    <div
-                      className="absolute right-0 top-1/2 w-4 h-8 -translate-y-1/2 translate-x-1/2 rounded-l-full"
-                      style={{ backgroundColor: pageTheme === 'minimal' ? '#09090b' : pageTheme === 'editorial' ? '#0a0a0a' : '#000' }}
-                    />
-                    <div
-                      className={`mx-6 ${pageTheme === 'brutalist' ? 'border-t-2 border-dashed' : 'border-t border-dashed'}`}
-                      style={{ borderColor: pageTheme === 'brutalist' ? accentColor : 'rgba(255,255,255,0.1)' }}
-                    />
-                  </div>
-
-                  {/* Organizer */}
-                  <div className="p-4 pt-0">
-                    <div
-                      className={`flex items-center gap-4 p-4 ${pageTheme === 'brutalist' ? 'border-2' : ''}`}
-                      style={{
-                        backgroundColor: pageTheme === 'brutalist' ? 'transparent' : 'rgba(255,255,255,0.02)',
-                        borderColor: pageTheme === 'brutalist' ? accentColor : undefined,
-                      }}
-                    >
-                      {event.organizer.logoUrl ? (
-                        <div
-                          className={`relative w-12 h-12 overflow-hidden ${pageTheme === 'brutalist' ? 'border-2' : 'rounded-full border'}`}
-                          style={{ borderColor: pageTheme === 'brutalist' ? accentColor : 'rgba(255,255,255,0.1)' }}
-                        >
-                          <Image
-                            src={event.organizer.logoUrl}
-                            alt={event.organizer.displayName}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className={`w-12 h-12 flex items-center justify-center ${typographyClass} text-xl`}
-                          style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
-                        >
-                          {event.organizer.displayName.charAt(0)}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-body text-[10px] text-white/30 uppercase tracking-wider mb-0.5">Hosted by</p>
-                        <p className="font-body text-sm font-semibold truncate">{event.organizer.displayName}</p>
+                {/* Organizer card */}
+                <div className="mt-6 p-6 border border-white/10 bg-neutral-900/30">
+                  <div className="flex items-center gap-4">
+                    {event.organizer.logoUrl ? (
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden border border-white/10">
+                        <Image src={event.organizer.logoUrl} alt={event.organizer.displayName} fill className="object-cover" />
                       </div>
-                      {event.organizer.instagramUrl && (
-                        <a
-                          href={event.organizer.instagramUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 text-white/30 hover:text-white transition-colors"
-                        >
-                          <Instagram className="h-5 w-5" />
-                        </a>
-                      )}
+                    ) : (
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${accentColor}20` }}>
+                        <span style={{ color: accentColor }}>{event.organizer.displayName.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs text-white/40 uppercase tracking-wider">Presented by</p>
+                      <p className={`${typographyClass}`}>{event.organizer.displayName}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer
-        className={`py-8 px-4 ${pageTheme === 'brutalist' ? 'border-t-4' : 'border-t'}`}
-        style={{ borderColor: pageTheme === 'brutalist' ? accentColor : 'rgba(255,255,255,0.05)' }}
-      >
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <Link
-            href="/"
-            className={`${typographyClass} text-xl tracking-wide text-white/40 hover:text-white transition-colors ${pageTheme === 'minimal' ? 'font-light' : ''}`}
-          >
-            AFTERS<span style={{ color: accentColor }}>.</span>
-          </Link>
-          <div className="flex items-center gap-6 text-white/30 font-body text-sm">
-            <span>&copy; {new Date().getFullYear()} Afters</span>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <a href="https://afters.fm" className="hover:text-white transition-colors">
-              afters.fm
-            </a>
+        {/* Footer */}
+        <footer className="border-t border-white/10 py-8 px-6 md:px-12">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <Link href="/" className={`${typographyClass} text-xl text-white/40 hover:text-white transition-colors`}>
+              AFTERS<span style={{ color: accentColor }}>.</span>
+            </Link>
+            <div className="flex items-center gap-6 text-sm text-white/30">
+              <span>&copy; {new Date().getFullYear()} Afters</span>
+              <span className="w-1 h-1 rounded-full bg-white/20" />
+              <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
+            </div>
           </div>
+        </footer>
+      </div>
+
+      {/* Mobile sticky CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-neutral-950/95 backdrop-blur border-t border-white/10 z-50">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs text-white/40">From</div>
+            <div className={`${typographyClass} text-xl`} style={{ color: accentColor }}>
+              {lowestPrice === 0 ? 'Free' : formatCents(lowestPrice)}
+            </div>
+          </div>
+          {totalAvailable > 0 ? (
+            <Link
+              href={`/e/${combinedSlug}/checkout`}
+              className="px-8 py-3 text-black font-medium"
+              style={{ backgroundColor: accentColor }}
+            >
+              Get Tickets
+            </Link>
+          ) : (
+            <div className="px-8 py-3 bg-white/5 text-white/30">Sold Out</div>
+          )}
         </div>
-      </footer>
+      </div>
     </div>
   )
 }
