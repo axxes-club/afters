@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
+import { getSessionUser } from "@/lib/auth-utils"
+import EventPageClient from "@/components/public/EventPageClient"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -54,6 +56,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       rsvpCount: true,
       organizer: {
         select: {
+          id: true,
           displayName: true,
           slug: true,
           logoUrl: true,
@@ -111,6 +114,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             rsvpCount: true,
             organizer: {
               select: {
+                id: true,
                 displayName: true,
                 slug: true,
                 logoUrl: true,
@@ -132,6 +136,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   if (!event) {
     notFound()
   }
+
+  // Check if current user is the event owner
+  const currentUser = await getSessionUser()
+  const isOwner = currentUser?.organizerProfile?.id === event.organizer.id
 
   type TierType = typeof event.ticketTiers[number]
 
@@ -163,14 +171,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const hasAvailability = isRsvpEvent ? rsvpAvailable : totalAvailable > 0
 
   const lineup = (event.lineup as LineupArtist[] | null) || []
-  const accentColor = event.accentColor || '#ff1493'
-  const pageTheme = event.pageTheme || 'neon'
-  const typography = event.typography || 'headline'
-
-  // Location display logic
-  const showLocation = event.showLocationOnPage && !event.isAddressHidden
-  const showMap = event.showMapOnPage && showLocation
-  const locationPrecision = event.locationPrecision || 'exact'
 
   // Map typography ID to Tailwind class
   const typographyMap: Record<string, string> = {
@@ -179,50 +179,64 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     elegant: 'font-serif',
     modern: 'font-sans',
   }
-  const typographyClass = typographyMap[typography] || 'font-headline'
 
-  const eventDate = new Date(event.startsAt)
-  const dayStr = eventDate.toLocaleDateString("en-US", { weekday: "long" })
-  const dateStr = eventDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  }).toUpperCase()
-  const timeStr = eventDate.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  })
+  // Create render function that accepts live design
+  const renderEventPage = (liveDesign?: any) => {
+    const accentColor = liveDesign?.accentColor || event.accentColor || '#ff1493'
+    const pageTheme = liveDesign?.pageTheme || event.pageTheme || 'neon'
+    const typography = liveDesign?.typography || event.typography || 'headline'
+    const typographyClass = typographyMap[typography] || 'font-headline'
 
-  // Generate Google Maps URL
-  const getMapUrl = () => {
-    if (!showLocation) return null
-    const query = locationPrecision === 'exact'
-      ? `${event.venueAddress}, ${event.city}${event.state ? `, ${event.state}` : ''}`
-      : locationPrecision === 'area'
-        ? `${event.venueName}, ${event.city}`
-        : event.city
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
-  }
+    // Location display logic - use live design if provided
+    const showLocationOnPage = liveDesign?.showLocationOnPage ?? event.showLocationOnPage
+    const showMapOnPage = liveDesign?.showMapOnPage ?? event.showMapOnPage
+    const isAddressHidden = liveDesign?.isAddressHidden ?? event.isAddressHidden
+    const showLocation = showLocationOnPage && !isAddressHidden
+    const showMap = showMapOnPage && showLocation
+    const locationPrecision = event.locationPrecision || 'exact'
 
-  const getMapEmbedUrl = () => {
-    if (!showMap) return null
-    const query = locationPrecision === 'exact'
-      ? `${event.venueAddress}, ${event.city}${event.state ? `, ${event.state}` : ''}`
-      : locationPrecision === 'area'
-        ? `${event.venueName}, ${event.city}`
-        : event.city
-    return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(query)}&zoom=${locationPrecision === 'exact' ? 16 : locationPrecision === 'area' ? 14 : 12}`
-  }
+    const eventDate = new Date(event.startsAt)
+    const dayStr = eventDate.toLocaleDateString("en-US", { weekday: "long" })
+    const dateStr = eventDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    }).toUpperCase()
+    const timeStr = eventDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    })
 
-  const mapUrl = getMapUrl()
-  const mapEmbedUrl = getMapEmbedUrl()
+    // Generate Google Maps URL
+    const getMapUrl = () => {
+      if (!showLocation) return null
+      const query = locationPrecision === 'exact'
+        ? `${event.venueAddress}, ${event.city}${event.state ? `, ${event.state}` : ''}`
+        : locationPrecision === 'area'
+          ? `${event.venueName}, ${event.city}`
+          : event.city
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+    }
 
-  // ============================================
-  // BRUTALIST TEMPLATE - Raw, grid-exposed, stark
-  // ============================================
-  if (pageTheme === 'brutalist') {
-    return (
-      <div className="min-h-screen bg-black text-white font-mono">
-        <ViewTracker eventId={event.id} />
+    const getMapEmbedUrl = () => {
+      if (!showMap) return null
+      const query = locationPrecision === 'exact'
+        ? `${event.venueAddress}, ${event.city}${event.state ? `, ${event.state}` : ''}`
+        : locationPrecision === 'area'
+          ? `${event.venueName}, ${event.city}`
+          : event.city
+      return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(query)}&zoom=${locationPrecision === 'exact' ? 16 : locationPrecision === 'area' ? 14 : 12}`
+    }
+
+    const mapUrl = getMapUrl()
+    const mapEmbedUrl = getMapEmbedUrl()
+
+    // ============================================
+    // BRUTALIST TEMPLATE - Raw, grid-exposed, stark
+    // ============================================
+    if (pageTheme === 'brutalist') {
+      return (
+        <div className="min-h-screen bg-black text-white font-mono">
+          <ViewTracker eventId={event.id} />
 
         {/* Exposed grid background */}
         <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.04]">
@@ -413,17 +427,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
           </div>
         </footer>
-      </div>
-    )
-  }
+        </div>
+      )
+    }
 
-  // ============================================
-  // NEON TEMPLATE - Glowing, centered, atmospheric
-  // ============================================
-  if (pageTheme === 'neon') {
-    return (
-      <div className="min-h-screen bg-black text-white relative overflow-hidden">
-        <ViewTracker eventId={event.id} />
+    // ============================================
+    // NEON TEMPLATE - Glowing, centered, atmospheric
+    // ============================================
+    if (pageTheme === 'neon') {
+      return (
+        <div className="min-h-screen bg-black text-white relative overflow-hidden">
+          <ViewTracker eventId={event.id} />
 
         {/* Ambient glow */}
         <div
@@ -688,17 +702,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             )}
           </div>
         </div>
-      </div>
-    )
-  }
+        </div>
+      )
+    }
 
-  // ============================================
-  // MINIMAL TEMPLATE - Elegant, refined, spacious
-  // ============================================
-  if (pageTheme === 'minimal') {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <ViewTracker eventId={event.id} />
+    // ============================================
+    // MINIMAL TEMPLATE - Elegant, refined, spacious
+    // ============================================
+    if (pageTheme === 'minimal') {
+      return (
+        <div className="min-h-screen bg-zinc-950 text-white">
+          <ViewTracker eventId={event.id} />
 
         {/* Subtle gradient */}
         <div className="fixed inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black pointer-events-none" />
@@ -892,17 +906,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             )}
           </div>
         </div>
-      </div>
-    )
-  }
+        </div>
+      )
+    }
 
-  // ============================================
-  // TILT TEMPLATE - Chaotic, rotated, high energy
-  // ============================================
-  if (pageTheme === 'tilt') {
-    return (
-      <div className="min-h-screen bg-black text-white overflow-hidden">
-        <ViewTracker eventId={event.id} />
+    // ============================================
+    // TILT TEMPLATE - Chaotic, rotated, high energy
+    // ============================================
+    if (pageTheme === 'tilt') {
+      return (
+        <div className="min-h-screen bg-black text-white overflow-hidden">
+          <ViewTracker eventId={event.id} />
 
         {/* Chaotic background shapes */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -1113,16 +1127,319 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </div>
           )}
         </div>
-      </div>
-    )
-  }
+        </div>
+      )
+    }
 
-  // ============================================
-  // EDITORIAL TEMPLATE - Magazine-style, sophisticated
-  // ============================================
-  return (
-    <div className="min-h-screen bg-neutral-950 text-white">
-      <ViewTracker eventId={event.id} />
+    // ============================================
+    // LUSH TEMPLATE - Warm, luxurious, community-focused
+    // ============================================
+    if (pageTheme === 'lush') {
+      return (
+        <div className="min-h-screen bg-[#0a0a0a] text-white">
+          <ViewTracker eventId={event.id} />
+
+          {/* Warm gradient overlay */}
+          <div className="fixed inset-0 pointer-events-none z-0">
+            <div
+              className="absolute inset-0 opacity-20"
+              style={{
+                background: `radial-gradient(circle at 30% 20%, ${accentColor}40 0%, transparent 50%)`
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
+          </div>
+
+          {/* Two-column layout */}
+          <div className="relative z-10 grid lg:grid-cols-[1.2fr,1fr] min-h-screen">
+            {/* Left: Flyer with backdrop blur card */}
+            <div className="relative p-4 lg:p-12 flex items-start justify-center">
+              <div className="w-full max-w-lg sticky top-12">
+                {event.flyerUrl ? (
+                  <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden group">
+                    <Image
+                      src={event.flyerUrl}
+                      alt={event.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      priority
+                    />
+                    {/* Subtle overlay on hover */}
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      style={{
+                        background: `linear-gradient(180deg, transparent 0%, ${accentColor}20 100%)`
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="w-full aspect-[3/4] rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/10"
+                    style={{ backgroundColor: `${accentColor}15` }}
+                  >
+                    <span className={`${typographyClass} text-8xl font-bold`} style={{ color: accentColor }}>
+                      {event.title.charAt(0)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Quick info card below flyer */}
+                <div className="mt-6 p-6 rounded-xl backdrop-blur-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4" style={{ color: accentColor }} />
+                      <span className="text-sm font-medium">{dayStr}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" style={{ color: accentColor }} />
+                      <span className="text-sm font-medium">{timeStr}</span>
+                    </div>
+                  </div>
+                  {showLocation && (
+                    <div className="flex items-start gap-2 pt-4 border-t border-white/10">
+                      <MapPin className="w-4 h-4 mt-0.5" style={{ color: accentColor }} />
+                      <div className="text-sm">
+                        <div className="font-medium">{event.venueName}</div>
+                        {locationPrecision === 'exact' && (
+                          <div className="text-white/60 text-xs mt-0.5">{event.venueAddress}</div>
+                        )}
+                        <div className="text-white/40 text-xs mt-0.5">
+                          {event.city}{event.state ? `, ${event.state}` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Event details */}
+            <div className="relative p-6 lg:p-12 lg:pt-12">
+              {/* Organizer badge */}
+              <div className="flex items-center gap-3 mb-8">
+                {event.organizer.logoUrl ? (
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20">
+                    <Image
+                      src={event.organizer.logoUrl}
+                      alt={event.organizer.displayName}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                    style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
+                  >
+                    {event.organizer.displayName.charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <div className="text-sm font-medium">{event.organizer.displayName}</div>
+                  <div className="text-xs text-white/40">Event Organizer</div>
+                </div>
+              </div>
+
+              {/* Event title */}
+              <h1 className={`${typographyClass} text-4xl lg:text-6xl font-bold mb-6 leading-tight`}>
+                {event.title}
+              </h1>
+
+              {/* Description */}
+              {event.description && (
+                <div className="mb-8 text-white/70 leading-relaxed">
+                  {event.description}
+                </div>
+              )}
+
+              {/* Lineup */}
+              {lineup.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-sm uppercase tracking-widest text-white/40 mb-4">Lineup</h2>
+                  <div className="space-y-3">
+                    {lineup.map((artist: LineupArtist, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors duration-300"
+                      >
+                        {artist.imageUrl ? (
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden">
+                            <Image
+                              src={artist.imageUrl}
+                              alt={artist.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            className="w-12 h-12 rounded-lg flex items-center justify-center font-bold"
+                            style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+                          >
+                            {artist.name.charAt(0)}
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="font-medium">{artist.name}</div>
+                          {artist.role && (
+                            <div className="text-xs text-white/40">{artist.role}</div>
+                          )}
+                        </div>
+                        {artist.socialUrl && (
+                          <a
+                            href={artist.socialUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                          >
+                            <Instagram className="w-4 h-4" style={{ color: accentColor }} />
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Age restriction */}
+              {event.ageRestriction && (
+                <div className="mb-8 p-4 rounded-lg border border-white/10 bg-white/5">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Lock className="w-4 h-4" style={{ color: accentColor }} />
+                    <span className="text-white/60">
+                      Ages {event.ageRestriction}+
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Tickets/RSVP */}
+              <div className="space-y-4">
+                <h2 className="text-sm uppercase tracking-widest text-white/40 mb-4">
+                  {isRsvpEvent ? 'RSVP' : 'Tickets'}
+                </h2>
+
+                {isRsvpEvent ? (
+                  <div className="p-6 rounded-xl backdrop-blur-xl border border-white/10" style={{ backgroundColor: `${accentColor}10` }}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <div className="text-2xl font-bold" style={{ color: accentColor }}>Free Entry</div>
+                        <div className="text-sm text-white/60 mt-1">RSVP Required</div>
+                      </div>
+                      <Users className="w-8 h-8 opacity-20" />
+                    </div>
+                    {rsvpSpotsLeft !== null && (
+                      <div className="text-xs text-white/40 mb-4">
+                        {rsvpSpotsLeft} spots remaining
+                      </div>
+                    )}
+                    {rsvpAvailable ? (
+                      <Link
+                        href={ctaUrl}
+                        className="block w-full py-4 rounded-lg text-center font-semibold transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                        style={{
+                          backgroundColor: accentColor,
+                          color: '#000',
+                          boxShadow: `0 8px 32px ${accentColor}40`
+                        }}
+                      >
+                        RSVP Now
+                      </Link>
+                    ) : (
+                      <div className="w-full py-4 rounded-lg text-center font-semibold bg-white/5 text-white/30">
+                        RSVP Full
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {availableTiers.map((tier: TierType) => (
+                      <div
+                        key={tier.id}
+                        className="p-6 rounded-xl backdrop-blur-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold text-lg">{tier.name}</h3>
+                          <div className="text-2xl font-bold" style={{ color: accentColor }}>
+                            {tier.price === 0 ? 'Free' : formatCents(tier.price)}
+                          </div>
+                        </div>
+                        {tier.description && (
+                          <p className="text-sm text-white/60 mb-4">{tier.description}</p>
+                        )}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-white/40">
+                            {tier.quantity - tier.quantitySold} / {tier.quantity} available
+                          </span>
+                          <Ticket className="w-4 h-4 text-white/20" />
+                        </div>
+                      </div>
+                    ))}
+
+                    {hasAvailability && (
+                      <Link
+                        href={ctaUrl}
+                        className="block w-full py-5 rounded-xl text-center font-bold text-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl mt-6"
+                        style={{
+                          backgroundColor: accentColor,
+                          color: '#000',
+                          boxShadow: `0 12px 40px ${accentColor}50`
+                        }}
+                      >
+                        Get Tickets
+                      </Link>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Map */}
+              {showMap && mapEmbedUrl && (
+                <div className="mt-8">
+                  <h2 className="text-sm uppercase tracking-widest text-white/40 mb-4">Location</h2>
+                  <div className="rounded-xl overflow-hidden border border-white/10">
+                    <iframe
+                      src={mapEmbedUrl}
+                      width="100%"
+                      height="300"
+                      style={{ border: 0, filter: 'invert(0.9) grayscale(0.5)' }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Organizer social */}
+              {event.organizer.instagramUrl && (
+                <div className="mt-8 pt-8 border-t border-white/10">
+                  <a
+                    href={event.organizer.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-300 group"
+                  >
+                    <Instagram className="w-5 h-5 transition-colors" style={{ color: accentColor }} />
+                    <span className="text-sm font-medium group-hover:underline">
+                      Follow {event.organizer.displayName} on Instagram
+                    </span>
+                    <ArrowRight className="w-4 h-4 ml-auto opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // ============================================
+    // EDITORIAL TEMPLATE - Magazine-style, sophisticated (DEFAULT)
+    // ============================================
+    return (
+      <div className="min-h-screen bg-neutral-950 text-white">
+        <ViewTracker eventId={event.id} />
 
       {/* Subtle texture */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.02]">
@@ -1409,5 +1726,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
       </div>
     </div>
+    )
+  }
+
+  // Wrap with EventPageClient for live preview
+  return (
+    <EventPageClient event={event} isOwner={isOwner}>
+      {renderEventPage}
+    </EventPageClient>
   )
 }

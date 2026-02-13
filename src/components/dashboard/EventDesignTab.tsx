@@ -42,6 +42,11 @@ const TEMPLATES = [
     description: "High energy, chaotic graphics",
   },
   {
+    id: "lush",
+    name: "LUSH",
+    description: "Warm, luxurious, community-focused",
+  },
+  {
     id: "editorial",
     name: "EDITORIAL",
     description: "Magazine-style, sophisticated",
