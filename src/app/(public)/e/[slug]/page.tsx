@@ -432,7 +432,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <EventInfoSections
             about={event.about}
             refundPolicy={event.refundPolicy}
-            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            faqs={event.faqs}
             variant="brutalist"
             accentColor={accentColor}
           />
@@ -726,7 +726,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <EventInfoSections
             about={event.about}
             refundPolicy={event.refundPolicy}
-            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            faqs={event.faqs}
             variant="neon"
             accentColor={accentColor}
           />
@@ -941,7 +941,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <EventInfoSections
             about={event.about}
             refundPolicy={event.refundPolicy}
-            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            faqs={event.faqs}
             variant="minimal"
             accentColor={accentColor}
           />
@@ -1173,7 +1173,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <EventInfoSections
             about={event.about}
             refundPolicy={event.refundPolicy}
-            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            faqs={event.faqs}
             variant="tilt"
             accentColor={accentColor}
           />
@@ -1488,7 +1488,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               <EventInfoSections
                 about={event.about}
                 refundPolicy={event.refundPolicy}
-                faqs={event.faqs as Array<{question: string; answer: string}> | null}
+                faqs={event.faqs}
                 variant="lush"
                 accentColor={accentColor}
               />
@@ -1502,7 +1502,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     // NICE.AM TEMPLATE - Clean, modern, dice.fm-inspired
     // ============================================
     if (pageTheme === 'nice') {
-      const faqs = (event.faqs as Array<{question: string; answer: string}> | null) || []
+      const faqs = Array.isArray(event.faqs) ? event.faqs : []
 
       return (
         <div className="min-h-screen bg-black text-white">
@@ -1601,7 +1601,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                     <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
                       <h2 className="text-xl font-bold mb-4">FAQs</h2>
                       <div className="space-y-3">
-                        {faqs.map((faq, idx) => (
+                        {faqs.filter((faq: any) => faq && faq.question && faq.answer).map((faq: any, idx: number) => (
                           <details key={idx} className="group">
                             <summary className="flex items-center justify-between cursor-pointer p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                               <span className="font-medium pr-4">{faq.question}</span>
@@ -2078,7 +2078,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             <EventInfoSections
               about={event.about}
               refundPolicy={event.refundPolicy}
-              faqs={event.faqs as Array<{question: string; answer: string}> | null}
+              faqs={event.faqs}
               variant="default"
               accentColor={accentColor}
             />
@@ -2122,7 +2122,18 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   // Wrap with EventPageClient for live preview
   return (
-    <EventPageClient event={event} isOwner={isOwner}>
+    <EventPageClient
+      eventId={event.id}
+      initialDesign={{
+        accentColor: event.accentColor || '#ff1493',
+        typography: event.typography || 'headline',
+        pageTheme: event.pageTheme || 'neon',
+        showLocationOnPage: event.showLocationOnPage ?? false,
+        showMapOnPage: event.showMapOnPage ?? false,
+        isAddressHidden: event.isAddressHidden ?? false,
+      }}
+      isOwner={isOwner}
+    >
       {renderEventPage}
     </EventPageClient>
   )

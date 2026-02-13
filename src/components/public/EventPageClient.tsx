@@ -3,35 +3,31 @@
 import { useState } from 'react'
 import EditDesignButton from './EditDesignButton'
 
-interface EventPageClientProps {
-  event: any
-  isOwner: boolean
-  children: (design: any) => React.ReactNode
+interface DesignSettings {
+  accentColor: string
+  typography: string
+  pageTheme: string
+  showLocationOnPage: boolean
+  showMapOnPage: boolean
+  isAddressHidden: boolean
 }
 
-export default function EventPageClient({ event, isOwner, children }: EventPageClientProps) {
-  const [liveDesign, setLiveDesign] = useState({
-    accentColor: event.accentColor || '#ff1493',
-    typography: event.typography || 'headline',
-    pageTheme: event.pageTheme || 'neon',
-    showLocationOnPage: event.showLocationOnPage || false,
-    showMapOnPage: event.showMapOnPage || false,
-    isAddressHidden: event.isAddressHidden || false,
-  })
+interface EventPageClientProps {
+  eventId: string
+  initialDesign: DesignSettings
+  isOwner: boolean
+  children: (design: DesignSettings) => React.ReactNode
+}
+
+export default function EventPageClient({ eventId, initialDesign, isOwner, children }: EventPageClientProps) {
+  const [liveDesign, setLiveDesign] = useState(initialDesign)
 
   return (
     <>
       {isOwner && (
         <EditDesignButton
-          eventId={event.id}
-          initialDesign={{
-            accentColor: event.accentColor || '#ff1493',
-            typography: event.typography || 'headline',
-            pageTheme: event.pageTheme || 'neon',
-            showLocationOnPage: event.showLocationOnPage || false,
-            showMapOnPage: event.showMapOnPage || false,
-            isAddressHidden: event.isAddressHidden || false,
-          }}
+          eventId={eventId}
+          initialDesign={initialDesign}
           onDesignChange={setLiveDesign}
         />
       )}

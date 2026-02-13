@@ -10,7 +10,7 @@ interface FAQ {
 interface EventInfoSectionsProps {
   about?: string | null
   refundPolicy?: string | null
-  faqs?: FAQ[] | null
+  faqs?: any // Accept any type since it comes from Prisma JsonValue
   className?: string
   variant?: 'default' | 'brutalist' | 'neon' | 'minimal' | 'tilt' | 'lush'
   accentColor?: string
@@ -19,18 +19,18 @@ interface EventInfoSectionsProps {
 export default function EventInfoSections({
   about,
   refundPolicy,
-  faqs = [],
+  faqs,
   className = '',
   variant = 'default',
   accentColor = '#ff1493',
 }: EventInfoSectionsProps) {
+  // Safely handle faqs array
+  const faqsArray = Array.isArray(faqs) ? faqs : []
+
   // Don't render if no content
-  if (!about && !refundPolicy && (!faqs || faqs.length === 0)) {
+  if (!about && !refundPolicy && faqsArray.length === 0) {
     return null
   }
-
-  const hasContent = Boolean(about || refundPolicy || (faqs && faqs.length > 0))
-  if (!hasContent) return null
 
   // Variant-specific styles
   const getContainerClass = () => {
@@ -85,13 +85,13 @@ export default function EventInfoSections({
       )}
 
       {/* FAQs Section */}
-      {faqs && faqs.length > 0 && (
+      {faqsArray.length > 0 && (
         <div className={containerClass} style={variant === 'brutalist' ? { borderColor: accentColor } : {}}>
           <h2 className={titleClass} style={variant === 'brutalist' ? { color: accentColor } : {}}>
             FAQs
           </h2>
           <div className="space-y-3">
-            {faqs.map((faq, idx) => (
+            {faqsArray.map((faq, idx) => (
               <details key={idx} className="group">
                 <summary
                   className={`flex items-center justify-between cursor-pointer p-4 transition-colors ${

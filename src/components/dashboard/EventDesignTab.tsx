@@ -470,6 +470,103 @@ export function EventDesignTab({
           </div>
         )
 
+      case "lush":
+        return (
+          <div className="absolute inset-0 bg-[#0a0a0a] overflow-hidden">
+            {/* Warm gradient overlay - POSH-inspired */}
+            <div
+              className="absolute inset-0 opacity-40"
+              style={{
+                background: `radial-gradient(circle at 30% 20%, ${accentColor}15 0%, transparent 70%)`,
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-900/10 via-transparent to-purple-900/5" />
+
+            {/* Content - two column hint */}
+            <div className="absolute inset-0 grid grid-cols-2 gap-2 p-3">
+              {/* Left: Flyer area */}
+              <div className="relative flex items-center justify-center">
+                <div
+                  className="w-full aspect-[3/4] backdrop-blur-xl border"
+                  style={{
+                    backgroundColor: `${accentColor}05`,
+                    borderColor: `${accentColor}30`,
+                  }}
+                />
+              </div>
+
+              {/* Right: Info area */}
+              <div className="flex flex-col justify-center p-2">
+                {/* Title - warm and inviting */}
+                <div className={`text-[10px] font-bold mb-1 ${typographyClass}`} style={{ color: accentColor }}>
+                  Event Name
+                </div>
+
+                {/* Date - subtle */}
+                <div className="text-[6px] text-white/40 mb-3 tracking-wide">
+                  SAT, JAN 15 · 10PM
+                </div>
+
+                {/* Info cards hint - glassmorphic */}
+                <div className="space-y-1.5">
+                  <div className="h-4 backdrop-blur-xl bg-white/5 border border-white/10" />
+                  <div className="h-4 backdrop-blur-xl bg-white/5 border border-white/10" />
+                </div>
+
+                {/* CTA - warm accent */}
+                <div
+                  className="mt-auto h-5 flex items-center justify-center backdrop-blur-xl"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  <span className="text-[6px] text-black font-bold tracking-wide">
+                    GET TICKETS
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "nice":
+        return (
+          <div className="absolute inset-0 bg-black overflow-hidden">
+            {/* Blurred background hint */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-blue-900/10 opacity-50 blur-2xl" />
+
+            {/* Content - sticky sidebar hint */}
+            <div className="absolute inset-0 grid grid-cols-[1fr,auto] gap-2 p-3">
+              {/* Left: Main content */}
+              <div className="space-y-2">
+                {/* Title */}
+                <div className={`text-[11px] font-bold ${typographyClass}`}>
+                  Event Name
+                </div>
+
+                {/* Info cards */}
+                <div className="space-y-1.5">
+                  <div className="h-6 bg-white/5 backdrop-blur-sm border border-white/10" />
+                  <div className="h-4 bg-white/5 backdrop-blur-sm border border-white/10" />
+                  <div className="h-4 bg-white/5 backdrop-blur-sm border border-white/10" />
+                </div>
+              </div>
+
+              {/* Right: Sticky sidebar hint */}
+              <div className="w-16 space-y-2">
+                {/* Flyer thumbnail */}
+                <div className="w-full aspect-square bg-white/10 border border-white/10" />
+
+                {/* CTA */}
+                <div
+                  className="h-6 flex items-center justify-center text-[6px] font-bold text-black"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  RSVP
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
       default:
         return null
     }

@@ -91,6 +91,10 @@ interface Event {
   rsvpAllowPlusOnes: boolean;
   rsvpMaxPlusOnes: number;
   rsvpCount: number;
+  // Event info sections
+  about: string | null;
+  refundPolicy: string | null;
+  faqs: Array<{question: string; answer: string}> | null;
 }
 
 function EventDashboardContent({
