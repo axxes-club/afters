@@ -270,7 +270,15 @@ model Event {
   pageTheme            String           @default("neon") // 'brutalist', 'neon', 'minimal', 'tilt', 'editorial'
   accentColor          String?          // Custom accent color (hex)
   typography           String           @default("headline") // 'mono', 'headline', 'elegant', 'modern'
+  scannerSound         String           @default("basic") // 'basic', 'lightsaber', 'pewpew', 'farts', 'ding', 'cashregister'
   hasGuestlist         Boolean          @default(false) // Enable guestlist for this event
+
+  // Event type: TICKETED vs RSVP
+  isRsvpOnly           Boolean          @default(false) // True = RSVP event, False = Ticketed event
+  rsvpCapacity         Int?             // Max RSVPs allowed (null = unlimited)
+  rsvpAllowPlusOnes    Boolean          @default(false) // Allow guests to bring +1s
+  rsvpMaxPlusOnes      Int              @default(1) // Max +1s per RSVP
+  rsvpCount            Int              @default(0) // Current RSVP count
 
   // Location Broadcasting Settings (exclusivity controls)
   showLocationOnPage   Boolean          @default(false) // Show location on public event page
@@ -295,6 +303,7 @@ model Event {
   scanners             EventScanner[]
   scanLogs             ScanLog[]
   guestlistEntries     GuestlistEntry[]
+  rsvps                Rsvp[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -407,6 +416,34 @@ model GuestlistEntry {
 
   @@index([eventId])
   @@index([phone])
+}
+
+// RSVP entries for RSVP-only events
+model Rsvp {
+  id          String    @id @default(cuid())
+  eventId     String
+  name        String
+  email       String
+  phone       String?
+  plusOnes    Int       @default(0) // Number of +1s they're bringing
+  message     String?   // Optional message from guest
+  status      RsvpStatus @default(CONFIRMED)
+  checkedInAt DateTime?
+  checkedInBy String?   // Scanner ID who checked them in
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, email])
+  @@index([eventId])
+  @@index([email])
+}
+
+enum RsvpStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+  CHECKED_IN
 }
 
 model EventView {

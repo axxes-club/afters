@@ -32,37 +32,47 @@ export async function GET(req: Request) {
         },
       })
 
+      // Add RSVP fields to response
+      if (event) {
+        return NextResponse.json([{
+          ...event,
+          isRsvpOnly: event.isRsvpOnly,
+          rsvpCapacity: event.rsvpCapacity,
+          rsvpAllowPlusOnes: event.rsvpAllowPlusOnes,
+          rsvpMaxPlusOnes: event.rsvpMaxPlusOnes,
+          rsvpCount: event.rsvpCount,
+        }])
+      }
+
       // Second try: parse combined slug (organizer-slug + event-slug)
-      if (!event) {
-        const organizers = await prisma.organizerProfile.findMany({
-          select: { slug: true, id: true },
-        })
-        
-        for (const org of organizers) {
-          if (slug.startsWith(org.slug + '-')) {
-            const eventSlug = slug.slice(org.slug.length + 1)
-            event = await prisma.event.findFirst({
-              where: {
-                isPublished: true,
-                slug: eventSlug,
-                organizerId: org.id,
-              },
-              include: {
-                organizer: {
-                  select: {
-                    displayName: true,
-                    slug: true,
-                    stripeChargesEnabled: true,
-                  },
-                },
-                ticketTiers: {
-                  where: { isVisible: true },
-                  orderBy: { sortOrder: "asc" },
+      const organizers = await prisma.organizerProfile.findMany({
+        select: { slug: true, id: true },
+      })
+
+      for (const org of organizers) {
+        if (slug.startsWith(org.slug + '-')) {
+          const eventSlug = slug.slice(org.slug.length + 1)
+          event = await prisma.event.findFirst({
+            where: {
+              isPublished: true,
+              slug: eventSlug,
+              organizerId: org.id,
+            },
+            include: {
+              organizer: {
+                select: {
+                  displayName: true,
+                  slug: true,
+                  stripeChargesEnabled: true,
                 },
               },
-            })
-            if (event) break
-          }
+              ticketTiers: {
+                where: { isVisible: true },
+                orderBy: { sortOrder: "asc" },
+              },
+            },
+          })
+          if (event) break
         }
       }
 
@@ -70,7 +80,14 @@ export async function GET(req: Request) {
         return NextResponse.json([], { status: 200 })
       }
 
-      return NextResponse.json([event])
+      return NextResponse.json([{
+        ...event,
+        isRsvpOnly: event.isRsvpOnly,
+        rsvpCapacity: event.rsvpCapacity,
+        rsvpAllowPlusOnes: event.rsvpAllowPlusOnes,
+        rsvpMaxPlusOnes: event.rsvpMaxPlusOnes,
+        rsvpCount: event.rsvpCount,
+      }])
     }
 
     const events = await prisma.event.findMany({
@@ -148,6 +165,11 @@ export async function POST(req: Request) {
       lineup,
       pageTheme,
       accentColor,
+      // RSVP settings
+      isRsvpOnly,
+      rsvpCapacity,
+      rsvpAllowPlusOnes,
+      rsvpMaxPlusOnes,
     } = body
 
     if (!title || !startsAt || !venueName || !venueAddress || !city) {
@@ -200,6 +222,11 @@ export async function POST(req: Request) {
         externalTicketingUrl: normalizedExternalUrl,
         // Underground features
         isAddressHidden: isAddressHidden || false,
+        // RSVP settings
+        isRsvpOnly: isRsvpOnly || false,
+        rsvpCapacity: rsvpCapacity ? parseInt(rsvpCapacity) : null,
+        rsvpAllowPlusOnes: rsvpAllowPlusOnes || false,
+        rsvpMaxPlusOnes: rsvpMaxPlusOnes ? parseInt(rsvpMaxPlusOnes) : 1,
         lineup: lineup || null,
         pageTheme: pageTheme || 'default',
         accentColor: accentColor || null,

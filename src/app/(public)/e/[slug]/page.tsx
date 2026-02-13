@@ -47,6 +47,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       showLocationOnPage: true,
       showMapOnPage: true,
       locationPrecision: true,
+      isRsvpOnly: true,
+      rsvpCapacity: true,
+      rsvpAllowPlusOnes: true,
+      rsvpMaxPlusOnes: true,
+      rsvpCount: true,
       organizer: {
         select: {
           displayName: true,
@@ -99,6 +104,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             showLocationOnPage: true,
             showMapOnPage: true,
             locationPrecision: true,
+            isRsvpOnly: true,
+            rsvpCapacity: true,
+            rsvpAllowPlusOnes: true,
+            rsvpMaxPlusOnes: true,
+            rsvpCount: true,
             organizer: {
               select: {
                 displayName: true,
@@ -138,6 +148,19 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     (sum: number, tier: TierType) => sum + (tier.quantity - tier.quantitySold),
     0
   )
+
+  // RSVP event logic
+  const isRsvpEvent = event.isRsvpOnly
+  const rsvpAvailable = isRsvpEvent
+    ? (event.rsvpCapacity === null || event.rsvpCount < event.rsvpCapacity)
+    : false
+  const rsvpSpotsLeft = isRsvpEvent && event.rsvpCapacity
+    ? event.rsvpCapacity - event.rsvpCount
+    : null
+  const ctaUrl = isRsvpEvent ? `/e/${combinedSlug}/rsvp` : `/e/${combinedSlug}/checkout`
+  const ctaText = isRsvpEvent ? 'RSVP' : 'GET TICKETS'
+  const ctaTextLower = isRsvpEvent ? 'RSVP' : 'Reserve'
+  const hasAvailability = isRsvpEvent ? rsvpAvailable : totalAvailable > 0
 
   const lineup = (event.lineup as LineupArtist[] | null) || []
   const accentColor = event.accentColor || '#ff1493'
@@ -344,9 +367,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
             {/* CTA */}
             <div className="mt-auto">
-              {totalAvailable > 0 ? (
+              {hasAvailability ? (
                 <Link
-                  href={`/e/${combinedSlug}/checkout`}
+                  href={ctaUrl}
                   className="block w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 hover:text-black transition-colors"
                   style={{
                     borderColor: accentColor,
@@ -355,11 +378,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = accentColor}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  GET TICKETS →
+                  {ctaText} →
                 </Link>
               ) : (
                 <div className="w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 border-white/20 text-white/30">
-                  SOLD OUT
+                  {isRsvpEvent ? 'FULL' : 'SOLD OUT'}
                 </div>
               )}
             </div>
@@ -368,17 +391,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
         {/* Mobile sticky CTA */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-black border-t-4 z-50" style={{ borderColor: accentColor }}>
-          {totalAvailable > 0 ? (
+          {hasAvailability ? (
             <Link
-              href={`/e/${combinedSlug}/checkout`}
+              href={ctaUrl}
               className="block w-full p-4 text-center font-black tracking-widest uppercase"
               style={{ backgroundColor: accentColor, color: '#000' }}
             >
-              GET TICKETS // {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
+              {ctaText} // {isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
             </Link>
           ) : (
             <div className="w-full p-4 text-center font-black tracking-widest uppercase bg-white/10 text-white/30">
-              SOLD OUT
+              {isRsvpEvent ? 'FULL' : 'SOLD OUT'}
             </div>
           )}
         </div>
@@ -615,9 +638,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </div>
 
           {/* CTA */}
-          {totalAvailable > 0 ? (
+          {hasAvailability ? (
             <Link
-              href={`/e/${combinedSlug}/checkout`}
+              href={ctaUrl}
               className="px-12 py-4 text-lg tracking-wider flex items-center gap-3 transition-all hover:scale-105"
               style={{
                 backgroundColor: accentColor,
@@ -625,23 +648,19 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 boxShadow: `0 0 40px ${accentColor}50`,
               }}
             >
-              <Ticket className="w-5 h-5" />
-              GET TICKETS
+              {!isRsvpEvent && <Ticket className="w-5 h-5" />}
+              {isRsvpEvent && <Users className="w-5 h-5" />}
+              {ctaText}
             </Link>
           ) : (
             <div className="px-12 py-4 text-lg tracking-wider bg-white/10 text-white/30">
-              SOLD OUT
+              {isRsvpEvent ? 'FULL' : 'SOLD OUT'}
             </div>
           )}
 
           {/* Footer */}
           <footer className="mt-auto pt-20 text-center text-white/30 text-sm">
-            <Link href="/" className={`${typographyClass} text-xl hover:text-white transition-colors`}>
-              AFTERS<span style={{ color: accentColor }}>.</span>
-            </Link>
-            <div className="mt-2">
-              <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
-            </div>
+            <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
           </footer>
         </div>
 
@@ -649,22 +668,23 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-black/95 backdrop-blur border-t border-white/10 z-50">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs text-white/40">From</div>
+              <div className="text-xs text-white/40">{isRsvpEvent ? 'Entry' : 'From'}</div>
               <div className={`${typographyClass} text-xl`} style={{ color: accentColor }}>
-                {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
+                {isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
               </div>
             </div>
-            {totalAvailable > 0 ? (
+            {hasAvailability ? (
               <Link
-                href={`/e/${combinedSlug}/checkout`}
+                href={ctaUrl}
                 className="px-6 py-3 flex items-center gap-2"
                 style={{ backgroundColor: accentColor, color: '#000' }}
               >
-                <Ticket className="w-4 h-4" />
-                GET TICKETS
+                {!isRsvpEvent && <Ticket className="w-4 h-4" />}
+                {isRsvpEvent && <Users className="w-4 h-4" />}
+                {ctaText}
               </Link>
             ) : (
-              <div className="px-6 py-3 bg-white/10 text-white/30">SOLD OUT</div>
+              <div className="px-6 py-3 bg-white/10 text-white/30">{isRsvpEvent ? 'FULL' : 'SOLD OUT'}</div>
             )}
           </div>
         </div>
@@ -684,14 +704,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <div className="fixed inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black pointer-events-none" />
 
         <div className="relative z-10">
-          {/* Top nav */}
-          <nav className="flex items-center justify-between p-6 md:p-8">
-            <Link href="/" className={`${typographyClass} text-lg text-white/40 hover:text-white transition-colors`}>
-              afters<span style={{ color: accentColor }}>.</span>
-            </Link>
-            <span className="text-sm text-white/30">{event.organizer.displayName}</span>
-          </nav>
-
           {/* Main content - asymmetric layout */}
           <main className="px-6 md:px-12 lg:px-24 py-12 md:py-20">
             <div className="max-w-7xl mx-auto">
@@ -830,17 +842,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                       })}
                     </div>
 
-                    {totalAvailable > 0 ? (
+                    {hasAvailability ? (
                       <Link
-                        href={`/e/${combinedSlug}/checkout`}
+                        href={ctaUrl}
                         className="w-full block py-4 text-center text-black transition-opacity hover:opacity-90"
                         style={{ backgroundColor: accentColor }}
                       >
-                        Reserve
+                        {ctaTextLower}
                       </Link>
                     ) : (
                       <div className="w-full py-4 text-center bg-white/5 text-white/30">
-                        Sold Out
+                        {isRsvpEvent ? 'Full' : 'Sold Out'}
                       </div>
                     )}
                   </div>
@@ -862,21 +874,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/95 backdrop-blur border-t border-white/5 z-50">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs text-white/30">from</div>
+              <div className="text-xs text-white/30">{isRsvpEvent ? 'entry' : 'from'}</div>
               <div className="text-lg" style={{ color: accentColor }}>
-                {lowestPrice === 0 ? 'Free' : formatCents(lowestPrice)}
+                {isRsvpEvent ? 'Free' : (lowestPrice === 0 ? 'Free' : formatCents(lowestPrice))}
               </div>
             </div>
-            {totalAvailable > 0 ? (
+            {hasAvailability ? (
               <Link
-                href={`/e/${combinedSlug}/checkout`}
+                href={ctaUrl}
                 className="px-8 py-3 text-black"
                 style={{ backgroundColor: accentColor }}
               >
-                Reserve
+                {ctaTextLower}
               </Link>
             ) : (
-              <div className="px-8 py-3 bg-white/5 text-white/30">Sold Out</div>
+              <div className="px-8 py-3 bg-white/5 text-white/30">{isRsvpEvent ? 'Full' : 'Sold Out'}</div>
             )}
           </div>
         </div>
@@ -914,26 +926,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
 
         <div className="relative z-10">
-          {/* Header - tilted */}
-          <header className="p-6 md:p-10">
-            <div className="flex items-center justify-between -rotate-2">
-              <div className="flex items-center gap-4">
-                {event.organizer.logoUrl && (
-                  <div className="relative w-10 h-10 overflow-hidden border-2 rotate-6" style={{ borderColor: accentColor }}>
-                    <Image src={event.organizer.logoUrl} alt={event.organizer.displayName} fill className="object-cover" />
-                  </div>
-                )}
-                <span className="font-mono text-sm uppercase tracking-wider">{event.organizer.displayName}</span>
-              </div>
-              <div
-                className="px-4 py-2 font-mono text-xs uppercase tracking-wider rotate-3"
-                style={{ backgroundColor: accentColor, color: '#000' }}
-              >
-                {dateStr}
-              </div>
-            </div>
-          </header>
-
           {/* Main content - chaotic grid */}
           <main className="px-6 md:px-10 py-10">
             {/* Title - large, tilted */}
@@ -1080,17 +1072,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
             {/* CTA */}
             <div className="text-center mb-20">
-              {totalAvailable > 0 ? (
+              {hasAvailability ? (
                 <Link
-                  href={`/e/${combinedSlug}/checkout`}
+                  href={ctaUrl}
                   className={`inline-block px-16 py-6 ${typographyClass} text-2xl font-black uppercase -rotate-2 hover:rotate-0 transition-transform`}
                   style={{ backgroundColor: accentColor, color: '#000' }}
                 >
-                  GET TICKETS NOW
+                  {isRsvpEvent ? 'RSVP NOW' : 'GET TICKETS NOW'}
                 </Link>
               ) : (
                 <div className={`inline-block px-16 py-6 ${typographyClass} text-2xl font-black uppercase -rotate-2 bg-white/10 text-white/30`}>
-                  SOLD OUT
+                  {isRsvpEvent ? 'FULL' : 'SOLD OUT'}
                 </div>
               )}
             </div>
@@ -1107,17 +1099,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
         {/* Mobile sticky CTA */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-black border-t-4 z-50" style={{ borderColor: accentColor }}>
-          {totalAvailable > 0 ? (
+          {hasAvailability ? (
             <Link
-              href={`/e/${combinedSlug}/checkout`}
+              href={ctaUrl}
               className="block w-full py-4 text-center font-black text-xl uppercase"
               style={{ backgroundColor: accentColor, color: '#000' }}
             >
-              GET TICKETS // {lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice)}
+              {ctaText} // {isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
             </Link>
           ) : (
             <div className="w-full py-4 text-center font-black text-xl uppercase bg-white/10 text-white/30">
-              SOLD OUT
+              {isRsvpEvent ? 'FULL' : 'SOLD OUT'}
             </div>
           )}
         </div>
@@ -1143,23 +1135,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       </div>
 
       <div className="relative z-10">
-        {/* Magazine-style header */}
-        <header className="border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 flex items-center justify-between">
-            <Link href="/" className={`${typographyClass} text-xl tracking-tight`}>
-              AFTERS<span style={{ color: accentColor }}>.</span>
-            </Link>
-            <div className="flex items-center gap-6 text-sm">
-              <span className="text-white/40">{event.organizer.displayName}</span>
-              {event.organizer.instagramUrl && (
-                <a href={event.organizer.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white">
-                  <Instagram className="w-4 h-4" />
-                </a>
-              )}
-            </div>
-          </div>
-        </header>
-
         {/* Hero - full-width image with editorial overlay */}
         <section className="relative">
           {event.flyerUrl ? (
@@ -1182,12 +1157,19 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           {/* Editorial text overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-16">
             <div className="max-w-7xl mx-auto">
-              {/* Category tag */}
-              <div
-                className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4"
-                style={{ color: accentColor }}
-              >
-                Music Event
+              {/* Organizer tag */}
+              <div className="flex items-center gap-3 mb-4">
+                {event.organizer.logoUrl && (
+                  <div className="relative w-6 h-6 rounded-full overflow-hidden border border-white/20">
+                    <Image src={event.organizer.logoUrl} alt={event.organizer.displayName} fill className="object-cover" />
+                  </div>
+                )}
+                <span
+                  className="font-mono text-[10px] tracking-[0.4em] uppercase"
+                  style={{ color: accentColor }}
+                >
+                  {event.organizer.displayName}
+                </span>
               </div>
 
               {/* Title - editorial split */}
@@ -1356,17 +1338,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
                   {/* CTA */}
                   <div className="p-6 pt-0">
-                    {totalAvailable > 0 ? (
+                    {hasAvailability ? (
                       <Link
-                        href={`/e/${combinedSlug}/checkout`}
+                        href={ctaUrl}
                         className="w-full block py-4 text-center text-black font-medium transition-opacity hover:opacity-90"
                         style={{ backgroundColor: accentColor }}
                       >
-                        Get Tickets
+                        {isRsvpEvent ? 'RSVP' : 'Get Tickets'}
                       </Link>
                     ) : (
                       <div className="w-full py-4 text-center bg-white/5 text-white/30">
-                        Sold Out
+                        {isRsvpEvent ? 'Full' : 'Sold Out'}
                       </div>
                     )}
                   </div>
@@ -1397,15 +1379,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
         {/* Footer */}
         <footer className="border-t border-white/10 py-8 px-6 md:px-12">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <Link href="/" className={`${typographyClass} text-xl text-white/40 hover:text-white transition-colors`}>
-              AFTERS<span style={{ color: accentColor }}>.</span>
-            </Link>
-            <div className="flex items-center gap-6 text-sm text-white/30">
-              <span>&copy; {new Date().getFullYear()} Afters</span>
-              <span className="w-1 h-1 rounded-full bg-white/20" />
-              <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
-            </div>
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/30">
+            <span>&copy; {new Date().getFullYear()} Afters</span>
+            <a href="https://afters.am" className="hover:text-white transition-colors">afters.am</a>
           </div>
         </footer>
       </div>
@@ -1414,21 +1390,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-neutral-950/95 backdrop-blur border-t border-white/10 z-50">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-xs text-white/40">From</div>
+            <div className="text-xs text-white/40">{isRsvpEvent ? 'Entry' : 'From'}</div>
             <div className={`${typographyClass} text-xl`} style={{ color: accentColor }}>
-              {lowestPrice === 0 ? 'Free' : formatCents(lowestPrice)}
+              {isRsvpEvent ? 'Free' : (lowestPrice === 0 ? 'Free' : formatCents(lowestPrice))}
             </div>
           </div>
-          {totalAvailable > 0 ? (
+          {hasAvailability ? (
             <Link
-              href={`/e/${combinedSlug}/checkout`}
+              href={ctaUrl}
               className="px-8 py-3 text-black font-medium"
               style={{ backgroundColor: accentColor }}
             >
-              Get Tickets
+              {isRsvpEvent ? 'RSVP' : 'Get Tickets'}
             </Link>
           ) : (
-            <div className="px-8 py-3 bg-white/5 text-white/30">Sold Out</div>
+            <div className="px-8 py-3 bg-white/5 text-white/30">{isRsvpEvent ? 'Full' : 'Sold Out'}</div>
           )}
         </div>
       </div>

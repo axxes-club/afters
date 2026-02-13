@@ -70,6 +70,12 @@ function NewEventForm() {
   const [accentColor, setAccentColor] = useState<string>("#ff1493")
   const [lineup, setLineup] = useState<LineupArtist[]>([])
 
+  // Event type: Ticketed vs RSVP
+  const [isRsvpOnly, setIsRsvpOnly] = useState(false)
+  const [rsvpCapacity, setRsvpCapacity] = useState<string>("")
+  const [rsvpAllowPlusOnes, setRsvpAllowPlusOnes] = useState(false)
+  const [rsvpMaxPlusOnes, setRsvpMaxPlusOnes] = useState<string>("1")
+
   // Expandable sections
   const [showLineup, setShowLineup] = useState(false)
   const [showStyle, setShowStyle] = useState(false)
@@ -116,6 +122,11 @@ function NewEventForm() {
       isAddressHidden,
       accentColor,
       lineup: cleanLineup.length > 0 ? cleanLineup : null,
+      // RSVP settings
+      isRsvpOnly,
+      rsvpCapacity: rsvpCapacity ? parseInt(rsvpCapacity) : null,
+      rsvpAllowPlusOnes,
+      rsvpMaxPlusOnes: parseInt(rsvpMaxPlusOnes),
     }
 
     try {
@@ -131,7 +142,7 @@ function NewEventForm() {
       }
 
       const event = await res.json()
-      toast.success("Event created! Now add ticket tiers.")
+      toast.success(isRsvpOnly ? "RSVP event created!" : "Event created! Now add ticket tiers.")
       router.push(`/d/events/${event.id}`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong")
@@ -175,6 +186,120 @@ function NewEventForm() {
                   <FlyerUpload value={flyerUrl} onChange={setFlyerUrl} disabled={loading} />
                 </SectionCard>
               </div>
+
+              {/* Event Type Selector */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsRsvpOnly(false)}
+                  className={`p-4 border transition-all text-left ${
+                    !isRsvpOnly
+                      ? "border-[#ff1493]/50 bg-[#ff1493]/5"
+                      : "border-white/10 hover:border-white/20"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <svg className={`w-5 h-5 ${!isRsvpOnly ? "text-[#ff1493]" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                    </svg>
+                    <span className={`font-mono text-sm font-bold ${!isRsvpOnly ? "text-white" : "text-white/60"}`}>
+                      TICKETED
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono">
+                    Sell tickets with multiple tiers and pricing
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsRsvpOnly(true)}
+                  className={`p-4 border transition-all text-left ${
+                    isRsvpOnly
+                      ? "border-[#00ff88]/50 bg-[#00ff88]/5"
+                      : "border-white/10 hover:border-white/20"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <svg className={`w-5 h-5 ${isRsvpOnly ? "text-[#00ff88]" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={`font-mono text-sm font-bold ${isRsvpOnly ? "text-white" : "text-white/60"}`}>
+                      RSVP ONLY
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono">
+                    Free event with guest list management
+                  </p>
+                </button>
+              </div>
+
+              {/* RSVP Settings (when RSVP is selected) */}
+              {isRsvpOnly && (
+                <SectionCard
+                  icon={<Users className="w-4 h-4" />}
+                  title="RSVP SETTINGS"
+                  color="#00ff88"
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                        CAPACITY (leave empty for unlimited)
+                      </label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={rsvpCapacity}
+                        onChange={(e) => setRsvpCapacity(e.target.value)}
+                        placeholder="e.g., 100"
+                        className="h-12 bg-black border-white/10 font-mono placeholder:text-white/20 focus:border-white/30 focus:ring-0"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
+                      className={`w-full flex items-center justify-between p-4 border transition-all ${
+                        rsvpAllowPlusOnes
+                          ? "border-[#00ff88]/50 bg-[#00ff88]/5"
+                          : "border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Users className={`w-4 h-4 ${rsvpAllowPlusOnes ? "text-[#00ff88]" : "text-white/30"}`} />
+                        <div className="text-left">
+                          <p className="font-mono text-sm">Allow +1s</p>
+                          <p className="text-[10px] text-white/40 font-mono">
+                            Let guests bring additional people
+                          </p>
+                        </div>
+                      </div>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Switch checked={rsvpAllowPlusOnes} onCheckedChange={setRsvpAllowPlusOnes} />
+                      </div>
+                    </button>
+
+                    {rsvpAllowPlusOnes && (
+                      <div>
+                        <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                          MAX +1s PER GUEST
+                        </label>
+                        <Select value={rsvpMaxPlusOnes} onValueChange={setRsvpMaxPlusOnes}>
+                          <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-black border-white/10">
+                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4">4</SelectItem>
+                            <SelectItem value="5">5</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </SectionCard>
+              )}
 
               {/* Event Details */}
               <SectionCard
@@ -526,7 +651,10 @@ function NewEventForm() {
 
                 {/* Help Text */}
                 <p className="text-[10px] text-white/30 font-mono text-center px-4">
-                  You&apos;ll add ticket tiers after creating the event
+                  {isRsvpOnly
+                    ? "RSVP event - guests will register without payment"
+                    : "You'll add ticket tiers after creating the event"
+                  }
                 </p>
               </div>
             </div>

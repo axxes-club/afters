@@ -33,11 +33,12 @@ export async function POST(req: NextRequest) {
       },
       include: {
         event: {
-          select: { 
-            id: true, 
-            title: true, 
+          select: {
+            id: true,
+            title: true,
             startsAt: true,
             hasGuestlist: true,
+            scannerSound: true,
             _count: {
               select: { tickets: true }
             },
@@ -78,6 +79,7 @@ export async function POST(req: NextRequest) {
         eventId: scanner.eventId,
         eventTitle: scanner.event.title,
         hasGuestlist: scanner.event.hasGuestlist,
+        scannerSound: scanner.event.scannerSound || "basic",
       },
       stats: {
         scanned: scanner.event.tickets.length,

@@ -73,7 +73,7 @@ async function main() {
   console.log('Created order:', order.orderNumber)
 
   for (let i = 0; i < 2; i++) {
-    const ticketNumber = `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+    const ticketNumber = `AFT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
     const ticket = await prisma.ticket.create({
       data: {
         ticketNumber,

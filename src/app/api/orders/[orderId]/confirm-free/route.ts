@@ -78,7 +78,7 @@ export async function POST(
     // Generate tickets for each order item
     for (const item of updatedOrder.items) {
       for (let i = 0; i < item.quantity; i++) {
-        const ticketNumber = `TKT-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+        const ticketNumber = `AFT-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`
 
         const ticket = await prisma.ticket.create({
           data: {

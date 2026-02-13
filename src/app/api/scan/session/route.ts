@@ -15,6 +15,7 @@ export async function GET() {
       select: {
         title: true,
         hasGuestlist: true,
+        scannerSound: true,
         _count: {
           select: {
             tickets: true,
@@ -39,6 +40,7 @@ export async function GET() {
         name: session.name,
         eventTitle: event?.title || "",
         hasGuestlist: event?.hasGuestlist || false,
+        scannerSound: event?.scannerSound || "basic",
       },
       stats: {
         scanned: event?.tickets.length || 0,

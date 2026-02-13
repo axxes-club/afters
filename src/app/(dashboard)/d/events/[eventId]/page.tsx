@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, use, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,8 @@ import { ShiftHistory } from "@/components/dashboard/ShiftHistory";
 import { GuestlistManagement } from "@/components/guestlist-management";
 import { EventDesignTab } from "@/components/dashboard/EventDesignTab"
 import { EventLocationSettings } from "@/components/dashboard/EventLocationSettings";
+import { EventRsvpSettings } from "@/components/dashboard/EventRsvpSettings";
+import { ScannerSoundSelector } from "@/components/dashboard/ScannerSoundSelector";
 
 interface TicketTier {
   id: string;
@@ -74,6 +76,7 @@ interface Event {
   pageTheme: string;
   accentColor: string | null;
   typography: string;
+  scannerSound: string;
   // Location settings
   showLocationOnPage: boolean;
   showLocationOnTicket: boolean;
@@ -82,15 +85,23 @@ interface Event {
   broadcastOnStart: boolean;
   locationPrecision: string;
   isAddressHidden: boolean;
+  // RSVP settings
+  isRsvpOnly: boolean;
+  rsvpCapacity: number | null;
+  rsvpAllowPlusOnes: boolean;
+  rsvpMaxPlusOnes: number;
+  rsvpCount: number;
 }
 
-export default function EventDashboardPage({
+function EventDashboardContent({
   params,
 }: {
   params: Promise<{ eventId: string }>;
 }) {
   const { eventId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") as "overview" | "tickets" | "door" | "design" | "settings" | null;
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [showTierDialog, setShowTierDialog] = useState(false);
@@ -110,7 +121,28 @@ export default function EventDashboardPage({
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "settings">("overview");
+  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "settings">(
+    tabParam && ["overview", "tickets", "door", "design", "settings"].includes(tabParam) ? tabParam : "overview"
+  );
+
+  // Sync tab state with URL changes
+  useEffect(() => {
+    if (tabParam && ["overview", "tickets", "door", "design", "settings"].includes(tabParam)) {
+      setActiveSection(tabParam);
+    }
+  }, [tabParam]);
+
+  // Function to change tabs and update URL
+  function changeTab(tab: "overview" | "tickets" | "door" | "design" | "settings") {
+    setActiveSection(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "overview") {
+      params.delete("tab");
+    } else {
+      params.set("tab", tab);
+    }
+    router.push(`/d/events/${eventId}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+  }
 
   useEffect(() => {
     fetchEvent();
@@ -471,7 +503,7 @@ export default function EventDashboardPage({
           ) : (
             <button
               onClick={() => setShowPublishDialog(true)}
-              disabled={publishing || event.ticketTiers.length === 0}
+              disabled={publishing || (!event.isRsvpOnly && event.ticketTiers.length === 0)}
               className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -488,14 +520,14 @@ export default function EventDashboardPage({
         >
         {[
           { id: "overview" as const, label: "OVERVIEW" },
-          { id: "tickets" as const, label: "TICKETS" },
+          ...(!event.isRsvpOnly ? [{ id: "tickets" as const, label: "TICKETS" }] : []),
           { id: "door" as const, label: "DOOR" },
           { id: "design" as const, label: "DESIGN" },
           { id: "settings" as const, label: "SETTINGS" },
         ].map((section) => (
           <button
             key={section.id}
-            onClick={() => setActiveSection(section.id)}
+            onClick={() => changeTab(section.id)}
             className={`px-3 sm:px-4 py-2.5 text-xs font-mono tracking-wider transition-colors border-b-2 -mb-[1px] whitespace-nowrap ${
               activeSection === section.id
                 ? "text-[#ff1493] border-[#ff1493]"
@@ -513,18 +545,30 @@ export default function EventDashboardPage({
         <div className="space-y-6">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard
-              label="TICKETS SOLD"
-              value={`${totalSold}/${totalCapacity}`}
-              icon={<Ticket className="w-4 h-4" />}
-              progress={totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0}
-              highlight
-            />
-            <StatCard
-              label="REVENUE"
-              value={formatCents(totalRevenue)}
-              icon={<DollarSign className="w-4 h-4" />}
-            />
+            {event.isRsvpOnly ? (
+              <StatCard
+                label="RSVPS"
+                value={`${event.rsvpCount}${event.rsvpCapacity ? `/${event.rsvpCapacity}` : ''}`}
+                icon={<UserCheck className="w-4 h-4" />}
+                progress={event.rsvpCapacity ? (event.rsvpCount / event.rsvpCapacity) * 100 : 0}
+                highlight
+              />
+            ) : (
+              <StatCard
+                label="TICKETS SOLD"
+                value={`${totalSold}/${totalCapacity}`}
+                icon={<Ticket className="w-4 h-4" />}
+                progress={totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0}
+                highlight
+              />
+            )}
+            {!event.isRsvpOnly && (
+              <StatCard
+                label="REVENUE"
+                value={formatCents(totalRevenue)}
+                icon={<DollarSign className="w-4 h-4" />}
+              />
+            )}
             <StatCard
               label="CHECKED IN"
               value={`${doorStats?.checkedIn ?? 0}/${doorStats?.total ?? totalSold}`}
@@ -689,9 +733,19 @@ export default function EventDashboardPage({
 
           {/* Management Components */}
           <GuestlistManagement eventId={eventId} />
-          <ScannerManagement eventId={eventId} />
-          <ScanActivityLog eventId={eventId} />
-          <ShiftHistory eventId={eventId} />
+          {!event.isRsvpOnly && (
+            <>
+              <ScannerManagement eventId={eventId} />
+              <ScanActivityLog eventId={eventId} />
+              <ShiftHistory eventId={eventId} />
+            </>
+          )}
+
+          {/* Scanner Sound Selector */}
+          <ScannerSoundSelector
+            eventId={eventId}
+            initialSound={event.scannerSound || "basic"}
+          />
 
           {/* Test Ticket - Staff Training */}
           <Link
@@ -722,6 +776,19 @@ export default function EventDashboardPage({
 
       {activeSection === "settings" && (
         <div className="space-y-6">
+          {/* RSVP Settings (only for RSVP events) */}
+          {event.isRsvpOnly && (
+            <EventRsvpSettings
+              eventId={eventId}
+              initialSettings={{
+                isRsvpOnly: event.isRsvpOnly,
+                rsvpCapacity: event.rsvpCapacity,
+                rsvpAllowPlusOnes: event.rsvpAllowPlusOnes,
+                rsvpMaxPlusOnes: event.rsvpMaxPlusOnes,
+              }}
+            />
+          )}
+
           {/* Location Broadcasting */}
           <EventLocationSettings
             eventId={eventId}
@@ -770,7 +837,7 @@ export default function EventDashboardPage({
                 ) : (
                   <button
                     onClick={() => setShowPublishDialog(true)}
-                    disabled={publishing || event.ticketTiers.length === 0}
+                    disabled={publishing || (!event.isRsvpOnly && event.ticketTiers.length === 0)}
                     className="px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
                   >
                     PUBLISH
@@ -1249,5 +1316,21 @@ function StatCard({
         </div>
       )}
     </div>
+  );
+}
+
+export default function EventDashboardPage({
+  params,
+}: {
+  params: Promise<{ eventId: string }>;
+}) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#ff1493]/30 border-t-[#ff1493] rounded-full animate-spin" />
+      </div>
+    }>
+      <EventDashboardContent params={params} />
+    </Suspense>
   );
 }

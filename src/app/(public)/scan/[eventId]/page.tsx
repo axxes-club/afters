@@ -36,6 +36,7 @@ interface ScannerInfo {
   eventId: string
   eventTitle: string
   hasGuestlist?: boolean
+  scannerSound?: string
 }
 
 interface CheckInResult {
@@ -58,6 +59,157 @@ interface GuestlistEntry {
   plusOnes: number
   checkedIn: boolean
   checkedInAt?: string
+}
+
+// Web Audio API sound generation for scanner feedback
+function playScannerSound(soundId: string = "basic") {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const now = ctx.currentTime
+
+    switch (soundId) {
+      case "basic": {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.frequency.value = 880
+        osc.type = "sine"
+        gain.gain.setValueAtTime(0.3, now)
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
+        osc.start(now)
+        osc.stop(now + 0.15)
+        break
+      }
+      case "lightsaber": {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        const filter = ctx.createBiquadFilter()
+        osc.connect(filter)
+        filter.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = "sawtooth"
+        osc.frequency.setValueAtTime(150, now)
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1)
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.3)
+        filter.type = "lowpass"
+        filter.frequency.value = 2000
+        gain.gain.setValueAtTime(0.4, now)
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
+        osc.start(now)
+        osc.stop(now + 0.4)
+        break
+      }
+      case "pewpew": {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = "square"
+        osc.frequency.setValueAtTime(1200, now)
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.15)
+        gain.gain.setValueAtTime(0.25, now)
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
+        osc.start(now)
+        osc.stop(now + 0.15)
+        break
+      }
+      case "farts": {
+        const bufferSize = ctx.sampleRate * 0.4
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+        const data = buffer.getChannelData(0)
+        let lastOut = 0
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1
+          lastOut = (lastOut + (0.02 * white)) / 1.02
+          data[i] = lastOut * 3.5
+          if (i > bufferSize * 0.3) {
+            data[i] *= 1 - ((i - bufferSize * 0.3) / (bufferSize * 0.7))
+          }
+        }
+        const source = ctx.createBufferSource()
+        source.buffer = buffer
+        const filter = ctx.createBiquadFilter()
+        filter.type = "lowpass"
+        filter.frequency.value = 200
+        const gain = ctx.createGain()
+        source.connect(filter)
+        filter.connect(gain)
+        gain.connect(ctx.destination)
+        gain.gain.setValueAtTime(0.8, now)
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
+        source.start(now)
+        break
+      }
+      case "ding": {
+        const osc = ctx.createOscillator()
+        const osc2 = ctx.createOscillator()
+        const gain = ctx.createGain()
+        const gain2 = ctx.createGain()
+        osc.connect(gain)
+        osc2.connect(gain2)
+        gain.connect(ctx.destination)
+        gain2.connect(ctx.destination)
+        osc.type = "sine"
+        osc.frequency.value = 830
+        osc2.type = "sine"
+        osc2.frequency.value = 1660
+        gain.gain.setValueAtTime(0.4, now)
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8)
+        gain2.gain.setValueAtTime(0.2, now)
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
+        osc.start(now)
+        osc2.start(now)
+        osc.stop(now + 0.8)
+        osc2.stop(now + 0.4)
+        break
+      }
+      case "cashregister": {
+        const noise = ctx.createBufferSource()
+        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate)
+        const noiseData = noiseBuffer.getChannelData(0)
+        for (let i = 0; i < noiseData.length; i++) {
+          noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseData.length)
+        }
+        noise.buffer = noiseBuffer
+        const noiseFilter = ctx.createBiquadFilter()
+        noiseFilter.type = "highpass"
+        noiseFilter.frequency.value = 1000
+        const noiseGain = ctx.createGain()
+        noiseGain.gain.value = 0.3
+        noise.connect(noiseFilter)
+        noiseFilter.connect(noiseGain)
+        noiseGain.connect(ctx.destination)
+        noise.start(now)
+
+        const bell1 = ctx.createOscillator()
+        const bell2 = ctx.createOscillator()
+        const bellGain1 = ctx.createGain()
+        const bellGain2 = ctx.createGain()
+        bell1.type = "sine"
+        bell1.frequency.value = 2000
+        bell2.type = "sine"
+        bell2.frequency.value = 2500
+        bell1.connect(bellGain1)
+        bell2.connect(bellGain2)
+        bellGain1.connect(ctx.destination)
+        bellGain2.connect(ctx.destination)
+        bellGain1.gain.setValueAtTime(0.3, now + 0.05)
+        bellGain1.gain.exponentialRampToValueAtTime(0.01, now + 0.5)
+        bellGain2.gain.setValueAtTime(0.15, now + 0.05)
+        bellGain2.gain.exponentialRampToValueAtTime(0.01, now + 0.3)
+        bell1.start(now + 0.05)
+        bell2.start(now + 0.05)
+        bell1.stop(now + 0.5)
+        bell2.stop(now + 0.3)
+        break
+      }
+    }
+
+    setTimeout(() => ctx.close(), 1000)
+  } catch {
+    // Audio context not available
+  }
 }
 
 export default function ScannerPage({
@@ -97,6 +249,7 @@ export default function ScannerPage({
           eventId: data.scanner.eventId,
           eventTitle: data.scanner.eventTitle || "",
           hasGuestlist: data.scanner.hasGuestlist || false,
+          scannerSound: data.scanner.scannerSound || "basic",
         })
         setAuthenticated(true)
         setStats(data.stats || { scanned: 0, total: 0 })
@@ -168,6 +321,8 @@ export default function ScannerPage({
         setResult(data)
 
         if (data.valid) {
+          // Play success sound
+          playScannerSound(scanner?.scannerSound || "basic")
           toast.success(data.message)
           setStats(prev => ({ ...prev, scanned: prev.scanned + 1 }))
         } else {
@@ -259,8 +414,10 @@ export default function ScannerPage({
       const data = await res.json()
       
       if (data.valid) {
+        // Play success sound
+        playScannerSound(scanner?.scannerSound || "basic")
         toast.success(data.message)
-        setGuestlistEntries(prev => 
+        setGuestlistEntries(prev =>
           prev.map(e => e.id === entry.id ? { ...e, checkedIn: true, checkedInAt: new Date().toISOString() } : e)
         )
       } else {
@@ -401,6 +558,16 @@ export default function ScannerPage({
             }
             60% {
               opacity: 0;
+            }
+          }
+          @keyframes scanLaser {
+            0%, 100% {
+              top: 0%;
+              opacity: 0.3;
+            }
+            50% {
+              top: calc(100% - 2px);
+              opacity: 1;
             }
           }
         `}</style>
@@ -563,6 +730,16 @@ export default function ScannerPage({
           }
           60% {
             opacity: 0;
+          }
+        }
+        @keyframes scanLaser {
+          0%, 100% {
+            top: 0%;
+            opacity: 0.3;
+          }
+          50% {
+            top: calc(100% - 2px);
+            opacity: 1;
           }
         }
       `}</style>
@@ -817,14 +994,43 @@ export default function ScannerPage({
                 {/* Scan overlay */}
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50" />
-                  
-                  {/* Center crosshair */}
+
+                  {/* Center crosshair with scanning animation */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-64 h-64 relative">
+                    <div className="w-64 h-64 relative overflow-hidden">
+                      {/* Corner brackets */}
                       <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#ff1493]" />
                       <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#ff1493]" />
                       <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#ff1493]" />
                       <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#ff1493]" />
+
+                      {/* Animated scanning laser line */}
+                      <div
+                        className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#ff1493] to-transparent shadow-[0_0_10px_#ff1493,0_0_20px_#ff1493]"
+                        style={{
+                          animation: "scanLaser 2s ease-in-out infinite",
+                        }}
+                      />
+
+                      {/* Subtle grid overlay */}
+                      <div
+                        className="absolute inset-2 opacity-20"
+                        style={{
+                          backgroundImage: `
+                            linear-gradient(rgba(255,20,147,0.3) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,20,147,0.3) 1px, transparent 1px)
+                          `,
+                          backgroundSize: "20px 20px",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Scan status indicator */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-40">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-sm border border-[#ff1493]/30">
+                      <div className="w-2 h-2 bg-[#ff1493] rounded-full animate-pulse" />
+                      <span className="text-[10px] font-mono tracking-wider text-[#ff1493]">SCANNING</span>
                     </div>
                   </div>
                 </div>

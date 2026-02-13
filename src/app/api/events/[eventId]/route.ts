@@ -200,8 +200,8 @@ export async function DELETE(
     const existingEvent = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
-        _count: {
-          select: { tickets: true, orders: true },
+        orders: {
+          select: { total: true },
         },
       },
     })
@@ -210,10 +210,14 @@ export async function DELETE(
       return NextResponse.json({ message: "Event not found" }, { status: 404 })
     }
 
-    // Prevent deletion if tickets have been sold
-    if (existingEvent._count.tickets > 0) {
+    // Allow deletion if:
+    // 1. Event is RSVP only (no paid tickets)
+    // 2. All orders are free ($0 total)
+    const hasPaidOrders = existingEvent.orders.some(order => order.total > 0)
+
+    if (!existingEvent.isRsvpOnly && hasPaidOrders) {
       return NextResponse.json(
-        { message: "Cannot delete event with sold tickets" },
+        { message: "Cannot delete event with paid ticket orders. Only free/RSVP events can be deleted." },
         { status: 400 }
       )
     }
@@ -222,8 +226,12 @@ export async function DELETE(
     await prisma.$transaction([
       prisma.eventView.deleteMany({ where: { eventId } }),
       prisma.eventScanner.deleteMany({ where: { eventId } }),
+      prisma.ticket.deleteMany({ where: { eventId } }),
+      prisma.orderItem.deleteMany({ where: { order: { eventId } } }),
+      prisma.order.deleteMany({ where: { eventId } }),
       prisma.ticketTier.deleteMany({ where: { eventId } }),
       prisma.guestlistEntry.deleteMany({ where: { eventId } }),
+      prisma.rsvp.deleteMany({ where: { eventId } }),
       prisma.event.delete({ where: { id: eventId } }),
     ])
 

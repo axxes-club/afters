@@ -268,9 +268,9 @@ export default function ScannerEntryPage() {
         </div>
 
         {/* Main content - mobile only */}
-        <div className="relative z-10 min-h-screen flex flex-col px-6 py-12 safe-area-top safe-area-bottom md:hidden">
+        <div className="relative z-10 h-screen flex flex-col px-6 pt-12 pb-20 safe-area-top md:hidden overflow-hidden">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 flex-shrink-0">
             <div className="inline-flex items-center gap-3 mb-4">
               <div className="w-3 h-3 bg-[#ff1493] animate-pulse" />
               <span className="text-xs tracking-[0.4em] text-white/40 font-mono uppercase">
@@ -290,7 +290,7 @@ export default function ScannerEntryPage() {
           </div>
 
           {/* Organizer greeting */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6 flex-shrink-0">
             <div className="inline-flex items-center justify-center w-16 h-16 border-2 border-[#ff1493]/30 bg-[#ff1493]/5 mb-4">
               <User className="w-7 h-7 text-[#ff1493]" />
             </div>
@@ -302,8 +302,9 @@ export default function ScannerEntryPage() {
             </p>
           </div>
 
-          {/* Event list */}
-          <div className="flex-1 max-w-md mx-auto w-full space-y-3 overflow-y-auto">
+          {/* Event list - scrollable */}
+          <div className="flex-1 max-w-md mx-auto w-full overflow-y-auto min-h-0">
+            <div className="space-y-3 pb-4">
             {organizerEvents.map((event) => {
               const isSelecting = selectingEvent === event.id
               const eventDate = new Date(event.startsAt)
@@ -372,10 +373,11 @@ export default function ScannerEntryPage() {
                 </button>
               )
             })}
+            </div>
           </div>
 
           {/* Staff code entry link */}
-          <div className="mt-8 text-center pb-16">
+          <div className="mt-4 text-center flex-shrink-0">
             <button
               onClick={() => setIsOrganizer(false)}
               className="text-white/30 font-mono text-xs hover:text-white/50 transition-colors"

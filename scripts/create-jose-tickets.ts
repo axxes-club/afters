@@ -88,7 +88,7 @@ async function main() {
 
     // Create tickets
     for (let i = 0; i < ticketCount; i++) {
-      const ticketNumber = `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      const ticketNumber = `AFT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
       
       await prisma.ticket.create({
         data: {
