@@ -391,15 +391,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {hasAvailability ? (
                 <Link
                   href={ctaUrl}
-                  className="block w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 hover:text-black transition-colors"
+                  className="group block w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 transition-colors"
                   style={{
                     borderColor: accentColor,
-                    color: accentColor,
+                    ['--accent' as any]: accentColor,
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = accentColor}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  {ctaText} →
+                  <span
+                    className="transition-colors"
+                    style={{ color: accentColor }}
+                  >
+                    <span className="group-hover:text-black">{ctaText} →</span>
+                  </span>
+                  <style>{`
+                    .group:hover { background-color: var(--accent); }
+                  `}</style>
                 </Link>
               ) : (
                 <div className="w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 border-white/20 text-white/30">
