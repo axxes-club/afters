@@ -501,18 +501,18 @@ export function EventDesignTab({
 
         {/* Template Cards Container */}
         {/* Mobile: Carousel with snap | Desktop: Horizontal scroll grid */}
-        <div className="relative -mx-4 sm:mx-0">
+        <div className="relative overflow-hidden -mx-4 sm:mx-0">
           <div
             ref={carouselRef}
             onScroll={handleScroll}
-            className={`flex gap-3 overflow-x-auto scrollbar-hide sm:pb-2 ${isMobile ? "px-[20%]" : "px-0"}`}
+            className="flex gap-3 overflow-x-auto scrollbar-hide sm:pb-2 px-4 sm:px-0"
             style={{
               scrollSnapType: isMobile ? "x mandatory" : "none",
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {/* Mobile padding spacer */}
-            <div className="sm:hidden flex-shrink-0 w-[calc(20%-6px)]" />
+            {/* Mobile padding spacer for peek effect */}
+            <div className="sm:hidden flex-shrink-0 w-4" />
 
             {TEMPLATES.map((template, index) => {
               const isSelected = selectedTemplate === template.id
@@ -523,10 +523,7 @@ export function EventDesignTab({
                   key={template.id}
                   data-template-card
                   onClick={() => selectTemplate(template.id, index)}
-                  className="flex-shrink-0 snap-center sm:snap-none"
-                  style={{
-                    width: "clamp(200px, 60%, 280px)",
-                  }}
+                  className="flex-shrink-0 snap-center sm:snap-none w-[200px] sm:w-[220px]"
                 >
                   <div
                     className={`
@@ -579,8 +576,8 @@ export function EventDesignTab({
               )
             })}
 
-            {/* Mobile padding spacer */}
-            <div className="sm:hidden flex-shrink-0 w-[calc(20%-6px)]" />
+            {/* Mobile padding spacer for peek effect */}
+            <div className="sm:hidden flex-shrink-0 w-4" />
           </div>
 
           {/* Carousel indicators - mobile only */}
