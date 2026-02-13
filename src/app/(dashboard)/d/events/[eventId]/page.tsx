@@ -963,6 +963,7 @@ function EventDashboardContent({
           initialTemplate={event.pageTheme}
           initialTypography={event.typography}
           initialAccentColor={event.accentColor || "#ff1493"}
+          flyerUrl={event.flyerUrl}
         />
       )}
 

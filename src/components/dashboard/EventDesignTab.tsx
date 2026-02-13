@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Check, ChevronLeft, ChevronRight, Plus, Type, Palette, Layout } from "lucide-react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { Check, ChevronLeft, ChevronRight, Plus, Type, Palette, Layout, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
 const ACCENT_COLORS = [
@@ -12,6 +12,108 @@ const ACCENT_COLORS = [
   { value: "#a855f7", name: "Purple" },
   { value: "#ffd700", name: "Gold" },
 ]
+
+// Extract dominant colors from an image
+function extractColorsFromImage(imageUrl: string): Promise<string[]> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = "anonymous"
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      const ctx = canvas.getContext("2d")
+      if (!ctx) {
+        resolve([])
+        return
+      }
+
+      // Sample at lower resolution for performance
+      const sampleSize = 100
+      canvas.width = sampleSize
+      canvas.height = sampleSize
+      ctx.drawImage(img, 0, 0, sampleSize, sampleSize)
+
+      const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize)
+      const pixels = imageData.data
+
+      // Color buckets for clustering
+      const colorCounts: Map<string, { r: number; g: number; b: number; count: number }> = new Map()
+
+      for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i]
+        const g = pixels[i + 1]
+        const b = pixels[i + 2]
+        const a = pixels[i + 3]
+
+        if (a < 128) continue // Skip transparent pixels
+
+        // Quantize to reduce color space (round to nearest 32)
+        const qr = Math.round(r / 32) * 32
+        const qg = Math.round(g / 32) * 32
+        const qb = Math.round(b / 32) * 32
+
+        // Skip very dark or very light colors (not good for accents)
+        const brightness = (qr + qg + qb) / 3
+        if (brightness < 40 || brightness > 220) continue
+
+        // Skip very desaturated colors (grays)
+        const max = Math.max(qr, qg, qb)
+        const min = Math.min(qr, qg, qb)
+        const saturation = max === 0 ? 0 : (max - min) / max
+        if (saturation < 0.3) continue
+
+        const key = `${qr},${qg},${qb}`
+        const existing = colorCounts.get(key)
+        if (existing) {
+          existing.count++
+          existing.r = (existing.r + r) / 2
+          existing.g = (existing.g + g) / 2
+          existing.b = (existing.b + b) / 2
+        } else {
+          colorCounts.set(key, { r, g, b, count: 1 })
+        }
+      }
+
+      // Sort by frequency and get top colors
+      const sortedColors = Array.from(colorCounts.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8)
+
+      // Convert to hex and filter out similar colors
+      const colors: string[] = []
+      for (const color of sortedColors) {
+        const hex = rgbToHex(Math.round(color.r), Math.round(color.g), Math.round(color.b))
+
+        // Check if too similar to existing colors
+        const isSimilar = colors.some(existing => colorDistance(hex, existing) < 60)
+        if (!isSimilar) {
+          colors.push(hex)
+        }
+
+        if (colors.length >= 6) break
+      }
+
+      resolve(colors)
+    }
+
+    img.onerror = () => resolve([])
+    img.src = imageUrl
+  })
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return "#" + [r, g, b].map(x => x.toString(16).padStart(2, "0")).join("")
+}
+
+function colorDistance(hex1: string, hex2: string): number {
+  const r1 = parseInt(hex1.slice(1, 3), 16)
+  const g1 = parseInt(hex1.slice(3, 5), 16)
+  const b1 = parseInt(hex1.slice(5, 7), 16)
+  const r2 = parseInt(hex2.slice(1, 3), 16)
+  const g2 = parseInt(hex2.slice(3, 5), 16)
+  const b2 = parseInt(hex2.slice(5, 7), 16)
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2)
+}
 
 const TYPOGRAPHY_OPTIONS = [
   { id: "mono", name: "MONO", preview: "JetBrains Mono", className: "font-mono", description: "Technical, precise" },
@@ -56,6 +158,16 @@ const TEMPLATES = [
     name: "EDITORIAL",
     description: "Magazine-style, sophisticated",
   },
+  {
+    id: "card",
+    name: "CARD",
+    description: "Floating cards, modern depth",
+  },
+  {
+    id: "vapor",
+    name: "VAPOR",
+    description: "Retro-futuristic, synthwave vibes",
+  },
 ]
 
 interface EventDesignTabProps {
@@ -63,6 +175,7 @@ interface EventDesignTabProps {
   initialTemplate?: string
   initialTypography?: string
   initialAccentColor?: string
+  flyerUrl?: string | null
 }
 
 export function EventDesignTab({
@@ -70,6 +183,7 @@ export function EventDesignTab({
   initialTemplate = "neon",
   initialTypography = "headline",
   initialAccentColor = "#ff1493",
+  flyerUrl,
 }: EventDesignTabProps) {
   const [selectedTemplate, setSelectedTemplate] = useState(initialTemplate)
   const [selectedTypography, setSelectedTypography] = useState(initialTypography)
@@ -78,10 +192,31 @@ export function EventDesignTab({
   const [activeIndex, setActiveIndex] = useState(
     TEMPLATES.findIndex((t) => t.id === initialTemplate) || 0
   )
+  const [flyerColors, setFlyerColors] = useState<string[]>([])
+  const [extractingColors, setExtractingColors] = useState(false)
 
   const carouselRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+
+  // Extract colors from flyer when available
+  const extractColors = useCallback(async () => {
+    if (!flyerUrl) return
+
+    setExtractingColors(true)
+    try {
+      const colors = await extractColorsFromImage(flyerUrl)
+      setFlyerColors(colors)
+    } catch (error) {
+      console.error("Failed to extract flyer colors:", error)
+    } finally {
+      setExtractingColors(false)
+    }
+  }, [flyerUrl])
+
+  useEffect(() => {
+    extractColors()
+  }, [extractColors])
 
   // Detect mobile on mount and resize
   useEffect(() => {
@@ -567,6 +702,154 @@ export function EventDesignTab({
           </div>
         )
 
+      case "card":
+        return (
+          <div className="absolute inset-0 bg-[#0c0c0c] overflow-hidden">
+            {/* Subtle gradient background */}
+            <div
+              className="absolute inset-0 opacity-20"
+              style={{
+                background: `radial-gradient(ellipse at top, ${accentColor}15 0%, transparent 60%)`,
+              }}
+            />
+
+            {/* Floating cards layout */}
+            <div className="absolute inset-0 p-3 flex flex-col gap-2">
+              {/* Hero card - flyer */}
+              <div
+                className="flex-1 rounded-xl overflow-hidden relative"
+                style={{
+                  background: `linear-gradient(135deg, ${accentColor}10 0%, ${accentColor}05 100%)`,
+                  boxShadow: `0 8px 32px ${accentColor}10, 0 2px 8px rgba(0,0,0,0.3)`,
+                }}
+              >
+                <div className="absolute inset-0 border border-white/10 rounded-xl" />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <div className={`text-[10px] font-bold ${typographyClass}`}>Event Name</div>
+                  <div className="text-[6px] text-white/40 mt-0.5">SAT · JAN 15</div>
+                </div>
+              </div>
+
+              {/* Info cards row */}
+              <div className="flex gap-2">
+                <div
+                  className="flex-1 h-8 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <span className="text-[6px] text-white/50 font-mono">10PM</span>
+                </div>
+                <div
+                  className="flex-1 h-8 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <span className="text-[6px] text-white/50 font-mono">NYC</span>
+                </div>
+              </div>
+
+              {/* CTA card */}
+              <div
+                className="h-7 rounded-lg flex items-center justify-center"
+                style={{
+                  backgroundColor: accentColor,
+                  boxShadow: `0 4px 20px ${accentColor}40`,
+                }}
+              >
+                <span className="text-[7px] font-bold text-black tracking-wider">GET TICKETS</span>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "vapor":
+        return (
+          <div className="absolute inset-0 bg-[#0a0612] overflow-hidden">
+            {/* Vaporwave gradient background */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(180deg, #1a0a2e 0%, #0a0612 50%, ${accentColor}15 100%)`,
+              }}
+            />
+
+            {/* Scan lines effect */}
+            <div
+              className="absolute inset-0 pointer-events-none opacity-20"
+              style={{
+                backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px)',
+              }}
+            />
+
+            {/* Sun/grid element */}
+            <div
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-40"
+              style={{
+                background: `linear-gradient(180deg, ${accentColor} 0%, #ff00ff 50%, transparent 100%)`,
+                borderRadius: '100% 100% 0 0',
+                filter: 'blur(2px)',
+              }}
+            />
+
+            {/* Perspective grid lines */}
+            <div className="absolute bottom-0 left-0 right-0 h-12 opacity-30 overflow-hidden">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `repeating-linear-gradient(90deg, ${accentColor} 0px, ${accentColor} 1px, transparent 1px, transparent 12px)`,
+                  transform: 'perspective(50px) rotateX(30deg)',
+                  transformOrigin: 'bottom',
+                }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+              {/* Chrome text effect title */}
+              <div
+                className={`text-[14px] font-black tracking-widest ${typographyClass}`}
+                style={{
+                  color: accentColor,
+                  textShadow: `0 0 10px ${accentColor}, 0 0 30px ${accentColor}50, 0 2px 0 #ff00ff`,
+                }}
+              >
+                EVENT
+              </div>
+
+              {/* Date with retro styling */}
+              <div
+                className="font-mono text-[8px] tracking-[0.3em] mt-2 px-2 py-0.5"
+                style={{
+                  color: '#00ffff',
+                  textShadow: '0 0 5px #00ffff',
+                  border: '1px solid #00ffff40',
+                }}
+              >
+                JAN 15
+              </div>
+
+              {/* CTA */}
+              <div
+                className="mt-4 px-3 py-1.5 font-mono text-[6px] tracking-wider"
+                style={{
+                  background: `linear-gradient(90deg, ${accentColor}, #ff00ff)`,
+                  color: 'black',
+                  fontWeight: 'bold',
+                  boxShadow: `0 0 15px ${accentColor}60`,
+                }}
+              >
+                ENTER
+              </div>
+            </div>
+          </div>
+        )
+
       default:
         return null
     }
@@ -625,6 +908,52 @@ export function EventDesignTab({
             </div>
           </div>
         </div>
+
+        {/* Flyer Colors Row */}
+        {flyerUrl && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3 h-3 text-purple-400" />
+              <span className="text-[10px] font-mono text-purple-400 tracking-wider">FROM YOUR FLYER</span>
+              {extractingColors && (
+                <div className="w-3 h-3 border border-purple-400/30 border-t-purple-400 animate-spin" />
+              )}
+            </div>
+
+            {flyerColors.length > 0 ? (
+              <div
+                className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                {flyerColors.map((color, index) => (
+                  <button
+                    key={`flyer-${index}`}
+                    onClick={() => setAccentColor(color)}
+                    className={`
+                      w-10 h-10 flex-shrink-0 transition-all relative border-2 border-purple-500/30
+                      ${accentColor === color
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                        : "hover:scale-105 hover:border-purple-500/60"
+                      }
+                    `}
+                    style={{ backgroundColor: color }}
+                    title={`Flyer color ${color.toUpperCase()}`}
+                  >
+                    {accentColor === color && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-black drop-shadow-lg" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : !extractingColors ? (
+              <div className="text-[10px] font-mono text-white/30 py-2">
+                No vibrant colors detected in flyer
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {/* Color preview */}
         <div className="flex items-center gap-3 p-3 border border-white/10 bg-white/[0.02]">
