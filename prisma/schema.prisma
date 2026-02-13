@@ -40,8 +40,28 @@ model User {
   tickets          Ticket[]
   staffMemberships StaffMember[]
   activities       UserActivity[]
+  apiKeys          ApiKey[]
 
   @@index([isFlagged])
+}
+
+// API Keys for programmatic access
+model ApiKey {
+  id             String    @id @default(cuid())
+  userId         String
+  name           String    // User-friendly name for the key
+  keyPrefix      String    // First 8 chars of key for identification (e.g., "aftr_abc1")
+  keyHash        String    @unique // SHA-256 hash of the full key
+  scopes         String[]  // Permissions: ["events:read", "events:write", "orders:read", etc.]
+  lastUsedAt     DateTime?
+  expiresAt      DateTime? // Optional expiration
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyPrefix])
 }
 
 // Personal profile for regular users (/p/<username>)
@@ -318,7 +338,7 @@ model Event {
   flagReason           String?
 
   // Event expiration settings
-  expiresAfter         String           @default("24h") // 'on_end', '12h', '24h', '48h', '1w', 'never'
+  expiresAfter         String           @default("6h") // 'on_end', '6h', '12h', '24h', '48h', '1w', 'never'
 
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt

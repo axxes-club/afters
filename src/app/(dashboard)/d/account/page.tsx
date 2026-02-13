@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Calendar } from "lucide-react";
+import { ShieldCheck, Calendar, Code2 } from "lucide-react";
 import Link from "next/link";
 
 export default async function AccountPage() {
@@ -90,6 +90,32 @@ export default async function AccountPage() {
               <Button variant="outline" asChild>
                 <Link href="/d/organizer">
                   Edit Profile
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Developer Tools */}
+      {user.organizerProfile && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[#ff1493]/10">
+                  <Code2 className="h-5 w-5 text-[#ff1493]" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold">Developer Tools</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Access API keys and documentation
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" asChild>
+                <Link href="/d/developers">
+                  Manage API Keys
                 </Link>
               </Button>
             </div>
