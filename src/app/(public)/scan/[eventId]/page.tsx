@@ -61,9 +61,17 @@ interface GuestlistEntry {
   checkedInAt?: string
 }
 
-// Web Audio API sound generation for scanner feedback
+// Sound playback for scanner feedback
 function playScannerSound(soundId: string = "basic") {
   try {
+    // Use audio files for farts and pewpew
+    if (soundId === "farts" || soundId === "pewpew") {
+      const audio = new Audio(`/sounds/${soundId === "farts" ? "fart" : "pewpew"}.mp3`)
+      audio.volume = 0.7
+      audio.play().catch(() => {})
+      return
+    }
+
     const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
     const now = ctx.currentTime
 
@@ -98,47 +106,6 @@ function playScannerSound(soundId: string = "basic") {
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
         osc.start(now)
         osc.stop(now + 0.4)
-        break
-      }
-      case "pewpew": {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.type = "square"
-        osc.frequency.setValueAtTime(1200, now)
-        osc.frequency.exponentialRampToValueAtTime(100, now + 0.15)
-        gain.gain.setValueAtTime(0.25, now)
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
-        osc.start(now)
-        osc.stop(now + 0.15)
-        break
-      }
-      case "farts": {
-        const bufferSize = ctx.sampleRate * 0.4
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
-        const data = buffer.getChannelData(0)
-        let lastOut = 0
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1
-          lastOut = (lastOut + (0.02 * white)) / 1.02
-          data[i] = lastOut * 3.5
-          if (i > bufferSize * 0.3) {
-            data[i] *= 1 - ((i - bufferSize * 0.3) / (bufferSize * 0.7))
-          }
-        }
-        const source = ctx.createBufferSource()
-        source.buffer = buffer
-        const filter = ctx.createBiquadFilter()
-        filter.type = "lowpass"
-        filter.frequency.value = 200
-        const gain = ctx.createGain()
-        source.connect(filter)
-        filter.connect(gain)
-        gain.connect(ctx.destination)
-        gain.gain.setValueAtTime(0.8, now)
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
-        source.start(now)
         break
       }
       case "ding": {
