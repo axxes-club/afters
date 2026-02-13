@@ -37,8 +37,8 @@ export async function POST(
       return NextResponse.json({ message: "Event not found" }, { status: 404 })
     }
 
-    // Check for ticket tiers
-    if (existingEvent.ticketTiers.length === 0) {
+    // Check for ticket tiers (only required for non-RSVP events)
+    if (!existingEvent.isRsvpOnly && existingEvent.ticketTiers.length === 0) {
       return NextResponse.json(
         { message: "Add at least one ticket tier before publishing" },
         { status: 400 }

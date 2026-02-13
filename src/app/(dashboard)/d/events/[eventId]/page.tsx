@@ -541,7 +541,7 @@ function EventDashboardContent({
       </div>
 
       {/* Content */}
-      <div className="max-w-[100vw] md:max-w-[calc(100vw-14rem)]">
+      <div className="max-w-[calc(100vw-32px)] md:max-w-[calc(100vw-14rem-48px)]">
       {activeSection === "overview" && (
         <div className="space-y-6">
           {/* Stats Grid */}
@@ -930,12 +930,12 @@ function EventDashboardContent({
               <div>
                 <p className="font-mono text-sm">Delete Event</p>
                 <p className="text-xs text-white/40">
-                  {totalSold > 0
+                  {!event.isRsvpOnly && totalSold > 0
                     ? "Cannot delete - tickets have been sold"
                     : "Permanently delete this event"}
                 </p>
               </div>
-              {totalSold > 0 ? (
+              {!event.isRsvpOnly && totalSold > 0 ? (
                 <span className="text-xs font-mono text-white/30 px-3 py-1.5">
                   {totalSold} tickets sold
                 </span>
