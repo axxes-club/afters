@@ -76,6 +76,9 @@ function NewEventForm() {
   const [rsvpAllowPlusOnes, setRsvpAllowPlusOnes] = useState(false)
   const [rsvpMaxPlusOnes, setRsvpMaxPlusOnes] = useState<string>("1")
 
+  // Event expiration
+  const [expiresAfter, setExpiresAfter] = useState<string>("24h")
+
   // Expandable sections
   const [showLineup, setShowLineup] = useState(false)
   const [showStyle, setShowStyle] = useState(false)
@@ -127,6 +130,8 @@ function NewEventForm() {
       rsvpCapacity: rsvpCapacity ? parseInt(rsvpCapacity) : null,
       rsvpAllowPlusOnes,
       rsvpMaxPlusOnes: parseInt(rsvpMaxPlusOnes),
+      // Expiration
+      expiresAfter,
     }
 
     try {
@@ -400,6 +405,28 @@ function NewEventForm() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                    EVENT EXPIRATION
+                  </label>
+                  <Select value={expiresAfter} onValueChange={setExpiresAfter}>
+                    <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black border-white/10">
+                      <SelectItem value="on_end">When event ends</SelectItem>
+                      <SelectItem value="12h">12 hours after end</SelectItem>
+                      <SelectItem value="24h">24 hours after end</SelectItem>
+                      <SelectItem value="48h">48 hours after end</SelectItem>
+                      <SelectItem value="1w">1 week after end</SelectItem>
+                      <SelectItem value="never">Never (manual only)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-white/30 font-mono mt-2">
+                    Event page will be hidden after this time
+                  </p>
                 </div>
               </SectionCard>
 

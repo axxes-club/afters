@@ -8,7 +8,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const JOSE_USER_ID = 'user_38mrqnxm4e6AJkSYD6Wr5BVRwhS';
-const JOSE_EMAIL = 'jose.viscasillas@gmail.com';
+const JOSE_EMAIL = 'hello@axxes.club';
 
 async function main() {
   console.log('🎟️ Creating tickets for Jose...\n');

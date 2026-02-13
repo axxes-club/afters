@@ -86,6 +86,7 @@ export async function PUT(
       ageRestriction,
       ticketingType,
       externalTicketingUrl,
+      expiresAfter,
     } = body
 
     // Normalize external ticketing URL — ensure it has a protocol
@@ -110,6 +111,7 @@ export async function PUT(
         ageRestriction: ageRestriction !== undefined ? (ageRestriction ? parseInt(ageRestriction) : null) : undefined,
         ticketingType,
         externalTicketingUrl: normalizedExternalUrl,
+        expiresAfter,
       },
     })
 

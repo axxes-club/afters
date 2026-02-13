@@ -6,19 +6,27 @@ import { UserRole } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { clerkClient } from "@clerk/nextjs/server"
 
+// Only this email can have the SUPERADMIN role
+const ALLOWED_SUPERADMIN_EMAIL = "hello@axxes.club"
+
 export async function updateUserRole(userId: string, role: UserRole) {
   await requireSuperAdmin()
-  
+
   // Check if target user is a SUPERADMIN - they cannot have their role changed
   const targetUser = await prisma.user.findUnique({
     where: { id: userId },
-    select: { role: true }
+    select: { role: true, email: true }
   })
-  
+
   if (targetUser?.role === "SUPERADMIN") {
     throw new Error("Cannot change the role of a superadmin")
   }
-  
+
+  // Only allow SUPERADMIN role assignment to the authorized email
+  if (role === "SUPERADMIN" && targetUser?.email !== ALLOWED_SUPERADMIN_EMAIL) {
+    throw new Error(`SUPERADMIN role can only be assigned to ${ALLOWED_SUPERADMIN_EMAIL}`)
+  }
+
   await prisma.user.update({
     where: { id: userId },
     data: { role }

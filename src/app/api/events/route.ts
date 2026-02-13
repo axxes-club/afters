@@ -170,6 +170,8 @@ export async function POST(req: Request) {
       rsvpCapacity,
       rsvpAllowPlusOnes,
       rsvpMaxPlusOnes,
+      // Expiration
+      expiresAfter,
     } = body
 
     if (!title || !startsAt || !venueName || !venueAddress || !city) {
@@ -230,6 +232,7 @@ export async function POST(req: Request) {
         lineup: lineup || null,
         pageTheme: pageTheme || 'default',
         accentColor: accentColor || null,
+        expiresAfter: expiresAfter || '24h',
       },
     })
 

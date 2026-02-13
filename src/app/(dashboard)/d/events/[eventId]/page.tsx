@@ -14,6 +14,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Plus,
@@ -36,6 +43,7 @@ import {
   Zap,
   UserCheck,
   Clock,
+  Timer,
 } from "lucide-react";
 import { formatCents } from "@/lib/stripe";
 import { FlyerUpload } from "@/components/FlyerUpload";
@@ -95,6 +103,8 @@ interface Event {
   about: string | null;
   refundPolicy: string | null;
   faqs: Array<{question: string; answer: string}> | null;
+  // Event expiration
+  expiresAfter: string;
 }
 
 function EventDashboardContent({
@@ -128,6 +138,8 @@ function EventDashboardContent({
   const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "settings">(
     tabParam && ["overview", "tickets", "door", "design", "settings"].includes(tabParam) ? tabParam : "overview"
   );
+  const [expiresAfter, setExpiresAfter] = useState<string>("24h");
+  const [expirationLoading, setExpirationLoading] = useState(false);
 
   // Sync tab state with URL changes
   useEffect(() => {
@@ -153,6 +165,13 @@ function EventDashboardContent({
     fetchStripeStatus();
     fetchDoorStats();
   }, [eventId]);
+
+  // Sync expiresAfter state with event data
+  useEffect(() => {
+    if (event?.expiresAfter) {
+      setExpiresAfter(event.expiresAfter);
+    }
+  }, [event?.expiresAfter]);
 
   async function fetchStripeStatus() {
     try {
@@ -375,6 +394,29 @@ function EventDashboardContent({
   }
 
   const hasPaidTiers = event?.ticketTiers.some((t) => t.price > 0) || false;
+
+  async function updateExpiration(value: string) {
+    setExpiresAfter(value);
+    setExpirationLoading(true);
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expiresAfter: value }),
+      });
+      if (res.ok) {
+        toast.success("Expiration updated");
+      } else {
+        toast.error("Failed to update expiration");
+        fetchEvent(); // Revert on failure
+      }
+    } catch {
+      toast.error("Failed to update expiration");
+      fetchEvent(); // Revert on failure
+    } finally {
+      setExpirationLoading(false);
+    }
+  }
 
   function copyEventUrl() {
     const url = `${window.location.origin}/e/${event?.slug}`;
@@ -807,6 +849,35 @@ function EventDashboardContent({
               isAddressHidden: event.isAddressHidden,
             }}
           />
+
+          {/* Event Expiration */}
+          <div className="border border-white/10 bg-white/[0.02]">
+            <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
+              <Timer className="w-3.5 h-3.5 text-white/40" />
+              <span className="text-[10px] font-mono text-white/40 tracking-widest">EVENT EXPIRATION</span>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-xs text-white/40 font-mono">
+                When should the event page stop being visible?
+              </p>
+              <Select value={expiresAfter} onValueChange={updateExpiration} disabled={expirationLoading}>
+                <SelectTrigger className="h-10 bg-black border-white/10 font-mono">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-black border-white/10">
+                  <SelectItem value="on_end">When event ends</SelectItem>
+                  <SelectItem value="12h">12 hours after end</SelectItem>
+                  <SelectItem value="24h">24 hours after end</SelectItem>
+                  <SelectItem value="48h">48 hours after end</SelectItem>
+                  <SelectItem value="1w">1 week after end</SelectItem>
+                  <SelectItem value="never">Never (manual only)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-white/30 font-mono">
+                Event will be hidden from public discovery after this time
+              </p>
+            </div>
+          </div>
 
           {/* Event Status */}
           <div className="border border-white/10 bg-white/[0.02]">

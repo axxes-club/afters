@@ -297,6 +297,10 @@ model Event {
   flaggedAt            DateTime?
   flaggedBy            String?
   flagReason           String?
+
+  // Event expiration settings
+  expiresAfter         String           @default("24h") // 'on_end', '12h', '24h', '48h', '1w', 'never'
+
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   organizer            OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
