@@ -83,37 +83,38 @@ export default async function TicketsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Ticket className="h-8 w-8 text-[#ff1493]" />
-            Tickets
-          </h1>
-          <p className="text-muted-foreground">Manage all tickets across the platform</p>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Ticket className="w-6 h-6 text-[#ff1493]" />
+          <h1 className="text-2xl font-mono font-bold tracking-tight text-white">TICKET CONTROL</h1>
         </div>
+        <p className="text-white/40 font-mono text-sm">Monitor ticket distribution and check-in status.</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Tickets</CardDescription>
-            <CardTitle className="text-3xl">{stats.total}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Checked In</CardDescription>
-            <CardTitle className="text-3xl text-green-500">{stats.checkedIn}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Valid (Not Used)</CardDescription>
-            <CardTitle className="text-3xl text-blue-500">{stats.pending}</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+        <div className="border border-[#ff1493]/30 bg-[#ff1493]/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Ticket className="h-4 w-4 text-[#ff1493]" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">TOTAL</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-[#ff1493]">{stats.total}</div>
+        </div>
+        <div className="border border-green-500/30 bg-green-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <CheckCircle className="h-4 w-4 text-green-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">CHECKED IN</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-green-400">{stats.checkedIn}</div>
+        </div>
+        <div className="col-span-2 sm:col-span-1 border border-blue-500/30 bg-blue-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Clock className="h-4 w-4 text-blue-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">VALID</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-blue-400">{stats.pending}</div>
+        </div>
       </div>
 
       {/* Tickets Table */}

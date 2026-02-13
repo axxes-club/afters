@@ -8,7 +8,8 @@ export default function RolesAndPermissionsPage() {
     {
       role: "SUPERADMIN",
       icon: ShieldCheck,
-      color: "bg-purple-500",
+      color: "border-purple-500/30 bg-purple-500/5",
+      iconColor: "text-purple-400",
       permissions: [
         "Full system access",
         "User management",
@@ -21,7 +22,8 @@ export default function RolesAndPermissionsPage() {
     {
       role: "ORGANIZER",
       icon: Building2,
-      color: "bg-blue-500",
+      color: "border-blue-500/30 bg-blue-500/5",
+      iconColor: "text-blue-400",
       permissions: [
         "Create and manage events",
         "View event analytics",
@@ -33,7 +35,8 @@ export default function RolesAndPermissionsPage() {
     {
       role: "ARTIST",
       icon: Music,
-      color: "bg-pink-500",
+      color: "border-[#ff1493]/30 bg-[#ff1493]/5",
+      iconColor: "text-[#ff1493]",
       permissions: [
         "Manage artist profile",
         "View performance analytics",
@@ -44,7 +47,8 @@ export default function RolesAndPermissionsPage() {
     {
       role: "PERSONAL",
       icon: UserRound,
-      color: "bg-green-500",
+      color: "border-green-500/30 bg-green-500/5",
+      iconColor: "text-green-400",
       permissions: [
         "Manage personal profile",
         "Purchase tickets",
@@ -56,74 +60,57 @@ export default function RolesAndPermissionsPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Roles & Permissions</h1>
-        <p className="text-muted-foreground">
-          Understand what each role can do in the system.
-        </p>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <ShieldCheck className="w-6 h-6 text-[#ff1493]" />
+          <h1 className="text-2xl font-mono font-bold tracking-tight text-white">ROLES & PERMISSIONS</h1>
+        </div>
+        <p className="text-white/40 font-mono text-sm">Understand what each role can do in the system.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {rolePermissions.map((roleInfo) => {
           const IconComponent = roleInfo.icon
           return (
-            <Card key={roleInfo.role}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${roleInfo.color}`}>
-                    <IconComponent className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {roleInfo.role}
-                      <Badge variant="outline">{roleInfo.permissions.length} permissions</Badge>
-                    </CardTitle>
-                    <CardDescription>
-                      Capabilities and access levels
-                    </CardDescription>
-                  </div>
+            <div key={roleInfo.role} className={`border ${roleInfo.color} p-4 sm:p-6`}>
+              <div className="flex items-center gap-3 mb-4">
+                <IconComponent className={`h-6 w-6 ${roleInfo.iconColor}`} />
+                <div>
+                  <h3 className="font-mono font-bold text-white tracking-wide">{roleInfo.role}</h3>
+                  <span className="text-[10px] font-mono text-white/40">{roleInfo.permissions.length} permissions</span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {roleInfo.permissions.map((permission, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <Lock className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm">{permission}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+              </div>
+              <ul className="space-y-2">
+                {roleInfo.permissions.map((permission, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <Lock className="h-3 w-3 mt-1 text-white/30 flex-shrink-0" />
+                    <span className="text-sm text-white/60 font-mono">{permission}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )
         })}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Role Assignment Guide</CardTitle>
-          <CardDescription>
-            How to assign and manage user roles
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ol className="list-decimal list-inside space-y-2">
-            <li>Navigate to the <strong>Users</strong> section</li>
-            <li>Find the user you want to modify</li>
-            <li>Click on their role in the table to change it</li>
-            <li>Select the appropriate role from the dropdown</li>
-            <li>Confirm the change</li>
-          </ol>
-          <div className="mt-4 p-4 bg-muted rounded-lg">
-            <h4 className="font-semibold mb-2">Note:</h4>
-            <p className="text-sm text-muted-foreground">
-              Superadmins can assign any role to any user. Other roles can only manage their own permissions 
-              and those assigned to them by superadmins.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="border border-white/10 bg-white/[0.02] p-4 sm:p-6">
+        <h3 className="font-mono font-bold text-white mb-3">ROLE ASSIGNMENT GUIDE</h3>
+        <ol className="list-decimal list-inside space-y-2 text-sm text-white/60 font-mono">
+          <li>Navigate to the <span className="text-[#ff1493]">Users</span> section</li>
+          <li>Find the user you want to modify</li>
+          <li>Click on their role in the table to change it</li>
+          <li>Select the appropriate role from the dropdown</li>
+          <li>Confirm the change</li>
+        </ol>
+        <div className="mt-4 p-3 border border-yellow-500/20 bg-yellow-500/5">
+          <p className="text-[10px] font-mono text-yellow-400/80 tracking-widest mb-1">NOTE</p>
+          <p className="text-xs text-white/50 font-mono">
+            Superadmins can assign any role to any user. Other roles can only manage their own permissions
+            and those assigned to them by superadmins.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

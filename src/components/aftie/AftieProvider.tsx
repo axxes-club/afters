@@ -10,6 +10,13 @@ interface Message {
   content: string
 }
 
+// Page context for Aftie to understand where the user is
+export interface AftiePageContext {
+  page: "dashboard" | "events" | "event-details" | "event-new" | "analytics" | "organizer" | "other"
+  eventId?: string
+  eventTitle?: string
+}
+
 interface AftieContextType {
   isOpen: boolean
   openChat: () => void
@@ -27,6 +34,9 @@ interface AftieContextType {
   // Beta toggle
   isBetaEnabled: boolean
   isHydrated: boolean
+  // Page context
+  pageContext: AftiePageContext
+  setPageContext: (context: AftiePageContext) => void
 }
 
 const AftieContext = createContext<AftieContextType | null>(null)
@@ -51,6 +61,7 @@ export function AftieProvider({ children }: AftieProviderProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [pageContext, setPageContext] = useState<AftiePageContext>({ page: "dashboard" })
   const abortControllerRef = useRef<AbortController | null>(null)
 
   // Initialize beta state from localStorage and set up global toggle
@@ -106,6 +117,7 @@ export function AftieProvider({ children }: AftieProviderProps) {
             role: m.role,
             content: m.content,
           })),
+          context: pageContext,
         }),
         signal: abortControllerRef.current.signal,
       })
@@ -161,7 +173,7 @@ export function AftieProvider({ children }: AftieProviderProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, isLoading])
+  }, [messages, isLoading, pageContext])
 
   const openChat = useCallback(() => {
     setIsOpen(true)
@@ -202,6 +214,8 @@ export function AftieProvider({ children }: AftieProviderProps) {
         isLoading,
         isBetaEnabled,
         isHydrated,
+        pageContext,
+        setPageContext,
       }}
     >
       {children}

@@ -83,58 +83,51 @@ export default async function UserManagement({
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Manage users, roles, and permissions.</p>
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Users className="w-6 h-6 text-[#ff1493]" />
+          <h1 className="text-2xl font-mono font-bold tracking-tight text-white">USER MANAGEMENT</h1>
+        </div>
+        <p className="text-white/40 font-mono text-sm">Manage users, roles, and permissions.</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground hidden sm:block" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{roleStats.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Admins</CardTitle>
-            <Shield className="h-4 w-4 text-red-500 hidden sm:block" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{roleStats.SUPERADMIN}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Organizers</CardTitle>
-            <Building2 className="h-4 w-4 text-blue-500 hidden sm:block" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{roleStats.ORGANIZER}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Artists</CardTitle>
-            <Music className="h-4 w-4 text-[#ff1493] hidden sm:block" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{roleStats.ARTIST}</div>
-          </CardContent>
-        </Card>
-        <Card className={`col-span-2 sm:col-span-1 ${roleStats.flagged > 0 ? 'border-red-500/30 bg-red-500/5' : ''}`}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Flagged</CardTitle>
-            <Flag className="h-4 w-4 text-red-500 hidden sm:block" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold text-red-500">{roleStats.flagged}</div>
-          </CardContent>
-        </Card>
+        <div className="border border-cyan-400/30 bg-cyan-400/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Users className="h-4 w-4 text-cyan-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">TOTAL</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-cyan-400">{roleStats.total}</div>
+        </div>
+        <div className="border border-red-500/30 bg-red-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Shield className="h-4 w-4 text-red-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">ADMINS</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-red-400">{roleStats.SUPERADMIN}</div>
+        </div>
+        <div className="border border-blue-500/30 bg-blue-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Building2 className="h-4 w-4 text-blue-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">ORGS</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-blue-400">{roleStats.ORGANIZER}</div>
+        </div>
+        <div className="border border-[#ff1493]/30 bg-[#ff1493]/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Music className="h-4 w-4 text-[#ff1493]" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">ARTISTS</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-[#ff1493]">{roleStats.ARTIST}</div>
+        </div>
+        <div className={`col-span-2 sm:col-span-1 border p-3 sm:p-4 ${roleStats.flagged > 0 ? 'border-red-500/50 bg-red-500/10' : 'border-white/10 bg-white/[0.02]'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <Flag className="h-4 w-4 text-red-500" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">FLAGGED</span>
+          </div>
+          <div className={`text-xl sm:text-2xl font-mono font-bold ${roleStats.flagged > 0 ? 'text-red-500' : 'text-white/30'}`}>{roleStats.flagged}</div>
+        </div>
       </div>
 
       <Tabs defaultValue={tab}>

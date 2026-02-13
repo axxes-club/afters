@@ -188,15 +188,16 @@ export default function TranslationsPage() {
   }, {} as Record<string, Translation[]>)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Languages className="h-8 w-8 text-[#ff1493]" />
-            Translations
-          </h1>
-          <p className="text-muted-foreground">Manage localized strings across the platform</p>
-        </div>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Languages className="w-6 h-6 text-[#ff1493]" />
+              <h1 className="text-2xl font-mono font-bold tracking-tight text-white">TRANSLATIONS</h1>
+            </div>
+            <p className="text-white/40 font-mono text-sm">Manage localized strings across the platform.</p>
+          </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={syncFromFiles} disabled={syncing}>
             {syncing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
@@ -265,22 +266,31 @@ export default function TranslationsPage() {
             </DialogContent>
           </Dialog>
         </div>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
         {LOCALES.map(locale => {
           const count = translations.filter(t => t.locale === locale.value).length
+          const isSelected = selectedLocale === locale.value
           return (
-            <Card key={locale.value} className={selectedLocale === locale.value ? 'border-[#ff1493]' : ''}>
-              <CardHeader className="pb-2">
-                <CardDescription className="flex items-center gap-2">
-                  <span className="text-lg">{locale.flag}</span>
-                  {locale.label}
-                </CardDescription>
-                <CardTitle className="text-2xl">{count}</CardTitle>
-              </CardHeader>
-            </Card>
+            <div
+              key={locale.value}
+              className={`border p-3 sm:p-4 cursor-pointer transition-all ${
+                isSelected
+                  ? 'border-[#ff1493]/50 bg-[#ff1493]/10'
+                  : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+              }`}
+              onClick={() => setSelectedLocale(locale.value)}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-lg">{locale.flag}</span>
+                <span className="text-[10px] font-mono text-white/40 tracking-widest uppercase">{locale.value}</span>
+              </div>
+              <div className={`text-xl sm:text-2xl font-mono font-bold ${isSelected ? 'text-[#ff1493]' : 'text-white'}`}>{count}</div>
+              <p className="text-[10px] font-mono text-white/40 mt-1">{locale.label}</p>
+            </div>
           )
         })}
       </div>

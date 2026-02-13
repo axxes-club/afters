@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SystemHealth, FeatureType } from "@prisma/client"
 import { StatusForm } from "./StatusForm"
+import { Activity } from "lucide-react"
 
 export default async function StatusManagement() {
   const statuses = await prisma.systemStatus.findMany({
@@ -30,13 +31,18 @@ export default async function StatusManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">System Status</h1>
-          <p className="text-muted-foreground">Manage feature statuses and tell users what&apos;s up with style.</p>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Activity className="w-6 h-6 text-[#ff1493]" />
+              <h1 className="text-2xl font-mono font-bold tracking-tight text-white">SYSTEM STATUS</h1>
+            </div>
+            <p className="text-white/40 font-mono text-sm">Manage feature statuses and communicate with users.</p>
+          </div>
+          <StatusForm />
         </div>
-        <StatusForm />
       </div>
 
       <div className="grid gap-4">

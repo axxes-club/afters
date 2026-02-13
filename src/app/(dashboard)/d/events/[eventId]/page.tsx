@@ -44,6 +44,7 @@ import {
   UserCheck,
   Clock,
   Timer,
+  Map,
 } from "lucide-react";
 import { formatCents } from "@/lib/stripe";
 import { FlyerUpload } from "@/components/FlyerUpload";
@@ -56,6 +57,7 @@ import { EventDetailsTab } from "@/components/dashboard/EventDetailsTab"
 import { EventLocationSettings } from "@/components/dashboard/EventLocationSettings";
 import { EventRsvpSettings } from "@/components/dashboard/EventRsvpSettings";
 import { ScannerSoundSelector } from "@/components/dashboard/ScannerSoundSelector";
+import { useAftie } from "@/components/aftie/AftieProvider";
 
 interface TicketTier {
   id: string;
@@ -118,7 +120,7 @@ function EventDashboardContent({
   const { eventId } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab") as "overview" | "tickets" | "door" | "design" | "details" | "settings" | null;
+  const tabParam = searchParams.get("tab") as "overview" | "tickets" | "door" | "design" | "details" | "venue" | "settings" | null;
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [showTierDialog, setShowTierDialog] = useState(false);
@@ -138,21 +140,25 @@ function EventDashboardContent({
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "details" | "settings">(
-    tabParam && ["overview", "tickets", "door", "design", "details", "settings"].includes(tabParam) ? tabParam : "overview"
+  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "details" | "venue" | "settings">(
+    tabParam && ["overview", "tickets", "door", "design", "details", "venue", "settings"].includes(tabParam) ? tabParam : "overview"
   );
   const [expiresAfter, setExpiresAfter] = useState<string>("24h");
   const [expirationLoading, setExpirationLoading] = useState(false);
+  const [eventTypeLoading, setEventTypeLoading] = useState(false);
+
+  // Set Aftie page context
+  const { setPageContext } = useAftie();
 
   // Sync tab state with URL changes
   useEffect(() => {
-    if (tabParam && ["overview", "tickets", "door", "design", "details", "settings"].includes(tabParam)) {
+    if (tabParam && ["overview", "tickets", "door", "design", "details", "venue", "settings"].includes(tabParam)) {
       setActiveSection(tabParam);
     }
   }, [tabParam]);
 
   // Function to change tabs and update URL
-  function changeTab(tab: "overview" | "tickets" | "door" | "design" | "details" | "settings") {
+  function changeTab(tab: "overview" | "tickets" | "door" | "design" | "details" | "venue" | "settings") {
     setActiveSection(tab);
     const params = new URLSearchParams(searchParams.toString());
     if (tab === "overview") {
@@ -175,6 +181,20 @@ function EventDashboardContent({
       setExpiresAfter(event.expiresAfter);
     }
   }, [event?.expiresAfter]);
+
+  // Set Aftie page context when viewing event
+  useEffect(() => {
+    if (event) {
+      setPageContext({
+        page: "event-details",
+        eventId: event.id,
+        eventTitle: event.title,
+      });
+    }
+    return () => {
+      setPageContext({ page: "dashboard" });
+    };
+  }, [event, setPageContext]);
 
   async function fetchStripeStatus() {
     try {
@@ -421,6 +441,42 @@ function EventDashboardContent({
     }
   }
 
+  async function toggleEventType(isRsvp: boolean) {
+    if (!event) return;
+
+    // Prevent switching to ticketed if no ticket tiers exist
+    if (!isRsvp && event.ticketTiers.length === 0) {
+      toast.error("Create at least one ticket tier first");
+      return;
+    }
+
+    // Prevent switching from ticketed to RSVP if tickets have been sold
+    if (isRsvp && totalSold > 0) {
+      toast.error("Cannot switch to RSVP after tickets have been sold");
+      return;
+    }
+
+    setEventTypeLoading(true);
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isRsvpOnly: isRsvp }),
+      });
+      if (res.ok) {
+        toast.success(isRsvp ? "Switched to RSVP event" : "Switched to ticketed event");
+        fetchEvent();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to update event type");
+      }
+    } catch {
+      toast.error("Failed to update event type");
+    } finally {
+      setEventTypeLoading(false);
+    }
+  }
+
   function copyEventUrl() {
     const url = `${window.location.origin}/e/${event?.slug}`;
     navigator.clipboard.writeText(url);
@@ -573,6 +629,7 @@ function EventDashboardContent({
           { id: "door" as const, label: "DOOR" },
           { id: "details" as const, label: "DETAILS" },
           { id: "design" as const, label: "DESIGN" },
+          { id: "venue" as const, label: "VENUE" },
           { id: "settings" as const, label: "SETTINGS" },
         ].map((section) => (
           <button
@@ -894,20 +951,52 @@ function EventDashboardContent({
         />
       )}
 
-      {activeSection === "settings" && (
+      {activeSection === "venue" && (
         <div className="space-y-6">
-          {/* RSVP Settings (only for RSVP events) */}
-          {event.isRsvpOnly && (
-            <EventRsvpSettings
-              eventId={eventId}
-              initialSettings={{
-                isRsvpOnly: event.isRsvpOnly,
-                rsvpCapacity: event.rsvpCapacity,
-                rsvpAllowPlusOnes: event.rsvpAllowPlusOnes,
-                rsvpMaxPlusOnes: event.rsvpMaxPlusOnes,
-              }}
-            />
-          )}
+          {/* Venue Details */}
+          <div className="border border-white/10 bg-white/[0.02]">
+            <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-[#ff1493]" />
+                <span className="text-[10px] font-mono text-white/40 tracking-widest">VENUE DETAILS</span>
+              </div>
+              <button
+                onClick={() => setShowEditDialog(true)}
+                className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-[#ff1493] transition-colors"
+              >
+                <Pencil className="w-3 h-3" />
+                EDIT
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">VENUE NAME</p>
+                  <p className="font-mono text-sm">{event.venueName}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">ADDRESS</p>
+                  <p className="font-mono text-sm">{event.venueAddress}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">CITY</p>
+                  <p className="font-mono text-sm">{event.city}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">STATE</p>
+                  <p className="font-mono text-sm">{event.state || "—"}</p>
+                </div>
+              </div>
+
+              {/* Map Preview Placeholder */}
+              <div className="border border-white/10 bg-white/[0.02] p-6">
+                <div className="flex items-center justify-center gap-2 text-white/30">
+                  <Map className="w-5 h-5" />
+                  <span className="text-xs font-mono">Map preview coming soon</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Location Broadcasting */}
           <EventLocationSettings
@@ -922,6 +1011,100 @@ function EventDashboardContent({
               isAddressHidden: event.isAddressHidden,
             }}
           />
+        </div>
+      )}
+
+      {activeSection === "settings" && (
+        <div className="space-y-6">
+          {/* Event Type Toggle */}
+          <div className="border border-white/10 bg-white/[0.02]">
+            <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
+              <Ticket className="w-3.5 h-3.5 text-white/40" />
+              <span className="text-[10px] font-mono text-white/40 tracking-widest">EVENT TYPE</span>
+            </div>
+            <div className="p-4 space-y-4">
+              <p className="text-xs text-white/40 font-mono">
+                Choose how guests register for your event
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => toggleEventType(true)}
+                  disabled={eventTypeLoading || (totalSold > 0 && !event.isRsvpOnly)}
+                  className={`p-4 border transition-all text-left ${
+                    event.isRsvpOnly
+                      ? "border-green-500 bg-green-500/10"
+                      : "border-white/10 hover:border-white/20"
+                  } ${eventTypeLoading ? "opacity-50 cursor-wait" : ""} ${
+                    totalSold > 0 && !event.isRsvpOnly ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserCheck className={`w-5 h-5 ${event.isRsvpOnly ? "text-green-400" : "text-white/40"}`} />
+                    <span className={`font-mono font-bold text-sm ${event.isRsvpOnly ? "text-green-400" : "text-white/60"}`}>
+                      RSVP EVENT
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono">
+                    Free registration, guests reserve spots
+                  </p>
+                  {event.isRsvpOnly && (
+                    <div className="mt-2">
+                      <span className="text-[8px] font-mono text-green-400 px-1.5 py-0.5 border border-green-400/30">ACTIVE</span>
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => toggleEventType(false)}
+                  disabled={eventTypeLoading || (event.ticketTiers.length === 0 && !event.isRsvpOnly)}
+                  className={`p-4 border transition-all text-left ${
+                    !event.isRsvpOnly
+                      ? "border-[#ff1493] bg-[#ff1493]/10"
+                      : "border-white/10 hover:border-white/20"
+                  } ${eventTypeLoading ? "opacity-50 cursor-wait" : ""} ${
+                    event.ticketTiers.length === 0 && event.isRsvpOnly ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Ticket className={`w-5 h-5 ${!event.isRsvpOnly ? "text-[#ff1493]" : "text-white/40"}`} />
+                    <span className={`font-mono font-bold text-sm ${!event.isRsvpOnly ? "text-[#ff1493]" : "text-white/60"}`}>
+                      TICKETED EVENT
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono">
+                    Sell tickets with tiers and pricing
+                  </p>
+                  {!event.isRsvpOnly && (
+                    <div className="mt-2">
+                      <span className="text-[8px] font-mono text-[#ff1493] px-1.5 py-0.5 border border-[#ff1493]/30">ACTIVE</span>
+                    </div>
+                  )}
+                </button>
+              </div>
+              {event.isRsvpOnly && event.ticketTiers.length === 0 && (
+                <p className="text-[10px] text-white/30 font-mono">
+                  To switch to ticketed, create ticket tiers in the TICKETS tab first
+                </p>
+              )}
+              {!event.isRsvpOnly && totalSold > 0 && (
+                <p className="text-[10px] text-yellow-400/60 font-mono">
+                  Cannot switch to RSVP after tickets have been sold ({totalSold} sold)
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* RSVP Settings (only for RSVP events) */}
+          {event.isRsvpOnly && (
+            <EventRsvpSettings
+              eventId={eventId}
+              initialSettings={{
+                isRsvpOnly: event.isRsvpOnly,
+                rsvpCapacity: event.rsvpCapacity,
+                rsvpAllowPlusOnes: event.rsvpAllowPlusOnes,
+                rsvpMaxPlusOnes: event.rsvpMaxPlusOnes,
+              }}
+            />
+          )}
 
           {/* Event Expiration */}
           <div className="border border-white/10 bg-white/[0.02]">
@@ -949,64 +1132,6 @@ function EventDashboardContent({
               <p className="text-[10px] text-white/30 font-mono">
                 Event will be hidden from public discovery after this time
               </p>
-            </div>
-          </div>
-
-          {/* Event Details */}
-          <div className="border border-white/10 bg-white/[0.02]">
-            <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-white/40 tracking-widest">EVENT DETAILS</span>
-              <button
-                onClick={() => setShowEditDialog(true)}
-                className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-[#ff1493] transition-colors"
-              >
-                <Pencil className="w-3 h-3" />
-                EDIT
-              </button>
-            </div>
-            <div className="p-4 space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1 flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> VENUE
-                  </p>
-                  <p className="font-mono text-sm">{event.venueName}</p>
-                  <p className="text-xs text-white/40">{event.venueAddress}</p>
-                  <p className="text-xs text-white/30">
-                    {event.city}{event.state ? `, ${event.state}` : ""}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> DATE & TIME
-                  </p>
-                  <p className="font-mono text-sm">
-                    {new Date(event.startsAt).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </p>
-                  <p className="text-xs text-white/40">
-                    {new Date(event.startsAt).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                    {event.endsAt &&
-                      ` - ${new Date(event.endsAt).toLocaleTimeString("en-US", {
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}`}
-                  </p>
-                </div>
-              </div>
-              {event.description && (
-                <div>
-                  <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">DESCRIPTION</p>
-                  <p className="text-sm text-white/70 whitespace-pre-wrap">{event.description}</p>
-                </div>
-              )}
             </div>
           </div>
 

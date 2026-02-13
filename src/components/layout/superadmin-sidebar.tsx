@@ -75,14 +75,17 @@ export function SuperadminSidebar() {
 
   return (
     <>
-      <aside className="hidden lg:block w-64 border-r bg-muted/30 min-h-[calc(100vh-4rem)]">
-        <div className="p-4 border-b">
-          <h2 className="font-semibold text-lg tracking-tight">Superadmin</h2>
-          <p className="text-xs text-muted-foreground italic text-[#ff1493]">
+      <aside className="hidden lg:block w-64 border-r border-white/10 bg-black/80 backdrop-blur-xl min-h-[calc(100vh-4rem)]">
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-[#ff1493] rounded-full animate-pulse" />
+            <h2 className="font-mono font-bold text-lg tracking-tight text-white">SUPERADMIN</h2>
+          </div>
+          <p className="text-[10px] text-[#ff1493]/80 font-mono mt-1 tracking-wider">
             Power corrupts; absolute power is kind of fun.
           </p>
         </div>
-        <nav className="flex flex-col gap-2 p-4">
+        <nav className="flex flex-col gap-1 p-3">
           {navItems.map((item) => {
             const isActive = item.exact
               ? pathname === item.href
@@ -93,19 +96,30 @@ export function SuperadminSidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors font-medium",
-                  isActive ? "bg-[#ff1493] text-white" : "hover:bg-muted",
+                  "flex items-center gap-3 px-3 py-2.5 text-xs font-mono tracking-wide transition-all",
+                  isActive
+                    ? "bg-[#ff1493] text-black font-bold"
+                    : "text-white/60 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/10",
                 )}
               >
-                <item.icon className="h-4 w-4" />
-                {item.title}
+                <item.icon className={cn("h-4 w-4", isActive ? "text-black" : "text-[#ff1493]")} />
+                {item.title.toUpperCase()}
               </Link>
             );
           })}
         </nav>
+        <div className="absolute bottom-4 left-0 right-0 px-4">
+          <div className="border border-[#ff1493]/20 bg-[#ff1493]/5 p-3">
+            <p className="text-[8px] font-mono text-[#ff1493]/60 tracking-widest">SYSTEM STATUS</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+              <span className="text-[10px] font-mono text-green-400">OPERATIONAL</span>
+            </div>
+          </div>
+        </div>
       </aside>
 
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 backdrop-blur-xl border-t border-[#ff1493]/20 safe-area-bottom">
         <div className="flex items-center h-16 px-1 overflow-x-auto scrollbar-hide">
           {navItems.map((item) => {
             const isActive = item.exact
@@ -129,16 +143,16 @@ export function SuperadminSidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg text-[9px] transition-colors min-w-[3rem] shrink-0",
+                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-[9px] font-mono transition-colors min-w-[3rem] shrink-0",
                   isActive
                     ? "text-[#ff1493]"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-white/40 hover:text-white",
                 )}
               >
                 <item.icon
                   className={cn("h-5 w-5", isActive && "text-[#ff1493]")}
                 />
-                <span className="truncate">{shortTitle}</span>
+                <span className="truncate uppercase tracking-wider">{shortTitle}</span>
               </Link>
             );
           })}

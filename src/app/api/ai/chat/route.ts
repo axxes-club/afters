@@ -1,8 +1,10 @@
-import { streamText, tool, zodSchema } from "ai"
+import { streamText, tool } from "ai"
 import { auth } from "@clerk/nextjs/server"
 import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+
+export const maxDuration = 30 // Allow streaming for up to 30 seconds
 
 export async function POST(req: Request) {
   try {
@@ -26,17 +28,25 @@ export async function POST(req: Request) {
       return new Response("Organizer profile required", { status: 400 })
     }
 
-    const { messages } = await req.json()
+    const { messages, context } = await req.json()
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Invalid messages format", { status: 400 })
+    }
+
+    // Build context-aware system prompt addition
+    let contextInfo = ""
+    if (context?.page === "event-details" && context?.eventId) {
+      contextInfo = `\n\nCURRENT CONTEXT: User is viewing event details page for eventId="${context.eventId}"${context.eventTitle ? ` (${context.eventTitle})` : ""}. Use this eventId for any questions about "this event" or ticket sales.`
+    } else if (context?.page === "events") {
+      contextInfo = "\n\nCURRENT CONTEXT: User is on the events list page."
     }
 
     // Create tools with actual execution logic using AI SDK v6 format
     const tools = {
       createEvent: tool({
         description: "Create a new event for the user. Use this when the user wants to create an event.",
-        inputSchema: zodSchema(z.object({
+        parameters: z.object({
           title: z.string().describe("Event title/name"),
           description: z.string().optional().describe("Event description"),
           venueName: z.string().describe("Venue name"),
@@ -46,7 +56,7 @@ export async function POST(req: Request) {
           startsAt: z.string().describe("Start date/time in ISO format (e.g., 2024-03-15T22:00:00)"),
           endsAt: z.string().optional().describe("End date/time in ISO format"),
           ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
-        })),
+        }),
         execute: async (params) => {
           try {
             // Generate slug
@@ -94,7 +104,8 @@ export async function POST(req: Request) {
                 startsAt: event.startsAt.toISOString(),
                 status: "DRAFT",
               },
-              message: `Created "${event.title}" as a draft. You can view and publish it at /d/events/${event.id}`,
+              dashboardUrl: `/d/events/${event.id}`,
+              message: `Created "${event.title}" as a draft.`,
             }
           } catch (error) {
             console.error("Create event error:", error)
@@ -105,9 +116,9 @@ export async function POST(req: Request) {
 
       listEvents: tool({
         description: "List the user's events. Use this when user asks about their events.",
-        inputSchema: zodSchema(z.object({
+        parameters: z.object({
           status: z.enum(["all", "upcoming", "past", "draft"]).optional().describe("Filter by status"),
-        })),
+        }),
         execute: async (params) => {
           try {
             const now = new Date()
@@ -156,14 +167,14 @@ export async function POST(req: Request) {
 
       updateEvent: tool({
         description: "Update an existing event",
-        inputSchema: zodSchema(z.object({
+        parameters: z.object({
           eventId: z.string().describe("The event ID to update"),
           title: z.string().optional(),
           description: z.string().optional(),
           venueName: z.string().optional(),
           venueAddress: z.string().optional(),
           startsAt: z.string().optional(),
-        })),
+        }),
         execute: async (params) => {
           try {
             // Verify ownership
@@ -201,9 +212,9 @@ export async function POST(req: Request) {
 
       publishEvent: tool({
         description: "Publish a draft event to make it live",
-        inputSchema: zodSchema(z.object({
+        parameters: z.object({
           eventId: z.string().describe("The event ID to publish"),
-        })),
+        }),
         execute: async (params) => {
           try {
             // Verify ownership
@@ -223,7 +234,8 @@ export async function POST(req: Request) {
             return {
               success: true,
               event: { id: event.id, title: event.title, slug: event.slug },
-              message: `Published "${event.title}"! View it at /e/${event.slug}`,
+              publicUrl: `/e/${event.slug}`,
+              message: `Published "${event.title}"!`,
             }
           } catch (error) {
             console.error("Publish event error:", error)
@@ -231,13 +243,94 @@ export async function POST(req: Request) {
           }
         },
       }),
+
+      getEventStats: tool({
+        description: "Get ticket sales and check-in statistics for an event. Use this when user asks about tickets sold, revenue, check-ins, or attendees.",
+        parameters: z.object({
+          eventId: z.string().describe("The event ID to get stats for"),
+        }),
+        execute: async (params) => {
+          try {
+            // Verify ownership and get event with stats
+            const event = await prisma.event.findFirst({
+              where: { id: params.eventId, organizerId: profile.id },
+              include: {
+                ticketTiers: {
+                  select: {
+                    name: true,
+                    price: true,
+                    quantity: true,
+                    quantitySold: true,
+                  },
+                },
+                tickets: {
+                  select: {
+                    checkedIn: true,
+                  },
+                },
+                _count: {
+                  select: {
+                    orders: true,
+                  },
+                },
+              },
+            })
+
+            if (!event) {
+              return { success: false, error: "Event not found" }
+            }
+
+            const totalSold = event.ticketTiers.reduce((sum, t) => sum + t.quantitySold, 0)
+            const totalCapacity = event.ticketTiers.reduce((sum, t) => sum + t.quantity, 0)
+            const totalRevenue = event.ticketTiers.reduce((sum, t) => sum + (t.quantitySold * t.price), 0)
+            const checkedIn = event.tickets.filter(t => t.checkedIn).length
+
+            // For RSVP events
+            if (event.isRsvpOnly) {
+              return {
+                success: true,
+                eventTitle: event.title,
+                isRsvpEvent: true,
+                rsvpCount: event.rsvpCount,
+                rsvpCapacity: event.rsvpCapacity,
+                checkedIn,
+                message: `${event.rsvpCount} RSVPs${event.rsvpCapacity ? ` (capacity: ${event.rsvpCapacity})` : ""}, ${checkedIn} checked in.`,
+              }
+            }
+
+            return {
+              success: true,
+              eventTitle: event.title,
+              totalTicketsSold: totalSold,
+              totalCapacity,
+              checkedIn,
+              totalRevenue: totalRevenue / 100, // Convert cents to dollars
+              orderCount: event._count.orders,
+              tierBreakdown: event.ticketTiers.map(t => ({
+                name: t.name,
+                sold: t.quantitySold,
+                capacity: t.quantity,
+                price: t.price / 100,
+              })),
+              message: `${totalSold}/${totalCapacity} tickets sold ($${(totalRevenue / 100).toFixed(2)} revenue), ${checkedIn} checked in.`,
+            }
+          } catch (error) {
+            console.error("Get event stats error:", error)
+            return { success: false, error: "Failed to get event stats" }
+          }
+        },
+      }),
     }
 
     const result = streamText({
       model: AI_MODEL,
-      system: AFTIE_SYSTEM_PROMPT,
+      system: AFTIE_SYSTEM_PROMPT + contextInfo,
       messages,
       tools,
+      maxSteps: 5, // Allow multiple tool calls in a conversation
+      onError: (error) => {
+        console.error("Stream error:", error)
+      },
     })
 
     return result.toTextStreamResponse()

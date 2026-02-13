@@ -54,10 +54,8 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
       const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
       if (!sitekey) {
         console.warn("Turnstile site key not configured")
-        // In development without key, auto-verify
-        if (process.env.NODE_ENV === "development") {
-          onVerify("dev-bypass-token")
-        }
+        // Auto-verify when key is not configured (allows form submission)
+        onVerify("bypass-not-configured")
         return
       }
 
@@ -120,13 +118,19 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
 export async function verifyTurnstileToken(token: string): Promise<boolean> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY
 
-  if (!secretKey) {
-    // In development without key, accept bypass token
-    if (process.env.NODE_ENV === "development" && token === "dev-bypass-token") {
-      return true
+  // Accept bypass tokens when Turnstile is not configured
+  if (token === "bypass-not-configured" || token === "dev-bypass-token") {
+    if (!secretKey) {
+      return true // Allow when Turnstile isn't set up
     }
+    // If secret key IS configured but client sent bypass, reject
+    console.warn("Bypass token received but Turnstile is configured")
+    return false
+  }
+
+  if (!secretKey) {
     console.warn("Turnstile secret key not configured")
-    return true // Allow in development
+    return true // Allow when not configured
   }
 
   try {

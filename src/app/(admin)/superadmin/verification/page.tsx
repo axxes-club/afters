@@ -135,71 +135,45 @@ export default function VerificationManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
-          <BadgeCheck className="h-7 w-7 text-[#ff1493]" />
-          Verification Requests
-        </h1>
-        <p className="text-muted-foreground text-sm sm:text-base">
-          Review and manage artist verification requests.
-        </p>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <BadgeCheck className="w-6 h-6 text-[#ff1493]" />
+          <h1 className="text-2xl font-mono font-bold tracking-tight text-white">VERIFICATION</h1>
+        </div>
+        <p className="text-white/40 font-mono text-sm">Review and manage artist verification requests.</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <Card>
-          <CardContent className="p-4 sm:pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-yellow-500/10 rounded-full w-fit">
-                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold">{counts.pending}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Pending</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 sm:pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-green-500/10 rounded-full w-fit">
-                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold">{counts.approved}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Approved</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 sm:pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-red-500/10 rounded-full w-fit">
-                <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold">{counts.rejected}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Rejected</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 sm:pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-blue-500/10 rounded-full w-fit">
-                <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold">{counts.total}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+        <div className="border border-yellow-500/30 bg-yellow-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Clock className="h-4 w-4 text-yellow-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">PENDING</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-yellow-400">{counts.pending}</div>
+        </div>
+        <div className="border border-green-500/30 bg-green-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <CheckCircle className="h-4 w-4 text-green-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">APPROVED</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-green-400">{counts.approved}</div>
+        </div>
+        <div className="border border-red-500/30 bg-red-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <XCircle className="h-4 w-4 text-red-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">REJECTED</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-red-400">{counts.rejected}</div>
+        </div>
+        <div className="border border-blue-500/30 bg-blue-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <ShieldCheck className="h-4 w-4 text-blue-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">TOTAL</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-blue-400">{counts.total}</div>
+        </div>
       </div>
 
       {/* Tabs */}

@@ -50,48 +50,39 @@ export default async function EventManagement({
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Event Management</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Monitor and manage all events across the platform.</p>
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <CalendarDays className="w-6 h-6 text-[#ff1493]" />
+          <h1 className="text-2xl font-mono font-bold tracking-tight text-white">EVENT MANAGEMENT</h1>
+        </div>
+        <p className="text-white/40 font-mono text-sm">Monitor and manage all events across the platform.</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-        <Card>
-          <CardContent className="p-3 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Total Events</p>
-                <p className="text-xl sm:text-2xl font-bold">{allEvents.length}</p>
-              </div>
-              <CalendarDays className="h-5 w-5 text-muted-foreground hidden sm:block" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className={flaggedEvents.length > 0 ? "border-red-500/30 bg-red-500/5" : ""}>
-          <CardContent className="p-3 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Flagged</p>
-                <p className="text-xl sm:text-2xl font-bold text-red-500">{flaggedEvents.length}</p>
-              </div>
-              <Flag className="h-5 w-5 text-red-500 hidden sm:block" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-2 sm:col-span-1">
-          <CardContent className="p-3 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Published</p>
-                <p className="text-xl sm:text-2xl font-bold">
-                  {allEvents.filter(e => e.isPublished).length}
-                </p>
-              </div>
-              <Ticket className="h-5 w-5 text-muted-foreground hidden sm:block" />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="border border-[#ff1493]/30 bg-[#ff1493]/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <CalendarDays className="h-4 w-4 text-[#ff1493]" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">TOTAL</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-[#ff1493]">{allEvents.length}</div>
+        </div>
+        <div className={`border p-3 sm:p-4 ${flaggedEvents.length > 0 ? 'border-red-500/50 bg-red-500/10' : 'border-white/10 bg-white/[0.02]'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <Flag className="h-4 w-4 text-red-500" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">FLAGGED</span>
+          </div>
+          <div className={`text-xl sm:text-2xl font-mono font-bold ${flaggedEvents.length > 0 ? 'text-red-500' : 'text-white/30'}`}>{flaggedEvents.length}</div>
+        </div>
+        <div className="col-span-2 sm:col-span-1 border border-green-500/30 bg-green-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Ticket className="h-4 w-4 text-green-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">LIVE</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-green-400">
+            {allEvents.filter(e => e.isPublished).length}
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue={tab}>

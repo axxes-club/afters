@@ -81,37 +81,38 @@ export default async function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Receipt className="h-8 w-8 text-[#ff1493]" />
-            Orders
-          </h1>
-          <p className="text-muted-foreground">Manage all ticket orders across the platform</p>
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Receipt className="w-6 h-6 text-[#ff1493]" />
+          <h1 className="text-2xl font-mono font-bold tracking-tight text-white">ORDER MANAGEMENT</h1>
         </div>
+        <p className="text-white/40 font-mono text-sm">Track revenue and manage all ticket orders.</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Orders</CardDescription>
-            <CardTitle className="text-3xl">{stats.totalOrders}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Revenue</CardDescription>
-            <CardTitle className="text-3xl text-green-500">{formatCurrency(stats.totalRevenue)}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Orders Today</CardDescription>
-            <CardTitle className="text-3xl">{stats.todayOrders}</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+        <div className="border border-[#ff1493]/30 bg-[#ff1493]/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Receipt className="h-4 w-4 text-[#ff1493]" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">TOTAL</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-[#ff1493]">{stats.totalOrders}</div>
+        </div>
+        <div className="border border-green-500/30 bg-green-500/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Receipt className="h-4 w-4 text-green-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">REVENUE</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-green-400">{formatCurrency(stats.totalRevenue)}</div>
+        </div>
+        <div className="col-span-2 sm:col-span-1 border border-cyan-400/30 bg-cyan-400/5 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Receipt className="h-4 w-4 text-cyan-400" />
+            <span className="text-[10px] font-mono text-white/40 tracking-widest">TODAY</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-mono font-bold text-cyan-400">{stats.todayOrders}</div>
+        </div>
       </div>
 
       {/* Orders Table */}
