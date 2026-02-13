@@ -62,7 +62,7 @@ export default function HomePage() {
       <header className="relative z-20 px-6 py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="font-headline text-xl tracking-wider">
-            AFTERS<span className="text-[#ff1493]">.</span>
+            <span className="text-[#ff1493]">.</span>
           </div>
           <Link
             href="/d"
