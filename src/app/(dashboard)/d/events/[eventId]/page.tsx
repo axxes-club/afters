@@ -52,6 +52,7 @@ import { ScanActivityLog } from "@/components/dashboard/ScanActivityLog";
 import { ShiftHistory } from "@/components/dashboard/ShiftHistory";
 import { GuestlistManagement } from "@/components/guestlist-management";
 import { EventDesignTab } from "@/components/dashboard/EventDesignTab"
+import { EventDetailsTab } from "@/components/dashboard/EventDetailsTab"
 import { EventLocationSettings } from "@/components/dashboard/EventLocationSettings";
 import { EventRsvpSettings } from "@/components/dashboard/EventRsvpSettings";
 import { ScannerSoundSelector } from "@/components/dashboard/ScannerSoundSelector";
@@ -103,6 +104,7 @@ interface Event {
   about: string | null;
   refundPolicy: string | null;
   faqs: Array<{question: string; answer: string}> | null;
+  lineup: Array<{name: string; role: string; imageUrl: string; socialUrl: string; showtime?: string; showShowtime?: boolean}> | null;
   // Event expiration
   expiresAfter: string;
 }
@@ -115,7 +117,7 @@ function EventDashboardContent({
   const { eventId } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab") as "overview" | "tickets" | "door" | "design" | "settings" | null;
+  const tabParam = searchParams.get("tab") as "overview" | "tickets" | "door" | "design" | "details" | "settings" | null;
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [showTierDialog, setShowTierDialog] = useState(false);
@@ -135,21 +137,21 @@ function EventDashboardContent({
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "settings">(
-    tabParam && ["overview", "tickets", "door", "design", "settings"].includes(tabParam) ? tabParam : "overview"
+  const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "details" | "settings">(
+    tabParam && ["overview", "tickets", "door", "design", "details", "settings"].includes(tabParam) ? tabParam : "overview"
   );
   const [expiresAfter, setExpiresAfter] = useState<string>("24h");
   const [expirationLoading, setExpirationLoading] = useState(false);
 
   // Sync tab state with URL changes
   useEffect(() => {
-    if (tabParam && ["overview", "tickets", "door", "design", "settings"].includes(tabParam)) {
+    if (tabParam && ["overview", "tickets", "door", "design", "details", "settings"].includes(tabParam)) {
       setActiveSection(tabParam);
     }
   }, [tabParam]);
 
   // Function to change tabs and update URL
-  function changeTab(tab: "overview" | "tickets" | "door" | "design" | "settings") {
+  function changeTab(tab: "overview" | "tickets" | "door" | "design" | "details" | "settings") {
     setActiveSection(tab);
     const params = new URLSearchParams(searchParams.toString());
     if (tab === "overview") {
@@ -568,6 +570,7 @@ function EventDashboardContent({
           { id: "overview" as const, label: "OVERVIEW" },
           ...(!event.isRsvpOnly ? [{ id: "tickets" as const, label: "TICKETS" }] : []),
           { id: "door" as const, label: "DOOR" },
+          { id: "details" as const, label: "DETAILS" },
           { id: "design" as const, label: "DESIGN" },
           { id: "settings" as const, label: "SETTINGS" },
         ].map((section) => (
@@ -658,6 +661,65 @@ function EventDashboardContent({
                 COPY LINK
               </span>
             </button>
+          </div>
+
+          {/* Event Status */}
+          <div className="border border-white/10 bg-white/[0.02]">
+            <div className="px-4 py-2 border-b border-white/10">
+              <span className="text-[10px] font-mono text-white/40 tracking-widest">EVENT STATUS</span>
+            </div>
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {event.isPublished ? (
+                    <Eye className="w-5 h-5 text-[#ff1493]" />
+                  ) : (
+                    <EyeOff className="w-5 h-5 text-white/40" />
+                  )}
+                  <div>
+                    <p className="font-mono font-medium">
+                      {event.isPublished ? "Published" : "Draft"}
+                    </p>
+                    <p className="text-xs text-white/40 font-mono">
+                      {event.isPublished
+                        ? "Event is visible to the public"
+                        : "Event is not visible yet"}
+                    </p>
+                  </div>
+                </div>
+                {event.isPublished ? (
+                  <button
+                    onClick={unpublishEvent}
+                    className="px-3 py-1.5 border border-white/20 text-xs font-mono text-white/60 hover:border-orange-500/50 hover:text-orange-400 transition-all"
+                  >
+                    UNPUBLISH
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowPublishDialog(true)}
+                    disabled={publishing || (!event.isRsvpOnly && event.ticketTiers.length === 0)}
+                    className="px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
+                  >
+                    PUBLISH
+                  </button>
+                )}
+              </div>
+
+              <div className="mt-4 p-3 bg-white/5 border border-white/10 overflow-hidden">
+                <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">EVENT URL</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs sm:text-sm font-mono text-[#ff1493] truncate min-w-0">
+                    /e/{event.slug}
+                  </code>
+                  <button
+                    onClick={copyEventUrl}
+                    className="p-1.5 border border-white/10 hover:border-[#ff1493]/30 transition-all flex-shrink-0"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -821,6 +883,16 @@ function EventDashboardContent({
         />
       )}
 
+      {activeSection === "details" && event && (
+        <EventDetailsTab
+          eventId={eventId}
+          initialAbout={event.about || ""}
+          initialFaqs={event.faqs || []}
+          initialLineup={event.lineup || []}
+          initialGallery={[]}
+        />
+      )}
+
       {activeSection === "settings" && (
         <div className="space-y-6">
           {/* RSVP Settings (only for RSVP events) */}
@@ -876,65 +948,6 @@ function EventDashboardContent({
               <p className="text-[10px] text-white/30 font-mono">
                 Event will be hidden from public discovery after this time
               </p>
-            </div>
-          </div>
-
-          {/* Event Status */}
-          <div className="border border-white/10 bg-white/[0.02]">
-            <div className="px-4 py-2 border-b border-white/10">
-              <span className="text-[10px] font-mono text-white/40 tracking-widest">EVENT STATUS</span>
-            </div>
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {event.isPublished ? (
-                    <Eye className="w-5 h-5 text-[#ff1493]" />
-                  ) : (
-                    <EyeOff className="w-5 h-5 text-white/40" />
-                  )}
-                  <div>
-                    <p className="font-mono font-medium">
-                      {event.isPublished ? "Published" : "Draft"}
-                    </p>
-                    <p className="text-xs text-white/40 font-mono">
-                      {event.isPublished
-                        ? "Event is visible to the public"
-                        : "Event is not visible yet"}
-                    </p>
-                  </div>
-                </div>
-                {event.isPublished ? (
-                  <button
-                    onClick={unpublishEvent}
-                    className="px-3 py-1.5 border border-white/20 text-xs font-mono text-white/60 hover:border-orange-500/50 hover:text-orange-400 transition-all"
-                  >
-                    UNPUBLISH
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowPublishDialog(true)}
-                    disabled={publishing || (!event.isRsvpOnly && event.ticketTiers.length === 0)}
-                    className="px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
-                  >
-                    PUBLISH
-                  </button>
-                )}
-              </div>
-
-              <div className="mt-4 p-3 bg-white/5 border border-white/10 overflow-hidden">
-                <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">EVENT URL</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs sm:text-sm font-mono text-[#ff1493] truncate min-w-0">
-                    /e/{event.slug}
-                  </code>
-                  <button
-                    onClick={copyEventUrl}
-                    className="p-1.5 border border-white/10 hover:border-[#ff1493]/30 transition-all flex-shrink-0"
-                  >
-                    {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 

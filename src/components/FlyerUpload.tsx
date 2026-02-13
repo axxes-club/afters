@@ -20,10 +20,11 @@ export function FlyerUpload({ value, onChange, disabled }: FlyerUploadProps) {
 
   const { startUpload } = useUploadThing("eventFlyer", {
     onClientUploadComplete: (res) => {
-      if (res?.[0]?.ufsUrl) {
-        const url = res[0].ufsUrl
-        setPreview(url)
-        onChange(url)
+      // v7 uses 'url', older versions used 'ufsUrl'
+      const fileUrl = res?.[0]?.url || res?.[0]?.ufsUrl
+      if (fileUrl) {
+        setPreview(fileUrl)
+        onChange(fileUrl)
         setError(null)
       }
       setIsUploading(false)

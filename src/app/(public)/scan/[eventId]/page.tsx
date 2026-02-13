@@ -64,9 +64,10 @@ interface GuestlistEntry {
 // Sound playback for scanner feedback
 function playScannerSound(soundId: string = "basic") {
   try {
-    // Use audio files for farts and pewpew
-    if (soundId === "farts" || soundId === "pewpew") {
-      const audio = new Audio(`/sounds/${soundId === "farts" ? "fart" : "pewpew"}.mp3`)
+    // Use audio files for farts, pewpew, and lasersword
+    if (soundId === "farts" || soundId === "pewpew" || soundId === "lasersword") {
+      const filename = soundId === "farts" ? "fart" : soundId
+      const audio = new Audio(`/sounds/${filename}.mp3`)
       audio.volume = 0.7
       audio.play().catch(() => {})
       return
@@ -87,25 +88,6 @@ function playScannerSound(soundId: string = "basic") {
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
         osc.start(now)
         osc.stop(now + 0.15)
-        break
-      }
-      case "lightsaber": {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        const filter = ctx.createBiquadFilter()
-        osc.connect(filter)
-        filter.connect(gain)
-        gain.connect(ctx.destination)
-        osc.type = "sawtooth"
-        osc.frequency.setValueAtTime(150, now)
-        osc.frequency.exponentialRampToValueAtTime(400, now + 0.1)
-        osc.frequency.exponentialRampToValueAtTime(200, now + 0.3)
-        filter.type = "lowpass"
-        filter.frequency.value = 2000
-        gain.gain.setValueAtTime(0.4, now)
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
-        osc.start(now)
-        osc.stop(now + 0.4)
         break
       }
       case "ding": {

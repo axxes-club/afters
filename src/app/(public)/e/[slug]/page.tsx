@@ -17,6 +17,8 @@ interface LineupArtist {
   role?: string
   imageUrl?: string
   socialUrl?: string
+  showtime?: string
+  showShowtime?: boolean
 }
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -615,12 +617,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                         <span style={{ color: accentColor }}>{artist.name.charAt(0)}</span>
                       </div>
                     )}
-                    <div>
+                    <div className="flex-1">
                       <div className={`${typographyClass} text-lg`}>{artist.name}</div>
                       {artist.role && <div className="text-sm text-white/40">{artist.role}</div>}
                     </div>
+                    {artist.showtime && artist.showShowtime !== false && (
+                      <div className="text-sm font-mono" style={{ color: accentColor }}>
+                        {artist.showtime}
+                      </div>
+                    )}
                     {artist.socialUrl && (
-                      <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-white/30 hover:text-white">
+                      <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white">
                         <Instagram className="w-5 h-5" />
                       </a>
                     )}
@@ -1342,6 +1349,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                             <div className="text-xs text-white/40">{artist.role}</div>
                           )}
                         </div>
+                        {artist.showtime && artist.showShowtime !== false && (
+                          <span className="text-sm font-mono" style={{ color: accentColor }}>
+                            {artist.showtime}
+                          </span>
+                        )}
                         {artist.socialUrl && (
                           <a
                             href={artist.socialUrl}
@@ -1985,10 +1997,15 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                               <Image src={artist.imageUrl} alt={artist.name} fill className="object-cover" />
                             </div>
                           )}
-                          <div>
+                          <div className="flex-1">
                             <p className={`${typographyClass} text-2xl group-hover:text-white transition-colors`}>{artist.name}</p>
                             {artist.role && <p className="text-sm text-white/40">{artist.role}</p>}
                           </div>
+                          {artist.showtime && artist.showShowtime !== false && (
+                            <span className="font-mono text-sm" style={{ color: accentColor }}>
+                              {artist.showtime}
+                            </span>
+                          )}
                           {artist.socialUrl && (
                             <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-white/20 hover:text-white transition-colors">
                               <Instagram className="w-5 h-5" />

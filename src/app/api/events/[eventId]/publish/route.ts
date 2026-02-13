@@ -1,6 +1,19 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
+
+interface LineupArtist {
+  name: string
+  role?: string
+  imageUrl?: string
+  socialUrl?: string
+}
+
+interface PastArtist extends LineupArtist {
+  usedCount: number
+  lastUsedAt: string
+}
 
 export async function POST(
   req: Request,
@@ -16,6 +29,7 @@ export async function POST(
 
     const profile = await prisma.organizerProfile.findUnique({
       where: { userId },
+      select: { id: true, pastArtists: true },
     })
 
     if (!profile) {
@@ -52,6 +66,52 @@ export async function POST(
         isPublished: true,
       },
     })
+
+    // Capture artists from lineup to pastArtists
+    const lineup = (existingEvent.lineup as LineupArtist[] | null) || []
+    if (lineup.length > 0) {
+      const existingPastArtists = (profile.pastArtists as PastArtist[] | null) || []
+      const now = new Date().toISOString()
+
+      // Merge new artists with existing past artists
+      const updatedPastArtists = [...existingPastArtists]
+
+      for (const artist of lineup) {
+        if (!artist.name?.trim()) continue
+
+        const existingIndex = updatedPastArtists.findIndex(
+          (pa) => pa.name.toLowerCase() === artist.name.toLowerCase()
+        )
+
+        if (existingIndex >= 0) {
+          // Update existing artist
+          updatedPastArtists[existingIndex] = {
+            ...updatedPastArtists[existingIndex],
+            role: artist.role || updatedPastArtists[existingIndex].role,
+            imageUrl: artist.imageUrl || updatedPastArtists[existingIndex].imageUrl,
+            socialUrl: artist.socialUrl || updatedPastArtists[existingIndex].socialUrl,
+            usedCount: updatedPastArtists[existingIndex].usedCount + 1,
+            lastUsedAt: now,
+          }
+        } else {
+          // Add new artist
+          updatedPastArtists.push({
+            name: artist.name,
+            role: artist.role,
+            imageUrl: artist.imageUrl,
+            socialUrl: artist.socialUrl,
+            usedCount: 1,
+            lastUsedAt: now,
+          })
+        }
+      }
+
+      // Save updated past artists
+      await prisma.organizerProfile.update({
+        where: { userId },
+        data: { pastArtists: updatedPastArtists as unknown as Prisma.InputJsonValue },
+      })
+    }
 
     return NextResponse.json(event)
   } catch (error) {

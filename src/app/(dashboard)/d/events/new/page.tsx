@@ -31,6 +31,7 @@ import {
 import Image from "next/image"
 import { FlyerUpload } from "@/components/FlyerUpload"
 import { AuthGuard } from "@/components/AuthGuard"
+import { ArtistAutocomplete, RecentArtists } from "@/components/dashboard/ArtistAutocomplete"
 
 const US_CITIES = [
   "New York", "Brooklyn", "Charlotte", "Raleigh", "Los Angeles", "Miami",
@@ -53,6 +54,8 @@ interface LineupArtist {
   role: string
   imageUrl: string
   socialUrl: string
+  showtime?: string      // e.g., "10:00 PM"
+  showShowtime?: boolean // Toggle to show/hide time on public page
 }
 
 function NewEventForm() {
@@ -83,18 +86,45 @@ function NewEventForm() {
   const [showLineup, setShowLineup] = useState(false)
   const [showStyle, setShowStyle] = useState(false)
 
+  // AI Summarization
+  const [isSummarizing, setIsSummarizing] = useState(false)
+
+  const summarizeDescription = async () => {
+    if (!description.trim() || description.length < 50) {
+      toast.error("Description too short to summarize")
+      return
+    }
+    try {
+      setIsSummarizing(true)
+      const res = await fetch("/api/ai/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: description }),
+      })
+      const data = await res.json()
+      if (data.summary) {
+        setDescription(data.summary)
+        toast.success("Description summarized")
+      }
+    } catch {
+      toast.error("Failed to summarize")
+    } finally {
+      setIsSummarizing(false)
+    }
+  }
+
   const addArtist = () => {
-    setLineup([...lineup, { name: "", role: "", imageUrl: "", socialUrl: "" }])
+    setLineup([...lineup, { name: "", role: "", imageUrl: "", socialUrl: "", showtime: "", showShowtime: true }])
   }
 
   const removeArtist = (index: number) => {
     setLineup(lineup.filter((_, i) => i !== index))
   }
 
-  const updateArtist = (index: number, field: keyof LineupArtist, value: string) => {
-    const updated = [...lineup]
-    updated[index][field] = value
-    setLineup(updated)
+  const updateArtist = (index: number, field: keyof LineupArtist, value: string | boolean) => {
+    setLineup(lineup.map((artist, i) =>
+      i === index ? { ...artist, [field]: value } : artist
+    ))
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -328,9 +358,26 @@ function NewEventForm() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
-                      DESCRIPTION
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-[10px] font-mono text-white/40 tracking-widest">
+                        DESCRIPTION
+                      </label>
+                      {description.length >= 50 && (
+                        <button
+                          type="button"
+                          onClick={summarizeDescription}
+                          disabled={isSummarizing}
+                          className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-[#ff1493] hover:bg-[#ff1493]/5 border border-white/10 hover:border-[#ff1493]/30 transition-all disabled:opacity-50"
+                        >
+                          {isSummarizing ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3 h-3" />
+                          )}
+                          <span>SUMMARIZE</span>
+                        </button>
+                      )}
+                    </div>
                     <Textarea
                       name="description"
                       placeholder="Tell people what to expect..."
@@ -541,11 +588,16 @@ function NewEventForm() {
                         </button>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <Input
+                        <ArtistAutocomplete
                           value={artist.name}
-                          onChange={(e) => updateArtist(index, "name", e.target.value)}
+                          onChange={(value) => updateArtist(index, "name", value)}
+                          onSelectArtist={(pastArtist) => {
+                            updateArtist(index, "name", pastArtist.name)
+                            if (pastArtist.role) updateArtist(index, "role", pastArtist.role)
+                            if (pastArtist.imageUrl) updateArtist(index, "imageUrl", pastArtist.imageUrl)
+                            if (pastArtist.socialUrl) updateArtist(index, "socialUrl", pastArtist.socialUrl)
+                          }}
                           placeholder="Name"
-                          className="h-10 bg-black border-white/10 font-mono text-sm"
                         />
                         <Input
                           value={artist.role}
@@ -553,6 +605,25 @@ function NewEventForm() {
                           placeholder="Role"
                           className="h-10 bg-black border-white/10 font-mono text-sm"
                         />
+                      </div>
+                      {/* Showtime row */}
+                      <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+                        <div className="flex items-center gap-2 flex-1">
+                          <Clock className="w-4 h-4 text-white/30" />
+                          <Input
+                            type="time"
+                            value={artist.showtime || ""}
+                            onChange={(e) => updateArtist(index, "showtime", e.target.value)}
+                            className="h-8 w-28 bg-black border-white/10 font-mono text-xs"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-white/40">Show time</span>
+                          <Switch
+                            checked={artist.showShowtime ?? true}
+                            onCheckedChange={(checked) => updateArtist(index, "showShowtime", checked)}
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -564,6 +635,24 @@ function NewEventForm() {
                     <Plus className="w-4 h-4" />
                     ADD ARTIST
                   </button>
+
+                  {/* Quick add from history */}
+                  <RecentArtists
+                    excludeNames={lineup.map((a) => a.name.toLowerCase())}
+                    onSelect={(artist) => {
+                      setLineup((prev) => [
+                        ...prev,
+                        {
+                          name: artist.name,
+                          role: artist.role || "",
+                          imageUrl: artist.imageUrl || "",
+                          socialUrl: artist.socialUrl || "",
+                          showtime: "",
+                          showShowtime: true,
+                        },
+                      ])
+                    }}
+                  />
                 </div>
               </ExpandableSection>
 

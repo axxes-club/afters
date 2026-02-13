@@ -39,6 +39,7 @@ model User {
   savedEvents      SavedEvent[]
   tickets          Ticket[]
   staffMemberships StaffMember[]
+  activities       UserActivity[]
 
   @@index([isFlagged])
 }
@@ -231,6 +232,10 @@ model OrganizerProfile {
   subscription             Subscription?
   staffMembers             StaffMember[]
   staffInvites             StaffInvite[]
+
+  // Past artists used in lineups - auto-populated when events are published
+  // [{name, role?, imageUrl?, socialUrl?, usedCount, lastUsedAt}]
+  pastArtists              Json?
 }
 
 enum TicketingType {
@@ -270,7 +275,7 @@ model Event {
   pageTheme            String           @default("neon") // 'brutalist', 'neon', 'minimal', 'tilt', 'editorial'
   accentColor          String?          // Custom accent color (hex)
   typography           String           @default("headline") // 'mono', 'headline', 'elegant', 'modern'
-  scannerSound         String           @default("basic") // 'basic', 'lightsaber', 'pewpew', 'farts', 'ding', 'cashregister'
+  scannerSound         String           @default("basic") // 'basic', 'lasersword', 'pewpew', 'farts', 'ding', 'cashregister'
   hasGuestlist         Boolean          @default(false) // Enable guestlist for this event
 
   // Event type: TICKETED vs RSVP
@@ -279,6 +284,7 @@ model Event {
   rsvpAllowPlusOnes    Boolean          @default(false) // Allow guests to bring +1s
   rsvpMaxPlusOnes      Int              @default(1) // Max +1s per RSVP
   rsvpCount            Int              @default(0) // Current RSVP count
+  showRsvpCount        Boolean          @default(false) // Show RSVP count on event page
 
   // Location Broadcasting Settings (exclusivity controls)
   showLocationOnPage   Boolean          @default(false) // Show location on public event page
@@ -287,6 +293,18 @@ model Event {
   showMapOnTicket      Boolean          @default(false) // Show map on ticket
   broadcastOnStart     Boolean          @default(false) // Email location when event starts
   locationPrecision    String           @default("exact") // 'exact', 'area', 'city' - how precise to show
+
+  // Map Customization Settings
+  mapZoom              Int              @default(15)     // Default zoom level (1-20)
+  mapStyle             String           @default("dark") // 'dark', 'light', 'satellite', 'streets', 'minimal'
+  mapShowPin           Boolean          @default(true)   // Show location pin
+  mapShowRadius        Boolean          @default(false)  // Show radius circle around location
+  mapRadiusMeters      Int              @default(500)    // Radius size in meters
+  mapBlurLevel         Int              @default(0)      // Blur level (0 = no blur, 1-10)
+  mapUnblurOnStart     Boolean          @default(false)  // Gradually unblur as event approaches
+  mapLat               Float?                            // Custom latitude
+  mapLng               Float?                            // Custom longitude
+  mapDoodles           Json?                             // Array of doodle/annotation data
 
   // Event Information Sections
   about                String?          @db.Text // Detailed "About" section
@@ -729,4 +747,23 @@ model SiteSettings {
   radioWidgetEnabled Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+// ─── User Activity Logging (Superadmin) ───
+
+model UserActivity {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // 'login', 'page_view', 'event_create', 'event_edit', 'ticket_purchase', etc.
+  path       String?  // URL path
+  metadata   Json?    // Additional action-specific data
+  userAgent  String?
+  ipAddress  String?
+  sessionId  String?  // Group actions by session
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
+  @@index([action, createdAt])
 }

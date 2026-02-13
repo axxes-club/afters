@@ -574,6 +574,73 @@ export function EventDesignTab({
 
   return (
     <div className="space-y-8 w-full min-w-0">
+      {/* Accent Color Selector - FIRST */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 border border-purple-500/30 bg-purple-500/5 flex items-center justify-center">
+            <Palette className="w-4 h-4 text-purple-400" />
+          </div>
+          <div>
+            <h3 className="font-mono font-bold text-sm tracking-wide">ACCENT COLOR</h3>
+            <p className="text-[10px] font-mono text-white/40">Brand color for buttons and highlights</p>
+          </div>
+        </div>
+
+        <div
+          className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {ACCENT_COLORS.map((color) => (
+            <button
+              key={color.value}
+              onClick={() => setAccentColor(color.value)}
+              className={`
+                w-10 h-10 flex-shrink-0 transition-all relative
+                ${accentColor === color.value
+                  ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                  : "hover:scale-105"
+                }
+              `}
+              style={{ backgroundColor: color.value }}
+              title={color.name}
+            >
+              {accentColor === color.value && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-black drop-shadow-lg" />
+                </div>
+              )}
+            </button>
+          ))}
+
+          {/* Custom color picker */}
+          <div className="relative w-10 h-10 flex-shrink-0 border-2 border-dashed border-white/20 overflow-hidden hover:border-white/40 transition-colors">
+            <input
+              type="color"
+              value={accentColor}
+              onChange={(e) => setAccentColor(e.target.value)}
+              className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Plus className="w-4 h-4 text-white/40" />
+            </div>
+          </div>
+        </div>
+
+        {/* Color preview */}
+        <div className="flex items-center gap-3 p-3 border border-white/10 bg-white/[0.02]">
+          <div
+            className="w-6 h-6 flex-shrink-0"
+            style={{ backgroundColor: accentColor }}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-mono text-white/60">Current accent</div>
+            <div className="text-sm font-mono font-bold" style={{ color: accentColor }}>
+              {accentColor.toUpperCase()}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Template Selector */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -755,73 +822,6 @@ export function EventDesignTab({
               </button>
             )
           })}
-        </div>
-      </div>
-
-      {/* Accent Color Selector */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 border border-purple-500/30 bg-purple-500/5 flex items-center justify-center">
-            <Palette className="w-4 h-4 text-purple-400" />
-          </div>
-          <div>
-            <h3 className="font-mono font-bold text-sm tracking-wide">ACCENT COLOR</h3>
-            <p className="text-[10px] font-mono text-white/40">Brand color for buttons and highlights</p>
-          </div>
-        </div>
-
-        <div
-          className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {ACCENT_COLORS.map((color) => (
-            <button
-              key={color.value}
-              onClick={() => setAccentColor(color.value)}
-              className={`
-                w-10 h-10 flex-shrink-0 transition-all relative
-                ${accentColor === color.value
-                  ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
-                  : "hover:scale-105"
-                }
-              `}
-              style={{ backgroundColor: color.value }}
-              title={color.name}
-            >
-              {accentColor === color.value && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Check className="w-4 h-4 text-black drop-shadow-lg" />
-                </div>
-              )}
-            </button>
-          ))}
-
-          {/* Custom color picker */}
-          <div className="relative w-10 h-10 flex-shrink-0 border-2 border-dashed border-white/20 overflow-hidden hover:border-white/40 transition-colors">
-            <input
-              type="color"
-              value={accentColor}
-              onChange={(e) => setAccentColor(e.target.value)}
-              className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-            />
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <Plus className="w-4 h-4 text-white/40" />
-            </div>
-          </div>
-        </div>
-
-        {/* Color preview */}
-        <div className="flex items-center gap-3 p-3 border border-white/10 bg-white/[0.02]">
-          <div
-            className="w-6 h-6 flex-shrink-0"
-            style={{ backgroundColor: accentColor }}
-          />
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-mono text-white/60">Current accent</div>
-            <div className="text-sm font-mono font-bold" style={{ color: accentColor }}>
-              {accentColor.toUpperCase()}
-            </div>
-          </div>
         </div>
       </div>
 

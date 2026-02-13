@@ -6,8 +6,17 @@ const f = createUploadthing()
 export const ourFileRouter = {
   eventFlyer: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .onUploadComplete(async ({ file }) => {
-      console.log("Uploaded event flyer:", file.ufsUrl)
-      return { url: file.ufsUrl }
+      // v7 uses 'url', older versions used 'ufsUrl'
+      const fileUrl = file.url || file.ufsUrl
+      console.log("Uploaded event flyer:", fileUrl)
+      return { url: fileUrl }
+    }),
+  // Event gallery images
+  eventGallery: f({ image: { maxFileSize: "4MB", maxFileCount: 10 } })
+    .onUploadComplete(async ({ file }) => {
+      const fileUrl = file.url || file.ufsUrl
+      console.log("Uploaded gallery image:", fileUrl)
+      return { url: fileUrl }
     }),
 } satisfies FileRouter
 

@@ -9,6 +9,13 @@ import {
   ChevronLeft
 } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
+import {
+  AftysProvider,
+  AftysChat,
+  AftysTrigger,
+  AftysCommandPalette,
+  AftysKeyboardListener,
+} from "@/components/aftys"
 
 const navItems = [
   { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
@@ -24,6 +31,7 @@ export default function DashboardLayout({
   const pathname = usePathname()
 
   return (
+    <AftysProvider>
     <div className="min-h-screen bg-black text-white flex overflow-x-hidden">
       {/* Desktop Sidebar - Hidden on mobile */}
       <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
@@ -142,6 +150,13 @@ export default function DashboardLayout({
           {children}
         </div>
       </main>
+
+      {/* Aftys AI Assistant */}
+      <AftysKeyboardListener />
+      <AftysTrigger />
+      <AftysChat />
+      <AftysCommandPalette />
     </div>
+    </AftysProvider>
   )
 }
