@@ -62,10 +62,15 @@ export default function EditDesignButton({ eventId }: EditDesignButtonProps) {
 
   const handleDesignUpdate = (key: keyof DesignSettings, value: any) => {
     updateDesign(key, value)
-    // Show note when template is changed (requires republish to see)
+    // For template changes, navigate with preview params to see the change live
     if (key === 'pageTheme') {
       setTemplateChangeNote(true)
-      setTimeout(() => setTemplateChangeNote(false), 3000)
+      // Navigate with preview params to show the new template
+      const url = new URL(window.location.href)
+      url.searchParams.set('preview_theme', value)
+      url.searchParams.set('preview_color', design.accentColor)
+      url.searchParams.set('preview_typography', design.typography)
+      window.location.href = url.toString()
     }
   }
 
@@ -80,9 +85,13 @@ export default function EditDesignButton({ eventId }: EditDesignButtonProps) {
 
       if (!response.ok) throw new Error('Failed to publish')
 
-      // Show success and reload to persist changes
+      // Show success and reload without preview params
       setTimeout(() => {
-        window.location.reload()
+        const url = new URL(window.location.href)
+        url.searchParams.delete('preview_theme')
+        url.searchParams.delete('preview_color')
+        url.searchParams.delete('preview_typography')
+        window.location.href = url.toString()
       }, 500)
     } catch (error) {
       console.error('Failed to publish:', error)
@@ -94,6 +103,14 @@ export default function EditDesignButton({ eventId }: EditDesignButtonProps) {
   const handleCancel = () => {
     resetToOriginal()
     setIsOpen(false)
+    // Clear preview params and reload to original state
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('preview_theme') || url.searchParams.has('preview_color') || url.searchParams.has('preview_typography')) {
+      url.searchParams.delete('preview_theme')
+      url.searchParams.delete('preview_color')
+      url.searchParams.delete('preview_typography')
+      window.location.href = url.toString()
+    }
   }
 
   return (

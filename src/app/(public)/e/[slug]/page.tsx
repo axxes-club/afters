@@ -21,8 +21,15 @@ interface LineupArtist {
   showShowtime?: boolean
 }
 
-export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function EventPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ preview_theme?: string; preview_color?: string; preview_typography?: string }>
+}) {
   const { slug: combinedSlug } = await params
+  const { preview_theme, preview_color, preview_typography } = await searchParams
 
   let event = null
 
@@ -190,10 +197,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   }
 
   // Create render function that accepts live design
+  // Preview params take priority for owners, allowing live preview via URL
   const renderEventPage = (liveDesign?: any) => {
-    const accentColor = liveDesign?.accentColor || event.accentColor || '#ff1493'
-    const pageTheme = liveDesign?.pageTheme || event.pageTheme || 'neon'
-    const typography = liveDesign?.typography || event.typography || 'headline'
+    const accentColor = (isOwner && preview_color) || liveDesign?.accentColor || event.accentColor || '#ff1493'
+    const pageTheme = (isOwner && preview_theme) || liveDesign?.pageTheme || event.pageTheme || 'neon'
+    const typography = (isOwner && preview_typography) || liveDesign?.typography || event.typography || 'headline'
     const typographyClass = typographyMap[typography] || 'font-headline'
 
     // Location display logic - use live design if provided
@@ -376,13 +384,18 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 <div className="text-xs tracking-widest uppercase text-white/40 mb-4">LINEUP</div>
                 <div className="flex flex-wrap gap-2">
                   {lineup.map((artist, i) => (
-                    <span
+                    <div
                       key={i}
-                      className="border-2 px-4 py-2 text-sm font-bold uppercase"
+                      className="border-2 px-4 py-2 text-sm font-bold uppercase flex items-center gap-2"
                       style={{ borderColor: accentColor }}
                     >
-                      {artist.name}
-                    </span>
+                      <span>{artist.name}</span>
+                      {artist.showtime && artist.showShowtime !== false && (
+                        <span className="text-[10px] font-mono text-white/50">
+                          {artist.showtime}
+                        </span>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -816,7 +829,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                                 <Image src={artist.imageUrl} alt={artist.name} fill className="object-cover" />
                               </div>
                             )}
-                            <span className={`${typographyClass} text-xl font-light`}>{artist.name}</span>
+                            <div className="flex flex-col">
+                              <span className={`${typographyClass} text-xl font-light`}>{artist.name}</span>
+                              {artist.showtime && artist.showShowtime !== false && (
+                                <span className="text-xs text-white/40">{artist.showtime}</span>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1085,10 +1103,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   {lineup.map((artist, i) => (
                     <div
                       key={i}
-                      className={`px-6 py-4 border-4 font-black text-xl uppercase ${i % 3 === 0 ? '-rotate-3' : i % 3 === 1 ? 'rotate-2' : '-rotate-1'}`}
+                      className={`px-6 py-4 border-4 ${i % 3 === 0 ? '-rotate-3' : i % 3 === 1 ? 'rotate-2' : '-rotate-1'}`}
                       style={{ borderColor: accentColor }}
                     >
-                      {artist.name}
+                      <div className="font-black text-xl uppercase">{artist.name}</div>
+                      {artist.showtime && artist.showShowtime !== false && (
+                        <div className="text-xs text-white/50 mt-1 font-mono">{artist.showtime}</div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1608,6 +1629,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                             {artist.role && (
                               <div className="text-xs text-white/50">{artist.role}</div>
                             )}
+                            {artist.showtime && artist.showShowtime !== false && (
+                              <div className="text-xs mt-1" style={{ color: accentColor }}>{artist.showtime}</div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -2084,7 +2108,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className={`${typographyClass} text-lg truncate`}>{artist.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className={`${typographyClass} text-lg truncate`}>{artist.name}</p>
+                            {artist.showtime && artist.showShowtime !== false && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-white/5" style={{ color: accentColor }}>
+                                {artist.showtime}
+                              </span>
+                            )}
+                          </div>
                           {artist.role && <p className="text-sm text-white/40 truncate">{artist.role}</p>}
                         </div>
                         {artist.socialUrl && (
@@ -2884,19 +2915,22 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   }
 
   // Render the page with optional edit overlay for owners
+  // Use preview params for initialDesign so the editor shows the correct current state
+  const previewDesign = {
+    accentColor: preview_color || event.accentColor || '#ff1493',
+    typography: preview_typography || event.typography || 'headline',
+    pageTheme: preview_theme || event.pageTheme || 'neon',
+    showLocationOnPage: event.showLocationOnPage ?? false,
+    showMapOnPage: event.showMapOnPage ?? false,
+    isAddressHidden: event.isAddressHidden ?? false,
+  }
+
   return (
     <>
       {isOwner && (
         <EditDesignOverlay
           eventId={event.id}
-          initialDesign={{
-            accentColor: event.accentColor || '#ff1493',
-            typography: event.typography || 'headline',
-            pageTheme: event.pageTheme || 'neon',
-            showLocationOnPage: event.showLocationOnPage ?? false,
-            showMapOnPage: event.showMapOnPage ?? false,
-            isAddressHidden: event.isAddressHidden ?? false,
-          }}
+          initialDesign={previewDesign}
         />
       )}
       {renderEventPage()}
