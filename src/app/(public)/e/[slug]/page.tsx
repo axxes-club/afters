@@ -1236,7 +1236,7 @@ export default async function EventPage({
           </div>
 
           {/* Two-column layout */}
-          <div className="relative z-10 grid lg:grid-cols-[1.2fr,1fr] min-h-screen">
+          <div className="relative z-10 grid lg:grid-cols-[1.2fr_1fr] min-h-screen">
             {/* Left: Flyer with backdrop blur card */}
             <div className="relative p-4 lg:p-12 flex items-start justify-center">
               <div className="w-full max-w-lg sticky top-12">
@@ -1564,7 +1564,7 @@ export default async function EventPage({
             {/* Container with max-width */}
             <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
               {/* Two-column layout */}
-              <div className="grid lg:grid-cols-[1fr,400px] gap-8 lg:gap-12">
+              <div className="grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12">
                 {/* Left: Main content */}
                 <div className="space-y-8">
                   {/* Hero image */}
