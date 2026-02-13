@@ -32,6 +32,8 @@ const TEMPLATES = [
   { id: 'lush', name: 'LUSH', icon: '◆' },
   { id: 'nice', name: 'NICE.AM', icon: '●' },
   { id: 'editorial', name: 'EDITORIAL', icon: '≡' },
+  { id: 'card', name: 'CARD', icon: '▢' },
+  { id: 'vapor', name: 'VAPOR', icon: '◎' },
 ]
 
 export default function EditDesignButton({ eventId }: EditDesignButtonProps) {
