@@ -1,6 +1,8 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react"
+
+const BETA_STORAGE_KEY = "afty_ai_beta_enabled"
 
 type ChatStatus = "ready" | "loading" | "error"
 
@@ -25,6 +27,8 @@ interface AftysContextType {
   sendMessage: (text: string) => Promise<void>
   status: ChatStatus
   isLoading: boolean
+  // Beta toggle
+  isBetaEnabled: boolean
 }
 
 const AftysContext = createContext<AftysContextType | null>(null)
@@ -47,6 +51,34 @@ export function AftysProvider({ children }: AftysProviderProps) {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
   const [status, setStatus] = useState<ChatStatus>("ready")
+  const [isBetaEnabled, setIsBetaEnabled] = useState(false)
+
+  // Initialize beta state from localStorage and set up global toggle
+  useEffect(() => {
+    // Check localStorage for beta flag
+    const stored = localStorage.getItem(BETA_STORAGE_KEY)
+    if (stored === "true") {
+      setIsBetaEnabled(true)
+    }
+
+    // Create global toggle function
+    const toggle = () => {
+      setIsBetaEnabled(prev => {
+        const newValue = !prev
+        localStorage.setItem(BETA_STORAGE_KEY, newValue.toString())
+        console.log(`🤖 Aftys AI beta ${newValue ? "ENABLED" : "DISABLED"}`)
+        return newValue
+      })
+    }
+
+    // Attach to window
+    ;(window as unknown as { afty_ai_beta_toggle: () => void }).afty_ai_beta_toggle = toggle
+
+    return () => {
+      // Cleanup
+      delete (window as unknown as { afty_ai_beta_toggle?: () => void }).afty_ai_beta_toggle
+    }
+  }, [])
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || status === "loading") return
@@ -152,6 +184,7 @@ export function AftysProvider({ children }: AftysProviderProps) {
         sendMessage,
         status,
         isLoading,
+        isBetaEnabled,
       }}
     >
       {children}

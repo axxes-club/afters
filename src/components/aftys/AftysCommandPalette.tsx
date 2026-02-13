@@ -13,6 +13,7 @@ export function AftysCommandPalette() {
     setInput,
     sendMessage,
     isLoading,
+    isBetaEnabled,
   } = useAftys()
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -37,7 +38,7 @@ export function AftysCommandPalette() {
     }
   }, [isCommandPaletteOpen])
 
-  if (!isCommandPaletteOpen) return null
+  if (!isBetaEnabled || !isCommandPaletteOpen) return null
 
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -132,11 +133,12 @@ export function AftysCommandPalette() {
 
 // Keyboard listener component to be added to the provider
 export function AftysKeyboardListener() {
-  const { openCommandPalette, isCommandPaletteOpen, isOpen } = useAftys()
+  const { openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled } = useAftys()
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k" && !isCommandPaletteOpen && !isOpen) {
+      // Only handle Cmd+K if beta is enabled
+      if (isBetaEnabled && (e.metaKey || e.ctrlKey) && e.key === "k" && !isCommandPaletteOpen && !isOpen) {
         e.preventDefault()
         openCommandPalette()
       }
@@ -144,7 +146,7 @@ export function AftysKeyboardListener() {
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [openCommandPalette, isCommandPaletteOpen, isOpen])
+  }, [openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled])
 
   return null
 }

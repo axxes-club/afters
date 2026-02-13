@@ -32,6 +32,7 @@ import Image from "next/image"
 import { FlyerUpload } from "@/components/FlyerUpload"
 import { AuthGuard } from "@/components/AuthGuard"
 import { ArtistAutocomplete, RecentArtists } from "@/components/dashboard/ArtistAutocomplete"
+import { useAftys } from "@/components/aftys/AftysProvider"
 
 const US_CITIES = [
   "New York", "Brooklyn", "Charlotte", "Raleigh", "Los Angeles", "Miami",
@@ -88,6 +89,7 @@ function NewEventForm() {
 
   // AI Summarization
   const [isSummarizing, setIsSummarizing] = useState(false)
+  const { isBetaEnabled: isAftysEnabled } = useAftys()
 
   const summarizeDescription = async () => {
     if (!description.trim() || description.length < 50) {
@@ -362,7 +364,7 @@ function NewEventForm() {
                       <label className="text-[10px] font-mono text-white/40 tracking-widest">
                         DESCRIPTION
                       </label>
-                      {description.length >= 50 && (
+                      {isAftysEnabled && description.length >= 50 && (
                         <button
                           type="button"
                           onClick={summarizeDescription}

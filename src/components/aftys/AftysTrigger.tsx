@@ -4,9 +4,9 @@ import { useAftys } from "./AftysProvider"
 import { Sparkles } from "lucide-react"
 
 export function AftysTrigger() {
-  const { isOpen, toggleChat } = useAftys()
+  const { isOpen, toggleChat, isBetaEnabled } = useAftys()
 
-  if (isOpen) return null
+  if (!isBetaEnabled || isOpen) return null
 
   return (
     <button
