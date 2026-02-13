@@ -466,7 +466,7 @@ export function EventDesignTab({
   }
 
   return (
-    <div className="space-y-8 max-w-full overflow-x-hidden">
+    <div className="space-y-8 w-full min-w-0">
       {/* Template Selector */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -501,11 +501,11 @@ export function EventDesignTab({
 
         {/* Template Cards Container */}
         {/* Mobile: Carousel with snap | Desktop: Horizontal scroll grid */}
-        <div className="relative overflow-hidden -mx-4 sm:mx-0">
+        <div className="relative -mx-4 sm:mx-0 overflow-x-auto overflow-y-visible sm:overflow-visible">
           <div
             ref={carouselRef}
             onScroll={handleScroll}
-            className="flex gap-3 overflow-x-auto scrollbar-hide sm:pb-2 px-4 sm:px-0"
+            className="flex gap-3 sm:overflow-x-auto scrollbar-hide sm:pb-2 px-4 sm:px-0 min-w-0"
             style={{
               scrollSnapType: isMobile ? "x mandatory" : "none",
               WebkitOverflowScrolling: "touch",
@@ -579,26 +579,26 @@ export function EventDesignTab({
             {/* Mobile padding spacer for peek effect */}
             <div className="sm:hidden flex-shrink-0 w-4" />
           </div>
+        </div>
 
-          {/* Carousel indicators - mobile only */}
-          <div className="flex sm:hidden justify-center gap-2 mt-4">
-            {TEMPLATES.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setActiveIndex(index)
-                  scrollToIndex(index)
-                }}
-                className={`
-                  h-1 transition-all duration-300
-                  ${activeIndex === index
-                    ? "w-6 bg-[#ff1493]"
-                    : "w-2 bg-white/20 hover:bg-white/40"
-                  }
-                `}
-              />
-            ))}
-          </div>
+        {/* Carousel indicators - mobile only */}
+        <div className="flex sm:hidden justify-center gap-2 mt-4 px-4">
+          {TEMPLATES.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setActiveIndex(index)
+                scrollToIndex(index)
+              }}
+              className={`
+                h-1 transition-all duration-300
+                ${activeIndex === index
+                  ? "w-6 bg-[#ff1493]"
+                  : "w-2 bg-white/20 hover:bg-white/40"
+                }
+              `}
+            />
+          ))}
         </div>
       </div>
 
@@ -664,7 +664,7 @@ export function EventDesignTab({
         </div>
 
         <div
-          className="flex items-center gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+          className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {ACCENT_COLORS.map((color) => (
