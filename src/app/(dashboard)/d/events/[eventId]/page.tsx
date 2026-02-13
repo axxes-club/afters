@@ -541,6 +541,7 @@ function EventDashboardContent({
       </div>
 
       {/* Content */}
+      <div className="max-w-[100vw] md:max-w-[calc(100vw-14rem)]">
       {activeSection === "overview" && (
         <div className="space-y-6">
           {/* Stats Grid */}
@@ -967,6 +968,7 @@ function EventDashboardContent({
           </div>
         </div>
       )}
+      </div>
 
       {/* DIALOGS */}
       {/* Flyer Dialog */}
