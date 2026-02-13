@@ -32,7 +32,7 @@ import Image from "next/image"
 import { FlyerUpload } from "@/components/FlyerUpload"
 import { AuthGuard } from "@/components/AuthGuard"
 import { ArtistAutocomplete, RecentArtists } from "@/components/dashboard/ArtistAutocomplete"
-import { useAftys } from "@/components/aftys/AftysProvider"
+import { useAftie } from "@/components/aftie/AftieProvider"
 import { Turnstile } from "@/components/Turnstile"
 
 const US_CITIES = [
@@ -90,7 +90,7 @@ function NewEventForm() {
 
   // AI Summarization
   const [isSummarizing, setIsSummarizing] = useState(false)
-  const { isBetaEnabled: isAftysEnabled } = useAftys()
+  const { isBetaEnabled: isAftieEnabled } = useAftie()
 
   // Human verification
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
@@ -375,7 +375,7 @@ function NewEventForm() {
                       <label className="text-[10px] font-mono text-white/40 tracking-widest">
                         DESCRIPTION
                       </label>
-                      {isAftysEnabled && description.length >= 50 && (
+                      {isAftieEnabled && description.length >= 50 && (
                         <button
                           type="button"
                           onClick={summarizeDescription}

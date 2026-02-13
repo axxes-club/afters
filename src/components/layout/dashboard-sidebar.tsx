@@ -83,11 +83,13 @@ export function DashboardSidebar({
   isOrganizer,
   isArtist,
   isPersonal,
+  hasEvents,
 }: {
   isSuperAdmin?: boolean;
   isOrganizer?: boolean;
   isArtist?: boolean;
   isPersonal?: boolean;
+  hasEvents?: boolean;
 }) {
   const pathname = usePathname();
   const t = useTranslations("sidebar");
@@ -145,7 +147,7 @@ export function DashboardSidebar({
           })}
 
           {/* Organizer-only items */}
-          {isOrganizer && organizerNavItems.map((item) => {
+          {isOrganizer && organizerNavItems.filter((item) => item.titleKey !== "scanner" || hasEvents).map((item) => {
             const isActive = isNavItemActive(pathname, item);
             return (
               <Link

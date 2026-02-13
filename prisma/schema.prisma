@@ -272,6 +272,7 @@ model Event {
   // Underground event features
   isAddressHidden      Boolean          @default(false) // Hide address until ticket purchase
   lineup               Json?            // Array of artists: [{name, role?, imageUrl?, socialUrl?}]
+  gallery              Json?            // Array of image URLs for event gallery
   pageTheme            String           @default("neon") // 'brutalist', 'neon', 'minimal', 'tilt', 'editorial'
   accentColor          String?          // Custom accent color (hex)
   typography           String           @default("headline") // 'mono', 'headline', 'elegant', 'modern'

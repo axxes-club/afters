@@ -1,10 +1,10 @@
 "use client"
 
-import { useAftys } from "./AftysProvider"
+import { useAftie } from "./AftieProvider"
 import { Sparkles } from "lucide-react"
 
-export function AftysTrigger() {
-  const { isOpen, toggleChat, isBetaEnabled, isHydrated } = useAftys()
+export function AftieTrigger() {
+  const { isOpen, toggleChat, isBetaEnabled, isHydrated } = useAftie()
 
   // Don't render until hydrated to avoid hydration mismatch
   if (!isHydrated || !isBetaEnabled || isOpen) return null

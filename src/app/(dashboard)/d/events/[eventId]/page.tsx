@@ -105,6 +105,7 @@ interface Event {
   refundPolicy: string | null;
   faqs: Array<{question: string; answer: string}> | null;
   lineup: Array<{name: string; role: string; imageUrl: string; socialUrl: string; showtime?: string; showShowtime?: boolean}> | null;
+  gallery: string[] | null;
   // Event expiration
   expiresAfter: string;
 }
@@ -889,7 +890,7 @@ function EventDashboardContent({
           initialAbout={event.about || ""}
           initialFaqs={event.faqs || []}
           initialLineup={event.lineup || []}
-          initialGallery={[]}
+          initialGallery={event.gallery || []}
         />
       )}
 

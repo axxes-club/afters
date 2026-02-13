@@ -1,10 +1,10 @@
 "use client"
 
-import { useAftys } from "./AftysProvider"
+import { useAftie } from "./AftieProvider"
 import { useEffect, useRef, FormEvent } from "react"
 import { Sparkles, Send, Loader2 } from "lucide-react"
 
-export function AftysCommandPalette() {
+export function AftieCommandPalette() {
   const {
     isCommandPaletteOpen,
     closeCommandPalette,
@@ -15,7 +15,7 @@ export function AftysCommandPalette() {
     isLoading,
     isBetaEnabled,
     isHydrated,
-  } = useAftys()
+  } = useAftie()
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -72,7 +72,7 @@ export function AftysCommandPalette() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask Aftys anything..."
+                placeholder="Ask Aftie anything..."
                 className="flex-1 bg-transparent text-white font-mono text-sm placeholder:text-white/30 focus:outline-none"
               />
               <button
@@ -134,8 +134,8 @@ export function AftysCommandPalette() {
 }
 
 // Keyboard listener component to be added to the provider
-export function AftysKeyboardListener() {
-  const { openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, isHydrated } = useAftys()
+export function AftieKeyboardListener() {
+  const { openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, isHydrated } = useAftie()
 
   useEffect(() => {
     // Only set up listener after hydration

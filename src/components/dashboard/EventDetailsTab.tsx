@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { toast } from "sonner"
+import Image from "next/image"
 import {
   Plus,
   Trash2,
@@ -13,14 +14,15 @@ import {
   Users,
   Loader2,
   Check,
-  X,
   GripVertical,
   Clock,
+  Upload,
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { ArtistAutocomplete } from "@/components/dashboard/ArtistAutocomplete"
+import { useUploadThing } from "@/lib/uploadthing-client"
 
 interface FAQ {
   question: string
@@ -67,12 +69,55 @@ export function EventDetailsTab({
   )
   const [gallery, setGallery] = useState<string[]>(initialGallery)
   const [saving, setSaving] = useState(false)
+  const [uploadingGallery, setUploadingGallery] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
     about: true,
     lineup: false,
     faqs: false,
     gallery: false,
   })
+
+  // Gallery upload hook
+  const { startUpload, isUploading } = useUploadThing("eventGallery", {
+    onClientUploadComplete: (res) => {
+      if (res) {
+        const newUrls = res.map((file) => file.url)
+        setGallery((prev) => [...prev, ...newUrls])
+        toast.success(`${res.length} image${res.length > 1 ? "s" : ""} uploaded!`)
+      }
+      setUploadingGallery(false)
+    },
+    onUploadError: (error) => {
+      toast.error(error.message || "Failed to upload images")
+      setUploadingGallery(false)
+    },
+  })
+
+  const handleGalleryUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files
+      if (!files || files.length === 0) return
+
+      const fileArray = Array.from(files)
+
+      // Check max 10 total images
+      if (gallery.length + fileArray.length > 10) {
+        toast.error(`Maximum 10 images allowed. You can add ${10 - gallery.length} more.`)
+        return
+      }
+
+      setUploadingGallery(true)
+      await startUpload(fileArray)
+
+      // Reset input
+      e.target.value = ""
+    },
+    [gallery.length, startUpload]
+  )
+
+  const removeGalleryImage = (index: number) => {
+    setGallery((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -134,6 +179,7 @@ export function EventDetailsTab({
           about: about.trim() || null,
           faqs: cleanFaqs.length > 0 ? cleanFaqs : null,
           lineup: cleanLineup.length > 0 ? cleanLineup : null,
+          gallery: gallery.length > 0 ? gallery : null,
         }),
       })
 
@@ -379,12 +425,91 @@ export function EventDetailsTab({
           count={gallery.length}
         />
         {expandedSections.gallery && (
-          <div className="p-4 border border-t-0 border-white/10 bg-black">
-            <div className="text-center py-8 text-white/30">
-              <ImageIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="font-mono text-sm mb-2">Gallery coming soon</p>
-              <p className="text-[10px] text-white/20">Upload photos to showcase your event</p>
-            </div>
+          <div className="p-4 border border-t-0 border-white/10 bg-black space-y-4">
+            {/* Gallery Grid */}
+            {gallery.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {gallery.map((url, index) => (
+                  <div
+                    key={index}
+                    className="relative aspect-square group border border-white/10 bg-white/5 overflow-hidden"
+                  >
+                    <Image
+                      src={url}
+                      alt={`Gallery image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryImage(index)}
+                        className="p-2 bg-red-500/80 hover:bg-red-500 text-white transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[10px] font-mono text-white/80">
+                        {index + 1} / {gallery.length}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload Area */}
+            {gallery.length < 10 && (
+              <label
+                className={`
+                  w-full h-32 border-2 border-dashed border-white/10
+                  hover:border-purple-400/50 hover:bg-purple-400/5
+                  flex flex-col items-center justify-center gap-2
+                  transition-all cursor-pointer
+                  ${uploadingGallery || isUploading ? "opacity-50 pointer-events-none" : ""}
+                `}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGalleryUpload}
+                  className="hidden"
+                  disabled={uploadingGallery || isUploading}
+                />
+                {uploadingGallery || isUploading ? (
+                  <>
+                    <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+                    <span className="font-mono text-sm text-white/40">Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-6 h-6 text-white/30" />
+                    <span className="font-mono text-sm text-white/40">
+                      Click to upload images
+                    </span>
+                    <span className="text-[10px] font-mono text-white/20">
+                      Up to {10 - gallery.length} more • Max 4MB each
+                    </span>
+                  </>
+                )}
+              </label>
+            )}
+
+            {/* Gallery Info */}
+            {gallery.length > 0 && (
+              <p className="text-[10px] font-mono text-white/30">
+                {gallery.length} of 10 images • Drag to reorder (coming soon)
+              </p>
+            )}
+
+            {gallery.length === 0 && !uploadingGallery && !isUploading && (
+              <p className="text-center text-[10px] text-white/20 font-mono py-2">
+                Add photos to showcase your event venue, past events, or vibes
+              </p>
+            )}
           </div>
         )}
       </div>

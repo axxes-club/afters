@@ -2,27 +2,31 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
 import {
   Calendar,
   LayoutDashboard,
   ScanLine,
-  ChevronLeft
+  ChevronLeft,
+  Shield
 } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
 import {
-  AftysProvider,
-  AftysChat,
-  AftysTrigger,
-  AftysCommandPalette,
-  AftysKeyboardListener,
-} from "@/components/aftys"
+  AftieProvider,
+  AftieChat,
+  AftieTrigger,
+  AftieCommandPalette,
+  AftieKeyboardListener,
+} from "@/components/aftie"
 import { FeedbackButton } from "@/components/FeedbackButton"
 
-const navItems = [
+const baseNavItems = [
   { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
-  { href: "/d/events", label: "EVENTS", icon: Calendar },
-  { href: "/scan", label: "SCANNER", icon: ScanLine },
+  { href: "/d/events", label: "EVENTS", icon: Calendar, exact: false },
 ]
+
+const scannerNavItem = { href: "/scan", label: "SCANNER", icon: ScanLine, exact: false }
+const superadminNavItem = { href: "/superadmin", label: "ADMIN", icon: Shield, exact: false }
 
 export default function DashboardLayout({
   children,
@@ -30,9 +34,34 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const [hasEvents, setHasEvents] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+
+  // Check if user has events to show/hide scanner
+  useEffect(() => {
+    fetch("/api/organizer/events/count")
+      .then((res) => res.json())
+      .then((data) => setHasEvents(data.count > 0))
+      .catch(() => setHasEvents(false))
+  }, [])
+
+  // Check if user is superadmin
+  useEffect(() => {
+    fetch("/api/user/role")
+      .then((res) => res.json())
+      .then((data) => setIsSuperAdmin(data.role === "SUPERADMIN"))
+      .catch(() => setIsSuperAdmin(false))
+  }, [])
+
+  // Build nav items based on user permissions
+  const navItems = [
+    ...baseNavItems,
+    ...(hasEvents ? [scannerNavItem] : []),
+    ...(isSuperAdmin ? [superadminNavItem] : []),
+  ]
 
   return (
-    <AftysProvider>
+    <AftieProvider>
     <div className="min-h-screen bg-black text-white flex overflow-x-hidden">
       {/* Desktop Sidebar - Hidden on mobile */}
       <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
@@ -155,12 +184,12 @@ export default function DashboardLayout({
         </div>
       </main>
 
-      {/* Aftys AI Assistant */}
-      <AftysKeyboardListener />
-      <AftysTrigger />
-      <AftysChat />
-      <AftysCommandPalette />
+      {/* Aftie AI Assistant */}
+      <AftieKeyboardListener />
+      <AftieTrigger />
+      <AftieChat />
+      <AftieCommandPalette />
     </div>
-    </AftysProvider>
+    </AftieProvider>
   )
 }

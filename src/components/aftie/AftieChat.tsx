@@ -1,10 +1,10 @@
 "use client"
 
-import { useAftys } from "./AftysProvider"
+import { useAftie } from "./AftieProvider"
 import { X, Send, Sparkles, Loader2 } from "lucide-react"
 import { useEffect, useRef, FormEvent } from "react"
 
-export function AftysChat() {
+export function AftieChat() {
   const {
     isOpen,
     closeChat,
@@ -15,7 +15,7 @@ export function AftysChat() {
     isLoading,
     isBetaEnabled,
     isHydrated,
-  } = useAftys()
+  } = useAftie()
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -51,7 +51,7 @@ export function AftysChat() {
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="font-mono text-sm font-medium">AFTYS</div>
+            <div className="font-mono text-sm font-medium">AFTIE</div>
             <div className="text-[10px] text-white/40">AI Assistant</div>
           </div>
         </div>
@@ -68,7 +68,7 @@ export function AftysChat() {
         {messages.length === 0 ? (
           <div className="text-center text-white/40 text-sm mt-8">
             <Sparkles className="w-8 h-8 mx-auto mb-3 text-[#ff1493]/50" />
-            <p className="font-mono">Hey, I&apos;m Aftys</p>
+            <p className="font-mono">Hey, I&apos;m Aftie</p>
             <p className="text-xs mt-1">Ask me anything about events</p>
           </div>
         ) : (
@@ -109,7 +109,7 @@ export function AftysChat() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Aftys..."
+            placeholder="Ask Aftie..."
             className="flex-1 h-10 px-3 bg-white/5 border border-white/10 text-white font-mono text-sm placeholder:text-white/30 focus:border-[#ff1493]/50 focus:outline-none"
           />
           <button
