@@ -62,8 +62,13 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* Status Indicator */}
-        <div className="px-3 py-4 border-t border-white/5">
+        {/* Date/Time & Status */}
+        <div className="px-3 py-4 border-t border-white/5 space-y-3">
+          <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
+            <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}</span>
+            <span className="text-white/10">|</span>
+            <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
           <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
             <span>SYSTEM ONLINE</span>
@@ -134,17 +139,6 @@ export default function DashboardLayout({
               AFTERS<span className="text-[#ff1493]">.</span>
             </span>
           </Link>
-        </header>
-
-        {/* Top Bar - Desktop only */}
-        <header className="hidden md:flex h-16 border-b border-white/5 items-center justify-between px-6 sticky top-0 bg-black/80 backdrop-blur-sm z-40">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
-              <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}</span>
-              <span className="text-white/10">|</span>
-              <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          </div>
         </header>
 
         {/* Page Content */}
