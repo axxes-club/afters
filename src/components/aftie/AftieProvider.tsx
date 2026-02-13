@@ -15,6 +15,17 @@ export interface AftiePageContext {
   page: "dashboard" | "events" | "event-details" | "event-new" | "analytics" | "organizer" | "other"
   eventId?: string
   eventTitle?: string
+  // Editing context - what field/section is the user currently focused on?
+  editingField?: "description" | "title" | "venue" | "lineup" | "tickets" | "design" | "location" | "media" | null
+  // Additional context about the event for content generation
+  eventDetails?: {
+    venueName?: string
+    city?: string
+    startsAt?: string
+    lineup?: Array<{ name: string; role?: string }>
+    genre?: string
+    vibe?: string
+  }
 }
 
 interface AftieContextType {

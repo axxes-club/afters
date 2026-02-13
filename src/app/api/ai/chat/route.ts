@@ -37,9 +37,23 @@ export async function POST(req: Request) {
     // Build context-aware system prompt addition
     let contextInfo = ""
     if (context?.page === "event-details" && context?.eventId) {
-      contextInfo = `\n\nCURRENT CONTEXT: User is viewing event details page for eventId="${context.eventId}"${context.eventTitle ? ` (${context.eventTitle})` : ""}. Use this eventId for any questions about "this event" or ticket sales.`
+      contextInfo = `\n\nCURRENT CONTEXT:
+- Page: Event details dashboard
+- Event ID: "${context.eventId}"
+- Event Title: "${context.eventTitle || "Unknown"}"
+${context.editingField ? `- Currently Editing: ${context.editingField} field` : ""}
+${context.eventDetails ? `- Event Details:
+  - Venue: ${context.eventDetails.venueName || "Not set"}
+  - City: ${context.eventDetails.city || "Not set"}
+  - Date: ${context.eventDetails.startsAt || "Not set"}
+  - Lineup: ${context.eventDetails.lineup?.map((a: { name: string }) => a.name).join(", ") || "Not set"}
+  - Genre/Vibe: ${context.eventDetails.genre || context.eventDetails.vibe || "Not specified"}` : ""}
+
+Use this context for any questions about "this event", ticket sales, or content writing requests like "write something for the about section".`
     } else if (context?.page === "events") {
       contextInfo = "\n\nCURRENT CONTEXT: User is on the events list page."
+    } else if (context?.page === "event-new") {
+      contextInfo = "\n\nCURRENT CONTEXT: User is creating a new event."
     }
 
     // Create tools with actual execution logic using AI SDK v6 format

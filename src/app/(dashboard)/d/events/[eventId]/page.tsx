@@ -182,19 +182,44 @@ function EventDashboardContent({
     }
   }, [event?.expiresAfter]);
 
-  // Set Aftie page context when viewing event
+  // Set Aftie page context when viewing event (with rich context for content generation)
   useEffect(() => {
     if (event) {
+      // Map active section to editing field for Aftie context
+      const editingFieldMap: Record<string, "description" | "title" | "venue" | "lineup" | "tickets" | "design" | "location" | "media" | null> = {
+        "overview": null,
+        "tickets": "tickets",
+        "door": null,
+        "design": "design",
+        "details": "description", // Details tab is where about/description is edited
+        "venue": "location",
+        "settings": null,
+      };
+
       setPageContext({
         page: "event-details",
         eventId: event.id,
         eventTitle: event.title,
+        editingField: editingFieldMap[activeSection] || null,
+        eventDetails: {
+          venueName: event.venueName,
+          city: event.city,
+          startsAt: new Date(event.startsAt).toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+          lineup: event.lineup?.map(a => ({ name: a.name, role: a.role })) || [],
+        },
       });
     }
     return () => {
       setPageContext({ page: "dashboard" });
     };
-  }, [event, setPageContext]);
+  }, [event, activeSection, setPageContext]);
 
   async function fetchStripeStatus() {
     try {
