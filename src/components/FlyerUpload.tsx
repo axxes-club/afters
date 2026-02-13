@@ -20,18 +20,26 @@ export function FlyerUpload({ value, onChange, disabled }: FlyerUploadProps) {
 
   const { startUpload } = useUploadThing("eventFlyer", {
     onClientUploadComplete: (res) => {
+      console.log("Upload complete:", res)
       // v7 uses 'url', older versions used 'ufsUrl'
       const fileUrl = res?.[0]?.url || res?.[0]?.ufsUrl
       if (fileUrl) {
         setPreview(fileUrl)
         onChange(fileUrl)
         setError(null)
+      } else {
+        console.error("No URL in response:", res)
+        setError("Upload completed but no URL returned")
       }
       setIsUploading(false)
     },
     onUploadError: (err) => {
+      console.error("Upload error:", err)
       setError(err.message || "Upload failed")
       setIsUploading(false)
+    },
+    onUploadBegin: (fileName) => {
+      console.log("Upload starting:", fileName)
     },
   })
 
@@ -50,9 +58,15 @@ export function FlyerUpload({ value, onChange, disabled }: FlyerUploadProps) {
 
       // Upload
       try {
-        await startUpload([file])
+        const result = await startUpload([file])
+        console.log("startUpload result:", result)
+        if (!result || result.length === 0) {
+          setError("Upload failed - no response")
+          setIsUploading(false)
+        }
       } catch (err) {
-        setError("Upload failed. Please try again.")
+        console.error("startUpload catch:", err)
+        setError(err instanceof Error ? err.message : "Upload failed. Please try again.")
         setIsUploading(false)
       }
     },
