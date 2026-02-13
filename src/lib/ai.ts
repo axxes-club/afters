@@ -1,12 +1,19 @@
 import { createGroq } from "@ai-sdk/groq"
 
-// Configure Groq client
+// Configure Groq client - handle missing API key gracefully
+const apiKey = process.env.GROQ_API_KEY
+
 export const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: apiKey || "missing-api-key",
 })
 
 // Model to use - llama-3.1-8b-instant is fast and free tier friendly
 export const AI_MODEL = groq("llama-3.1-8b-instant")
+
+// Helper to check if AI is configured
+export function isAIConfigured(): boolean {
+  return !!process.env.GROQ_API_KEY
+}
 
 // System prompts
 export const AFTYS_SYSTEM_PROMPT = `You are Aftys, an AI assistant for event organizers on the AFTERS platform.

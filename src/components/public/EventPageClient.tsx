@@ -1,29 +1,28 @@
 'use client'
 
 import EditDesignButton from './EditDesignButton'
-
-interface DesignSettings {
-  accentColor: string
-  typography: string
-  pageTheme: string
-  showLocationOnPage: boolean
-  showMapOnPage: boolean
-  isAddressHidden: boolean
-}
+import { PreviewBadge } from './PreviewBadge'
+import { LivePreviewStyles } from './LivePreviewStyles'
+import { LivePreviewProvider, type DesignSettings } from './LivePreviewProvider'
 
 interface EditDesignOverlayProps {
   eventId: string
   initialDesign: DesignSettings
+  children?: React.ReactNode
 }
 
-// This is a simple client component that just shows the edit button
-// No live preview - changes require re-publish and page reload
-export default function EditDesignOverlay({ eventId, initialDesign }: EditDesignOverlayProps) {
+// Wrapper component that provides live preview context
+export default function EditDesignOverlay({ eventId, initialDesign, children }: EditDesignOverlayProps) {
   return (
-    <EditDesignButton
-      eventId={eventId}
-      initialDesign={initialDesign}
-      onDesignChange={() => {}} // No live preview - changes saved on publish
-    />
+    <LivePreviewProvider initialDesign={initialDesign}>
+      <LivePreviewStyles />
+      <PreviewBadge />
+      <EditDesignButton eventId={eventId} />
+      {children}
+    </LivePreviewProvider>
   )
 }
+
+// Re-export for convenience
+export { useLivePreview } from './LivePreviewProvider'
+export type { DesignSettings }

@@ -29,6 +29,7 @@ interface AftysContextType {
   isLoading: boolean
   // Beta toggle
   isBetaEnabled: boolean
+  isHydrated: boolean
 }
 
 const AftysContext = createContext<AftysContextType | null>(null)
@@ -52,9 +53,14 @@ export function AftysProvider({ children }: AftysProviderProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [status, setStatus] = useState<ChatStatus>("ready")
   const [isBetaEnabled, setIsBetaEnabled] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Initialize beta state from localStorage and set up global toggle
+  // This runs only on client after hydration
   useEffect(() => {
+    // Mark as hydrated first
+    setIsHydrated(true)
+
     // Check localStorage for beta flag
     const stored = localStorage.getItem(BETA_STORAGE_KEY)
     if (stored === "true") {
@@ -185,6 +191,7 @@ export function AftysProvider({ children }: AftysProviderProps) {
         status,
         isLoading,
         isBetaEnabled,
+        isHydrated,
       }}
     >
       {children}

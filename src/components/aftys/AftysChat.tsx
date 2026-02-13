@@ -14,6 +14,7 @@ export function AftysChat() {
     sendMessage,
     isLoading,
     isBetaEnabled,
+    isHydrated,
   } = useAftys()
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -38,7 +39,8 @@ export function AftysChat() {
     }
   }
 
-  if (!isBetaEnabled || !isOpen) return null
+  // Don't render until hydrated to avoid hydration mismatch
+  if (!isHydrated || !isBetaEnabled || !isOpen) return null
 
   return (
     <div className="fixed bottom-4 right-4 w-[380px] h-[500px] bg-black border border-white/10 shadow-2xl flex flex-col z-50">

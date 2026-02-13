@@ -14,6 +14,7 @@ export function AftysCommandPalette() {
     sendMessage,
     isLoading,
     isBetaEnabled,
+    isHydrated,
   } = useAftys()
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -38,7 +39,8 @@ export function AftysCommandPalette() {
     }
   }, [isCommandPaletteOpen])
 
-  if (!isBetaEnabled || !isCommandPaletteOpen) return null
+  // Don't render until hydrated to avoid hydration mismatch
+  if (!isHydrated || !isBetaEnabled || !isCommandPaletteOpen) return null
 
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -133,9 +135,12 @@ export function AftysCommandPalette() {
 
 // Keyboard listener component to be added to the provider
 export function AftysKeyboardListener() {
-  const { openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled } = useAftys()
+  const { openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, isHydrated } = useAftys()
 
   useEffect(() => {
+    // Only set up listener after hydration
+    if (!isHydrated) return
+
     function handleKeyDown(e: KeyboardEvent) {
       // Only handle Cmd+K if beta is enabled
       if (isBetaEnabled && (e.metaKey || e.ctrlKey) && e.key === "k" && !isCommandPaletteOpen && !isOpen) {
@@ -146,7 +151,7 @@ export function AftysKeyboardListener() {
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled])
+  }, [openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, isHydrated])
 
   return null
 }

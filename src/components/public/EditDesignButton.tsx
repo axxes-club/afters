@@ -2,18 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Palette, Type, Layout, EyeOff, Sparkles } from 'lucide-react'
+import { useLivePreview, type DesignSettings } from './LivePreviewProvider'
 
 interface EditDesignButtonProps {
   eventId: string
-  initialDesign: {
-    accentColor: string
-    typography: string
-    pageTheme: string
-    showLocationOnPage: boolean
-    showMapOnPage: boolean
-    isAddressHidden: boolean
-  }
-  onDesignChange: (design: any) => void
 }
 
 const ACCENT_COLORS = [
@@ -42,18 +34,11 @@ const TEMPLATES = [
   { id: 'editorial', name: 'EDITORIAL', icon: '≡' },
 ]
 
-export default function EditDesignButton({
-  eventId,
-  initialDesign,
-  onDesignChange,
-}: EditDesignButtonProps) {
+export default function EditDesignButton({ eventId }: EditDesignButtonProps) {
+  const { design, hasChanges, updateDesign, resetToOriginal } = useLivePreview()
   const [isOpen, setIsOpen] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Local state for live preview
-  const [design, setDesign] = useState(initialDesign)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -71,11 +56,15 @@ export default function EditDesignButton({
     }
   }, [isOpen])
 
-  const handleDesignUpdate = (key: string, value: any) => {
-    const newDesign = { ...design, [key]: value }
-    setDesign(newDesign)
-    setHasChanges(true)
-    onDesignChange(newDesign) // Live preview
+  const [templateChangeNote, setTemplateChangeNote] = useState(false)
+
+  const handleDesignUpdate = (key: keyof DesignSettings, value: any) => {
+    updateDesign(key, value)
+    // Show note when template is changed (requires republish to see)
+    if (key === 'pageTheme') {
+      setTemplateChangeNote(true)
+      setTimeout(() => setTemplateChangeNote(false), 3000)
+    }
   }
 
   const handlePublish = async () => {
@@ -89,17 +78,20 @@ export default function EditDesignButton({
 
       if (!response.ok) throw new Error('Failed to publish')
 
-      setHasChanges(false)
-      // Show success feedback
+      // Show success and reload to persist changes
       setTimeout(() => {
         window.location.reload()
-      }, 800)
+      }, 500)
     } catch (error) {
       console.error('Failed to publish:', error)
       alert('Failed to publish changes')
-    } finally {
       setIsPublishing(false)
     }
+  }
+
+  const handleCancel = () => {
+    resetToOriginal()
+    setIsOpen(false)
   }
 
   return (
@@ -249,6 +241,18 @@ export default function EditDesignButton({
                   Page Template
                 </label>
               </div>
+              {templateChangeNote && (
+                <div
+                  className="mb-3 px-3 py-2 rounded-lg text-xs border"
+                  style={{
+                    backgroundColor: `${design.accentColor}10`,
+                    borderColor: `${design.accentColor}40`,
+                    color: design.accentColor,
+                  }}
+                >
+                  Template change will be visible after re-publish
+                </div>
+              )}
               <div className="space-y-2">
                 {TEMPLATES.map((template) => (
                   <button
@@ -318,7 +322,7 @@ export default function EditDesignButton({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-white/5 bg-black/40">
+          <div className="px-6 py-4 border-t border-white/5 bg-black/40 space-y-2">
             <button
               onClick={handlePublish}
               disabled={!hasChanges || isPublishing}
@@ -348,6 +352,15 @@ export default function EditDesignButton({
                 />
               )}
             </button>
+            {hasChanges && (
+              <button
+                onClick={handleCancel}
+                disabled={isPublishing}
+                className="w-full h-10 rounded-lg border border-white/10 text-white/60 text-sm font-medium hover:text-white hover:border-white/30 transition-all"
+              >
+                Discard Changes
+              </button>
+            )}
           </div>
         </div>
       </div>

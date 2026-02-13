@@ -4,9 +4,10 @@ import { useAftys } from "./AftysProvider"
 import { Sparkles } from "lucide-react"
 
 export function AftysTrigger() {
-  const { isOpen, toggleChat, isBetaEnabled } = useAftys()
+  const { isOpen, toggleChat, isBetaEnabled, isHydrated } = useAftys()
 
-  if (!isBetaEnabled || isOpen) return null
+  // Don't render until hydrated to avoid hydration mismatch
+  if (!isHydrated || !isBetaEnabled || isOpen) return null
 
   return (
     <button
