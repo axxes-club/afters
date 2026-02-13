@@ -7,19 +7,15 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
-import { 
-  Building2, 
-  CalendarDays, 
-  Users, 
-  Ticket, 
+import {
+  CalendarDays,
+  Users,
+  Ticket,
   DollarSign,
   TrendingUp,
   ExternalLink,
   Plus,
-  Eye,
-  CreditCard,
-  CheckCircle,
-  AlertCircle
+  Eye
 } from "lucide-react"
 import { OrganizerProfileForm } from "./OrganizerProfileForm"
 
@@ -113,40 +109,16 @@ export default async function OrganizerPage() {
         </Button>
       </div>
 
-      {/* Stripe Status Banner */}
-      {!profile.stripeChargesEnabled && (
-        <Card className="border-yellow-500/30 bg-yellow-500/5">
-          <CardContent className="py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-yellow-500 shrink-0" />
-                <div>
-                  <p className="font-medium text-sm">Complete Stripe Setup</p>
-                  <p className="text-xs text-muted-foreground">Connect your Stripe account to receive payments for ticket sales.</p>
-                </div>
-              </div>
-              <Button asChild size="sm" className="shrink-0">
-                <Link href="/d/settings/payouts">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Setup Payouts
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {profile.stripeChargesEnabled && (
-        <Card className="border-green-500/30 bg-green-500/5">
-          <CardContent className="py-3">
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm font-medium">Stripe Connected</span>
-              <span className="text-xs text-muted-foreground">· You can accept payments</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Beta Notice - Stripe disabled */}
+      <Card className="border-[#ff1493]/30 bg-[#ff1493]/5">
+        <CardContent className="py-3">
+          <div className="flex items-center gap-2 text-[#ff1493]">
+            <Ticket className="h-4 w-4" />
+            <span className="text-sm font-medium">Beta Mode</span>
+            <span className="text-xs text-muted-foreground">· All tickets are free during beta</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
