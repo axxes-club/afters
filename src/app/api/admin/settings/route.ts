@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth, currentUser } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 
 // Helper to get or create settings singleton
 async function getSettings() {
@@ -49,20 +49,8 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const body = await request.json()
-    const { radioWidgetEnabled } = body
-
-    const settings = await prisma.siteSettings.upsert({
-      where: { id: "singleton" },
-      update: {
-        ...(typeof radioWidgetEnabled === "boolean" && { radioWidgetEnabled }),
-      },
-      create: {
-        id: "singleton",
-        ...(typeof radioWidgetEnabled === "boolean" && { radioWidgetEnabled }),
-      },
-    })
-
+    // No settings to update currently
+    const settings = await getSettings()
     return NextResponse.json(settings)
   } catch (error) {
     console.error("Failed to update settings:", error)

@@ -6,11 +6,9 @@ import { cn } from "@/lib/utils";
 import {
   Users,
   CalendarDays,
-  Building2,
   ShieldCheck,
   Activity,
   LayoutDashboard,
-  Radio,
   Receipt,
   Ticket,
   Languages,
@@ -44,12 +42,6 @@ const navItems = [
     title: "Events",
     href: "/superadmin/events",
     icon: CalendarDays,
-  },
-
-  {
-    title: "AFTERS RADIO",
-    href: "/superadmin/radio",
-    icon: Radio,
   },
   {
     title: "Verification",
@@ -122,17 +114,15 @@ export function SuperadminSidebar() {
 
             // Shorten long titles for mobile
             const shortTitle =
-              item.title === "AFTERS RADIO"
-                ? "Radio"
-                : item.title === "Translations"
-                  ? "i18n"
-                  : item.title === "Roles & Perms"
-                    ? "Roles"
-                    : item.title === "System Status"
-                      ? "Status"
-                      : item.title === "Verification"
-                        ? "Verify"
-                        : item.title;
+              item.title === "Translations"
+                ? "i18n"
+                : item.title === "Roles & Perms"
+                  ? "Roles"
+                  : item.title === "System Status"
+                    ? "Status"
+                    : item.title === "Verification"
+                      ? "Verify"
+                      : item.title;
 
             return (
               <Link

@@ -50,7 +50,6 @@ const NAMESPACES = [
   'tickets',
   'dashboard',
   'settings',
-  'radio',
   'profiles',
   'auth',
   'errors',

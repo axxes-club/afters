@@ -116,7 +116,7 @@ export default async function PublicStatusPage() {
         </div>
 
         <div className="mt-16 text-center text-[10px] uppercase tracking-[0.2em] text-zinc-700">
-          Afters Radio • Est. 2026 • Brooklyn, NY
+          Afters • Est. 2026 • Brooklyn, NY
         </div>
       </main>
       <Footer />

@@ -12,14 +12,6 @@ export async function GET() {
 
     const profile = await prisma.artistProfile.findUnique({
       where: { userId },
-      include: {
-        radioTracks: {
-          include: {
-            _count: { select: { plays: true } },
-          },
-          orderBy: { createdAt: "desc" },
-        },
-      },
     });
 
     return NextResponse.json({ profile });
@@ -164,11 +156,6 @@ export async function DELETE() {
     // Check if user has artist profile
     const profile = await prisma.artistProfile.findUnique({
       where: { userId },
-      include: {
-        radioTracks: {
-          select: { id: true },
-        },
-      },
     });
 
     if (!profile) {
@@ -178,18 +165,7 @@ export async function DELETE() {
       );
     }
 
-    // Check if they have any radio tracks (prevent deletion if they do)
-    if (profile.radioTracks.length > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Cannot delete profile with existing radio tracks. Please delete your tracks first.",
-        },
-        { status: 400 },
-      );
-    }
-
-    // Delete the artist profile (this will cascade delete related data)
+    // Delete the artist profile
     await prisma.artistProfile.delete({
       where: { userId },
     });
