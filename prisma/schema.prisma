@@ -287,7 +287,12 @@ model Event {
   showMapOnTicket      Boolean          @default(false) // Show map on ticket
   broadcastOnStart     Boolean          @default(false) // Email location when event starts
   locationPrecision    String           @default("exact") // 'exact', 'area', 'city' - how precise to show
-  
+
+  // Event Information Sections
+  about                String?          @db.Text // Detailed "About" section
+  refundPolicy         String?          @db.Text // Refund/cancellation policy
+  faqs                 Json?            // Array of FAQ objects: [{question, answer}]
+
   isFlagged            Boolean          @default(false) // Superadmin internal flag (not visible to organizer)
   flaggedAt            DateTime?
   flaggedBy            String?

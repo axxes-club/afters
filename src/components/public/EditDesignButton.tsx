@@ -38,6 +38,7 @@ const TEMPLATES = [
   { id: 'minimal', name: 'MINIMAL', icon: '○' },
   { id: 'tilt', name: 'TILT', icon: '⟋' },
   { id: 'lush', name: 'LUSH', icon: '◆' },
+  { id: 'nice', name: 'NICE.AM', icon: '●' },
   { id: 'editorial', name: 'EDITORIAL', icon: '≡' },
 ]
 

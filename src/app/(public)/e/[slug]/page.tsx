@@ -7,6 +7,7 @@ import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket
 import { ViewTracker } from "@/components/ViewTracker"
 import { getSessionUser } from "@/lib/auth-utils"
 import EventPageClient from "@/components/public/EventPageClient"
+import EventInfoSections from "@/components/public/EventInfoSections"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -54,6 +55,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       rsvpAllowPlusOnes: true,
       rsvpMaxPlusOnes: true,
       rsvpCount: true,
+      about: true,
+      refundPolicy: true,
+      faqs: true,
       organizer: {
         select: {
           id: true,
@@ -112,6 +116,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             rsvpAllowPlusOnes: true,
             rsvpMaxPlusOnes: true,
             rsvpCount: true,
+            about: true,
+            refundPolicy: true,
+            faqs: true,
             organizer: {
               select: {
                 id: true,
@@ -420,6 +427,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           )}
         </div>
 
+        {/* Info Sections */}
+        <div className="relative z-10 px-6 lg:px-12 pb-12">
+          <EventInfoSections
+            about={event.about}
+            refundPolicy={event.refundPolicy}
+            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            variant="brutalist"
+            accentColor={accentColor}
+          />
+        </div>
+
         {/* Footer */}
         <footer className="relative z-10 py-6 px-6 border-t-4" style={{ borderColor: accentColor }}>
           <div className="flex justify-between items-center text-xs tracking-widest uppercase text-white/30">
@@ -702,6 +720,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             )}
           </div>
         </div>
+
+        {/* Info Sections */}
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <EventInfoSections
+            about={event.about}
+            refundPolicy={event.refundPolicy}
+            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            variant="neon"
+            accentColor={accentColor}
+          />
+        </div>
         </div>
       )
     }
@@ -905,6 +934,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               <div className="px-8 py-3 bg-white/5 text-white/30">{isRsvpEvent ? 'Full' : 'Sold Out'}</div>
             )}
           </div>
+        </div>
+
+        {/* Info Sections */}
+        <div className="container mx-auto px-4 py-12">
+          <EventInfoSections
+            about={event.about}
+            refundPolicy={event.refundPolicy}
+            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            variant="minimal"
+            accentColor={accentColor}
+          />
         </div>
         </div>
       )
@@ -1126,6 +1166,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {isRsvpEvent ? 'FULL' : 'SOLD OUT'}
             </div>
           )}
+        </div>
+
+        {/* Info Sections */}
+        <div className="container mx-auto px-4 py-12">
+          <EventInfoSections
+            about={event.about}
+            refundPolicy={event.refundPolicy}
+            faqs={event.faqs as Array<{question: string; answer: string}> | null}
+            variant="tilt"
+            accentColor={accentColor}
+          />
         </div>
         </div>
       )
@@ -1430,6 +1481,333 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               )}
             </div>
           </div>
+
+          {/* Info Sections - not included as they're already in LUSH template main content */}
+          <div className="relative z-10 px-4 py-12">
+            <div className="max-w-7xl mx-auto">
+              <EventInfoSections
+                about={event.about}
+                refundPolicy={event.refundPolicy}
+                faqs={event.faqs as Array<{question: string; answer: string}> | null}
+                variant="lush"
+                accentColor={accentColor}
+              />
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // ============================================
+    // NICE.AM TEMPLATE - Clean, modern, dice.fm-inspired
+    // ============================================
+    if (pageTheme === 'nice') {
+      const faqs = (event.faqs as Array<{question: string; answer: string}> | null) || []
+
+      return (
+        <div className="min-h-screen bg-black text-white">
+          <ViewTracker eventId={event.id} />
+
+          {/* Blurred background image */}
+          {event.flyerUrl && (
+            <div className="fixed inset-0 z-0 overflow-hidden opacity-30">
+              <Image
+                src={event.flyerUrl}
+                alt=""
+                fill
+                className="object-cover blur-[50px] scale-110"
+                priority
+              />
+            </div>
+          )}
+
+          <div className="relative z-10">
+            {/* Container with max-width */}
+            <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
+              {/* Two-column layout */}
+              <div className="grid lg:grid-cols-[1fr,400px] gap-8 lg:gap-12">
+                {/* Left: Main content */}
+                <div className="space-y-8">
+                  {/* Hero image */}
+                  {event.flyerUrl && (
+                    <div className="w-full aspect-square lg:aspect-[4/3] rounded-2xl overflow-hidden">
+                      <Image
+                        src={event.flyerUrl}
+                        alt={event.title}
+                        width={800}
+                        height={600}
+                        className="w-full h-full object-cover"
+                        priority
+                      />
+                    </div>
+                  )}
+
+                  {/* Event title & organizer */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 text-sm text-white/50">
+                      <span>Presented by {event.organizer.displayName}</span>
+                    </div>
+                    <h1 className={`${typographyClass} text-4xl lg:text-6xl font-bold mb-4 leading-tight`}>
+                      {event.title}
+                    </h1>
+                  </div>
+
+                  {/* About */}
+                  {event.about && (
+                    <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                      <h2 className="text-xl font-bold mb-4">About</h2>
+                      <div className="text-white/80 whitespace-pre-wrap leading-relaxed">
+                        {event.about}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lineup */}
+                  {lineup.length > 0 && (
+                    <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                      <h2 className="text-xl font-bold mb-4">Lineup</h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {lineup.map((artist: LineupArtist, idx: number) => (
+                          <div key={idx} className="text-center">
+                            {artist.imageUrl ? (
+                              <div className="relative w-20 h-20 mx-auto mb-2 rounded-full overflow-hidden">
+                                <Image
+                                  src={artist.imageUrl}
+                                  alt={artist.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className="w-20 h-20 mx-auto mb-2 rounded-full flex items-center justify-center font-bold text-xl"
+                                style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
+                              >
+                                {artist.name.charAt(0)}
+                              </div>
+                            )}
+                            <div className="font-medium text-sm">{artist.name}</div>
+                            {artist.role && (
+                              <div className="text-xs text-white/50">{artist.role}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FAQs */}
+                  {faqs.length > 0 && (
+                    <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                      <h2 className="text-xl font-bold mb-4">FAQs</h2>
+                      <div className="space-y-3">
+                        {faqs.map((faq, idx) => (
+                          <details key={idx} className="group">
+                            <summary className="flex items-center justify-between cursor-pointer p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                              <span className="font-medium pr-4">{faq.question}</span>
+                              <svg
+                                className="w-5 h-5 transition-transform group-open:rotate-180"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </summary>
+                            <div className="px-4 pt-3 pb-4 text-white/70 leading-relaxed">
+                              {faq.answer}
+                            </div>
+                          </details>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Refund Policy */}
+                  {event.refundPolicy && (
+                    <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                      <h2 className="text-xl font-bold mb-4">Refund Policy</h2>
+                      <div className="text-white/70 whitespace-pre-wrap leading-relaxed">
+                        {event.refundPolicy}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Map */}
+                  {showMap && mapEmbedUrl && (
+                    <div className="rounded-xl overflow-hidden border border-white/10">
+                      <iframe
+                        src={mapEmbedUrl}
+                        width="100%"
+                        height="400"
+                        style={{ border: 0, filter: 'invert(0.9) grayscale(0.5)' }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Sticky purchase sidebar */}
+                <div className="lg:sticky lg:top-8 lg:self-start">
+                  <div className="p-6 rounded-2xl backdrop-blur-xl border border-white/10" style={{ backgroundColor: '#0a0a0aCC' }}>
+                    {/* Date & Time */}
+                    <div className="mb-6 pb-6 border-b border-white/10">
+                      <div className="flex items-center gap-2 text-sm text-white/50 mb-2">
+                        <CalendarDays className="w-4 h-4" />
+                        <span>{dayStr}</span>
+                      </div>
+                      <div className="text-2xl font-bold" style={{ color: accentColor }}>
+                        {dateStr}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-white/70 mt-2">
+                        <Clock className="w-4 h-4" />
+                        <span>{timeStr}</span>
+                      </div>
+                    </div>
+
+                    {/* Venue */}
+                    {showLocation && (
+                      <div className="mb-6 pb-6 border-b border-white/10">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-4 h-4 mt-1" style={{ color: accentColor }} />
+                          <div className="text-sm">
+                            <div className="font-bold mb-1">{event.venueName}</div>
+                            {locationPrecision === 'exact' && (
+                              <div className="text-white/60">{event.venueAddress}</div>
+                            )}
+                            <div className="text-white/50">
+                              {event.city}{event.state ? `, ${event.state}` : ''}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Age restriction */}
+                    {event.ageRestriction && (
+                      <div className="mb-6 pb-6 border-b border-white/10">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Lock className="w-4 h-4" style={{ color: accentColor }} />
+                          <span className="text-white/70">Ages {event.ageRestriction}+</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tickets/RSVP */}
+                    <div>
+                      {isRsvpEvent ? (
+                        <>
+                          <div className="mb-4">
+                            <div className="text-3xl font-bold mb-1" style={{ color: accentColor }}>Free</div>
+                            <div className="text-sm text-white/50">RSVP Required</div>
+                            {rsvpSpotsLeft !== null && (
+                              <div className="text-xs text-white/40 mt-2">
+                                {rsvpSpotsLeft} spots remaining
+                              </div>
+                            )}
+                          </div>
+                          {rsvpAvailable ? (
+                            <Link
+                              href={ctaUrl}
+                              className="block w-full py-4 rounded-xl text-center font-bold transition-all duration-150 hover:scale-[1.02]"
+                              style={{
+                                backgroundColor: accentColor,
+                                color: '#000'
+                              }}
+                            >
+                              RSVP Now
+                            </Link>
+                          ) : (
+                            <div className="w-full py-4 rounded-xl text-center font-bold bg-white/5 text-white/30">
+                              RSVP Full
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="mb-4 space-y-3">
+                            {availableTiers.map((tier: TierType) => (
+                              <div key={tier.id} className="p-4 rounded-lg bg-white/5 border border-white/10">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="font-semibold">{tier.name}</div>
+                                  <div className="font-bold" style={{ color: accentColor }}>
+                                    {tier.price === 0 ? 'Free' : formatCents(tier.price)}
+                                  </div>
+                                </div>
+                                {tier.description && (
+                                  <div className="text-xs text-white/60 mb-2">{tier.description}</div>
+                                )}
+                                <div className="text-xs text-white/40">
+                                  {tier.quantity - tier.quantitySold} / {tier.quantity} available
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {hasAvailability ? (
+                            <Link
+                              href={ctaUrl}
+                              className="block w-full py-4 rounded-xl text-center font-bold transition-all duration-150 hover:scale-[1.02]"
+                              style={{
+                                backgroundColor: accentColor,
+                                color: '#000'
+                              }}
+                            >
+                              Get Tickets
+                            </Link>
+                          ) : (
+                            <div className="w-full py-4 rounded-xl text-center font-bold bg-white/5 text-white/30">
+                              Sold Out
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Organizer */}
+                    <div className="mt-6 pt-6 border-t border-white/10">
+                      <div className="flex items-center gap-3">
+                        {event.organizer.logoUrl ? (
+                          <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                            <Image
+                              src={event.organizer.logoUrl}
+                              alt={event.organizer.displayName}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            className="w-12 h-12 rounded-full flex items-center justify-center font-bold"
+                            style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
+                          >
+                            {event.organizer.displayName.charAt(0)}
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="text-xs text-white/40">Organized by</div>
+                          <div className="font-medium">{event.organizer.displayName}</div>
+                        </div>
+                      </div>
+                      {event.organizer.instagramUrl && (
+                        <a
+                          href={event.organizer.instagramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm"
+                        >
+                          <Instagram className="w-4 h-4" />
+                          <span>Follow on Instagram</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )
     }
@@ -1693,6 +2071,19 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </div>
           </div>
         </section>
+
+        {/* Info Sections */}
+        <div className="px-6 md:px-12 py-12">
+          <div className="max-w-7xl mx-auto">
+            <EventInfoSections
+              about={event.about}
+              refundPolicy={event.refundPolicy}
+              faqs={event.faqs as Array<{question: string; answer: string}> | null}
+              variant="default"
+              accentColor={accentColor}
+            />
+          </div>
+        </div>
 
         {/* Footer */}
         <footer className="border-t border-white/10 py-8 px-6 md:px-12">

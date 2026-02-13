@@ -47,6 +47,11 @@ const TEMPLATES = [
     description: "Warm, luxurious, community-focused",
   },
   {
+    id: "nice",
+    name: "NICE.AM",
+    description: "Clean, modern, sticky sidebar",
+  },
+  {
     id: "editorial",
     name: "EDITORIAL",
     description: "Magazine-style, sophisticated",
