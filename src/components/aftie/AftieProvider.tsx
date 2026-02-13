@@ -1,7 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react"
-import { useChat, type Message as AIMessage } from "@ai-sdk/react"
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from "react"
 
 const BETA_STORAGE_KEY = "afty_ai_beta_enabled"
 
@@ -49,31 +48,10 @@ export function AftieProvider({ children }: AftieProviderProps) {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isBetaEnabled, setIsBetaEnabled] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
-
-  // Use the AI SDK's useChat hook for proper streaming with tool support
-  const {
-    messages: aiMessages,
-    input,
-    setInput,
-    append,
-    isLoading,
-  } = useChat({
-    api: "/api/ai/chat",
-    onError: (error) => {
-      console.error("Aftie chat error:", error)
-    },
-  })
-
-  // Convert AI messages to our format (filter out tool messages)
-  const messages: Message[] = aiMessages
-    .filter((m): m is AIMessage & { role: "user" | "assistant" } =>
-      m.role === "user" || m.role === "assistant"
-    )
-    .map((m) => ({
-      id: m.id,
-      role: m.role,
-      content: m.content,
-    }))
+  const [input, setInput] = useState("")
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Initialize beta state from localStorage and set up global toggle
   useEffect(() => {
@@ -102,9 +80,88 @@ export function AftieProvider({ children }: AftieProviderProps) {
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return
+
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: text.trim(),
+    }
+
     setInput("")
-    await append({ role: "user", content: text })
-  }, [append, isLoading, setInput])
+    setMessages(prev => [...prev, userMessage])
+    setIsLoading(true)
+
+    // Abort any previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+
+    try {
+      const response = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+        signal: abortControllerRef.current.signal,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Chat error: ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error("No response body")
+      }
+
+      const assistantMessage: Message = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: "",
+      }
+
+      setMessages(prev => [...prev, assistantMessage])
+
+      const decoder = new TextDecoder()
+      let content = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        content += chunk
+
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === assistantMessage.id ? { ...m, content } : m
+          )
+        )
+      }
+    } catch (error) {
+      if ((error as Error).name === "AbortError") {
+        return
+      }
+      console.error("Aftie chat error:", error)
+
+      // Add error message
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: "Sorry, something went wrong. Please try again.",
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [messages, isLoading])
 
   const openChat = useCallback(() => {
     setIsOpen(true)

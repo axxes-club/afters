@@ -1,7 +1,8 @@
-import { streamText } from "ai"
+import { streamText, tool, zodSchema } from "ai"
 import { auth } from "@clerk/nextjs/server"
-import { AI_MODEL, AFTIE_SYSTEM_PROMPT, aftieTools } from "@/lib/ai"
+import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
+import { z } from "zod"
 
 export async function POST(req: Request) {
   try {
@@ -31,22 +32,22 @@ export async function POST(req: Request) {
       return new Response("Invalid messages format", { status: 400 })
     }
 
-    // Create tools with actual execution logic
+    // Create tools with actual execution logic using AI SDK v6 format
     const tools = {
-      createEvent: {
-        ...aftieTools.createEvent,
-        execute: async (params: {
-          title: string
-          description?: string
-          venueName: string
-          venueAddress: string
-          city: string
-          state?: string
-          startsAt: string
-          endsAt?: string
-          ageRestriction?: number
-          lineup?: Array<{ name: string; role?: string }>
-        }) => {
+      createEvent: tool({
+        description: "Create a new event for the user. Use this when the user wants to create an event.",
+        inputSchema: zodSchema(z.object({
+          title: z.string().describe("Event title/name"),
+          description: z.string().optional().describe("Event description"),
+          venueName: z.string().describe("Venue name"),
+          venueAddress: z.string().describe("Full venue address"),
+          city: z.string().describe("City name"),
+          state: z.string().optional().describe("State abbreviation (e.g., NY, CA)"),
+          startsAt: z.string().describe("Start date/time in ISO format (e.g., 2024-03-15T22:00:00)"),
+          endsAt: z.string().optional().describe("End date/time in ISO format"),
+          ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
+        })),
+        execute: async (params) => {
           try {
             // Generate slug
             const baseSlug = params.title
@@ -78,7 +79,6 @@ export async function POST(req: Request) {
                 startsAt: new Date(params.startsAt),
                 endsAt: params.endsAt ? new Date(params.endsAt) : null,
                 ageRestriction: params.ageRestriction || null,
-                lineup: params.lineup || null,
                 timezone: "America/New_York",
                 status: "DRAFT",
                 isPublished: false,
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
                 id: event.id,
                 title: event.title,
                 slug: event.slug,
-                startsAt: event.startsAt,
+                startsAt: event.startsAt.toISOString(),
                 status: "DRAFT",
               },
               message: `Created "${event.title}" as a draft. You can view and publish it at /d/events/${event.id}`,
@@ -101,11 +101,14 @@ export async function POST(req: Request) {
             return { success: false, error: "Failed to create event" }
           }
         },
-      },
+      }),
 
-      listEvents: {
-        ...aftieTools.listEvents,
-        execute: async (params: { status?: "all" | "upcoming" | "past" | "draft" }) => {
+      listEvents: tool({
+        description: "List the user's events. Use this when user asks about their events.",
+        inputSchema: zodSchema(z.object({
+          status: z.enum(["all", "upcoming", "past", "draft"]).optional().describe("Filter by status"),
+        })),
+        execute: async (params) => {
           try {
             const now = new Date()
             const where: Record<string, unknown> = { organizerId: profile.id }
@@ -149,18 +152,19 @@ export async function POST(req: Request) {
             return { success: false, error: "Failed to list events" }
           }
         },
-      },
+      }),
 
-      updateEvent: {
-        ...aftieTools.updateEvent,
-        execute: async (params: {
-          eventId: string
-          title?: string
-          description?: string
-          venueName?: string
-          venueAddress?: string
-          startsAt?: string
-        }) => {
+      updateEvent: tool({
+        description: "Update an existing event",
+        inputSchema: zodSchema(z.object({
+          eventId: z.string().describe("The event ID to update"),
+          title: z.string().optional(),
+          description: z.string().optional(),
+          venueName: z.string().optional(),
+          venueAddress: z.string().optional(),
+          startsAt: z.string().optional(),
+        })),
+        execute: async (params) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -193,11 +197,14 @@ export async function POST(req: Request) {
             return { success: false, error: "Failed to update event" }
           }
         },
-      },
+      }),
 
-      publishEvent: {
-        ...aftieTools.publishEvent,
-        execute: async (params: { eventId: string }) => {
+      publishEvent: tool({
+        description: "Publish a draft event to make it live",
+        inputSchema: zodSchema(z.object({
+          eventId: z.string().describe("The event ID to publish"),
+        })),
+        execute: async (params) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -223,7 +230,7 @@ export async function POST(req: Request) {
             return { success: false, error: "Failed to publish event" }
           }
         },
-      },
+      }),
     }
 
     const result = streamText({
@@ -231,10 +238,9 @@ export async function POST(req: Request) {
       system: AFTIE_SYSTEM_PROMPT,
       messages,
       tools,
-      maxSteps: 5, // Allow multiple tool calls
     })
 
-    return result.toDataStreamResponse()
+    return result.toTextStreamResponse()
   } catch (error) {
     console.error("Chat error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
