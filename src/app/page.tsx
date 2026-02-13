@@ -111,7 +111,6 @@ export default function HomePage() {
             "RSVP & Tickets",
             "Guestlist Management",
             "QR Check-in",
-            "Zero Platform Fees",
           ].map((feature, i) => (
             <div
               key={feature}
@@ -125,28 +124,20 @@ export default function HomePage() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col items-center gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Link
-              href="/d"
-              className="group flex items-center gap-3 px-8 py-4 bg-[#ff1493] text-black text-xs tracking-[0.2em] uppercase font-bold hover:bg-white transition-all"
+          <Link
+            href="/d"
+            className="group flex items-center gap-3 px-8 py-4 bg-[#ff1493] text-black text-xs tracking-[0.2em] uppercase font-bold hover:bg-white transition-all"
+          >
+            <span>Host Your Event</span>
+            <svg
+              className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <span>Host Your Event</span>
-              <svg
-                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-            <Link
-              href="/beta"
-              className="px-8 py-4 border border-white/20 text-xs tracking-[0.2em] uppercase text-white/60 hover:border-white/40 hover:text-white transition-all"
-            >
-              Join Waitlist
-            </Link>
-          </div>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
           <Link
             href="/scan"
             className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase text-white/30 hover:text-[#ff1493] transition-colors"
@@ -158,23 +149,6 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="mt-20 grid grid-cols-3 gap-8 md:gap-16">
-          {[
-            { value: "0%", label: "Platform Fee" },
-            { value: "24/7", label: "Support" },
-            { value: "100%", label: "Underground" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="font-headline text-2xl md:text-3xl" style={{ color: '#ff1493' }}>
-                {stat.value}
-              </div>
-              <div className="font-mono text-[9px] tracking-[0.2em] text-white/30 uppercase mt-1">
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
       </main>
 
       {/* Bottom section */}
