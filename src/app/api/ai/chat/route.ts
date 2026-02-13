@@ -1,4 +1,4 @@
-import { streamText } from "ai"
+import { streamText, tool } from "ai"
 import { auth } from "@clerk/nextjs/server"
 import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
@@ -56,42 +56,22 @@ Use this context for any questions about "this event", ticket sales, or content 
       contextInfo = "\n\nCURRENT CONTEXT: User is creating a new event."
     }
 
-    // Define parameter schemas
-    const createEventSchema = z.object({
-      title: z.string().describe("Event title/name"),
-      description: z.string().optional().describe("Event description"),
-      venueName: z.string().describe("Venue name"),
-      venueAddress: z.string().describe("Full venue address"),
-      city: z.string().describe("City name"),
-      state: z.string().optional().describe("State abbreviation (e.g., NY, CA)"),
-      startsAt: z.string().describe("Start date/time in ISO format (e.g., 2024-03-15T22:00:00)"),
-      endsAt: z.string().optional().describe("End date/time in ISO format"),
-      ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
-    })
-
-    const listEventsSchema = z.object({
-      status: z.enum(["all", "upcoming", "past", "draft"]).optional().describe("Filter by status"),
-    })
-
-    const updateEventSchema = z.object({
-      eventId: z.string().describe("The event ID to update"),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      venueName: z.string().optional(),
-      venueAddress: z.string().optional(),
-      startsAt: z.string().optional(),
-    })
-
-    const eventIdSchema = z.object({
-      eventId: z.string().describe("The event ID"),
-    })
-
-    // Create tools with actual execution logic using AI SDK v6 format
+    // Create tools using AI SDK v6 tool helper
     const tools = {
-      createEvent: {
+      createEvent: tool({
         description: "Create a new event for the user. Use this when the user wants to create an event.",
-        inputSchema: createEventSchema,
-        execute: async (params: z.infer<typeof createEventSchema>) => {
+        inputSchema: z.object({
+          title: z.string().describe("Event title/name"),
+          description: z.string().optional().describe("Event description"),
+          venueName: z.string().describe("Venue name"),
+          venueAddress: z.string().describe("Full venue address"),
+          city: z.string().describe("City name"),
+          state: z.string().optional().describe("State abbreviation (e.g., NY, CA)"),
+          startsAt: z.string().describe("Start date/time in ISO format (e.g., 2024-03-15T22:00:00)"),
+          endsAt: z.string().optional().describe("End date/time in ISO format"),
+          ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
+        }),
+        execute: async (params) => {
           try {
             // Generate slug
             const baseSlug = params.title
@@ -146,12 +126,14 @@ Use this context for any questions about "this event", ticket sales, or content 
             return { success: false, error: "Failed to create event" }
           }
         },
-      },
+      }),
 
-      listEvents: {
+      listEvents: tool({
         description: "List the user's events. Use this when user asks about their events.",
-        inputSchema: listEventsSchema,
-        execute: async (params: z.infer<typeof listEventsSchema>) => {
+        inputSchema: z.object({
+          status: z.enum(["all", "upcoming", "past", "draft"]).optional().describe("Filter by status"),
+        }),
+        execute: async (params) => {
           try {
             const now = new Date()
             const where: Record<string, unknown> = { organizerId: profile.id }
@@ -195,12 +177,19 @@ Use this context for any questions about "this event", ticket sales, or content 
             return { success: false, error: "Failed to list events" }
           }
         },
-      },
+      }),
 
-      updateEvent: {
+      updateEvent: tool({
         description: "Update an existing event",
-        inputSchema: updateEventSchema,
-        execute: async (params: z.infer<typeof updateEventSchema>) => {
+        inputSchema: z.object({
+          eventId: z.string().describe("The event ID to update"),
+          title: z.string().optional(),
+          description: z.string().optional(),
+          venueName: z.string().optional(),
+          venueAddress: z.string().optional(),
+          startsAt: z.string().optional(),
+        }),
+        execute: async (params) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -233,12 +222,14 @@ Use this context for any questions about "this event", ticket sales, or content 
             return { success: false, error: "Failed to update event" }
           }
         },
-      },
+      }),
 
-      publishEvent: {
+      publishEvent: tool({
         description: "Publish a draft event to make it live",
-        inputSchema: eventIdSchema,
-        execute: async (params: z.infer<typeof eventIdSchema>) => {
+        inputSchema: z.object({
+          eventId: z.string().describe("The event ID"),
+        }),
+        execute: async (params) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -265,12 +256,14 @@ Use this context for any questions about "this event", ticket sales, or content 
             return { success: false, error: "Failed to publish event" }
           }
         },
-      },
+      }),
 
-      getEventStats: {
+      getEventStats: tool({
         description: "Get ticket sales and check-in statistics for an event. Use this when user asks about tickets sold, revenue, check-ins, or attendees.",
-        inputSchema: eventIdSchema,
-        execute: async (params: z.infer<typeof eventIdSchema>) => {
+        inputSchema: z.object({
+          eventId: z.string().describe("The event ID"),
+        }),
+        execute: async (params) => {
           try {
             // Verify ownership and get event with stats
             const event = await prisma.event.findFirst({
@@ -340,7 +333,7 @@ Use this context for any questions about "this event", ticket sales, or content 
             return { success: false, error: "Failed to get event stats" }
           }
         },
-      },
+      }),
     }
 
     const result = streamText({
