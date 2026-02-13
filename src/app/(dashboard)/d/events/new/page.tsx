@@ -84,6 +84,11 @@ function NewEventForm() {
   // Event expiration
   const [expiresAfter, setExpiresAfter] = useState<string>("24h")
 
+  // Date shortcuts
+  const [startsAt, setStartsAt] = useState<string>("")
+  const [endsAt, setEndsAt] = useState<string>("")
+  const [endTimeMode, setEndTimeMode] = useState<"late" | "custom">("late")
+
   // Expandable sections
   const [showLineup, setShowLineup] = useState(false)
   const [showStyle, setShowStyle] = useState(false)
@@ -94,6 +99,62 @@ function NewEventForm() {
 
   // Human verification
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+
+  // Date shortcut helpers
+  const getTonight = () => {
+    const now = new Date()
+    // Set to midnight tonight (start of next day)
+    const tonight = new Date(now)
+    tonight.setHours(24, 0, 0, 0) // Midnight = start of tomorrow
+    return tonight
+  }
+
+  const getTomorrowNight = () => {
+    const tonight = getTonight()
+    const tomorrow = new Date(tonight)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow
+  }
+
+  const formatDateForInput = (date: Date) => {
+    // Format as YYYY-MM-DDTHH:mm for datetime-local input
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    const hours = String(date.getHours()).padStart(2, "0")
+    const minutes = String(date.getMinutes()).padStart(2, "0")
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
+  const setTonightShortcut = () => {
+    const tonight = getTonight()
+    setStartsAt(formatDateForInput(tonight))
+    setEndTimeMode("late")
+    setEndsAt("")
+  }
+
+  const setTomorrowShortcut = () => {
+    const tomorrow = getTomorrowNight()
+    setStartsAt(formatDateForInput(tomorrow))
+    setEndTimeMode("late")
+    setEndsAt("")
+  }
+
+  const getTomorrowDateStr = () => {
+    const tomorrow = getTomorrowNight()
+    return tomorrow.toLocaleDateString("en-US", { day: "numeric" })
+  }
+
+  const getTomorrowOrdinal = () => {
+    const day = parseInt(getTomorrowDateStr())
+    if (day > 3 && day < 21) return "th"
+    switch (day % 10) {
+      case 1: return "st"
+      case 2: return "nd"
+      case 3: return "rd"
+      default: return "th"
+    }
+  }
 
   const summarizeDescription = async () => {
     if (!description.trim() || description.length < 50) {
@@ -141,6 +202,11 @@ function NewEventForm() {
       return
     }
 
+    if (!startsAt) {
+      toast.error("Please select a start date and time")
+      return
+    }
+
     if (!turnstileToken) {
       toast.error("Please complete the verification")
       return
@@ -154,8 +220,8 @@ function NewEventForm() {
     const data = {
       title: formData.get("title"),
       description: formData.get("description"),
-      startsAt: formData.get("startsAt"),
-      endsAt: formData.get("endsAt") || null,
+      startsAt: startsAt || formData.get("startsAt"),
+      endsAt: endTimeMode === "custom" && endsAt ? endsAt : null,
       timezone: timezone,
       venueName: formData.get("venueName"),
       venueAddress: formData.get("venueAddress"),
@@ -409,6 +475,34 @@ function NewEventForm() {
                 title="DATE & TIME"
                 color="#00d4ff"
               >
+                {/* Quick Date Shortcuts */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={setTonightShortcut}
+                    className={`flex items-center gap-2 px-3 py-2 border text-xs font-mono transition-all ${
+                      startsAt && startsAt === formatDateForInput(getTonight())
+                        ? "border-[#00d4ff]/50 bg-[#00d4ff]/10 text-[#00d4ff]"
+                        : "border-white/10 hover:border-[#00d4ff]/30 hover:bg-[#00d4ff]/5 text-white/60 hover:text-white"
+                    }`}
+                  >
+                    <Zap className="w-3 h-3" />
+                    Tonight
+                  </button>
+                  <button
+                    type="button"
+                    onClick={setTomorrowShortcut}
+                    className={`flex items-center gap-2 px-3 py-2 border text-xs font-mono transition-all ${
+                      startsAt && startsAt === formatDateForInput(getTomorrowNight())
+                        ? "border-[#00d4ff]/50 bg-[#00d4ff]/10 text-[#00d4ff]"
+                        : "border-white/10 hover:border-[#00d4ff]/30 hover:bg-[#00d4ff]/5 text-white/60 hover:text-white"
+                    }`}
+                  >
+                    <Calendar className="w-3 h-3" />
+                    Tomorrow night ({getTomorrowDateStr()}{getTomorrowOrdinal()})
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
@@ -418,6 +512,8 @@ function NewEventForm() {
                       name="startsAt"
                       type="datetime-local"
                       required
+                      value={startsAt}
+                      onChange={(e) => setStartsAt(e.target.value)}
                       className="h-12 bg-black border-white/10 font-mono focus:border-white/30 focus:ring-0"
                     />
                   </div>
@@ -425,11 +521,44 @@ function NewEventForm() {
                     <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
                       ENDS
                     </label>
-                    <Input
-                      name="endsAt"
-                      type="datetime-local"
-                      className="h-12 bg-black border-white/10 font-mono focus:border-white/30 focus:ring-0"
-                    />
+                    {/* End Time Mode Toggle */}
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => setEndTimeMode("late")}
+                        className={`flex-1 h-8 text-[10px] font-mono tracking-wider transition-all ${
+                          endTimeMode === "late"
+                            ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
+                            : "border border-white/10 text-white/40 hover:border-white/20"
+                        }`}
+                      >
+                        LATE
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEndTimeMode("custom")}
+                        className={`flex-1 h-8 text-[10px] font-mono tracking-wider transition-all ${
+                          endTimeMode === "custom"
+                            ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
+                            : "border border-white/10 text-white/40 hover:border-white/20"
+                        }`}
+                      >
+                        SET TIME
+                      </button>
+                    </div>
+                    {endTimeMode === "custom" ? (
+                      <Input
+                        name="endsAt"
+                        type="datetime-local"
+                        value={endsAt}
+                        onChange={(e) => setEndsAt(e.target.value)}
+                        className="h-12 bg-black border-white/10 font-mono focus:border-white/30 focus:ring-0"
+                      />
+                    ) : (
+                      <div className="h-12 bg-black border border-white/10 flex items-center px-4">
+                        <span className="font-mono text-white/40 text-sm">Until late...</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
