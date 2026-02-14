@@ -52,10 +52,31 @@ interface AftieContextType {
 
 const AftieContext = createContext<AftieContextType | null>(null)
 
+// Default fallback values when context is unavailable (e.g., during SSR or outside provider)
+const defaultAftieContext: AftieContextType = {
+  isOpen: false,
+  openChat: () => {},
+  closeChat: () => {},
+  toggleChat: () => {},
+  isCommandPaletteOpen: false,
+  openCommandPalette: () => {},
+  closeCommandPalette: () => {},
+  messages: [],
+  input: "",
+  setInput: () => {},
+  sendMessage: async () => {},
+  isLoading: false,
+  isBetaEnabled: false,
+  isHydrated: false,
+  pageContext: { page: "other" },
+  setPageContext: () => {},
+}
+
 export function useAftie() {
   const context = useContext(AftieContext)
+  // Return fallback values if context not available (prevents crash during edge cases)
   if (!context) {
-    throw new Error("useAftie must be used within an AftieProvider")
+    return defaultAftieContext
   }
   return context
 }
