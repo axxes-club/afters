@@ -141,13 +141,18 @@ export default function OnboardingPage() {
               </div>
               <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
                 <Sparkles className="w-4 h-4 text-[#ff1493]" />
-                <span>9+ beautiful themes</span>
+                <span>Endless customization</span>
               </div>
               <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
                 <PartyPopper className="w-4 h-4 text-[#ff1493]" />
                 <span>Built for the underground</span>
               </div>
             </div>
+
+            {/* Tagline */}
+            <p className="text-sm font-mono text-white/40 tracking-wide">
+              Templates, themes, and tools to keep every event on brand. Your party awaits.
+            </p>
 
             {/* Aftie introduction */}
             <div className="bg-card border rounded-xl p-6 max-w-lg mx-auto text-left">
