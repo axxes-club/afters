@@ -57,7 +57,7 @@ export async function ensureUserSynced(clerkUserId: string) {
       },
     })
   } else if (!existingByEmail) {
-    // Brand new user — create DB record
+    // Brand new user — create DB record as ORGANIZER by default
     await prisma.user.create({
       data: {
         id: clerkUserId,
@@ -65,6 +65,7 @@ export async function ensureUserSynced(clerkUserId: string) {
         firstName: clerkUser.firstName,
         lastName: clerkUser.lastName,
         imageUrl: clerkUser.imageUrl,
+        role: "ORGANIZER",
       },
     })
   }

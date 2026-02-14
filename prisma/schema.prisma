@@ -23,7 +23,7 @@ model User {
   lastName         String?
   imageUrl         String?
   bio              String?
-  role             UserRole          @default(USER)
+  role             UserRole          @default(ORGANIZER)
   isFaux           Boolean           @default(false) // Fake users for demo/testing
   isFlagged        Boolean           @default(false) // Superadmin internal flag (not visible to user)
   flaggedAt        DateTime?

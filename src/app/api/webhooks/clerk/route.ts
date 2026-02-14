@@ -68,7 +68,7 @@ export async function POST(req: Request) {
         },
       })
     } else {
-      // Normal upsert — match by Clerk ID
+      // Normal upsert — match by Clerk ID (new users default to ORGANIZER)
       await prisma.user.upsert({
         where: { id },
         update: {
@@ -83,6 +83,7 @@ export async function POST(req: Request) {
           firstName: first_name,
           lastName: last_name,
           imageUrl: image_url,
+          role: "ORGANIZER",
         },
       })
     }
