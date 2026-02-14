@@ -1,5 +1,6 @@
 "use client"
 
+import { Fragment } from "react"
 import Link from "next/link"
 import {
   MapPinOff,
@@ -139,16 +140,41 @@ export default function WeDoAfterBetterPage() {
         </div>
       </section>
 
+      {/* The Manifesto */}
+      <section className="relative z-10 py-20 border-t border-white/5">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="border-l-2 border-[#ff1493] pl-6 md:pl-10">
+            <p className="text-xs font-mono text-[#ff1493] tracking-widest mb-4">
+              WE&apos;VE BEEN IN THE PARKING LOT AT 3AM
+            </p>
+            <p className="text-xl md:text-2xl text-white/80 leading-relaxed mb-6">
+              Refreshing for the address drop. Watching the best nights happen
+              in spaces that weren&apos;t supposed to exist. Seeing what works when
+              the sun comes up and the party&apos;s still going.
+            </p>
+            <p className="text-white/40 leading-relaxed">
+              Afters wasn&apos;t built in a boardroom. It was built in warehouses,
+              basements, rooftops, and a few places we probably shouldn&apos;t mention.
+              Every feature exists because we&apos;ve felt the pain of not having it.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* The Problem */}
       <section className="relative z-10 py-20 border-t border-white/5 bg-white/[0.01]">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl md:text-3xl font-headline tracking-tight mb-6">
             EVENTBRITE WASN&apos;T BUILT FOR THIS
           </h2>
+          <p className="text-white/50 leading-relaxed max-w-2xl mx-auto mb-6">
+            They built for conferences with badge lanyards and sponsored coffee.
+            For events that end at 10pm with a networking hour.
+          </p>
           <p className="text-white/50 leading-relaxed max-w-2xl mx-auto">
-            Corporate ticketing platforms treat every event the same. But you&apos;re not running a conference.
-            You need address privacy. You need vibe. You need a platform that understands that sometimes
-            the location is the secret, the lineup drops at midnight, and the party doesn&apos;t end when they say it does.
+            You&apos;re running something different. The lineup drops at midnight.
+            The address is the secret. The party doesn&apos;t end when they say it does.
+            And your ticketing platform should understand that.
           </p>
         </div>
       </section>
@@ -157,7 +183,7 @@ export default function WeDoAfterBetterPage() {
       <FeatureSection
         number="01"
         title="LOCATION PRIVACY"
-        subtitle="Because sometimes the address IS the secret. Control exactly who sees what, and when."
+        subtitle="The address drop is half the ritual. That moment your phone buzzes and you finally know where you're going? We built every feature to protect that feeling."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -194,11 +220,23 @@ export default function WeDoAfterBetterPage() {
         </div>
       </FeatureSection>
 
+      {/* Observation 1 */}
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="border border-white/10 bg-white/[0.02] p-6 md:p-8">
+          <p className="text-xs font-mono text-white/30 tracking-widest mb-3">OBSERVATION</p>
+          <p className="text-lg text-white/70 leading-relaxed">
+            &quot;The events that sell out fastest are the ones where nobody knows where
+            it is until they&apos;ve committed. We&apos;ve seen it over and over. The mystery
+            isn&apos;t a gimmick—it&apos;s half the draw.&quot;
+          </p>
+        </div>
+      </div>
+
       {/* Section 02: Design & Vibe */}
       <FeatureSection
         number="02"
         title="AESTHETICS THAT HIT"
-        subtitle="9 distinctive page templates designed for the underground. No corporate vibes here."
+        subtitle="A generic event page kills the vibe before anyone walks in. The way your event looks online is the first hit of what's coming. Make it count."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -251,7 +289,7 @@ export default function WeDoAfterBetterPage() {
       <FeatureSection
         number="03"
         title="SCANNER THAT SLAPS"
-        subtitle="Fast, reliable check-in with features that actually make sense for late-night events."
+        subtitle="It's 2am. Your door team is running on fumes. The line's getting restless. The bass is calling people in. Nobody has time for a crashing app. We built for that exact moment."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -292,7 +330,7 @@ export default function WeDoAfterBetterPage() {
       <FeatureSection
         number="04"
         title="GUESTLIST & RSVP"
-        subtitle="VIP comps, artist +1s, and RSVP events. Because not everything needs a ticket."
+        subtitle="The promoter's phone is blowing up. Artist manager needs 4 more. Headliner's crew just landed and they're not on the list. This is how real doors actually work."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -333,7 +371,7 @@ export default function WeDoAfterBetterPage() {
       <FeatureSection
         number="05"
         title="FLEXIBLE TICKETING"
-        subtitle="Multiple tiers, sales windows, and the flexibility underground events need."
+        subtitle="Early bird for the loyal ones. Secret tier for the inner circle. Price bump when word gets out. The underground has always had tiers—now your platform does too."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -370,11 +408,22 @@ export default function WeDoAfterBetterPage() {
         </div>
       </FeatureSection>
 
+      {/* Observation 2 */}
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="border border-white/10 bg-white/[0.02] p-6 md:p-8">
+          <p className="text-xs font-mono text-white/30 tracking-widest mb-3">OBSERVATION</p>
+          <p className="text-lg text-white/70 leading-relaxed">
+            &quot;People check their ticket 3x more when they&apos;re waiting for an address reveal.
+            That anticipation isn&apos;t a bug—it&apos;s the whole point. We designed around it.&quot;
+          </p>
+        </div>
+      </div>
+
       {/* Section 06: Analytics */}
       <FeatureSection
         number="06"
         title="KNOW YOUR NUMBERS"
-        subtitle="Real analytics, not vanity metrics. Understand your events and grow."
+        subtitle="You need to know if you're building something or burning money. Not vanity metrics. Real numbers that tell you what's working and what's not."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -415,7 +464,7 @@ export default function WeDoAfterBetterPage() {
       <FeatureSection
         number="07"
         title="ARTIST-FIRST"
-        subtitle="Built-in profiles, lineup management, and features DJs and producers actually want."
+        subtitle="DJs and producers aren't 'vendors.' They're the reason people show up. We built profiles and lineup tools that treat them like it."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -456,7 +505,7 @@ export default function WeDoAfterBetterPage() {
       <FeatureSection
         number="08"
         title="BUILD ON TOP"
-        subtitle="Full API access for developers. Integrate Afters into your own tools."
+        subtitle="Some of you are building your own thing. Custom integrations, automated workflows, weird experimental stuff. We're not going to gatekeep—here's the API."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FeatureCard
@@ -497,7 +546,7 @@ export default function WeDoAfterBetterPage() {
       <FeatureSection
         number="09"
         title="AND EVERYTHING ELSE"
-        subtitle="The details that make a real difference when you're running events."
+        subtitle="The small stuff that adds up. Features we built because we kept running into the same problems, over and over, at 4am."
       >
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           <FeatureCard
@@ -523,15 +572,42 @@ export default function WeDoAfterBetterPage() {
         </div>
       </FeatureSection>
 
+      {/* The Shape of a Night */}
+      <section className="relative z-10 py-24 border-t border-white/5 bg-white/[0.01]">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <p className="text-xs font-mono text-[#ff1493] tracking-widest mb-8">
+            THE SHAPE OF A NIGHT
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-12">
+            {["THE RUMOR", "THE SEARCH", "THE COMMIT", "THE WAIT",
+              "THE ADDRESS", "THE ARRIVAL", "THE MOMENT", "THE MEMORY"].map((phase, i) => (
+              <Fragment key={phase}>
+                <span className="text-sm md:text-lg font-mono text-white/60">{phase}</span>
+                {i < 7 && <span className="text-[#ff1493]">→</span>}
+              </Fragment>
+            ))}
+          </div>
+
+          <p className="text-white/40 max-w-2xl mx-auto">
+            Every feature we build serves one of these moments.
+            If it doesn&apos;t make the night better, we don&apos;t ship it.
+          </p>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="relative z-10 py-24 border-t border-white/5">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-4xl md:text-5xl font-headline tracking-tight mb-6">
             READY TO DO <span className="text-[#ff1493]">AFTER</span> BETTER?
           </h2>
-          <p className="text-white/50 mb-12 max-w-xl mx-auto">
-            Join organizers who are tired of generic platforms. Create your first event in minutes.
-            No credit card required to start.
+          <p className="text-white/50 mb-4 max-w-xl mx-auto">
+            The underground doesn&apos;t wait. Neither should you.
+          </p>
+          <p className="text-white/40 mb-12 max-w-xl mx-auto text-sm">
+            Your first event is free. No credit card. No corporate onboarding deck.
+            Just you, your party, and a platform that actually gets it.
           </p>
           <Link
             href="/d"

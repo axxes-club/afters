@@ -9,24 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Music, Building2 } from "lucide-react";
-
-type ProfileType = "personal" | "organizer" | "artist";
+import { Sparkles, ArrowRight, Zap, PartyPopper, Bot } from "lucide-react";
 
 function generateSlug(name: string): string {
   return name
@@ -44,11 +28,10 @@ export default function OnboardingPage() {
   const { user } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [profileType, setProfileType] = useState<ProfileType | "">("");
+  const [step, setStep] = useState<"welcome" | "profile">("welcome");
   const [slug, setSlug] = useState("");
   const [slugError, setSlugError] = useState("");
   const t = useTranslations("onboarding");
-  const tSettings = useTranslations("settings");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
 
@@ -80,12 +63,6 @@ export default function OnboardingPage() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // Validate profile type
-    if (!profileType) {
-      toast.error("Please select a profile type");
-      return;
-    }
-
     // Validate slug before submitting
     if (!slug || slug.length < 2) {
       setSlugError("Profile URL is required and must be at least 2 characters");
@@ -104,22 +81,8 @@ export default function OnboardingPage() {
     const bio = formData.get("bio") as string;
 
     try {
-      // Determine which API endpoint to use based on profile type
-      let endpoint = "";
-      let urlPrefix = "";
-
-      if (profileType === "organizer") {
-        endpoint = "/api/organizer/profile";
-        urlPrefix = URL_PREFIXES.organizer;
-      } else if (profileType === "artist") {
-        endpoint = "/api/artist/profile";
-        urlPrefix = URL_PREFIXES.artist;
-      } else if (profileType === "personal") {
-        endpoint = "/api/personal/profile";
-        urlPrefix = URL_PREFIXES.personal;
-      }
-
-      const res = await fetch(endpoint, {
+      // All users are now organizers by default
+      const res = await fetch("/api/organizer/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ displayName, slug, bio }),
@@ -140,162 +103,168 @@ export default function OnboardingPage() {
     }
   }
 
-  // Update URL prefix based on profile type
-  const getUrlPrefix = () => {
-    if (profileType === "organizer") return URL_PREFIXES.organizer;
-    if (profileType === "artist") return URL_PREFIXES.artist;
-    if (profileType === "personal") return URL_PREFIXES.personal;
-    return URL_PREFIXES.base;
-  };
+  // Welcome step - hype them up!
+  if (step === "welcome") {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4">
+        <div className="w-full max-w-2xl text-center">
+          {/* Animated background glow */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#ff1493]/20 rounded-full blur-[150px]" />
+          </div>
 
-  return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle>Create Your Profile</CardTitle>
-          <CardDescription>
-            Choose your profile type and set up your account to get started
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-6">
-            {/* Profile Type Selection */}
-            <div className="space-y-3">
-              <Label>{tSettings("accountType")}</Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setProfileType("personal")}
-                  className={`p-4 border rounded-lg text-left transition-all ${
-                    profileType === "personal"
-                      ? "border-primary bg-primary/5 ring-2 ring-primary"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <User className="w-6 h-6 mb-2" />
-                  <div className="font-medium">Personal</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    For individual users attending events
-                  </div>
-                </button>
+          <div className="relative z-10 space-y-8">
+            {/* Welcome badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff1493]/10 border border-[#ff1493]/30 rounded-full">
+              <PartyPopper className="w-4 h-4 text-[#ff1493]" />
+              <span className="text-sm font-mono text-[#ff1493] tracking-wider">WELCOME TO AFTERS</span>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setProfileType("organizer")}
-                  className={`p-4 border rounded-lg text-left transition-all ${
-                    profileType === "organizer"
-                      ? "border-primary bg-primary/5 ring-2 ring-primary"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <Building2 className="w-6 h-6 mb-2" />
-                  <div className="font-medium">Organizer</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Host events and sell tickets
-                  </div>
-                </button>
+            {/* Main headline */}
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+                You&apos;re about to throw
+                <br />
+                <span className="text-[#ff1493]">unforgettable parties</span>
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-lg mx-auto">
+                Creating events is stupid easy. Secret location drops, beautiful event pages,
+                instant ticketing—we handle the tech so you can focus on the vibe.
+              </p>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setProfileType("artist")}
-                  className={`p-4 border rounded-lg text-left transition-all ${
-                    profileType === "artist"
-                      ? "border-primary bg-primary/5 ring-2 ring-primary"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <Music className="w-6 h-6 mb-2" />
-                  <div className="font-medium">Artist</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    DJs, producers, and musicians
-                  </div>
-                </button>
+            {/* Features quick hits */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-xl mx-auto">
+              <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
+                <Zap className="w-4 h-4 text-[#ff1493]" />
+                <span>Events in minutes</span>
+              </div>
+              <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
+                <Sparkles className="w-4 h-4 text-[#ff1493]" />
+                <span>9+ beautiful themes</span>
+              </div>
+              <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
+                <PartyPopper className="w-4 h-4 text-[#ff1493]" />
+                <span>Built for the underground</span>
               </div>
             </div>
 
-            {profileType && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="displayName">
-                    {profileType === "personal"
-                      ? "Display Name"
-                      : profileType === "artist"
-                        ? "Artist Name"
-                        : "Organizer Name"}
-                  </Label>
-                  <Input
-                    id="displayName"
-                    name="displayName"
-                    placeholder={
-                      profileType === "personal"
-                        ? "Your name"
-                        : profileType === "artist"
-                          ? "Your artist name"
-                          : "Your name or business name"
-                    }
-                    defaultValue={user?.fullName || ""}
-                    required
-                  />
+            {/* Aftie introduction */}
+            <div className="bg-card border rounded-xl p-6 max-w-lg mx-auto text-left">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/60 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-6 h-6 text-white" />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Profile URL</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">
-                      {getUrlPrefix()}
-                    </span>
-                    <Input
-                      id="slug"
-                      name="slug"
-                      placeholder="yourname"
-                      value={slug}
-                      onChange={(e) => handleSlugChange(e.target.value)}
-                      className={slugError ? "border-red-500" : ""}
-                      required
-                    />
+                    <span className="font-bold">Meet Aftie</span>
+                    <span className="text-xs px-2 py-0.5 bg-[#ff1493]/10 text-[#ff1493] rounded-full font-mono">AI</span>
                   </div>
-                  {slugError && (
-                    <p className="text-sm text-red-500">{slugError}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {tSettings("profileUrlHint")}
+                  <p className="text-sm text-muted-foreground">
+                    Feeling lost in the sauce? Aftie is your personal partybot—knows everything
+                    about Afters and can even create events for you. Just ask.
                   </p>
                 </div>
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">
-                    {profileType === "personal"
-                      ? "Bio (Optional)"
-                      : profileType === "artist"
-                        ? "Artist Bio (Optional)"
-                        : "Organizer Bio (Optional)"}
-                  </Label>
-                  <Textarea
-                    id="bio"
-                    name="bio"
-                    placeholder={
-                      profileType === "personal"
-                        ? "Tell us about yourself..."
-                        : profileType === "artist"
-                          ? "Tell fans about your music..."
-                          : "Tell us about what events you host..."
-                    }
-                    rows={3}
-                  />
-                </div>
+            {/* CTA */}
+            <Button
+              onClick={() => setStep("profile")}
+              size="lg"
+              className="bg-[#ff1493] hover:bg-[#ff1493]/90 text-white px-8"
+            >
+              Let&apos;s Go
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading || !!slugError || !slug || !profileType}
-                >
-                  {loading ? tCommon("creating") : t("createProfile")}
-                </Button>
-              </>
-            )}
+  // Profile setup step
+  return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4">
+      <div className="w-full max-w-md">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#ff1493]/10 border border-[#ff1493]/30 rounded-full mb-4">
+              <Sparkles className="w-3 h-3 text-[#ff1493]" />
+              <span className="text-xs font-mono text-[#ff1493]">ALMOST THERE</span>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Set up your profile</h1>
+            <p className="text-muted-foreground text-sm">
+              This is how people will find you on Afters
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={onSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Your name or brand</Label>
+              <Input
+                id="displayName"
+                name="displayName"
+                placeholder="e.g. DJ Pulse, Night Collective, Your Name"
+                defaultValue={user?.fullName || ""}
+                className="bg-background"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="slug">Your profile URL</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  {URL_PREFIXES.organizer}
+                </span>
+                <Input
+                  id="slug"
+                  name="slug"
+                  placeholder="yourname"
+                  value={slug}
+                  onChange={(e) => handleSlugChange(e.target.value)}
+                  className={`bg-background ${slugError ? "border-red-500" : ""}`}
+                  required
+                />
+              </div>
+              {slugError && (
+                <p className="text-sm text-red-500">{slugError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                People will find your events at this URL
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bio">
+                Bio <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Textarea
+                id="bio"
+                name="bio"
+                placeholder="Tell people what kind of events you throw..."
+                rows={3}
+                className="bg-background resize-none"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-[#ff1493] hover:bg-[#ff1493]/90"
+              disabled={loading || !!slugError || !slug}
+            >
+              {loading ? tCommon("creating") : "Create Profile"}
+            </Button>
+
+            <p className="text-center text-xs text-muted-foreground">
+              You can always edit this later in settings
+            </p>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
