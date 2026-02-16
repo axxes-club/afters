@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 
 declare global {
   interface Window {
@@ -33,6 +33,24 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [hasFailed, setHasFailed] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+
+  // Memoize callbacks to prevent unnecessary re-renders
+  const handleVerify = useCallback((token: string) => {
+    onVerify(token)
+  }, [onVerify])
+
+  const handleError = useCallback(() => {
+    console.warn("Turnstile verification failed")
+    setHasFailed(true)
+    onError?.()
+  }, [onError])
+
+  const handleExpire = useCallback(() => {
+    console.warn("Turnstile verification expired")
+    onExpire?.()
+  }, [onExpire])
 
   useEffect(() => {
     // Load Turnstile script if not already loaded
@@ -55,18 +73,23 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
       if (!sitekey) {
         console.warn("Turnstile site key not configured")
         // Auto-verify when key is not configured (allows form submission)
-        onVerify("bypass-not-configured")
+        handleVerify("bypass-not-configured")
         return
       }
 
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
-        sitekey,
-        callback: onVerify,
-        "error-callback": onError,
-        "expired-callback": onExpire,
-        theme: "dark",
-        size: "normal",
-      })
+      try {
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
+          sitekey,
+          callback: handleVerify,
+          "error-callback": handleError,
+          "expired-callback": handleExpire,
+          theme: "dark",
+          size: "normal",
+        })
+      } catch (error) {
+        console.error("Failed to render Turnstile widget:", error)
+        setHasFailed(true)
+      }
     }
 
     if (!script) {
@@ -79,13 +102,22 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
         setIsLoaded(true)
         renderWidget()
       }
+      script.onerror = () => {
+        console.error("Failed to load Turnstile script")
+        setHasFailed(true)
+      }
       document.head.appendChild(script)
     } else if (window.turnstile) {
       setIsLoaded(true)
       renderWidget()
     } else {
       // Script exists but not loaded yet
-      script.onload = () => {
+      const existingOnload = script.onload
+      const currentScript = script
+      currentScript.onload = (event) => {
+        if (typeof existingOnload === 'function') {
+          existingOnload.call(currentScript, event)
+        }
         setIsLoaded(true)
         renderWidget()
       }
@@ -100,7 +132,37 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
         }
       }
     }
-  }, [onVerify, onError, onExpire])
+  }, [handleVerify, handleError, handleExpire, retryCount])
+
+  const handleRetry = () => {
+    setHasFailed(false)
+    setRetryCount(c => c + 1)
+  }
+
+  // Show error state with retry option
+  if (hasFailed) {
+    return (
+      <div className={className}>
+        <div className="min-h-[65px] flex flex-col items-center justify-center gap-2 border border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-white/50 text-xs font-mono text-center">
+            Verification unavailable
+          </p>
+          {retryCount >= 2 ? (
+            <p className="text-white/30 text-[10px] font-mono text-center max-w-[250px]">
+              Try disabling ad blockers or using a different browser
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="text-[#ff1493] text-xs font-mono hover:underline"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={className}>
