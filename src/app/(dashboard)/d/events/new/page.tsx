@@ -33,7 +33,6 @@ import { FlyerUpload } from "@/components/FlyerUpload"
 import { AuthGuard } from "@/components/AuthGuard"
 import { ArtistAutocomplete, RecentArtists } from "@/components/dashboard/ArtistAutocomplete"
 import { useAftie } from "@/components/aftie/AftieProvider"
-import { Turnstile } from "@/components/Turnstile"
 
 const US_CITIES = [
   "New York", "Brooklyn", "Charlotte", "Raleigh", "Los Angeles", "Miami",
@@ -96,9 +95,6 @@ function NewEventForm() {
   // AI Summarization
   const [isSummarizing, setIsSummarizing] = useState(false)
   const { isBetaEnabled: isAftieEnabled } = useAftie()
-
-  // Human verification
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   // Date shortcut helpers
   const getTonight = () => {
@@ -207,11 +203,6 @@ function NewEventForm() {
       return
     }
 
-    if (!turnstileToken) {
-      toast.error("Please complete the verification")
-      return
-    }
-
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
@@ -239,8 +230,6 @@ function NewEventForm() {
       rsvpMaxPlusOnes: parseInt(rsvpMaxPlusOnes),
       // Expiration
       expiresAfter,
-      // Human verification
-      turnstileToken,
     }
 
     try {
@@ -843,14 +832,6 @@ function NewEventForm() {
                 </div>
               </ExpandableSection>
 
-              {/* Human Verification - Mobile */}
-              <div className="lg:hidden pt-4">
-                <Turnstile
-                  onVerify={setTurnstileToken}
-                  className="flex justify-center"
-                />
-              </div>
-
               {/* Submit - Mobile */}
               <div className="lg:hidden pt-4 pb-8">
                 <SubmitButton loading={loading} accentColor={accentColor} />
@@ -911,12 +892,6 @@ function NewEventForm() {
                     </div>
                   </div>
                 </div>
-
-                {/* Human Verification */}
-                <Turnstile
-                  onVerify={setTurnstileToken}
-                  className="flex justify-center"
-                />
 
                 {/* Submit Button */}
                 <SubmitButton loading={loading} accentColor={accentColor} />
