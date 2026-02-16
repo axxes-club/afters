@@ -469,12 +469,6 @@ function EventDashboardContent({
   async function toggleEventType(isRsvp: boolean) {
     if (!event) return;
 
-    // Prevent switching to ticketed if no ticket tiers exist
-    if (!isRsvp && event.ticketTiers.length === 0) {
-      toast.error("Create at least one ticket tier first");
-      return;
-    }
-
     // Prevent switching from ticketed to RSVP if tickets have been sold
     if (isRsvp && totalSold > 0) {
       toast.error("Cannot switch to RSVP after tickets have been sold");
