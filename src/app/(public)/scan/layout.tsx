@@ -15,9 +15,9 @@ import { FeedbackButton } from "@/components/FeedbackButton"
 import { APP_VERSION_DISPLAY } from "@/lib/constants"
 
 const navItems = [
-  { href: "/d", label: "BASE", icon: LayoutDashboard, exact: true },
-  { href: "/d/events", label: "EVENTS", icon: Calendar },
-  { href: "/d/settings", label: "SETTINGS", icon: Settings },
+  { href: "/b", label: "BASE", icon: LayoutDashboard, exact: true },
+  { href: "/b/events", label: "EVENTS", icon: Calendar },
+  { href: "/b/settings", label: "SETTINGS", icon: Settings },
   { href: "/scan", label: "SCANNER", icon: ScanLine },
 ]
 
@@ -70,7 +70,7 @@ export default function ScanLayout({
               className="h-16 flex items-center justify-center px-4 border-b border-white/5"
             >
               {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
-                <Link href="/d" className="flex items-center justify-center">
+                <Link href="/b" className="flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                   <img
                     src={uiPrefs.sidebarCustomLogoUrl}
@@ -79,7 +79,7 @@ export default function ScanLayout({
                   />
                 </Link>
               ) : (
-                <Link href="/d" className="font-headline text-2xl tracking-wide">
+                <Link href="/b" className="font-headline text-2xl tracking-wide">
                   AFTERS<span style={{ color: accentColor }}>.</span>
                 </Link>
               )}
@@ -191,7 +191,7 @@ export default function ScanLayout({
           )}
           {/* Logo */}
           {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
-            <Link href="/d" className="flex items-center gap-2">
+            <Link href="/b" className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
               <img
                 src={uiPrefs.sidebarCustomLogoUrl}
@@ -200,7 +200,7 @@ export default function ScanLayout({
               />
             </Link>
           ) : uiPrefs.sidebarLogoMode !== "hidden" ? (
-            <Link href="/d" className="flex items-center gap-2 font-headline text-xl tracking-wide">
+            <Link href="/b" className="flex items-center gap-2 font-headline text-xl tracking-wide">
               AFTERS<span style={{ color: accentColor }}>.</span>
             </Link>
           ) : null}

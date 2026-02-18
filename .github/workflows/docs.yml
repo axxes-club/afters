@@ -33,13 +33,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pages
+        id: setup-pages
         uses: actions/configure-pages@v4
+        continue-on-error: true
+
+      - name: Skip if Pages not enabled
+        if: steps.setup-pages.outcome == 'failure'
+        run: |
+          echo "::warning::GitHub Pages is not enabled. Skipping deployment."
+          echo "To enable: Settings → Pages → Source: GitHub Actions"
 
       - name: Upload artifact
+        if: steps.setup-pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: './docs'
 
       - name: Deploy to GitHub Pages
+        if: steps.setup-pages.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@v4

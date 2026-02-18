@@ -72,7 +72,7 @@ export function EventsListContent({ events, organizerSlug }: EventsListContentPr
           </p>
         </div>
         <Button asChild>
-          <Link href="/d/events/new">
+          <Link href="/b/events/new">
             <Plus className="mr-2 h-4 w-4" />
             {t('createEvent')}
           </Link>
@@ -88,7 +88,7 @@ export function EventsListContent({ events, organizerSlug }: EventsListContentPr
               {t('createFirstEvent')}
             </p>
             <Button asChild>
-              <Link href="/d/events/new">
+              <Link href="/b/events/new">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('createEvent')}
               </Link>

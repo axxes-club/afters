@@ -141,7 +141,7 @@ function lightenColor(hex: string, factor: number): string {
 }
 
 // Generate color variations from flyer colors
-function generateColorVariations(colors: string[]): { original: string; light: string; dark: string }[] {
+function _generateColorVariations(colors: string[]): { original: string; light: string; dark: string }[] {
   return colors.map(color => ({
     original: color,
     light: lightenColor(color, 0.3),
