@@ -55,6 +55,7 @@ import { GuestlistManagement } from "@/components/guestlist-management";
 import { EventDesignTab } from "@/components/dashboard/EventDesignTab"
 import { EventDetailsTab } from "@/components/dashboard/EventDetailsTab"
 import { EventLocationSettings } from "@/components/dashboard/EventLocationSettings";
+import { MapPreview } from "@/components/dashboard/MapPreview";
 import { EventRsvpSettings } from "@/components/dashboard/EventRsvpSettings";
 import { ScannerSoundSelector } from "@/components/dashboard/ScannerSoundSelector";
 import { useAftie } from "@/components/aftie/AftieProvider";
@@ -1008,13 +1009,15 @@ function EventDashboardContent({
                 </div>
               </div>
 
-              {/* Map Preview Placeholder */}
-              <div className="border border-white/10 bg-white/[0.02] p-6">
-                <div className="flex items-center justify-center gap-2 text-white/30">
-                  <Map className="w-5 h-5" />
-                  <span className="text-xs font-mono">Map preview coming soon</span>
-                </div>
-              </div>
+              {/* Map Preview */}
+              <MapPreview
+                venueName={event.venueName}
+                venueAddress={event.venueAddress}
+                city={event.city}
+                state={event.state}
+                mapStyle="dark"
+                mapZoom={15}
+              />
             </div>
           </div>
 
