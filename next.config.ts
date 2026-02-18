@@ -7,14 +7,6 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   poweredByHeader: false, // Remove X-Powered-By header
   compress: true, // Enable gzip compression
-  
-  // Compiler optimizations
-  compiler: {
-    // Remove console.log in production
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
-  },
 
   images: {
     // Optimize images
