@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -80,7 +81,7 @@ describe("Organizer Profile API", () => {
 
       mockPrisma.user.update.mockResolvedValue({} as any);
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "POST",
@@ -115,7 +116,7 @@ describe("Organizer Profile API", () => {
     it("should return 401 if user is not authenticated", async () => {
       mockAuth.mockResolvedValue({ userId: null });
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "POST",
@@ -137,7 +138,7 @@ describe("Organizer Profile API", () => {
     it("should return 400 if required fields are missing", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "POST",
@@ -159,7 +160,7 @@ describe("Organizer Profile API", () => {
     it("should return 400 if slug format is invalid", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "POST",
@@ -185,7 +186,7 @@ describe("Organizer Profile API", () => {
         userId: "user-123",
       } as any);
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "POST",
@@ -210,7 +211,7 @@ describe("Organizer Profile API", () => {
         .mockResolvedValueOnce(null) // No existing profile for user
         .mockResolvedValueOnce({ id: "other-profile", slug: "test" } as any); // Slug taken
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "POST",
@@ -247,7 +248,7 @@ describe("Organizer Profile API", () => {
         bio: "Updated bio",
       } as any);
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "PUT",
@@ -272,7 +273,7 @@ describe("Organizer Profile API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.organizerProfile.findUnique.mockResolvedValue(null);
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "PUT",
@@ -309,7 +310,7 @@ describe("Organizer Profile API", () => {
         bio: "Updated bio",
       } as any);
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "PATCH",
@@ -334,7 +335,7 @@ describe("Organizer Profile API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.organizerProfile.findUnique.mockResolvedValue(null);
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/organizer/profile",
         {
           method: "PATCH",

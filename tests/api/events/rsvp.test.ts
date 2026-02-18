@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { NextRequest } from "next/server"
 
 // Hoist mocks to avoid initialization errors
 const { mockPrisma, mockVerifyTurnstile, mockResend } = vi.hoisted(() => {
@@ -90,7 +91,7 @@ describe("RSVP API", () => {
       })
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validRsvpData),
@@ -105,7 +106,7 @@ describe("RSVP API", () => {
   })
 
   it("should return 400 for missing name or email", async () => {
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ turnstileToken: "valid" }),
@@ -121,7 +122,7 @@ describe("RSVP API", () => {
   it("should return 400 for failed Turnstile verification", async () => {
     mockVerifyTurnstile.mockResolvedValue(false)
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validRsvpData),
@@ -137,7 +138,7 @@ describe("RSVP API", () => {
   it("should return 404 for non-existent event", async () => {
     mockPrisma.event.findUnique.mockResolvedValue(null)
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validRsvpData),
@@ -156,7 +157,7 @@ describe("RSVP API", () => {
       isRsvpOnly: false,
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validRsvpData),
@@ -175,7 +176,7 @@ describe("RSVP API", () => {
       isPublished: false,
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validRsvpData),
@@ -194,7 +195,7 @@ describe("RSVP API", () => {
       rsvpAllowPlusOnes: false,
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...validRsvpData, plusOnes: 1 }),
@@ -210,7 +211,7 @@ describe("RSVP API", () => {
   it("should return 400 when plus ones exceed max", async () => {
     mockPrisma.event.findUnique.mockResolvedValue(mockEvent)
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...validRsvpData, plusOnes: 5 }), // Max is 2
@@ -230,7 +231,7 @@ describe("RSVP API", () => {
       rsvpCount: 100, // Already at capacity
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validRsvpData),
@@ -250,7 +251,7 @@ describe("RSVP API", () => {
       email: "guest@example.com",
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(validRsvpData),
@@ -272,7 +273,7 @@ describe("RSVP API", () => {
     mockPrisma.rsvp.findUnique.mockResolvedValue(null)
 
     // Request with 2 plus ones (3 total) should fail
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...validRsvpData, plusOnes: 2 }),
@@ -299,7 +300,7 @@ describe("RSVP API", () => {
       })
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -330,7 +331,7 @@ describe("RSVP API", () => {
       return fn(mockTx)
     })
 
-    const request = new Request("http://localhost:3000/api/events/event-123/rsvp", {
+    const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server"
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Hoist mocks to avoid initialization errors
@@ -104,7 +105,7 @@ describe("User Preferences API", () => {
         uiFontSize: "large",
       });
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/preferences",
         {
           method: "PUT",
@@ -147,7 +148,7 @@ describe("User Preferences API", () => {
     it("should return 401 if user is not authenticated", async () => {
       mockAuth.mockResolvedValue({ userId: null });
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/preferences",
         {
           method: "PUT",
@@ -169,7 +170,7 @@ describe("User Preferences API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.organizerProfile.findUnique.mockResolvedValue(null);
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/preferences",
         {
           method: "PUT",
@@ -190,7 +191,7 @@ describe("User Preferences API", () => {
     it("should return 400 for invalid sidebar logo mode", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/preferences",
         {
           method: "PUT",
@@ -211,7 +212,7 @@ describe("User Preferences API", () => {
     it("should return 400 for invalid font size", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/preferences",
         {
           method: "PUT",
@@ -244,7 +245,7 @@ describe("User Preferences API", () => {
       });
 
       for (const mode of ["afters", "custom", "hidden"]) {
-        const request = new Request(
+        const request = new NextRequest(
           "http://localhost:3000/api/user/preferences",
           {
             method: "PUT",
@@ -275,7 +276,7 @@ describe("User Preferences API", () => {
       });
 
       for (const size of ["small", "normal", "large"]) {
-        const request = new Request(
+        const request = new NextRequest(
           "http://localhost:3000/api/user/preferences",
           {
             method: "PUT",
@@ -295,7 +296,7 @@ describe("User Preferences API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.organizerProfile.findUnique.mockRejectedValue(new Error("DB error"));
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/preferences",
         {
           method: "PUT",

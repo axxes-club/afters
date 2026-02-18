@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // Hoist mocks to avoid initialization errors
@@ -39,7 +40,7 @@ describe("Push Subscription API", () => {
         auth: "test-auth-key",
       })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "POST",
@@ -79,7 +80,7 @@ describe("Push Subscription API", () => {
     it("should return 401 if user is not authenticated", async () => {
       mockAuth.mockResolvedValue({ userId: null })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "POST",
@@ -104,7 +105,7 @@ describe("Push Subscription API", () => {
     it("should return 400 for missing endpoint", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "POST",
@@ -128,7 +129,7 @@ describe("Push Subscription API", () => {
     it("should return 400 for missing keys", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "POST",
@@ -149,7 +150,7 @@ describe("Push Subscription API", () => {
     it("should return 400 for missing p256dh key", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "POST",
@@ -174,7 +175,7 @@ describe("Push Subscription API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
       mockPrisma.pushSubscription.upsert.mockRejectedValue(new Error("DB error"))
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "POST",
@@ -202,7 +203,7 @@ describe("Push Subscription API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
       mockPrisma.pushSubscription.deleteMany.mockResolvedValue({ count: 1 })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "DELETE",
@@ -229,7 +230,7 @@ describe("Push Subscription API", () => {
     it("should return 401 if user is not authenticated", async () => {
       mockAuth.mockResolvedValue({ userId: null })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "DELETE",
@@ -250,7 +251,7 @@ describe("Push Subscription API", () => {
     it("should return 400 for missing endpoint", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "DELETE",
@@ -270,7 +271,7 @@ describe("Push Subscription API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
       mockPrisma.pushSubscription.deleteMany.mockRejectedValue(new Error("DB error"))
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications/push-subscription",
         {
           method: "DELETE",
