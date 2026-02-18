@@ -11,7 +11,6 @@ import {
   Shield,
   Settings,
   User,
-  Key,
   Sparkles,
   Bell,
   ArrowLeft,
@@ -37,7 +36,6 @@ const baseNavItems = [
 
 const settingsNavItems = [
   { href: "/d/settings", label: "PROFILE", icon: User, exact: true },
-  { href: "/d/settings/api-keys", label: "API KEYS", icon: Key, exact: false },
   ...(process.env.NODE_ENV !== "production"
     ? [{ href: "/d/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false }]
     : []),
