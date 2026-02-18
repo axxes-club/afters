@@ -13,6 +13,77 @@ env:
   PNPM_VERSION: 9
 
 jobs:
+  # ─── Version Consistency Check ───
+  version-check:
+    name: Version Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check version consistency
+        run: |
+          echo "### 🔖 Version Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Get version from package.json
+          PKG_VERSION=$(jq -r '.version' package.json)
+          echo "📦 package.json version: $PKG_VERSION"
+          echo "- **package.json**: \`$PKG_VERSION\`" >> $GITHUB_STEP_SUMMARY
+
+          # Get latest version from HISTORY.md (first ## X.X.X pattern)
+          # Using grep -E for extended regex (portable)
+          HISTORY_VERSION=$(grep -E '^## [0-9]+\.[0-9]+\.[0-9]+' HISTORY.md | head -1 | sed 's/## //' | sed 's/ .*//')
+          echo "📜 HISTORY.md version: $HISTORY_VERSION"
+          echo "- **HISTORY.md**: \`$HISTORY_VERSION\`" >> $GITHUB_STEP_SUMMARY
+
+          # Check if APP_VERSION references package.json (dynamic) or is hardcoded
+          if grep -q 'require.*package.json.*version' src/lib/constants.ts 2>/dev/null; then
+            echo "✅ APP_VERSION: dynamically linked to package.json"
+            echo "- **constants.ts**: ✅ Linked to package.json" >> $GITHUB_STEP_SUMMARY
+          elif [ -f src/lib/constants.ts ]; then
+            # Check for hardcoded version
+            CONST_VERSION=$(grep -E "APP_VERSION\s*=\s*['\"][0-9]+\.[0-9]+\.[0-9]+" src/lib/constants.ts | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -1 || echo "")
+            if [ -n "$CONST_VERSION" ]; then
+              echo "📋 constants.ts version: $CONST_VERSION"
+              echo "- **constants.ts**: \`$CONST_VERSION\`" >> $GITHUB_STEP_SUMMARY
+              if [ "$CONST_VERSION" != "$PKG_VERSION" ]; then
+                echo "❌ ERROR: constants.ts version ($CONST_VERSION) does not match package.json ($PKG_VERSION)"
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "❌ **FAILED**: constants.ts version mismatch!" >> $GITHUB_STEP_SUMMARY
+                exit 1
+              fi
+            fi
+          fi
+
+          echo ""
+
+          # Compare versions
+          if [ -z "$HISTORY_VERSION" ]; then
+            echo "❌ ERROR: Could not find version in HISTORY.md"
+            echo "   Expected format: ## X.Y.Z (YYYY-MM-DD)"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **FAILED**: No version found in HISTORY.md" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          if [ "$PKG_VERSION" != "$HISTORY_VERSION" ]; then
+            echo "❌ ERROR: Version mismatch!"
+            echo "   package.json: $PKG_VERSION"
+            echo "   HISTORY.md:   $HISTORY_VERSION"
+            echo ""
+            echo "Please ensure HISTORY.md has an entry for version $PKG_VERSION"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **FAILED**: HISTORY.md needs entry for version \`$PKG_VERSION\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          echo "✅ All versions match: $PKG_VERSION"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **All versions match!**" >> $GITHUB_STEP_SUMMARY
+
   # ─── Lint & Type Check ───
   quality:
     name: Code Quality
