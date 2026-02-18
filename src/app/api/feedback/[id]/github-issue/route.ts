@@ -1,27 +1,17 @@
-import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { isSuperAdmin } from "@/lib/auth-utils"
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 const GITHUB_REPO = "axxes-club/afters"
 
 export async function POST(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    // Check if user is superadmin
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    })
-
-    if (user?.role !== "superadmin") {
+    const isAdmin = await isSuperAdmin()
+    if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -30,20 +20,19 @@ export async function POST(
     // Get the feedback entry
     const feedback = await prisma.feedback.findUnique({
       where: { id },
-      include: {
-        user: {
-          select: {
-            email: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
     })
 
     if (!feedback) {
       return NextResponse.json({ error: "Feedback not found" }, { status: 404 })
     }
+
+    // Get user info if available
+    const user = feedback.userId
+      ? await prisma.user.findUnique({
+          where: { id: feedback.userId },
+          select: { email: true, firstName: true, lastName: true },
+        })
+      : null
 
     if (feedback.githubIssueUrl) {
       return NextResponse.json(
@@ -73,8 +62,8 @@ export async function POST(
     const title = `${typeEmoji} [Feedback] ${feedback.message.slice(0, 80)}${feedback.message.length > 80 ? "..." : ""}`
 
     // Build the issue body
-    const userInfo = feedback.user
-      ? `**Submitted by:** ${feedback.user.firstName || ""} ${feedback.user.lastName || ""} (${feedback.user.email})`
+    const userInfo = user
+      ? `**Submitted by:** ${user.firstName || ""} ${user.lastName || ""} (${user.email})`
       : "**Submitted by:** Anonymous"
 
     const body = `## Feedback Report
