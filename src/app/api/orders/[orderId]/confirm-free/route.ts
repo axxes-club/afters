@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
-import { sendEmail, generateTicketEmailHtml } from "@/lib/email"
+import { sendEmail, generateTicketEmailHtml, generateOrganizerSaleEmailHtml } from "@/lib/email"
+import { notifyTicketSale } from "@/lib/push"
 import { waitUntil } from "@vercel/functions"
 
 export async function POST(
@@ -187,6 +188,45 @@ export async function POST(
           })
 
           console.log(`Sent ${createdTickets.length} free tickets to ${updatedOrder.email}`)
+
+          // Notify organizer of the RSVP (push + email)
+          const organizer = await prisma.organizerProfile.findFirst({
+            where: { userId: updatedOrder.event.organizerId },
+            include: { user: true },
+          })
+
+          if (organizer?.user) {
+            // Send push notification to organizer (amount is 0 for free)
+            await notifyTicketSale(
+              organizer.userId,
+              updatedOrder.event.title,
+              createdTickets.length,
+              0
+            )
+
+            // Check if organizer wants email notifications for RSVPs/sales
+            const prefs = await prisma.notificationPreference.findUnique({
+              where: { userId: organizer.userId },
+            })
+
+            if (!prefs || prefs.emailTicketSales) {
+              const saleEmailHtml = generateOrganizerSaleEmailHtml({
+                eventTitle: updatedOrder.event.title,
+                ticketCount: createdTickets.length,
+                amount: 0, // Free RSVP
+                buyerEmail: updatedOrder.email,
+                orderNumber: updatedOrder.orderNumber,
+              })
+
+              await sendEmail({
+                to: organizer.user.email,
+                subject: `🎟️ ${createdTickets.length} RSVP${createdTickets.length > 1 ? 's' : ''} for ${updatedOrder.event.title}`,
+                html: saleEmailHtml,
+              })
+
+              console.log(`Notified organizer ${organizer.user.email} of RSVP`)
+            }
+          }
         } catch (emailError) {
           console.error('Failed to send ticket email:', emailError)
         }
