@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.7 (2026-02-18)
+
+- Add UI customization: custom logos, accent colors, text sizes
+- Add Settings > Appearance page for dashboard personalization
+- Move profile editing from /d/organizer to Settings > Profile
+- Fix scanner sidebar to match dashboard design with mobile toolbar
+- Add clickable Share/AirDrop button to scanner desktop view
+- Remove glowing effect from Aftie button, hide when AI disabled
+- Add API tests for user profile and preferences endpoints (85 tests total)
+
+## 0.2.6 (2026-02-18)
+
+- Fix React hydration errors with suppressHydrationWarning
+- Move API keys to Security settings page
+- Add API testing workflow to CI (68 tests, 84% coverage)
+
+## 0.2.5 (2026-02-18)
+
+- Fix ESLint errors, reduce warnings to 0
+- Add Aftie production guard
+- Improve accessibility (a11y) across components
+
 ## 0.2.4 (2026-02-18)
 
 - Fix system settings page showing incorrect version by reading from package.json
