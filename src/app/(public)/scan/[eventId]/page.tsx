@@ -37,6 +37,7 @@ interface ScannerInfo {
   eventTitle: string
   hasGuestlist?: boolean
   scannerSound?: string
+  accentColor?: string
 }
 
 interface CheckInResult {
@@ -199,6 +200,7 @@ export default function ScannerPage({
           eventTitle: data.scanner.eventTitle || "",
           hasGuestlist: data.scanner.hasGuestlist || false,
           scannerSound: data.scanner.scannerSound || "basic",
+          accentColor: data.scanner.accentColor || "#ff1493",
         })
         setAuthenticated(true)
         setStats(data.stats || { scanned: 0, total: 0 })
@@ -579,17 +581,27 @@ export default function ScannerPage({
     )
   }
 
+  // Get accent color from scanner info (fallback to default pink)
+  const accentColor = scanner?.accentColor || "#ff1493"
+  
+  // Helper to convert hex to RGB for rgba usage
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}` : "255,20,147"
+  }
+  const accentRgb = hexToRgb(accentColor)
+
   // Main Scanner Interface - Full viewport
   return (
-    <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden" style={{ ['--accent' as string]: accentColor, ['--accent-rgb' as string]: accentRgb }}>
       {/* Animated grid background */}
       <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(255,20,147,0.5) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,20,147,0.5) 1px, transparent 1px)
+              linear-gradient(rgba(${accentRgb},0.5) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(${accentRgb},0.5) 1px, transparent 1px)
             `,
             backgroundSize: "60px 60px",
           }}
@@ -599,29 +611,30 @@ export default function ScannerPage({
       {/* Scanning line animation */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
         <div
-          className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#ff1493]/30 to-transparent"
+          className="absolute left-0 right-0 h-[2px]"
           style={{
             animation: "scanLine 4s ease-in-out infinite",
+            background: `linear-gradient(to right, transparent, rgba(${accentRgb},0.3), transparent)`,
           }}
         />
       </div>
 
       {/* Corner bracket accents */}
       <div className="absolute top-0 left-0 w-16 h-16 pointer-events-none z-[5]">
-        <div className="absolute top-3 left-3 w-8 h-[2px] bg-[#ff1493]/40" />
-        <div className="absolute top-3 left-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        <div className="absolute top-3 left-3 w-8 h-[2px]" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
+        <div className="absolute top-3 left-3 w-[2px] h-8" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
       </div>
       <div className="absolute top-0 right-0 w-16 h-16 pointer-events-none z-[5]">
-        <div className="absolute top-3 right-3 w-8 h-[2px] bg-[#ff1493]/40" />
-        <div className="absolute top-3 right-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        <div className="absolute top-3 right-3 w-8 h-[2px]" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
+        <div className="absolute top-3 right-3 w-[2px] h-8" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
       </div>
       <div className="absolute bottom-0 left-0 w-16 h-16 pointer-events-none z-[5]">
-        <div className="absolute bottom-3 left-3 w-8 h-[2px] bg-[#ff1493]/40" />
-        <div className="absolute bottom-3 left-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        <div className="absolute bottom-3 left-3 w-8 h-[2px]" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
+        <div className="absolute bottom-3 left-3 w-[2px] h-8" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
       </div>
       <div className="absolute bottom-0 right-0 w-16 h-16 pointer-events-none z-[5]">
-        <div className="absolute bottom-3 right-3 w-8 h-[2px] bg-[#ff1493]/40" />
-        <div className="absolute bottom-3 right-3 w-[2px] h-8 bg-[#ff1493]/40" />
+        <div className="absolute bottom-3 right-3 w-8 h-[2px]" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
+        <div className="absolute bottom-3 right-3 w-[2px] h-8" style={{ backgroundColor: `rgba(${accentRgb},0.4)` }} />
       </div>
 
       {/* Desktop Message Overlay */}
@@ -733,8 +746,8 @@ export default function ScannerPage({
           {/* Right side - Shift Status */}
           <div className="flex-shrink-0">
             {isOrganizer ? (
-              <div className="flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider bg-[#ff1493]/10 border border-[#ff1493]/30 text-[#ff1493]">
-                <div className="w-2 h-2 bg-[#ff1493] rounded-full animate-pulse" />
+              <div className="flex items-center gap-2 px-3 py-2 text-xs font-display tracking-wider" style={{ backgroundColor: `rgba(${accentRgb},0.1)`, borderWidth: 1, borderColor: `rgba(${accentRgb},0.3)`, color: accentColor }}>
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
                 <span className="hidden sm:inline">ORGANIZER</span>
               </div>
             ) : (
@@ -784,7 +797,8 @@ export default function ScannerPage({
               <button
                 onClick={() => setViewMode("scan")}
                 disabled={!isPunchedIn}
-                className="flex-1 min-h-[120px] bg-[#ff1493] text-black flex flex-col items-center justify-center gap-3 hover:bg-[#ff69b4] transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
+                className="flex-1 min-h-[120px] text-black flex flex-col items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ backgroundColor: accentColor }}
               >
                 <QrCode className="w-12 h-12" />
                 <span className="text-2xl font-bold font-display tracking-wider">SCAN</span>
@@ -796,9 +810,12 @@ export default function ScannerPage({
                   <button
                     onClick={() => setViewMode("guestlist")}
                     disabled={!isPunchedIn}
-                    className="flex-1 min-h-[100px] bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center gap-2 hover:border-[#ff1493]/50 hover:bg-white/[0.05] transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="flex-1 min-h-[100px] bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/[0.05] transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{ ['--tw-border-opacity' as string]: 1 }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = `rgba(${accentRgb},0.5)`)}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = '')}
                   >
-                    <Users className="w-8 h-8 text-[#ff1493]" />
+                    <Users className="w-8 h-8" style={{ color: accentColor }} />
                     <span className="text-lg font-bold font-display tracking-wider">GUESTLIST</span>
                   </button>
                 )}
@@ -807,7 +824,7 @@ export default function ScannerPage({
                 <button
                   onClick={() => setViewMode("manual")}
                   disabled={!isPunchedIn}
-                  className={`${scanner?.hasGuestlist ? 'flex-1' : 'flex-1'} min-h-[100px] bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center gap-2 hover:border-[#ff1493]/50 hover:bg-white/[0.05] transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed`}
+                  className="flex-1 min-h-[100px] bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/[0.05] transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Keyboard className="w-8 h-8 text-white/60" />
                   <span className="text-lg font-bold font-display tracking-wider">MANUAL</span>
@@ -906,7 +923,8 @@ export default function ScannerPage({
                 <div className="w-full max-w-sm mt-8 space-y-3">
                   <button
                     onClick={scanAnother}
-                    className="w-full py-4 bg-[#ff1493] text-black text-lg font-bold font-display tracking-wider hover:bg-[#ff69b4] transition-all active:scale-[0.98]"
+                    className="w-full py-4 text-black text-lg font-bold font-display tracking-wider transition-all active:scale-[0.98]"
+                    style={{ backgroundColor: accentColor }}
                   >
                     <div className="flex items-center justify-center gap-2">
                       <Zap className="w-5 h-5" />
@@ -948,16 +966,18 @@ export default function ScannerPage({
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-64 h-64 relative overflow-hidden">
                       {/* Corner brackets */}
-                      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#ff1493]" />
-                      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#ff1493]" />
-                      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#ff1493]" />
-                      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#ff1493]" />
+                      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2" style={{ borderColor: accentColor }} />
+                      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2" style={{ borderColor: accentColor }} />
+                      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2" style={{ borderColor: accentColor }} />
+                      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2" style={{ borderColor: accentColor }} />
 
                       {/* Animated scanning laser line */}
                       <div
-                        className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#ff1493] to-transparent shadow-[0_0_10px_#ff1493,0_0_20px_#ff1493]"
+                        className="absolute left-0 right-0 h-0.5"
                         style={{
                           animation: "scanLaser 2s ease-in-out infinite",
+                          background: `linear-gradient(to right, transparent, ${accentColor}, transparent)`,
+                          boxShadow: `0 0 10px ${accentColor}, 0 0 20px ${accentColor}`,
                         }}
                       />
 
@@ -966,8 +986,8 @@ export default function ScannerPage({
                         className="absolute inset-2 opacity-20"
                         style={{
                           backgroundImage: `
-                            linear-gradient(rgba(255,20,147,0.3) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,20,147,0.3) 1px, transparent 1px)
+                            linear-gradient(rgba(${accentRgb},0.3) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(${accentRgb},0.3) 1px, transparent 1px)
                           `,
                           backgroundSize: "20px 20px",
                         }}
@@ -977,9 +997,9 @@ export default function ScannerPage({
 
                   {/* Scan status indicator */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-40">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-sm border border-[#ff1493]/30">
-                      <div className="w-2 h-2 bg-[#ff1493] rounded-full animate-pulse" />
-                      <span className="text-[10px] font-mono tracking-wider text-[#ff1493]">SCANNING</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-sm" style={{ borderWidth: 1, borderColor: `rgba(${accentRgb},0.3)` }}>
+                      <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
+                      <span className="text-[10px] font-mono tracking-wider" style={{ color: accentColor }}>SCANNING</span>
                     </div>
                   </div>
                 </div>
@@ -988,7 +1008,7 @@ export default function ScannerPage({
                 {loading && (
                   <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                     <div className="text-center">
-                      <div className="w-12 h-12 border-2 border-[#ff1493]/30 border-t-[#ff1493] rounded-full animate-spin mx-auto mb-4" />
+                      <div className="w-12 h-12 rounded-full animate-spin mx-auto mb-4" style={{ borderWidth: 2, borderColor: `rgba(${accentRgb},0.3)`, borderTopColor: accentColor }} />
                       <p className="text-white/60 font-display tracking-wider">CHECKING IN...</p>
                     </div>
                   </div>
@@ -1043,7 +1063,8 @@ export default function ScannerPage({
                 <div className="w-full max-w-sm space-y-3">
                   <button
                     onClick={() => { setResult(null); setManualId(""); }}
-                    className="w-full py-4 bg-[#ff1493] text-black text-lg font-bold font-display tracking-wider hover:bg-[#ff69b4] transition-all active:scale-[0.98]"
+                    className="w-full py-4 text-black text-lg font-bold font-display tracking-wider transition-all active:scale-[0.98]"
+                    style={{ backgroundColor: accentColor }}
                   >
                     ENTER ANOTHER
                   </button>
@@ -1075,13 +1096,15 @@ export default function ScannerPage({
                       value={manualId}
                       onChange={(e) => setManualId(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleManualCheck()}
-                      className="w-full px-4 py-5 bg-white/[0.03] border border-white/10 text-white text-xl text-center font-display placeholder:text-white/20 focus:outline-none focus:border-[#ff1493] transition-colors"
+                      className="w-full px-4 py-5 bg-white/[0.03] border border-white/10 text-white text-xl text-center font-display placeholder:text-white/20 focus:outline-none transition-colors"
+                      style={{ ['--tw-ring-color' as string]: accentColor }}
                       autoFocus
                     />
                     <button
                       onClick={handleManualCheck}
                       disabled={loading || !manualId.trim()}
-                      className="w-full py-5 bg-[#ff1493] text-black text-lg font-bold font-display tracking-wider hover:bg-[#ff69b4] transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
+                      className="w-full py-5 text-black text-lg font-bold font-display tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
+                      style={{ backgroundColor: accentColor }}
                     >
                       {loading ? "CHECKING..." : "CHECK IN"}
                     </button>
@@ -1151,7 +1174,8 @@ export default function ScannerPage({
                         {!entry.checkedIn && (
                           <button
                             onClick={() => checkInGuestlistEntry(entry)}
-                            className="px-4 py-2 bg-[#ff1493] text-black text-sm font-bold font-display tracking-wider active:scale-95"
+                            className="px-4 py-2 text-black text-sm font-bold font-display tracking-wider active:scale-95"
+                            style={{ backgroundColor: accentColor }}
                           >
                             CHECK IN
                           </button>
@@ -1183,7 +1207,7 @@ export default function ScannerPage({
               <Calendar className="w-5 h-5" />
               <span className="text-[10px] font-mono tracking-wider">EVENTS</span>
             </Link>
-            <div className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-[#ff1493]">
+            <div className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem]" style={{ color: accentColor }}>
               <ScanLine className="w-5 h-5" />
               <span className="text-[10px] font-mono tracking-wider">SCANNER</span>
             </div>

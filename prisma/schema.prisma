@@ -256,6 +256,10 @@ model OrganizerProfile {
   // Past artists used in lineups - auto-populated when events are published
   // [{name, role?, imageUrl?, socialUrl?, usedCount, lastUsedAt}]
   pastArtists              Json?
+
+  // Aftie AI Image Generation Settings
+  aftieImageProvider       String?  // 'openai' | 'gemini' | null
+  aftieImageApiKey         String?  // User's API key for image generation (TODO: encrypt at rest)
 }
 
 enum TicketingType {

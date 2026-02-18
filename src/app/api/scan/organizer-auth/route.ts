@@ -96,6 +96,8 @@ export async function POST(req: NextRequest) {
             id: true,
             title: true,
             hasGuestlist: true,
+            scannerSound: true,
+            accentColor: true,
             _count: {
               select: { tickets: true },
             },
@@ -133,6 +135,8 @@ export async function POST(req: NextRequest) {
         eventId: eventId,
         eventTitle: event.title,
         hasGuestlist: event.hasGuestlist,
+        scannerSound: event.scannerSound || "basic",
+        accentColor: event.accentColor || "#ff1493",
       },
       stats: {
         scanned: event.tickets.length,

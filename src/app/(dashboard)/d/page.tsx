@@ -66,7 +66,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
-            CONTROL CENTER
+            BASE
           </h1>
           <p className="text-white/40 text-sm font-mono mt-1 truncate">
             {profile.displayName || "Operator"} • {upcomingEvents.length}{" "}

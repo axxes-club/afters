@@ -50,6 +50,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "edmtrain.com",
       },
+      {
+        protocol: "https",
+        hostname: "replicate.delivery",
+      },
+      {
+        protocol: "https",
+        hostname: "*.replicate.delivery",
+      },
     ],
   },
   // Moved from experimental.serverComponentsExternalPackages (deprecated in Next.js 16)

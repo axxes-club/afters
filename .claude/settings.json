@@ -6,11 +6,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/start-session.sh",
-            "description": "Update PLANKA board on first tool use (session start)"
+            "command": ".claude/hooks/start-session.sh"
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true
   }
 }

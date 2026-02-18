@@ -1,10 +1,8 @@
-import { streamText, tool } from "ai"
+import { generateText, tool, stepCountIs } from "ai"
 import { auth } from "@clerk/nextjs/server"
 import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
-
-export const maxDuration = 30 // Allow streaming for up to 30 seconds
 
 export async function POST(req: Request) {
   try {
@@ -49,17 +47,17 @@ ${context.eventDetails ? `- Event Details:
   - Lineup: ${context.eventDetails.lineup?.map((a: { name: string }) => a.name).join(", ") || "Not set"}
   - Genre/Vibe: ${context.eventDetails.genre || context.eventDetails.vibe || "Not specified"}` : ""}
 
-Use this context for any questions about "this event", ticket sales, or content writing requests like "write something for the about section".`
+Use this context for any questions about "this event", ticket sales, or content writing requests.`
     } else if (context?.page === "events") {
       contextInfo = "\n\nCURRENT CONTEXT: User is on the events list page."
     } else if (context?.page === "event-new") {
       contextInfo = "\n\nCURRENT CONTEXT: User is creating a new event."
     }
 
-    // Create tools using AI SDK v6 tool helper
+    // Create tools with proper typing
     const tools = {
       createEvent: tool({
-        description: "Create a new event for the user. Use this when the user wants to create an event.",
+        description: "Create a new event for the user. Use this when the user wants to create an event. After creating, tell the user what was created and provide the dashboard link.",
         inputSchema: z.object({
           title: z.string().describe("Event title/name"),
           description: z.string().optional().describe("Event description"),
@@ -111,15 +109,13 @@ Use this context for any questions about "this event", ticket sales, or content 
 
             return {
               success: true,
-              event: {
-                id: event.id,
-                title: event.title,
-                slug: event.slug,
-                startsAt: event.startsAt.toISOString(),
-                status: "DRAFT",
-              },
+              eventId: event.id,
+              eventTitle: event.title,
+              slug: event.slug,
+              startsAt: event.startsAt.toISOString(),
+              status: "DRAFT",
               dashboardUrl: `/d/events/${event.id}`,
-              message: `Created "${event.title}" as a draft.`,
+              publicUrl: `/e/${event.slug}`,
             }
           } catch (error) {
             console.error("Create event error:", error)
@@ -169,6 +165,7 @@ Use this context for any questions about "this event", ticket sales, or content 
                 date: e.startsAt.toLocaleDateString(),
                 city: e.city,
                 status: e.isPublished ? "Published" : "Draft",
+                dashboardUrl: `/d/events/${e.id}`,
               })),
               count: events.length,
             }
@@ -180,14 +177,44 @@ Use this context for any questions about "this event", ticket sales, or content 
       }),
 
       updateEvent: tool({
-        description: "Update an existing event",
+        description: "Update an existing event. Can update basic info, timing, location, design, content, and lineup. After updating, confirm what was changed.",
         inputSchema: z.object({
           eventId: z.string().describe("The event ID to update"),
-          title: z.string().optional(),
-          description: z.string().optional(),
-          venueName: z.string().optional(),
-          venueAddress: z.string().optional(),
-          startsAt: z.string().optional(),
+          // Basic info
+          title: z.string().optional().describe("Event title"),
+          description: z.string().optional().describe("Short event description"),
+          // Timing
+          startsAt: z.string().optional().describe("Start date/time in ISO format"),
+          endsAt: z.string().optional().describe("End date/time in ISO format"),
+          timezone: z.string().optional().describe("Timezone (e.g., America/New_York)"),
+          // Location
+          venueName: z.string().optional().describe("Venue name"),
+          venueAddress: z.string().optional().describe("Full venue address"),
+          city: z.string().optional().describe("City name"),
+          state: z.string().optional().describe("State abbreviation"),
+          // Event details
+          ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
+          flyerUrl: z.string().optional().describe("URL to event flyer image"),
+          about: z.string().optional().describe("Detailed about section for the event"),
+          refundPolicy: z.string().optional().describe("Refund/cancellation policy text"),
+          // Lineup - array of artists
+          lineup: z.array(z.object({
+            name: z.string().describe("Artist name"),
+            role: z.string().optional().describe("Role like 'Headliner', 'Support', 'DJ'"),
+            imageUrl: z.string().optional().describe("Artist image URL"),
+            socialUrl: z.string().optional().describe("Artist social media URL"),
+          })).optional().describe("Event lineup array"),
+          // FAQs
+          faqs: z.array(z.object({
+            question: z.string().describe("FAQ question"),
+            answer: z.string().describe("FAQ answer"),
+          })).optional().describe("Frequently asked questions array"),
+          // Gallery
+          gallery: z.array(z.string()).optional().describe("Array of gallery image URLs"),
+          // Design
+          pageTheme: z.enum(["brutalist", "neon", "minimal", "tilt", "lush", "nice", "editorial", "card", "vapor"]).optional().describe("Event page visual theme"),
+          accentColor: z.string().optional().describe("Accent color in hex format (e.g., #ff1493)"),
+          typography: z.enum(["mono", "headline", "elegant", "modern"]).optional().describe("Typography style"),
         }),
         execute: async (params) => {
           try {
@@ -201,11 +228,37 @@ Use this context for any questions about "this event", ticket sales, or content 
             }
 
             const updateData: Record<string, unknown> = {}
+
+            // Basic info
             if (params.title) updateData.title = params.title
             if (params.description) updateData.description = params.description
+
+            // Timing
+            if (params.startsAt) updateData.startsAt = new Date(params.startsAt)
+            if (params.endsAt) updateData.endsAt = new Date(params.endsAt)
+            if (params.timezone) updateData.timezone = params.timezone
+
+            // Location
             if (params.venueName) updateData.venueName = params.venueName
             if (params.venueAddress) updateData.venueAddress = params.venueAddress
-            if (params.startsAt) updateData.startsAt = new Date(params.startsAt)
+            if (params.city) updateData.city = params.city
+            if (params.state) updateData.state = params.state
+
+            // Event details
+            if (params.ageRestriction !== undefined) updateData.ageRestriction = params.ageRestriction
+            if (params.flyerUrl) updateData.flyerUrl = params.flyerUrl
+            if (params.about) updateData.about = params.about
+            if (params.refundPolicy) updateData.refundPolicy = params.refundPolicy
+
+            // JSON fields
+            if (params.lineup) updateData.lineup = params.lineup
+            if (params.faqs) updateData.faqs = params.faqs
+            if (params.gallery) updateData.gallery = params.gallery
+
+            // Design
+            if (params.pageTheme) updateData.pageTheme = params.pageTheme
+            if (params.accentColor) updateData.accentColor = params.accentColor
+            if (params.typography) updateData.typography = params.typography
 
             const event = await prisma.event.update({
               where: { id: params.eventId },
@@ -214,8 +267,10 @@ Use this context for any questions about "this event", ticket sales, or content 
 
             return {
               success: true,
-              event: { id: event.id, title: event.title },
-              message: `Updated "${event.title}"`,
+              eventId: event.id,
+              eventTitle: event.title,
+              updatedFields: Object.keys(updateData),
+              dashboardUrl: `/d/events/${event.id}`,
             }
           } catch (error) {
             console.error("Update event error:", error)
@@ -225,7 +280,7 @@ Use this context for any questions about "this event", ticket sales, or content 
       }),
 
       publishEvent: tool({
-        description: "Publish a draft event to make it live",
+        description: "Publish a draft event to make it live. After publishing, provide both dashboard and public URLs.",
         inputSchema: z.object({
           eventId: z.string().describe("The event ID"),
         }),
@@ -247,9 +302,11 @@ Use this context for any questions about "this event", ticket sales, or content 
 
             return {
               success: true,
-              event: { id: event.id, title: event.title, slug: event.slug },
+              eventId: event.id,
+              eventTitle: event.title,
+              slug: event.slug,
+              dashboardUrl: `/d/events/${event.id}`,
               publicUrl: `/e/${event.slug}`,
-              message: `Published "${event.title}"!`,
             }
           } catch (error) {
             console.error("Publish event error:", error)
@@ -294,10 +351,10 @@ Use this context for any questions about "this event", ticket sales, or content 
               return { success: false, error: "Event not found" }
             }
 
-            const totalSold = event.ticketTiers.reduce((sum: number, t: { quantitySold: number }) => sum + t.quantitySold, 0)
-            const totalCapacity = event.ticketTiers.reduce((sum: number, t: { quantity: number }) => sum + t.quantity, 0)
-            const totalRevenue = event.ticketTiers.reduce((sum: number, t: { quantitySold: number; price: number }) => sum + (t.quantitySold * t.price), 0)
-            const checkedIn = event.tickets.filter((t: { checkedInAt: Date | null }) => t.checkedInAt !== null).length
+            const totalSold = event.ticketTiers.reduce((sum, t) => sum + t.quantitySold, 0)
+            const totalCapacity = event.ticketTiers.reduce((sum, t) => sum + t.quantity, 0)
+            const totalRevenue = event.ticketTiers.reduce((sum, t) => sum + (t.quantitySold * t.price), 0)
+            const checkedIn = event.tickets.filter(t => t.checkedInAt !== null).length
 
             // For RSVP events
             if (event.isRsvpOnly) {
@@ -308,7 +365,6 @@ Use this context for any questions about "this event", ticket sales, or content 
                 rsvpCount: event.rsvpCount,
                 rsvpCapacity: event.rsvpCapacity,
                 checkedIn,
-                message: `${event.rsvpCount} RSVPs${event.rsvpCapacity ? ` (capacity: ${event.rsvpCapacity})` : ""}, ${checkedIn} checked in.`,
               }
             }
 
@@ -320,13 +376,12 @@ Use this context for any questions about "this event", ticket sales, or content 
               checkedIn,
               totalRevenue: totalRevenue / 100, // Convert cents to dollars
               orderCount: event._count.orders,
-              tierBreakdown: event.ticketTiers.map((t: { name: string; quantitySold: number; quantity: number; price: number }) => ({
+              tierBreakdown: event.ticketTiers.map(t => ({
                 name: t.name,
                 sold: t.quantitySold,
                 capacity: t.quantity,
                 price: t.price / 100,
               })),
-              message: `${totalSold}/${totalCapacity} tickets sold ($${(totalRevenue / 100).toFixed(2)} revenue), ${checkedIn} checked in.`,
             }
           } catch (error) {
             console.error("Get event stats error:", error)
@@ -334,16 +389,35 @@ Use this context for any questions about "this event", ticket sales, or content 
           }
         },
       }),
+
+      generateFlyer: tool({
+        description: "Generate an AI flyer image for an event. Currently not available - feature coming soon.",
+        inputSchema: z.object({
+          eventId: z.string().describe("The event ID to generate a flyer for"),
+        }),
+        execute: async () => {
+          return {
+            success: false,
+            error: "AI flyer generation is coming soon! For now, you can upload your own flyer image in the event editor.",
+          }
+        },
+      }),
     }
 
-    const result = streamText({
+    // Use generateText instead of streamText for proper tool execution
+    // Groq's streaming doesn't properly handle tool calls
+    const result = await generateText({
       model: AI_MODEL,
       system: AFTIE_SYSTEM_PROMPT + contextInfo,
       messages,
       tools,
+      stopWhen: stepCountIs(5), // Allow multiple steps so AI can respond AFTER tool execution
     })
 
-    return result.toTextStreamResponse()
+    // Return the text response
+    return new Response(result.text, {
+      headers: { "Content-Type": "text/plain" },
+    })
   } catch (error) {
     console.error("Chat error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
