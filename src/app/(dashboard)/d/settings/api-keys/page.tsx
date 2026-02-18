@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Key, Plus, Copy, Check, Trash2, Clock, BookOpen, Sparkles } from "lucide-react"
+import { Key, Plus, Copy, Check, Trash2, Clock, BookOpen } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -54,8 +54,6 @@ const SCOPE_OPTIONS = [
   { value: "scanners:read", label: "Read Scanners", description: "View scanner details" },
   { value: "scanners:write", label: "Write Scanners", description: "Manage scanners" },
 ]
-
-const AFTIE_KEY_NAME = "Aftie AI Assistant"
 
 export default function ApiKeysPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
@@ -170,10 +168,6 @@ export default function ApiKeysPage() {
     })
   }
 
-  // Separate Aftie key from other keys
-  const aftieKey = apiKeys.find(k => k.name === AFTIE_KEY_NAME)
-  const userKeys = apiKeys.filter(k => k.name !== AFTIE_KEY_NAME)
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -186,66 +180,7 @@ export default function ApiKeysPage() {
         </p>
       </div>
 
-      {/* Aftie API Key - Special Section */}
-      {aftieKey && (
-        <Card className="border-[#ff1493]/20 bg-[#ff1493]/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/50 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-base font-mono">{aftieKey.name}</CardTitle>
-                <CardDescription className="text-xs">
-                  AI assistant with full access to manage your events
-                </CardDescription>
-              </div>
-            </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
-                >
-                  Revoke Access
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Revoke Aftie Access?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will disable Aftie&apos;s ability to create and manage events on your behalf.
-                    You can re-enable Aftie anytime by opening the assistant.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => revokeApiKey(aftieKey.id, "Aftie access")}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Revoke Access
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <code className="bg-black/20 px-1.5 py-0.5 rounded font-mono">
-                {aftieKey.keyPrefix}...
-              </code>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Last used: {formatDate(aftieKey.lastUsedAt)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* User API Keys */}
+      {/* API Keys */}
       <Card className="border-white/10 bg-white/[0.02]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
@@ -368,7 +303,7 @@ export default function ApiKeysPage() {
             <div className="text-center py-8 text-muted-foreground">
               Loading API keys...
             </div>
-          ) : userKeys.length === 0 ? (
+          ) : apiKeys.length === 0 ? (
             <div className="text-center py-8">
               <Key className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
               <p className="text-muted-foreground">No API keys yet</p>
@@ -378,7 +313,7 @@ export default function ApiKeysPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {userKeys.map((key) => (
+              {apiKeys.map((key) => (
                 <div
                   key={key.id}
                   className="flex items-center justify-between p-4 rounded-lg border border-white/10 bg-white/[0.02]"

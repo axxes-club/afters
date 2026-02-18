@@ -30,7 +30,7 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 import { APP_VERSION } from "@/lib/constants";
 
 const baseNavItems = [
-  { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
+  { href: "/d", label: "BASE", icon: LayoutDashboard, exact: true },
   { href: "/d/events", label: "EVENTS", icon: Calendar, exact: false },
   { href: "/d/settings", label: "SETTINGS", icon: Settings, exact: false },
 ];
@@ -105,9 +105,8 @@ export default function DashboardLayout({
             id="nav-logo"
             className="h-16 flex items-center justify-center px-4 border-b border-white/5"
           >
-            <Link href="/d">
-              AFTERS
-              <span className="font-headline text-2xl text-[#ff1493]">.</span>
+            <Link href="/d" className="font-headline text-2xl tracking-wide">
+              AFTERS<span className="text-[#ff1493]">.</span>
             </Link>
           </div>
 
@@ -120,7 +119,7 @@ export default function DashboardLayout({
                 className="flex items-center gap-3 px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3"
               >
                 <ArrowLeft className="w-4 h-4 flex-shrink-0" />
-                <span>DASHBOARD</span>
+                <span>BASE</span>
               </Link>
             )}
             
@@ -217,7 +216,7 @@ export default function DashboardLayout({
                 className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all text-white/40"
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span className="text-[10px] font-mono tracking-wider">BACK</span>
+                <span className="text-[10px] font-mono tracking-wider">BASE</span>
               </Link>
             )}
             {navItems.slice(0, isInSettings ? 4 : undefined).map((item) => {
@@ -270,10 +269,10 @@ export default function DashboardLayout({
               </Link>
             )}
             {/* Left-aligned logo + settings indicator */}
-            <Link href="/d" className="flex items-center gap-2">
-              <span className="font-headline text-2xl text-[#ff1493]">.</span>
+            <Link href="/d" className="flex items-center gap-2 font-headline text-xl tracking-wide">
+              AFTERS<span className="text-[#ff1493]">.</span>
               {isInSettings && (
-                <span className="text-xs font-mono text-white/40">/ SETTINGS</span>
+                <span className="text-xs font-mono text-white/40 ml-1">/ SETTINGS</span>
               )}
             </Link>
           </header>

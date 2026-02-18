@@ -2,8 +2,15 @@ import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateApiKey, API_SCOPES, type ApiScope } from "@/lib/api-keys"
+import { randomBytes } from "crypto"
 
-const AFTIE_KEY_NAME = "Aftie AI Assistant"
+const AFTIE_KEY_PREFIX = "aftie-ai-"
+
+// Generate unique Aftie key name with random hash
+function generateAftieKeyName(): string {
+  const hash = randomBytes(4).toString("hex") // 8 char hex
+  return `${AFTIE_KEY_PREFIX}${hash}`
+}
 
 // All scopes - Aftie gets full access to act on user's behalf
 const AFTIE_SCOPES = Object.keys(API_SCOPES) as ApiScope[]
@@ -30,15 +37,16 @@ export async function GET() {
       })
     }
 
-    // Check if Aftie API key exists
+    // Check if Aftie API key exists (any key starting with aftie-ai-)
     const aftieKey = await prisma.apiKey.findFirst({
       where: {
         userId,
-        name: AFTIE_KEY_NAME,
+        name: { startsWith: AFTIE_KEY_PREFIX },
         revokedAt: null,
       },
       select: {
         id: true,
+        name: true,
         createdAt: true,
         lastUsedAt: true,
       },
@@ -48,6 +56,7 @@ export async function GET() {
       hasProfile: true,
       isSetup: !!aftieKey,
       keyId: aftieKey?.id,
+      keyName: aftieKey?.name,
       createdAt: aftieKey?.createdAt,
       lastUsedAt: aftieKey?.lastUsedAt,
     })
@@ -85,7 +94,7 @@ export async function POST() {
     const existingKey = await prisma.apiKey.findFirst({
       where: {
         userId,
-        name: AFTIE_KEY_NAME,
+        name: { startsWith: AFTIE_KEY_PREFIX },
         revokedAt: null,
       },
     })
@@ -95,16 +104,18 @@ export async function POST() {
         success: true,
         message: "Aftie is already set up",
         keyId: existingKey.id,
+        keyName: existingKey.name,
       })
     }
 
     // Generate the API key (key itself is not returned - internal use only)
     const { prefix, hash } = generateApiKey()
+    const aftieKeyName = generateAftieKeyName()
 
     const apiKey = await prisma.apiKey.create({
       data: {
         userId,
-        name: AFTIE_KEY_NAME,
+        name: aftieKeyName,
         keyPrefix: prefix,
         keyHash: hash,
         scopes: AFTIE_SCOPES,
@@ -113,6 +124,7 @@ export async function POST() {
       },
       select: {
         id: true,
+        name: true,
         createdAt: true,
       },
     })
@@ -124,6 +136,7 @@ export async function POST() {
       success: true,
       message: "Aftie has been granted access to manage your events",
       keyId: apiKey.id,
+      keyName: apiKey.name,
       createdAt: apiKey.createdAt,
     })
   } catch (error) {
@@ -148,7 +161,7 @@ export async function DELETE() {
     const aftieKey = await prisma.apiKey.findFirst({
       where: {
         userId,
-        name: AFTIE_KEY_NAME,
+        name: { startsWith: AFTIE_KEY_PREFIX },
         revokedAt: null,
       },
     })

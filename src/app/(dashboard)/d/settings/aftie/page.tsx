@@ -22,6 +22,7 @@ interface AftieSetupStatus {
   hasProfile: boolean
   isSetup: boolean
   keyId?: string
+  keyName?: string
   createdAt?: string
   lastUsedAt?: string
 }
@@ -79,6 +80,7 @@ export default function AftieSettingsPage() {
           hasProfile: true,
           isSetup: true,
           keyId: data.keyId,
+          keyName: data.keyName,
           createdAt: data.createdAt,
         })
         toast.success("Aftie has been enabled!")
@@ -185,14 +187,22 @@ export default function AftieSettingsPage() {
           {status?.isSetup ? (
             <>
               {/* Status Info */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-black/20 rounded-lg">
-                <div>
-                  <p className="text-xs text-white/40 font-mono tracking-wider mb-1">ENABLED</p>
-                  <p className="text-sm font-mono">{formatDate(status.createdAt)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-white/40 font-mono tracking-wider mb-1">LAST USED</p>
-                  <p className="text-sm font-mono">{formatDate(status.lastUsedAt)}</p>
+              <div className="space-y-3 p-4 bg-black/20 rounded-lg">
+                {status.keyName && (
+                  <div>
+                    <p className="text-xs text-white/40 font-mono tracking-wider mb-1">API KEY</p>
+                    <code className="text-sm font-mono text-[#ff1493]">{status.keyName}</code>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-white/40 font-mono tracking-wider mb-1">ENABLED</p>
+                    <p className="text-sm font-mono">{formatDate(status.createdAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/40 font-mono tracking-wider mb-1">LAST USED</p>
+                    <p className="text-sm font-mono">{formatDate(status.lastUsedAt)}</p>
+                  </div>
                 </div>
               </div>
 
