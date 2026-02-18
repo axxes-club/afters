@@ -85,6 +85,20 @@ export function LivePreviewStyles() {
     }
   }, [design.accentColor, hasChanges, originalDesign.accentColor])
 
+  // Handle background color changes
+  useEffect(() => {
+    if (!hasChanges) return
+
+    // Find and update the main container background
+    const mainContainer = document.querySelector('[style*="backgroundColor"]') as HTMLElement
+    if (mainContainer) {
+      mainContainer.style.backgroundColor = design.backgroundColor
+    }
+
+    // Also update CSS variable for any elements that might use it
+    document.documentElement.style.setProperty('--background-color', design.backgroundColor)
+  }, [design.backgroundColor, hasChanges])
+
   // Handle typography changes
   useEffect(() => {
     if (!hasChanges) return

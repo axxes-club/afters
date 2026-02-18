@@ -85,6 +85,7 @@ interface Event {
   // Design settings
   pageTheme: string;
   accentColor: string | null;
+  backgroundColor: string | null;
   typography: string;
   scannerSound: string;
   // Location settings
@@ -962,6 +963,7 @@ function EventDashboardContent({
           initialTemplate={event.pageTheme}
           initialTypography={event.typography}
           initialAccentColor={event.accentColor || "#ff1493"}
+          initialBackgroundColor={event.backgroundColor || "#000000"}
           flyerUrl={event.flyerUrl}
         />
       )}

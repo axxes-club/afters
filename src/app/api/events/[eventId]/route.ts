@@ -90,6 +90,7 @@ export async function GET(
       lineup: true,
       pageTheme: true,
       accentColor: true,
+      backgroundColor: true,
       expiresAfter: true,
       isPublished: true,
       status: true,
@@ -313,6 +314,7 @@ export async function PATCH(
       lineup,
       pageTheme,
       accentColor,
+      backgroundColor,
       isRsvpOnly,
       rsvpCapacity,
       rsvpAllowPlusOnes,
@@ -451,6 +453,7 @@ export async function PATCH(
     if (lineup !== undefined) updateData.lineup = lineup
     if (pageTheme !== undefined) updateData.pageTheme = pageTheme
     if (accentColor !== undefined) updateData.accentColor = accentColor
+    if (backgroundColor !== undefined) updateData.backgroundColor = backgroundColor
     if (isRsvpOnly !== undefined) updateData.isRsvpOnly = isRsvpOnly
     if (rsvpCapacity !== undefined) updateData.rsvpCapacity = rsvpCapacity ? parseInt(rsvpCapacity) : null
     if (rsvpAllowPlusOnes !== undefined) updateData.rsvpAllowPlusOnes = rsvpAllowPlusOnes

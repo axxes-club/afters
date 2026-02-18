@@ -70,6 +70,7 @@ function RescheduledBanner({
 
 interface LiveDesign {
   accentColor?: string
+  backgroundColor?: string
   pageTheme?: string
   typography?: string
   showLocationOnPage?: boolean
@@ -204,6 +205,7 @@ export default async function EventPage({
       lineup: true,
       isPublished: true,
       accentColor: true,
+      backgroundColor: true,
       pageTheme: true,
       typography: true,
       showLocationOnPage: true,
@@ -292,6 +294,7 @@ export default async function EventPage({
             lineup: true,
             isPublished: true,
             accentColor: true,
+            backgroundColor: true,
             pageTheme: true,
             typography: true,
             showLocationOnPage: true,
@@ -408,6 +411,7 @@ export default async function EventPage({
   // Preview params take priority for owners, allowing live preview via URL
   const renderEventPage = (liveDesign?: LiveDesign) => {
     const accentColor = (isOwner && preview_color) || liveDesign?.accentColor || event.accentColor || '#ff1493'
+    const backgroundColor = liveDesign?.backgroundColor || event.backgroundColor || '#000000'
     const pageTheme = (isOwner && preview_theme) || liveDesign?.pageTheme || event.pageTheme || 'neon'
     const typography = (isOwner && preview_typography) || liveDesign?.typography || event.typography || 'headline'
     const typographyClass = typographyMap[typography] || 'font-headline'
@@ -474,7 +478,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'brutalist') {
       return (
-        <div className="min-h-screen bg-black text-white font-mono">
+        <div className="min-h-screen text-white font-mono" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -711,7 +715,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'neon') {
       return (
-        <div className="min-h-screen bg-black text-white relative overflow-hidden">
+        <div className="min-h-screen text-white relative overflow-hidden" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -1016,7 +1020,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'minimal') {
       return (
-        <div className="min-h-screen bg-zinc-950 text-white">
+        <div className="min-h-screen text-white" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -1237,7 +1241,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'tilt') {
       return (
-        <div className="min-h-screen bg-black text-white overflow-hidden">
+        <div className="min-h-screen text-white overflow-hidden" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -1473,7 +1477,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'lush') {
       return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white">
+        <div className="min-h-screen text-white" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -1797,7 +1801,7 @@ export default async function EventPage({
       const faqs = Array.isArray(event.faqs) ? event.faqs : []
 
       return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen text-white" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -2113,7 +2117,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'card') {
       return (
-        <div className="min-h-screen bg-[#0c0c0c] text-white">
+        <div className="min-h-screen text-white" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -2499,7 +2503,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'vapor') {
       return (
-        <div className="min-h-screen bg-[#0a0612] text-white overflow-hidden">
+        <div className="min-h-screen text-white overflow-hidden" style={{ backgroundColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -2861,7 +2865,7 @@ export default async function EventPage({
     // EDITORIAL TEMPLATE - Magazine-style, sophisticated (DEFAULT)
     // ============================================
     return (
-      <div className="min-h-screen bg-neutral-950 text-white">
+      <div className="min-h-screen text-white" style={{ backgroundColor }}>
         <ViewTracker eventId={event.id} />
         {rescheduledBannerElement}
 
@@ -3175,6 +3179,7 @@ export default async function EventPage({
   // Use preview params for initialDesign so the editor shows the correct current state
   const previewDesign = {
     accentColor: preview_color || event.accentColor || '#ff1493',
+    backgroundColor: event.backgroundColor || '#000000',
     typography: preview_typography || event.typography || 'headline',
     pageTheme: preview_theme || event.pageTheme || 'neon',
     showLocationOnPage: event.showLocationOnPage ?? false,
