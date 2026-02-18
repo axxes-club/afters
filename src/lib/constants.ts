@@ -1,5 +1,5 @@
 // App version
-export const APP_VERSION = "0.2b"
+export const APP_VERSION = "0.2.2b"
 
 // Site domain configuration
 // Primary domain - afters.am is now the main domain
