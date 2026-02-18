@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.9 (2026-02-18)
+
+- Redesign notifications settings page with card-based layout
+- Add color-coded notification types (green/blue/amber/purple)
+- Fix "Push Not Available" showing incorrectly while loading
+- Integrate push + email notifications with ticket sales
+- Integrate push + email notifications with free RSVPs
+- Add event reminder cron endpoint (1h and 24h reminders)
+- Add organizer sale email template
+- Add event reminder email template
+
 ## 0.2.8 (2026-02-18)
 
 - Implement full notification settings with database persistence

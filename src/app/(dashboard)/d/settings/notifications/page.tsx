@@ -181,7 +181,13 @@ export default function NotificationsPage() {
       )}
 
       {/* Push Notifications Hero */}
-      {!pushSupported ? (
+      {pushLoading ? (
+        <div className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent">
+          <div className="p-6 sm:p-8 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+          </div>
+        </div>
+      ) : !pushSupported ? (
         <div className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent">
           <div className="p-6 sm:p-8">
             <div className="flex items-start gap-4">
