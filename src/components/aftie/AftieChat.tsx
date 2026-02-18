@@ -50,7 +50,6 @@ export function AftieChat() {
     setInput,
     sendMessage,
     isLoading,
-    isBetaEnabled,
     isHydrated,
     pageContext,
     lastAction,
@@ -101,8 +100,8 @@ export function AftieChat() {
     }
   }
 
-  // Don't render until hydrated to avoid hydration mismatch
-  if (!isHydrated || !isBetaEnabled || !isOpen) return null
+  // Don't render until hydrated and open
+  if (!isHydrated || !isOpen) return null
 
   return (
     <div className="fixed bottom-4 right-4 w-[400px] h-[520px] bg-black border border-white/10 shadow-2xl flex flex-col z-50 rounded-lg overflow-hidden">

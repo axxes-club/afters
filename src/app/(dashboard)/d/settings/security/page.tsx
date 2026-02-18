@@ -1,122 +1,142 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Shield, Key, Smartphone, Clock, ExternalLink } from "lucide-react"
+import { Shield, Key, Smartphone, Lock, ExternalLink, Check } from "lucide-react"
+
+const SECURITY_TIPS = [
+  "Use a strong, unique password for your account",
+  "Enable two-factor authentication when available",
+  "Never share your API keys publicly",
+  "Revoke unused API keys regularly",
+  "Review active sessions periodically",
+]
 
 export default function SecurityPage() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
-          SECURITY
-        </h1>
-        <p className="text-white/40 text-sm font-mono mt-1">
-          Manage your account security
-        </p>
+    <div className="space-y-8">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-green-900/10 via-black to-emerald-900/10">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `repeating-linear-gradient(45deg, rgba(34,197,94,0.05) 0, rgba(34,197,94,0.05) 1px, transparent 0, transparent 50%)`,
+            backgroundSize: '10px 10px'
+          }} />
+        </div>
+        
+        <div className="relative p-8 md:p-12">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="font-headline text-4xl md:text-5xl tracking-wide">
+                SECURITY<span className="text-green-400">.</span>
+              </h1>
+              <p className="text-white/40 font-mono text-sm mt-2">AUTHENTICATION & ACCESS</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Authentication */}
-      <Card className="border-white/10 bg-white/[0.02]">
-        <CardHeader>
-          <CardTitle className="text-lg font-mono flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Authentication
-          </CardTitle>
-          <CardDescription>
-            Your account is secured via Clerk
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Key className="w-5 h-5 text-muted-foreground" />
+      {/* Auth Status */}
+      <div className="border border-white/10 bg-white/[0.02]">
+        <div className="p-4 border-b border-white/10 flex items-center gap-3">
+          <Lock className="w-4 h-4 text-green-400" />
+          <h2 className="font-mono text-xs tracking-widest text-white/40">AUTHENTICATION</h2>
+        </div>
+        
+        <div className="divide-y divide-white/5">
+          {/* Password */}
+          <div className="p-5 flex items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <Key className="w-5 h-5 text-green-400" />
+              </div>
               <div>
-                <p className="font-medium">Password</p>
-                <p className="text-sm text-muted-foreground">
-                  Managed via your authentication provider
-                </p>
+                <h3 className="font-medium text-white">Password</h3>
+                <p className="text-sm text-white/40">Managed via your authentication provider</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="gap-1.5">
               <a href="https://accounts.clerk.dev/user" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                <ExternalLink className="w-3 h-3" />
                 Manage
               </a>
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Smartphone className="w-5 h-5 text-muted-foreground" />
+          {/* 2FA */}
+          <div className="p-5 flex items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
+                <Smartphone className="w-5 h-5 text-white/40" />
+              </div>
               <div>
-                <p className="font-medium">Two-Factor Authentication</p>
-                <p className="text-sm text-muted-foreground">
-                  Add extra security to your account
-                </p>
+                <h3 className="font-medium text-white">Two-Factor Authentication</h3>
+                <p className="text-sm text-white/40">Add extra security to your account</p>
               </div>
             </div>
-            <Badge variant="secondary">Via Clerk</Badge>
+            <span className="text-xs font-mono px-2 py-1 bg-white/5 text-white/40">VIA CLERK</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Sessions */}
-      <Card className="border-white/10 bg-white/[0.02]">
-        <CardHeader>
-          <CardTitle className="text-lg font-mono flex items-center gap-2">
-            <Clock className="w-5 h-5" />
-            Active Sessions
-          </CardTitle>
-          <CardDescription>
-            Devices where you&apos;re currently logged in
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <Clock className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground">Session management</p>
-            <p className="text-sm text-muted-foreground/70 mt-1 mb-4">
-              View and manage your sessions via Clerk
-            </p>
-            <Button variant="outline" size="sm" asChild>
-              <a href="https://accounts.clerk.dev/user" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                Manage Sessions
-              </a>
-            </Button>
+      <div className="border border-white/10 bg-white/[0.02]">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Shield className="w-4 h-4 text-white/30" />
+            <h2 className="font-mono text-xs tracking-widest text-white/40">ACTIVE SESSIONS</h2>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <div className="p-6 text-center">
+          <p className="text-white/40 text-sm mb-4">
+            View and manage your active sessions through Clerk
+          </p>
+          <Button variant="outline" size="sm" asChild className="gap-1.5">
+            <a href="https://accounts.clerk.dev/user" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-3 h-3" />
+              Manage Sessions
+            </a>
+          </Button>
+        </div>
+      </div>
 
       {/* Security Tips */}
-      <Card className="border-green-500/20 bg-green-500/5">
-        <CardHeader>
-          <CardTitle className="text-lg font-mono text-green-300">Security Tips</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-green-300/80">
-            <li className="flex items-start gap-2">
-              <span className="text-green-400">✓</span>
-              <span>Use a strong, unique password for your account</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-400">✓</span>
-              <span>Enable two-factor authentication when available</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-400">✓</span>
-              <span>Keep your API keys secure and never share them publicly</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-400">✓</span>
-              <span>Revoke API keys that are no longer in use</span>
-            </li>
+      <div className="border border-green-500/20 bg-green-500/5">
+        <div className="p-4 border-b border-green-500/20">
+          <h2 className="font-mono text-xs tracking-widest text-green-400/60">SECURITY BEST PRACTICES</h2>
+        </div>
+        <div className="p-6">
+          <ul className="space-y-3">
+            {SECURITY_TIPS.map((tip, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-green-400" />
+                </div>
+                <span className="text-green-200/70 text-sm">{tip}</span>
+              </li>
+            ))}
           </ul>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* API Security Note */}
+      <div className="border border-white/10 bg-white/[0.02] p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <Key className="w-5 h-5 text-amber-400" />
+          </div>
+          <div>
+            <h3 className="font-medium text-white mb-1">API Key Security</h3>
+            <p className="text-sm text-white/50">
+              Your API keys provide full access to your account. Never commit them to public repositories 
+              or share them in client-side code. Use environment variables to store them securely.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

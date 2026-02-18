@@ -9,13 +9,12 @@ export function AftieConsentDialog() {
     closeConsentDialog,
     approveAftie,
     isApproving,
-    isBetaEnabled,
     isHydrated,
     setupStatus,
   } = useAftie()
 
-  // Don't render until hydrated
-  if (!isHydrated || !isBetaEnabled || !isConsentDialogOpen) return null
+  // Don't render until hydrated and dialog is open
+  if (!isHydrated || !isConsentDialogOpen) return null
 
   // If user doesn't have a profile, show different message
   if (!setupStatus?.hasProfile) {
