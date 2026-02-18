@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>afters API Documentation</title>
+  <meta name="description" content="API documentation for afters - event ticketing for the underground">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23ff1493'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #ff1493;
+      --pink-dim: rgba(255, 20, 147, 0.1);
+      --pink-glow: rgba(255, 20, 147, 0.3);
+      --bg: #000;
+      --bg-elevated: #0a0a0a;
+      --bg-card: #111;
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #fff;
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --text-dim: rgba(255, 255, 255, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 20, 147, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 20, 147, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    a {
+      color: var(--pink);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    a:hover {
+      opacity: 0.8;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9em;
+      background: var(--bg-elevated);
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      position: sticky;
+      top: 0;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    .logo-dot {
+      width: 12px;
+      height: 12px;
+      background: var(--pink);
+      border-radius: 50%;
+    }
+
+    .logo span {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    nav a:hover {
+      color: var(--text);
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100vh - 70px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      position: sticky;
+      top: 70px;
+      height: calc(100vh - 70px);
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      margin-bottom: 2rem;
+    }
+
+    .sidebar-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
+    .sidebar-links {
+      list-style: none;
+    }
+
+    .sidebar-links a {
+      display: block;
+      padding: 0.5rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border-left: 2px solid transparent;
+      padding-left: 1rem;
+      margin-left: -1rem;
+      transition: all 0.2s;
+    }
+
+    .sidebar-links a:hover,
+    .sidebar-links a.active {
+      color: var(--text);
+      border-left-color: var(--pink);
+      background: var(--pink-dim);
+    }
+
+    /* Main content */
+    main {
+      padding: 3rem;
+      max-width: 900px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 300;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    h1 .accent {
+      color: var(--pink);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .method {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .method-get { background: #10b981; color: #000; }
+    .method-post { background: #3b82f6; color: #fff; }
+    .method-put { background: #f59e0b; color: #000; }
+    .method-patch { background: #f59e0b; color: #000; }
+    .method-delete { background: #ef4444; color: #fff; }
+
+    .endpoint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    td {
+      color: var(--text-muted);
+    }
+
+    td code {
+      color: var(--pink);
+    }
+
+    /* Alert boxes */
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      border-left: 3px solid;
+    }
+
+    .alert-info {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: #3b82f6;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: #f59e0b;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      main {
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-dot"></div>
+        afters <span>docs</span>
+      </div>
+      <nav>
+        <a href="https://afters.am">website</a>
+        <a href="https://github.com/axxes-club/afters">github</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Getting Started</div>
+        <ul class="sidebar-links">
+          <li><a href="#introduction" class="active">Introduction</a></li>
+          <li><a href="#authentication">Authentication</a></li>
+          <li><a href="#errors">Error Handling</a></li>
+          <li><a href="#rate-limits">Rate Limits</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Events</div>
+        <ul class="sidebar-links">
+          <li><a href="#list-events">List Events</a></li>
+          <li><a href="#get-event">Get Event</a></li>
+          <li><a href="#create-event">Create Event</a></li>
+          <li><a href="#update-event">Update Event</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Event Series</div>
+        <ul class="sidebar-links">
+          <li><a href="#list-series">List Series</a></li>
+          <li><a href="#get-series">Get Series</a></li>
+          <li><a href="#create-series">Create Series</a></li>
+          <li><a href="#generate-occurrences">Generate Occurrences</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Tickets</div>
+        <ul class="sidebar-links">
+          <li><a href="#list-tickets">List Tickets</a></li>
+          <li><a href="#check-ins">Check-in History</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main>
+      <h1>afters <span class="accent">API</span></h1>
+      <p class="subtitle">integrate with the underground</p>
+
+      <section id="introduction">
+        <h2>Introduction</h2>
+        <p>
+          The afters API allows you to programmatically manage events, access ticket data, 
+          and integrate with your own systems. All endpoints return JSON and use standard 
+          HTTP response codes.
+        </p>
+        <p>
+          Base URL: <code>https://afters.am/api/v1</code>
+        </p>
+      </section>
+
+      <section id="authentication">
+        <h2>Authentication</h2>
+        <p>
+          Authenticate requests using an API key in the <code>X-API-Key</code> header. 
+          Generate API keys in your dashboard under <strong>Settings → Security</strong>.
+        </p>
+        <pre><code>curl -H "X-API-Key: aftr_xxxxx" \
+  https://afters.am/api/v1/events</code></pre>
+
+        <div class="alert alert-warning">
+          <strong>Keep your API key secret.</strong> Never expose it in client-side code or public repositories.
+        </div>
+
+        <h3>API Key Scopes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Scope</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>events:read</code></td>
+              <td>Read event data</td>
+            </tr>
+            <tr>
+              <td><code>events:write</code></td>
+              <td>Create and modify events</td>
+            </tr>
+            <tr>
+              <td><code>tickets:read</code></td>
+              <td>Read ticket and order data</td>
+            </tr>
+            <tr>
+              <td><code>analytics:read</code></td>
+              <td>Access event analytics</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="errors">
+        <h2>Error Handling</h2>
+        <p>
+          The API uses standard HTTP status codes. Errors return a JSON object with 
+          an <code>error</code> message.
+        </p>
+        <pre><code>{
+  "error": "Event not found",
+  "code": "NOT_FOUND"
+}</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>200</code></td>
+              <td>Success</td>
+            </tr>
+            <tr>
+              <td><code>400</code></td>
+              <td>Bad request — invalid parameters</td>
+            </tr>
+            <tr>
+              <td><code>401</code></td>
+              <td>Unauthorized — invalid or missing API key</td>
+            </tr>
+            <tr>
+              <td><code>403</code></td>
+              <td>Forbidden — insufficient permissions</td>
+            </tr>
+            <tr>
+              <td><code>404</code></td>
+              <td>Not found</td>
+            </tr>
+            <tr>
+              <td><code>429</code></td>
+              <td>Rate limited</td>
+            </tr>
+            <tr>
+              <td><code>500</code></td>
+              <td>Server error</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="rate-limits">
+        <h2>Rate Limits</h2>
+        <p>
+          API requests are limited to <strong>100 requests per minute</strong> per API key. 
+          Rate limit headers are included in every response:
+        </p>
+        <pre><code>X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1640000000</code></pre>
+      </section>
+
+      <section id="list-events">
+        <h2>List Events</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint">/api/v1/events</span>
+          </div>
+          <p>Retrieve a list of your events.</p>
+        </div>
+
+        <h3>Query Parameters</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>status</code></td>
+              <td>string</td>
+              <td>Filter by status: <code>draft</code>, <code>published</code>, or <code>all</code></td>
+            </tr>
+            <tr>
+              <td><code>seriesId</code></td>
+              <td>string</td>
+              <td>Filter by event series</td>
+            </tr>
+            <tr>
+              <td><code>limit</code></td>
+              <td>integer</td>
+              <td>Max results (default: 20, max: 100)</td>
+            </tr>
+            <tr>
+              <td><code>offset</code></td>
+              <td>integer</td>
+              <td>Pagination offset</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Response</h3>
+        <pre><code>{
+  "events": [
+    {
+      "id": "evt_abc123",
+      "title": "Midnight Techno",
+      "slug": "midnight-techno",
+      "startsAt": "2024-03-15T23:00:00Z",
+      "endsAt": "2024-03-16T06:00:00Z",
+      "timezone": "America/New_York",
+      "venueName": "The Warehouse",
+      "city": "Brooklyn",
+      "state": "NY",
+      "isPublished": true,
+      "ticketTiers": [
+        {
+          "id": "tier_xyz",
+          "name": "Early Bird",
+          "price": 2500,
+          "quantity": 100,
+          "quantitySold": 45
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "total": 25,
+    "limit": 20,
+    "offset": 0
+  }
+}</code></pre>
+      </section>
+
+      <section id="get-event">
+        <h2>Get Event</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint">/api/v1/events/:eventId</span>
+          </div>
+          <p>Retrieve details for a specific event.</p>
+        </div>
+
+        <h3>Response</h3>
+        <pre><code>{
+  "id": "evt_abc123",
+  "title": "Midnight Techno",
+  "slug": "midnight-techno",
+  "description": "An evening of deep, hypnotic techno...",
+  "startsAt": "2024-03-15T23:00:00Z",
+  "endsAt": "2024-03-16T06:00:00Z",
+  "timezone": "America/New_York",
+  "venueName": "The Warehouse",
+  "venueAddress": "123 Industrial St",
+  "city": "Brooklyn",
+  "state": "NY",
+  "flyerUrl": "https://...",
+  "isPublished": true,
+  "ticketTiers": [...],
+  "_count": {
+    "orders": 45,
+    "tickets": 67,
+    "views": 1250
+  }
+}</code></pre>
+      </section>
+
+      <section id="create-event">
+        <h2>Create Event</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-post">POST</span>
+            <span class="endpoint">/api/v1/events</span>
+          </div>
+          <p>Create a new event.</p>
+        </div>
+
+        <h3>Request Body</h3>
+        <pre><code>{
+  "title": "Midnight Techno",
+  "description": "An evening of deep, hypnotic techno...",
+  "startsAt": "2024-03-15T23:00:00Z",
+  "endsAt": "2024-03-16T06:00:00Z",
+  "timezone": "America/New_York",
+  "venueName": "The Warehouse",
+  "venueAddress": "123 Industrial St",
+  "city": "Brooklyn",
+  "state": "NY",
+  "ticketTiers": [
+    {
+      "name": "General Admission",
+      "price": 3500,
+      "quantity": 200
+    }
+  ]
+}</code></pre>
+
+        <div class="alert alert-info">
+          <strong>Note:</strong> Prices are in cents (e.g., 3500 = $35.00).
+        </div>
+      </section>
+
+      <section id="update-event">
+        <h2>Update Event</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-patch">PATCH</span>
+            <span class="endpoint">/api/v1/events/:eventId</span>
+          </div>
+          <p>Update an existing event. Only include fields you want to change.</p>
+        </div>
+      </section>
+
+      <section id="list-series">
+        <h2>List Event Series</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint">/api/v1/event-series</span>
+          </div>
+          <p>Retrieve a list of your recurring event series.</p>
+        </div>
+      </section>
+
+      <section id="get-series">
+        <h2>Get Event Series</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint">/api/v1/event-series/:seriesId</span>
+          </div>
+          <p>Retrieve details for a specific event series, including all occurrences.</p>
+        </div>
+      </section>
+
+      <section id="create-series">
+        <h2>Create Event Series</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-post">POST</span>
+            <span class="endpoint">/api/v1/event-series</span>
+          </div>
+          <p>Create a new recurring event series.</p>
+        </div>
+
+        <h3>Request Body</h3>
+        <pre><code>{
+  "title": "Techno Tuesdays",
+  "recurrence": {
+    "frequency": "weekly",
+    "interval": 1,
+    "daysOfWeek": ["tuesday"],
+    "startDate": "2024-03-05",
+    "endDate": "2024-06-25"
+  },
+  "template": {
+    "startTime": "22:00",
+    "endTime": "04:00",
+    "venueName": "The Warehouse",
+    "city": "Brooklyn"
+  }
+}</code></pre>
+      </section>
+
+      <section id="generate-occurrences">
+        <h2>Generate Occurrences</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-post">POST</span>
+            <span class="endpoint">/api/v1/event-series/:seriesId/generate</span>
+          </div>
+          <p>Manually trigger generation of future event occurrences from a series template.</p>
+        </div>
+
+        <h3>Request Body</h3>
+        <pre><code>{
+  "count": 4
+}</code></pre>
+        <p>Generates up to <code>count</code> future occurrences based on the series recurrence pattern.</p>
+      </section>
+
+      <section id="list-tickets">
+        <h2>List Tickets</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint">/api/v1/events/:eventId/tickets</span>
+          </div>
+          <p>Retrieve tickets sold for an event.</p>
+        </div>
+
+        <h3>Query Parameters</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>status</code></td>
+              <td>string</td>
+              <td>Filter: <code>valid</code>, <code>used</code>, <code>cancelled</code></td>
+            </tr>
+            <tr>
+              <td><code>limit</code></td>
+              <td>integer</td>
+              <td>Max results (default: 50, max: 200)</td>
+            </tr>
+            <tr>
+              <td><code>offset</code></td>
+              <td>integer</td>
+              <td>Pagination offset</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="check-ins">
+        <h2>Check-in History</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint">/api/v1/events/:eventId/check-ins</span>
+          </div>
+          <p>Retrieve the check-in log for an event.</p>
+        </div>
+
+        <h3>Response</h3>
+        <pre><code>{
+  "checkIns": [
+    {
+      "ticketId": "tkt_xyz",
+      "checkedInAt": "2024-03-15T23:15:00Z",
+      "scannerName": "Front Door",
+      "holderName": "Jane Doe"
+    }
+  ],
+  "stats": {
+    "totalTickets": 150,
+    "checkedIn": 89,
+    "remaining": 61
+  }
+}</code></pre>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>© 2024 afters · built for the underground</p>
+  </footer>
+
+  <script>
+    // Simple scroll spy for sidebar
+    const sections = document.querySelectorAll('section[id]');
+    const links = document.querySelectorAll('.sidebar-links a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const top = section.offsetTop - 100;
+        if (window.scrollY >= top) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      links.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
