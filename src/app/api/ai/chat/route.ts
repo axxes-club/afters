@@ -414,10 +414,6 @@ Use this context for any questions about "this event", ticket sales, or content 
       stopWhen: stepCountIs(5), // Allow multiple steps so AI can respond AFTER tool execution
     })
 
-    console.log("🔧 Aftie result:", result.text?.slice(0, 100), "...")
-    console.log("🔧 Aftie tool calls:", result.toolCalls?.length || 0)
-    console.log("🔧 Aftie tool results:", result.toolResults?.length || 0)
-
     // Return the text response
     return new Response(result.text, {
       headers: { "Content-Type": "text/plain" },

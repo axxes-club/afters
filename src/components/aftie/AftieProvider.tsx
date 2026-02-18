@@ -305,37 +305,18 @@ export function AftieProvider({ children }: AftieProviderProps) {
         throw new Error(`Chat error: ${response.status}`)
       }
 
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error("No response body")
-      }
+      // Server uses generateText (blocking), so read the complete response
+      const fullContent = await response.text()
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
-        content: "",
+        content: fullContent,
       }
 
       setMessages(prev => [...prev, assistantMessage])
 
-      const decoder = new TextDecoder()
-      let fullContent = ""
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        const chunk = decoder.decode(value, { stream: true })
-        fullContent += chunk
-
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === assistantMessage.id ? { ...m, content: fullContent } : m
-          )
-        )
-      }
-
-      // After streaming completes, check for action results
+      // Check for action results in the response
       const actionResult = parseActionResult(fullContent)
       if (actionResult) {
         // Update the message with the action result
@@ -349,7 +330,6 @@ export function AftieProvider({ children }: AftieProviderProps) {
         setLastAction(actionResult)
         
         // Trigger page refresh to show updated data
-        console.log("🔄 Aftie action completed, refreshing page data...")
         router.refresh()
       }
     } catch (error) {
