@@ -6,6 +6,10 @@
 - Add useAccentColor hook for accessing accent color from Settings > Appearance
 - Dashboard layout sets --accent-color CSS variable for child components
 - Primary buttons, tabs, and section cards now respect custom accent color
+- Fix compact sidebar: Now shows only icons with 64px width
+- Fix font size setting: Applies small/normal/large scaling to dashboard content
+- Smooth transitions on sidebar width changes
+- Tooltips on nav items in compact mode
 
 ## 0.2.15 (2026-02-18)
 
