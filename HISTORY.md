@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.10 (2026-02-18)
+
+- Fix push notification UX - show enable CTA immediately instead of loading
+- Improve push hook to not block on service worker ready
+- Better error handling for push permission states
+
 ## 0.2.9 (2026-02-18)
 
 - Redesign notifications settings page with card-based layout
