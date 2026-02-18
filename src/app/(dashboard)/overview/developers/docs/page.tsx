@@ -305,7 +305,7 @@ export default function ApiDocsPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button asChild variant="ghost" size="icon">
-          <Link href="/d/developers">
+          <Link href="/overview/developers">
             <ChevronLeft className="w-5 h-5" />
           </Link>
         </Button>
@@ -396,7 +396,7 @@ export default function ApiDocsPage() {
           </div>
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an API key?{" "}
-            <Link href="/d/developers" className="text-[#ff1493] hover:underline">
+            <Link href="/overview/developers" className="text-[#ff1493] hover:underline">
               Create one here
             </Link>
           </p>

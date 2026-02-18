@@ -66,7 +66,7 @@ export default function HomePage() {
             <span className="text-[#ff1493]">.</span>
           </div>
           <Link
-            href="/d"
+            href="/overview"
             className="text-[10px] tracking-[0.2em] uppercase text-white/40 hover:text-white transition-colors"
           >
             Sign In
@@ -80,7 +80,7 @@ export default function HomePage() {
         {/* Two buttons: Host or Scan */}
         <div className="flex items-center gap-6">
           <Link
-            href="/d"
+            href="/overview"
             className="group flex items-center gap-3 px-10 py-5 bg-[#ff1493] text-black text-sm tracking-[0.2em] uppercase font-bold hover:bg-white transition-all"
           >
             <span>Host</span>

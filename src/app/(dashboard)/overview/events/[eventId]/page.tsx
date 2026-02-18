@@ -297,7 +297,7 @@ function EventDashboardContent({
 
       if (res.ok) {
         toast.success("Event deleted");
-        router.push("/d/events");
+        router.push("/overview/events");
       } else {
         const data = await res.json();
         toast.error(data.message || "Failed to delete event");
@@ -1350,7 +1350,7 @@ function EventDashboardContent({
                     Paid tiers will be hidden until you set up Stripe.
                   </p>
                   <Link
-                    href="/d/organizer"
+                    href="/overview/organizer"
                     className="text-xs text-yellow-500 hover:underline"
                   >
                     Configure Stripe →

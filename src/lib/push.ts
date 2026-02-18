@@ -127,7 +127,7 @@ export async function notifyTicketSale(
     {
       title: "Ticket Sale",
       body: `${ticketCount} ticket${ticketCount > 1 ? "s" : ""} sold for ${eventTitle} ($${(amount / 100).toFixed(2)})`,
-      url: "/d/events",
+      url: "/overview/events",
       tag: "ticket-sale",
     },
     "ticketSales"
@@ -147,7 +147,7 @@ export async function notifyEventReminder(
     {
       title: "Event Reminder",
       body: `${eventTitle} starts in ${hoursUntilStart} hour${hoursUntilStart > 1 ? "s" : ""}`,
-      url: "/d/events",
+      url: "/overview/events",
       tag: "event-reminder",
       requireInteraction: true,
     },
@@ -169,7 +169,7 @@ export async function notifyCheckInSummary(
     {
       title: "Check-in Summary",
       body: `${eventTitle}: ${checkedIn}/${total} guests checked in`,
-      url: "/d/events",
+      url: "/overview/events",
       tag: "check-in-summary",
     },
     "checkInSummaries"
@@ -190,7 +190,7 @@ export async function notifyProductUpdate(
     {
       title,
       body,
-      url: url || "/d",
+      url: url || "/overview",
       tag: "product-update",
     },
     "productUpdates"

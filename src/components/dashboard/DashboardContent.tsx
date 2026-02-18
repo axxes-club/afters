@@ -45,7 +45,7 @@ export function DashboardContent({
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/d/events/new">
+          <Link href="/overview/events/new">
             <Plus className="mr-2 h-4 w-4" />
             {tEvents('createEvent')}
           </Link>
@@ -100,7 +100,7 @@ export function DashboardContent({
                 </div>
               </div>
               <Button asChild size="sm" className="shrink-0">
-                <Link href="/d/settings/payouts">{t('setUpPayouts')}</Link>
+                <Link href="/overview/settings/payouts">{t('setUpPayouts')}</Link>
               </Button>
             </div>
           </CardContent>

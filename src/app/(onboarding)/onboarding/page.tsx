@@ -94,7 +94,7 @@ export default function OnboardingPage() {
       }
 
       toast.success(t("profileCreated"));
-      router.push("/d");
+      router.push("/overview");
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : tErrors("generic"));

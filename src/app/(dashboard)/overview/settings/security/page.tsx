@@ -376,7 +376,7 @@ export default function SecurityPage() {
 
         {/* Docs Link */}
         <Link
-          href="/d/developers/docs"
+          href="/overview/developers/docs"
           className="border-t border-white/5 p-3 flex items-center justify-between hover:bg-white/[0.02] transition-all group"
         >
           <span className="text-xs font-mono text-white/40 group-hover:text-white transition-colors">API Documentation</span>

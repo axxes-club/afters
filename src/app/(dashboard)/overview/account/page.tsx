@@ -76,13 +76,13 @@ export default async function AccountPage() {
             </div>
             <div className="mt-4 pt-4 border-t flex gap-2">
               <Button asChild>
-                <Link href="/d/events">
+                <Link href="/overview/events">
                   <Calendar className="h-4 w-4 mr-2" />
                   View Events
                 </Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/d/organizer">
+                <Link href="/overview/organizer">
                   Edit Profile
                 </Link>
               </Button>
@@ -108,7 +108,7 @@ export default async function AccountPage() {
                 </div>
               </div>
               <Button variant="outline" asChild>
-                <Link href="/d/developers">
+                <Link href="/overview/developers">
                   Manage API Keys
                 </Link>
               </Button>

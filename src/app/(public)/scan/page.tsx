@@ -281,7 +281,7 @@ export default function ScannerEntryPage() {
               </div>
             </div>
             <Link
-              href="/d"
+              href="/overview"
               className="inline-flex items-center gap-2 mt-8 text-white/40 hover:text-white font-mono text-xs transition-colors"
             >
               <LayoutDashboard className="w-4 h-4" />
@@ -414,14 +414,14 @@ export default function ScannerEntryPage() {
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/10 safe-area-bottom">
           <div className="flex items-center justify-around h-16 px-2">
             <Link
-              href="/d"
+              href="/overview"
               className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-white/40"
             >
               <LayoutDashboard className="w-5 h-5" />
               <span className="text-[10px] font-mono tracking-wider">CONTROL</span>
             </Link>
             <Link
-              href="/d/events"
+              href="/overview/events"
               className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[4.5rem] text-white/40"
             >
               <Calendar className="w-5 h-5" />
@@ -527,7 +527,7 @@ export default function ScannerEntryPage() {
             </div>
           </div>
           <Link
-            href="/d"
+            href="/overview"
             className="inline-flex items-center gap-2 mt-8 text-white/40 hover:text-white font-mono text-xs transition-colors"
           >
             <LayoutDashboard className="w-4 h-4" />

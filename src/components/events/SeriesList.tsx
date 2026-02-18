@@ -117,7 +117,7 @@ export function SeriesList({ onSeriesClick }: SeriesListProps) {
         <Repeat className="w-8 h-8 text-white/20 mx-auto mb-3" />
         <p className="text-white/40 font-mono text-sm mb-4">No event series yet</p>
         <Link
-          href="/d/events/new"
+          href="/overview/events/new"
           className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 font-mono text-xs hover:bg-purple-500/20 transition-colors"
         >
           <Plus className="w-4 h-4" />

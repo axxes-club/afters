@@ -84,7 +84,7 @@ export function InviteAcceptClient({
       if (res.ok) {
         setAccepted(true);
         toast.success(`You've joined ${organizerName} as ${roleConfig.label}!`);
-        setTimeout(() => router.push("/d"), 2000);
+        setTimeout(() => router.push("/overview"), 2000);
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to accept invite");
