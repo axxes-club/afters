@@ -283,6 +283,7 @@ model OrganizerProfile {
   websiteUrl               String?
   youtubeUrl               String?
   events                   Event[]
+  eventSeries              EventSeries[]
   user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscription             Subscription?
   staffMembers             StaffMember[]
@@ -314,6 +315,27 @@ enum TicketingType {
   OTHER
 }
 
+// Event Series for recurring events
+model EventSeries {
+  id              String            @id @default(cuid())
+  organizerId     String
+  title           String            // Series name, e.g. "Techno Tuesdays"
+  recurrenceRule  String            // RRULE string (RFC 5545), e.g. "FREQ=WEEKLY;BYDAY=TU"
+  timezone        String            @default("America/New_York")
+  templateData    Json?             // Shared defaults: venue, theme, lineup, ticket tiers, etc.
+  startsAt        DateTime          // When the series begins
+  endsAt          DateTime?         // Optional: when the series ends (null = indefinite)
+  maxOccurrences  Int?              // Optional: max number of occurrences
+  lastGeneratedAt DateTime?         // When occurrences were last generated
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  organizer       OrganizerProfile  @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  events          Event[]
+
+  @@index([organizerId])
+}
+
 model Event {
   id                   String           @id @default(cuid())
   organizerId          String
@@ -334,6 +356,12 @@ model Event {
   ageRestriction       Int?
   ticketingType        TicketingType    @default(AFTERS)
   externalTicketingUrl String?
+  
+  // Series/Recurring event fields
+  seriesId             String?
+  seriesOccurrence     Int?              // Which occurrence in the series (1, 2, 3...)
+  isSeriesOverride     Boolean           @default(false) // True if this occurrence was customized
+  series               EventSeries?      @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   
   // Underground event features
   isAddressHidden      Boolean          @default(false) // Hide address until ticket purchase
@@ -403,6 +431,7 @@ model Event {
   @@index([city, startsAt])
   @@index([isFlagged])
   @@index([status, isPublished])
+  @@index([seriesId])
 }
 
 model TicketTier {

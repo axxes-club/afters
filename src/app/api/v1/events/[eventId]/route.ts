@@ -29,6 +29,14 @@ async function getEvent(
       ticketTiers: {
         orderBy: { sortOrder: "asc" },
       },
+      series: {
+        select: {
+          id: true,
+          title: true,
+          recurrenceRule: true,
+          timezone: true,
+        },
+      },
       _count: {
         select: {
           orders: true,
@@ -46,7 +54,31 @@ async function getEvent(
     return apiError("Event not found", 404)
   }
 
-  return NextResponse.json(event)
+  // If this is part of a series, also get other occurrences
+  let seriesOccurrences = null
+  if (event.seriesId) {
+    seriesOccurrences = await prisma.event.findMany({
+      where: {
+        seriesId: event.seriesId,
+        id: { not: event.id },
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        startsAt: true,
+        status: true,
+        seriesOccurrence: true,
+      },
+      orderBy: { startsAt: "asc" },
+      take: 10,
+    })
+  }
+
+  return NextResponse.json({
+    ...event,
+    seriesOccurrences,
+  })
 }
 
 // PATCH /api/v1/events/[eventId] - Update event
@@ -69,6 +101,11 @@ async function updateEvent(
     where: {
       id: eventId,
       organizerId: profile.id,
+    },
+    select: {
+      id: true,
+      seriesId: true,
+      isSeriesOverride: true,
     },
   })
 
@@ -93,7 +130,13 @@ async function updateEvent(
     isAddressHidden,
     pageTheme,
     accentColor,
+    markAsOverride, // Optional: explicitly mark as override for series events
   } = body
+
+  // If this event is part of a series and being edited, mark as override
+  // This prevents template changes from overwriting this occurrence
+  const shouldMarkAsOverride =
+    existingEvent.seriesId && !existingEvent.isSeriesOverride && markAsOverride !== false
 
   const event = await prisma.event.update({
     where: { id: eventId },
@@ -115,6 +158,7 @@ async function updateEvent(
       ...(isAddressHidden !== undefined && { isAddressHidden }),
       ...(pageTheme !== undefined && { pageTheme }),
       ...(accentColor !== undefined && { accentColor }),
+      ...(shouldMarkAsOverride && { isSeriesOverride: true }),
     },
     select: {
       id: true,
@@ -123,6 +167,8 @@ async function updateEvent(
       startsAt: true,
       status: true,
       isPublished: true,
+      isSeriesOverride: true,
+      seriesId: true,
       updatedAt: true,
     },
   })
