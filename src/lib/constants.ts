@@ -1,3 +1,6 @@
+// App version
+export const APP_VERSION = "0.2b"
+
 // Site domain configuration
 // Primary domain - afters.am is now the main domain
 export const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN || "afters.am"
