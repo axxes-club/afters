@@ -464,7 +464,7 @@ export default function SettingsProfilePage() {
         <div className="border border-dashed border-white/20 p-12 text-center">
           <p className="text-white/40 font-mono text-sm mb-4">No organizer profile</p>
           <Button asChild variant="outline" size="sm">
-            <Link href="/onboarding">Create Profile</Link>
+            <Link href="/b">Create Profile</Link>
           </Button>
         </div>
       )}

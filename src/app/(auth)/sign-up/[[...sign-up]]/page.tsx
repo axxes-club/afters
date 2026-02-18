@@ -12,7 +12,7 @@ export default function SignUpPage() {
       {/* Sign Up Component */}
       <div className="w-full max-w-md">
         <SignUp 
-          forceRedirectUrl="/onboarding"
+          forceRedirectUrl="/b"
           signInUrl="/sign-in"
         />
       </div>

@@ -44,7 +44,7 @@ export function AftieConsentDialog() {
               Complete your organizer profile to use Aftie.
             </p>
             <a
-              href="/onboarding"
+              href="/b"
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff1493] hover:bg-[#ff1493]/80 text-white font-mono text-sm rounded transition-colors"
             >
               Complete Profile

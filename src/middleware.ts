@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 // Routes that require authentication
 const isProtectedRoute = createRouteMatcher([
   "/d(.*)",
-  "/onboarding(.*)",
   "/orders(.*)",
   "/superadmin(.*)",
 ]);

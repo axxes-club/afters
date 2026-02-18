@@ -126,7 +126,7 @@ export default async function AccountPage() {
               Create an organizer profile to start hosting events.
             </p>
             <Button asChild>
-              <Link href="/onboarding">Create Profile</Link>
+              <Link href="/b">Create Profile</Link>
             </Button>
           </CardContent>
         </Card>

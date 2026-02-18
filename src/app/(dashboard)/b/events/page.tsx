@@ -233,7 +233,7 @@ export default async function EventsPage() {
           <p className="text-white/40 text-sm font-mono mb-6">
             {profile 
               ? "Create your first event to start selling tickets"
-              : "Complete onboarding to create events, or browse events to get tickets"
+              : "Create your first event to start selling tickets"
             }
           </p>
           {profile && (

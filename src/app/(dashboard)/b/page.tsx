@@ -39,28 +39,50 @@ export default async function OverviewPage() {
     },
   });
 
-  if (!profile) redirect("/onboarding");
+  // Auto-create profile if it doesn't exist
+  let activeProfile = profile;
+  if (!activeProfile) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    activeProfile = await prisma.organizerProfile.create({
+      data: {
+        userId,
+        displayName: user?.firstName || "Organizer",
+        slug: `organizer-${userId.slice(-8)}`,
+      },
+      include: {
+        events: {
+          include: {
+            ticketTiers: true,
+            _count: { select: { tickets: true } },
+          },
+          orderBy: { startsAt: "asc" },
+          take: 10,
+        },
+        subscription: true,
+      },
+    });
+  }
 
   // Calculate stats
   const now = new Date();
-  const upcomingEvents = profile.events.filter(
+  const upcomingEvents = activeProfile.events.filter(
     (e) => new Date(e.startsAt) > now,
   );
   const liveEvents = upcomingEvents.filter((e) => e.isPublished);
   const draftEvents = upcomingEvents.filter((e) => !e.isPublished);
 
-  const totalTicketsSold = profile.events.reduce(
+  const totalTicketsSold = activeProfile.events.reduce(
     (sum, e) => sum + e.ticketTiers.reduce((s, t) => s + t.quantitySold, 0),
     0,
   );
 
-  const totalRevenue = profile.events.reduce(
+  const totalRevenue = activeProfile.events.reduce(
     (sum, e) =>
       sum + e.ticketTiers.reduce((s, t) => s + t.quantitySold * t.price, 0),
     0,
   );
 
-  const totalCapacity = profile.events.reduce(
+  const totalCapacity = activeProfile.events.reduce(
     (sum, e) => sum + e.ticketTiers.reduce((s, t) => s + t.quantity, 0),
     0,
   );
@@ -83,7 +105,7 @@ export default async function OverviewPage() {
                 </div>
               </div>
               <h1 className="text-2xl sm:text-3xl font-headline tracking-wide mb-1">
-                {profile.displayName || "Operator"}
+                {activeProfile.displayName || "Operator"}
               </h1>
               <p className="text-sm text-white/40 font-mono">
                 {liveEvents.length} live • {draftEvents.length} drafts • {totalTicketsSold} tickets moved
@@ -122,7 +144,7 @@ export default async function OverviewPage() {
         />
         <StatCard
           label="TOTAL EVENTS"
-          value={profile.events.length.toString()}
+          value={activeProfile.events.length.toString()}
           icon={<Calendar className="w-4 h-4" />}
           subValue={`${upcomingEvents.length} upcoming`}
         />
@@ -256,7 +278,7 @@ export default async function OverviewPage() {
       )}
 
       {/* Events List */}
-      {profile.events.length > 0 && (
+      {activeProfile.events.length > 0 && (
         <div className="border border-white/10">
           <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
             <div className="flex items-center gap-2">
@@ -272,7 +294,7 @@ export default async function OverviewPage() {
           </div>
 
           <div className="divide-y divide-white/5">
-            {profile.events.slice(0, 5).map((event) => {
+            {activeProfile.events.slice(0, 5).map((event) => {
               const isPast = new Date(event.startsAt) <= now;
               const soldCount = event.ticketTiers.reduce((s, t) => s + t.quantitySold, 0);
               const totalCount = event.ticketTiers.reduce((s, t) => s + t.quantity, 0);
