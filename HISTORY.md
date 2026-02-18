@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.11 (2026-02-18)
+
+- Redesign Aftie AI settings page with hero activation section
+- Add color-coded capability cards in 2-column grid
+- Add example prompts section showing Aftie's capabilities
+- Better active state with stats grid and online indicator
+
 ## 0.2.10 (2026-02-18)
 
 - Fix push notification UX - show enable CTA immediately instead of loading
