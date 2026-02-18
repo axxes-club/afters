@@ -48,7 +48,7 @@ jobs:
         run: npx prisma generate
 
       - name: Run API tests
-        run: pnpm test --coverage
+        run: pnpm test:coverage
         env:
           # Test environment variables (from vitest.config.ts)
           DATABASE_URL: postgresql://test:test@localhost:5432/test
