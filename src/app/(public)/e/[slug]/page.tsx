@@ -8,9 +8,91 @@ import { ViewTracker } from "@/components/ViewTracker"
 import { getSessionUser } from "@/lib/auth-utils"
 import EditDesignOverlay from "@/components/public/EventPageClient"
 import EventInfoSections from "@/components/public/EventInfoSections"
+import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
+
+// Generate dynamic metadata for SEO
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  try {
+    const { slug: combinedSlug } = await params
+
+    const event = await prisma.event.findFirst({
+      where: {
+        isPublished: true,
+        slug: combinedSlug,
+      },
+      select: {
+        title: true,
+        description: true,
+        flyerUrl: true,
+        startsAt: true,
+        venueName: true,
+        city: true,
+        organizer: {
+          select: {
+            displayName: true,
+          },
+        },
+      },
+    })
+
+    if (!event) {
+      return {
+        title: "Event Not Found",
+        description: "The requested event could not be found.",
+      }
+    }
+
+    const eventDate = new Date(event.startsAt).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
+
+    const description = event.description
+      ? event.description.slice(0, 160)
+      : `${event.title} at ${event.venueName}, ${event.city} on ${eventDate}. Hosted by ${event.organizer.displayName}.`
+
+    return {
+      title: event.title,
+      description,
+      openGraph: {
+        title: event.title,
+        description,
+        type: "website",
+        images: event.flyerUrl
+          ? [
+              {
+                url: event.flyerUrl,
+                width: 1200,
+                height: 630,
+                alt: event.title,
+              },
+            ]
+          : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: event.title,
+        description,
+        images: event.flyerUrl ? [event.flyerUrl] : undefined,
+      },
+    }
+  } catch {
+    // Fallback metadata if database is unavailable during build
+    return {
+      title: "Event",
+      description: "Discover and book tickets to nightlife events and after-parties.",
+    }
+  }
+}
 
 interface LineupArtist {
   name: string
