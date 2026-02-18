@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAccentColor } from "@/hooks/useAccentColor";
 import {
   Plus,
   Trash2,
@@ -141,6 +142,7 @@ function EventDashboardContent({
   const [activeSection, setActiveSection] = useState<"overview" | "tickets" | "door" | "design" | "details" | "venue" | "settings">(
     tabParam && ["overview", "tickets", "door", "design", "details", "venue", "settings"].includes(tabParam) ? tabParam : "overview"
   );
+  const uiAccent = useAccentColor(); // Organizer's UI accent from settings
   const [expiresAfter, setExpiresAfter] = useState<string>("24h");
   const [expirationLoading, setExpirationLoading] = useState(false);
   const [eventTypeLoading, setEventTypeLoading] = useState(false);
@@ -627,7 +629,8 @@ function EventDashboardContent({
             <button
               onClick={() => setShowPublishDialog(true)}
               disabled={publishing || (!event.isRsvpOnly && event.ticketTiers.length === 0)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-black text-xs font-mono font-bold tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: uiAccent }}
             >
               <Sparkles className="w-3.5 h-3.5" />
               PUBLISH
@@ -655,9 +658,10 @@ function EventDashboardContent({
             onClick={() => changeTab(section.id)}
             className={`px-3 sm:px-4 py-2.5 text-xs font-mono tracking-wider transition-colors border-b-2 -mb-[1px] whitespace-nowrap ${
               activeSection === section.id
-                ? "text-[#ff1493] border-[#ff1493]"
+                ? ""
                 : "text-white/40 border-transparent hover:text-white/60"
             }`}
+            style={activeSection === section.id ? { color: uiAccent, borderColor: uiAccent } : undefined}
           >
             {section.label}
           </button>
@@ -774,7 +778,8 @@ function EventDashboardContent({
                   <button
                     onClick={() => setShowPublishDialog(true)}
                     disabled={publishing || (!event.isRsvpOnly && event.ticketTiers.length === 0)}
-                    className="px-4 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
+                    className="px-4 py-2 text-black text-xs font-mono font-bold tracking-wider transition-all disabled:opacity-50"
+                    style={{ backgroundColor: uiAccent }}
                   >
                     PUBLISH
                   </button>
@@ -808,7 +813,8 @@ function EventDashboardContent({
               <span className="text-xs font-mono text-white/40 tracking-widest">TICKET TIERS</span>
               <button
                 onClick={() => setShowTierDialog(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff1493] text-black text-[10px] font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-black text-[10px] font-mono font-bold tracking-wider transition-all"
+                style={{ backgroundColor: uiAccent }}
               >
                 <Plus className="w-3 h-3" />
                 ADD TIER

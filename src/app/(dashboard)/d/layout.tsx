@@ -135,7 +135,10 @@ export default function DashboardLayout({
 
   return (
     <AftieProvider>
-      <div className="min-h-screen bg-black text-white flex overflow-x-hidden">
+      <div 
+        className="min-h-screen bg-black text-white flex overflow-x-hidden"
+        style={{ "--accent-color": accentColor } as React.CSSProperties}
+      >
         {/* Desktop Sidebar - Hidden on mobile */}
         <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
           {/* Logo */}

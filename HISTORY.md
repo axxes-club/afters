@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.16 (2026-02-18)
+
+- Apply organizer's UI accent color to event create/edit pages (Issue #40, PR #41)
+- Add useAccentColor hook for accessing accent color from Settings > Appearance
+- Dashboard layout sets --accent-color CSS variable for child components
+- Primary buttons, tabs, and section cards now respect custom accent color
+
 ## 0.2.15 (2026-02-18)
 
 - Add optional email for event scanners (Issue #33, PR #36)
