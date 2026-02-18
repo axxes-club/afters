@@ -19,6 +19,7 @@ import {
   AftieKeyboardListener,
 } from "@/components/aftie";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { APP_VERSION } from "@/lib/constants";
 
 const baseNavItems = [
   { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
@@ -137,6 +138,7 @@ export default function DashboardLayout({
               <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                 <span>ONLINE</span>
+                <span className="text-white/20">(v{APP_VERSION})</span>
               </div>
               <FeedbackButton />
             </div>
