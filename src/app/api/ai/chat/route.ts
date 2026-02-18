@@ -1,4 +1,4 @@
-import { generateText, tool } from "ai"
+import { generateText, tool, stepCountIs } from "ai"
 import { auth } from "@clerk/nextjs/server"
 import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
@@ -60,7 +60,7 @@ Use this context for any questions about "this event", ticket sales, or content 
     const tools = {
       createEvent: tool({
         description: "Create a new event for the user. Use this when the user wants to create an event. After creating, tell the user what was created and provide the dashboard link.",
-        parameters: z.object({
+        inputSchema: z.object({
           title: z.string().describe("Event title/name"),
           description: z.string().optional().describe("Event description"),
           venueName: z.string().describe("Venue name"),
@@ -71,17 +71,7 @@ Use this context for any questions about "this event", ticket sales, or content 
           endsAt: z.string().optional().describe("End date/time in ISO format"),
           ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
         }),
-        execute: async (params: {
-          title: string
-          description?: string
-          venueName: string
-          venueAddress: string
-          city: string
-          state?: string
-          startsAt: string
-          endsAt?: string
-          ageRestriction?: number
-        }) => {
+        execute: async (params) => {
           try {
             // Generate slug
             const baseSlug = params.title
@@ -138,10 +128,10 @@ Use this context for any questions about "this event", ticket sales, or content 
 
       listEvents: tool({
         description: "List the user's events. Use this when user asks about their events.",
-        parameters: z.object({
+        inputSchema: z.object({
           status: z.enum(["all", "upcoming", "past", "draft"]).optional().describe("Filter by status"),
         }),
-        execute: async (params: { status?: "all" | "upcoming" | "past" | "draft" }) => {
+        execute: async (params) => {
           try {
             const now = new Date()
             const where: Record<string, unknown> = { organizerId: profile.id }
@@ -190,7 +180,7 @@ Use this context for any questions about "this event", ticket sales, or content 
 
       updateEvent: tool({
         description: "Update an existing event. After updating, confirm what was changed.",
-        parameters: z.object({
+        inputSchema: z.object({
           eventId: z.string().describe("The event ID to update"),
           title: z.string().optional(),
           description: z.string().optional(),
@@ -198,14 +188,7 @@ Use this context for any questions about "this event", ticket sales, or content 
           venueAddress: z.string().optional(),
           startsAt: z.string().optional(),
         }),
-        execute: async (params: {
-          eventId: string
-          title?: string
-          description?: string
-          venueName?: string
-          venueAddress?: string
-          startsAt?: string
-        }) => {
+        execute: async (params) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -244,10 +227,10 @@ Use this context for any questions about "this event", ticket sales, or content 
 
       publishEvent: tool({
         description: "Publish a draft event to make it live. After publishing, provide both dashboard and public URLs.",
-        parameters: z.object({
+        inputSchema: z.object({
           eventId: z.string().describe("The event ID"),
         }),
-        execute: async (params: { eventId: string }) => {
+        execute: async (params) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -280,10 +263,10 @@ Use this context for any questions about "this event", ticket sales, or content 
 
       getEventStats: tool({
         description: "Get ticket sales and check-in statistics for an event. Use this when user asks about tickets sold, revenue, check-ins, or attendees.",
-        parameters: z.object({
+        inputSchema: z.object({
           eventId: z.string().describe("The event ID"),
         }),
-        execute: async (params: { eventId: string }) => {
+        execute: async (params) => {
           try {
             // Verify ownership and get event with stats
             const event = await prisma.event.findFirst({
@@ -361,7 +344,7 @@ Use this context for any questions about "this event", ticket sales, or content 
       system: AFTIE_SYSTEM_PROMPT + contextInfo,
       messages,
       tools,
-      maxSteps: 5, // Allow multiple steps so AI can respond AFTER tool execution
+      stopWhen: stepCountIs(5), // Allow multiple steps so AI can respond AFTER tool execution
     })
 
     console.log("🔧 Aftie result:", result.text?.slice(0, 100), "...")
