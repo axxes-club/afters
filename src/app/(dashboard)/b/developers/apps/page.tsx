@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Cube, Plus, Copy, Check, Trash2, RefreshCw, Shield, Users, Globe, Loader2, AlertTriangle, Key } from "lucide-react"
+import { Box, Plus, Copy, Check, Trash2, RefreshCw, Shield, Users, Globe, Loader2, AlertTriangle, Key } from "lucide-react"
 import { toast } from "sonner"
 
 interface OAuthApp {
@@ -335,7 +335,7 @@ export default function OAuthAppsPage() {
           </div>
         ) : apps.length === 0 ? (
           <div className="p-8 text-center">
-            <Cube className="w-6 h-6 mx-auto text-white/10 mb-2" />
+            <Box className="w-6 h-6 mx-auto text-white/10 mb-2" />
             <p className="text-white/40 font-mono text-xs">No OAuth apps yet</p>
           </div>
         ) : (
@@ -345,7 +345,7 @@ export default function OAuthAppsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <Cube className="w-4 h-4 text-[#ff1493]" />
+                      <Box className="w-4 h-4 text-[#ff1493]" />
                       <span className="font-mono text-sm text-white">{app.name}</span>
                       {app.isVerified && <Shield className="w-3.5 h-3.5 text-[#ff1493]" />}
                     </div>

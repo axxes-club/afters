@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Key, Plus, Copy, Check, Trash2, ExternalLink, Clock, BookOpen, Cube, Link2 } from "lucide-react"
+import { Key, Plus, Copy, Check, Trash2, ExternalLink, Clock, BookOpen, Box, Link2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -399,7 +399,7 @@ export default function DevelopersPage() {
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
                 <div className="p-2 rounded-lg bg-[#ff1493]/10">
-                  <Cube className="w-6 h-6 text-[#ff1493]" />
+                  <Box className="w-6 h-6 text-[#ff1493]" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">OAuth Apps</h3>

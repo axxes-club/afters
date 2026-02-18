@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Link2, X, Shield, Calendar, Cube, Loader2, Globe } from "lucide-react"
+import { Link2, X, Shield, Calendar, Box, Loader2, Globe } from "lucide-react"
 import { toast } from "sonner"
 
 interface Connection {
@@ -131,7 +131,7 @@ export default function ConnectionsPage() {
                         {connection.app.logoUrl ? (
                           <img src={connection.app.logoUrl} alt="" className="w-6 h-6 rounded" />
                         ) : (
-                          <Cube className="w-4 h-4 text-[#ff1493]" />
+                          <Box className="w-4 h-4 text-[#ff1493]" />
                         )}
                       </div>
                       <div>
