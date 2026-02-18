@@ -146,14 +146,16 @@ export default function DashboardLayout({
 
           {/* User */}
           <div className="p-3 border-t border-white/5">
-            <div className="flex items-center gap-3">
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8",
-                  },
-                }}
-              />
+            <div className="flex items-center gap-3" suppressHydrationWarning>
+              <div className="flex-shrink-0">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8",
+                    },
+                  }}
+                />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-mono text-white/30 truncate">
                   OPERATOR
