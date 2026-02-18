@@ -13,7 +13,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Sparkles, Calendar, BarChart3, Zap, Check, Power, Loader2 } from "lucide-react"
+import { 
+  Sparkles, 
+  Calendar, 
+  BarChart3, 
+  Check, 
+  Power, 
+  Loader2, 
+  MessageSquare,
+  Wand2,
+  TrendingUp,
+  Clock,
+  Bot
+} from "lucide-react"
 import { toast } from "sonner"
 
 interface AftieSetupStatus {
@@ -24,6 +36,44 @@ interface AftieSetupStatus {
   createdAt?: string
   lastUsedAt?: string
 }
+
+const capabilities = [
+  { 
+    icon: Calendar, 
+    label: "Event Creation", 
+    desc: "Create and publish events with natural language",
+    color: "text-blue-400",
+    bg: "bg-blue-400/10"
+  },
+  { 
+    icon: BarChart3, 
+    label: "Analytics", 
+    desc: "Check ticket sales, check-ins, and revenue",
+    color: "text-green-400",
+    bg: "bg-green-400/10"
+  },
+  { 
+    icon: Wand2, 
+    label: "Content Generation", 
+    desc: "Generate descriptions, titles, and marketing copy",
+    color: "text-purple-400",
+    bg: "bg-purple-400/10"
+  },
+  { 
+    icon: TrendingUp, 
+    label: "Insights", 
+    desc: "Get suggestions to improve event performance",
+    color: "text-amber-400",
+    bg: "bg-amber-400/10"
+  },
+]
+
+const examplePrompts = [
+  "Create a techno event for next Saturday at 10pm",
+  "How many tickets did I sell this month?",
+  "Write a description for my warehouse party",
+  "Who checked in at my last event?",
+]
 
 export default function AftieSettingsPage() {
   const [status, setStatus] = useState<AftieSetupStatus | null>(null)
@@ -63,7 +113,7 @@ export default function AftieSettingsPage() {
           keyName: data.keyName,
           createdAt: data.createdAt,
         })
-        toast.success("Aftie activated")
+        toast.success("Aftie activated! Press ⌘K to start chatting.")
       } else {
         const error = await res.json()
         toast.error(error.message || "Failed to enable Aftie")
@@ -114,128 +164,181 @@ export default function AftieSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-2xl">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">AFTIE AI</h1>
-        <p className="text-white/40 text-sm font-mono mt-1">AI assistant settings</p>
+        <p className="text-white/40 text-sm font-mono mt-1">Your AI-powered event assistant</p>
       </div>
 
-      {/* Status Card */}
-      <div className={`border ${status?.isSetup ? "border-[#ff1493]/30" : "border-white/10"} bg-white/[0.02]`}>
-        <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
-          <span className="text-[10px] font-mono text-white/40 tracking-widest">STATUS</span>
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full ${status?.isSetup ? "bg-[#ff1493] animate-pulse" : "bg-white/20"}`} />
-            <span className={`text-[10px] font-mono ${status?.isSetup ? "text-[#ff1493]" : "text-white/40"}`}>
-              {status?.isSetup ? "ACTIVE" : "INACTIVE"}
-            </span>
-          </div>
-        </div>
-        <div className="p-6">
-          <div className="flex items-start gap-4 mb-6">
-            <div className={`w-12 h-12 flex items-center justify-center ${status?.isSetup ? "bg-[#ff1493]/10" : "bg-white/5"}`}>
-              <Sparkles className={`w-6 h-6 ${status?.isSetup ? "text-[#ff1493]" : "text-white/30"}`} />
-            </div>
-            <div className="flex-1">
-              <h2 className="font-mono font-bold text-lg">Aftie AI Assistant</h2>
-              <p className="text-sm text-white/40 mt-1">
-                {status?.isSetup 
-                  ? "Aftie can create events, check analytics, and manage your account."
-                  : "Enable Aftie to get AI-powered help with event management."}
-              </p>
-            </div>
-          </div>
-
-          {status?.isSetup ? (
-            <div className="space-y-4">
-              {/* Stats */}
-              <div className="grid sm:grid-cols-3 gap-4">
-                <div className="p-4 bg-white/[0.02] border border-white/5">
-                  <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">API KEY</p>
-                  <code className="text-xs font-mono text-[#ff1493]">{status.keyName}</code>
-                </div>
-                <div className="p-4 bg-white/[0.02] border border-white/5">
-                  <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">ACTIVATED</p>
-                  <p className="text-sm font-mono">{formatDate(status.createdAt)}</p>
-                </div>
-                <div className="p-4 bg-white/[0.02] border border-white/5">
-                  <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">LAST USED</p>
-                  <p className="text-sm font-mono">{formatDate(status.lastUsedAt)}</p>
-                </div>
+      {/* Hero Section */}
+      {status?.isSetup ? (
+        /* Active State */
+        <div className="border border-[#ff1493]/30 bg-gradient-to-br from-[#ff1493]/10 via-[#ff1493]/5 to-transparent relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#ff1493]/20 rounded-full blur-3xl" />
+          
+          <div className="relative p-6 sm:p-8">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-[#ff1493]/20 flex items-center justify-center ring-1 ring-[#ff1493]/30">
+                <Bot className="w-7 h-7 text-[#ff1493]" />
               </div>
-
-              {/* Deactivate */}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-red-500/30 text-red-400 hover:bg-red-500/10 font-mono text-xs tracking-widest transition-all">
-                    <Power className="w-4 h-4" />
-                    DEACTIVATE
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Deactivate Aftie?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will revoke Aftie&apos;s API access. You can reactivate anytime.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={disableAftie} disabled={disabling} className="bg-red-600 hover:bg-red-700">
-                      {disabling ? "Deactivating..." : "Deactivate"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="font-mono font-bold text-lg">Aftie is Active</h2>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#ff1493]/20 rounded-full">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#ff1493] animate-pulse" />
+                    <span className="text-[10px] font-mono text-[#ff1493]">ONLINE</span>
+                  </div>
+                </div>
+                <p className="text-sm text-white/50">
+                  Press <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-mono mx-1">⌘K</kbd> to chat with Aftie
+                </p>
+              </div>
             </div>
-          ) : (
-            <Button 
-              onClick={enableAftie} 
-              disabled={enabling}
-              className="w-full h-12 bg-[#ff1493] hover:bg-[#ff1493]/80 text-black font-mono text-xs tracking-widest gap-2"
-            >
-              {enabling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {enabling ? "ACTIVATING..." : "ACTIVATE AFTIE"}
-            </Button>
-          )}
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="p-3 bg-black/30 border border-white/5 rounded">
+                <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">API KEY</p>
+                <code className="text-xs font-mono text-[#ff1493] truncate block">{status.keyName}</code>
+              </div>
+              <div className="p-3 bg-black/30 border border-white/5 rounded">
+                <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">ACTIVATED</p>
+                <p className="text-xs font-mono">{formatDate(status.createdAt)}</p>
+              </div>
+              <div className="p-3 bg-black/30 border border-white/5 rounded">
+                <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">LAST USED</p>
+                <p className="text-xs font-mono">{formatDate(status.lastUsedAt)}</p>
+              </div>
+            </div>
+
+            {/* Deactivate */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-white/10 text-white/40 hover:border-red-500/30 hover:text-red-400 font-mono text-xs tracking-wider transition-all rounded">
+                  <Power className="w-3.5 h-3.5" />
+                  Deactivate Aftie
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Deactivate Aftie?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will revoke Aftie&apos;s API access. You can reactivate anytime.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={disableAftie} disabled={disabling} className="bg-red-600 hover:bg-red-700">
+                    {disabling ? "Deactivating..." : "Deactivate"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Inactive State - Activation CTA */
+        <div className="border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#ff1493]/10 rounded-full blur-3xl" />
+          
+          <div className="relative p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-start gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center ring-1 ring-white/10">
+                <Sparkles className="w-8 h-8 text-white/40" />
+              </div>
+              <div className="flex-1">
+                <h2 className="font-mono font-bold text-lg mb-2">Activate Aftie AI</h2>
+                <p className="text-sm text-white/50 leading-relaxed mb-5">
+                  Get an AI assistant that can create events, analyze your ticket sales, 
+                  and help you write compelling event descriptions — all through natural conversation.
+                </p>
+                <Button 
+                  onClick={enableAftie} 
+                  disabled={enabling}
+                  className="bg-[#ff1493] hover:bg-[#ff1493]/90 text-black font-mono text-sm tracking-wider gap-2 h-11 px-6"
+                >
+                  {enabling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {enabling ? "Activating..." : "Activate Aftie"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Capabilities */}
-      <div className="border border-white/10 bg-white/[0.02]">
-        <div className="px-4 py-2 border-b border-white/10">
+      <div>
+        <div className="flex items-center gap-2 mb-4">
           <span className="text-[10px] font-mono text-white/40 tracking-widest">CAPABILITIES</span>
+          <div className="flex-1 h-px bg-white/10" />
         </div>
-        <div className="divide-y divide-white/5">
-          {[
-            { icon: Calendar, label: "EVENT CREATION", desc: "Create and publish events with natural language" },
-            { icon: BarChart3, label: "ANALYTICS", desc: "Check ticket sales, check-ins, and revenue" },
-            { icon: Zap, label: "CONTENT", desc: "Generate descriptions, titles, and copy" },
-          ].map((cap, i) => (
-            <div key={i} className="p-4 flex items-center gap-4">
-              <div className="w-10 h-10 flex items-center justify-center bg-white/5">
-                <cap.icon className="w-5 h-5 text-white/40" />
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          {capabilities.map((cap, i) => (
+            <div 
+              key={i} 
+              className={`p-4 border bg-white/[0.02] transition-all ${
+                status?.isSetup 
+                  ? "border-white/10 hover:border-white/20" 
+                  : "border-white/5 opacity-60"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${status?.isSetup ? cap.bg : "bg-white/5"}`}>
+                  <cap.icon className={`w-4.5 h-4.5 ${status?.isSetup ? cap.color : "text-white/30"}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-mono font-medium">{cap.label}</p>
+                    {status?.isSetup && <Check className="w-3.5 h-3.5 text-[#ff1493]" />}
+                  </div>
+                  <p className="text-xs text-white/40 mt-0.5">{cap.desc}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono tracking-wider">{cap.label}</p>
-                <p className="text-xs text-white/40 mt-0.5">{cap.desc}</p>
-              </div>
-              {status?.isSetup && <Check className="w-4 h-4 text-[#ff1493]" />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Example Prompts */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="w-3.5 h-3.5 text-white/40" />
+          <span className="text-[10px] font-mono text-white/40 tracking-widest">TRY SAYING</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
+        <div className="grid gap-2">
+          {examplePrompts.map((prompt, i) => (
+            <div 
+              key={i} 
+              className={`px-4 py-3 border border-white/5 bg-white/[0.01] font-mono text-sm transition-all ${
+                status?.isSetup 
+                  ? "text-white/60 hover:bg-white/[0.03] hover:border-white/10 cursor-pointer" 
+                  : "text-white/30"
+              }`}
+            >
+              <span className="text-white/30 mr-2">&quot;</span>
+              {prompt}
+              <span className="text-white/30 ml-1">&quot;</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Quick Access */}
-      <div className="border border-white/10 bg-white/[0.02] p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-mono tracking-wider">QUICK ACCESS</p>
-            <p className="text-xs text-white/40 mt-0.5">Press ⌘K or click the button in the corner</p>
+      <div className="border border-white/10 bg-white/[0.02] p-4 rounded flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-white/40" />
           </div>
-          <kbd className="px-2 py-1 bg-white/5 border border-white/10 text-xs font-mono text-white/40">⌘K</kbd>
+          <div>
+            <p className="text-sm font-mono font-medium">Quick Access</p>
+            <p className="text-xs text-white/40">Press ⌘K anywhere or click the sparkle button</p>
+          </div>
         </div>
+        <kbd className="px-3 py-1.5 bg-white/5 border border-white/10 text-xs font-mono text-white/40 rounded">⌘K</kbd>
       </div>
     </div>
   )
