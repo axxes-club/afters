@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.13 (2026-02-18)
+## 0.2.15 (2026-02-18)
 
 - Add optional email for event scanners (Issue #33, PR #36)
 - Scanners can receive credentials via email automatically on creation
@@ -8,6 +8,14 @@
 - Add resend credentials button with rate limiting (max 3/hour)
 - New Checkbox UI component using Radix UI
 - i18n support for scanner email strings (en, es-ES, es-LA, pt-BR)
+
+## 0.2.14 (2026-02-18)
+
+- Add ticket/RSVP status indicators to events dashboard (Issue #37, PR #38)
+- New "MY TICKETS & RSVPs" section showing events user is attending
+- Display ticket tier name, RSVP status, plus-ones count
+- Show check-in status and valid/pending/cancelled states
+- Color-coded badges: pink for tickets, cyan for RSVPs
 
 ## 0.2.12 (2026-02-18)
 

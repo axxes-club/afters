@@ -1,9 +1,9 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
-import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink } from "lucide-react"
+import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink, AlertCircle } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
 import { SeriesBadge } from "@/components/events/SeriesBadge"
 import { getSessionUser } from "@/lib/auth-utils"
@@ -11,6 +11,62 @@ import EditDesignOverlay from "@/components/public/EventPageClient"
 import EventInfoSections from "@/components/public/EventInfoSections"
 import type { Metadata } from "next"
 import type { CSSProperties } from "react"
+
+// Helper to check for slug redirects
+async function checkSlugRedirect(slug: string): Promise<string | null> {
+  const redirectEntry = await prisma.eventSlugRedirect.findFirst({
+    where: { oldSlug: slug },
+    include: {
+      event: {
+        select: { slug: true, isPublished: true },
+      },
+    },
+  })
+  
+  if (redirectEntry && redirectEntry.event.isPublished) {
+    return redirectEntry.event.slug
+  }
+  
+  return null
+}
+
+// Rescheduled banner component
+function RescheduledBanner({ 
+  previousStartsAt, 
+  newStartsAt,
+  accentColor = "#ffa500",
+  timezone = "America/New_York"
+}: { 
+  previousStartsAt: Date
+  newStartsAt: Date
+  accentColor?: string
+  timezone?: string
+}) {
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      timeZone: timezone,
+    })
+  }
+  
+  return (
+    <div 
+      className="w-full py-3 px-4 flex items-center justify-center gap-3 text-sm"
+      style={{ 
+        backgroundColor: `${accentColor}20`,
+        borderBottom: `1px solid ${accentColor}40`,
+      }}
+    >
+      <AlertCircle className="w-4 h-4" style={{ color: accentColor }} />
+      <span className="text-white/80">
+        <span className="font-medium" style={{ color: accentColor }}>Rescheduled</span>
+        {" "}from {formatDate(previousStartsAt)} → {formatDate(newStartsAt)}
+      </span>
+    </div>
+  )
+}
 
 interface LiveDesign {
   accentColor?: string
@@ -138,6 +194,7 @@ export default async function EventPage({
       description: true,
       flyerUrl: true,
       startsAt: true,
+      timezone: true,
       venueName: true,
       venueAddress: true,
       city: true,
@@ -160,6 +217,10 @@ export default async function EventPage({
       about: true,
       refundPolicy: true,
       faqs: true,
+      // Reschedule tracking fields
+      previousStartsAt: true,
+      previousEndsAt: true,
+      rescheduledAt: true,
       organizer: {
         select: {
           id: true,
@@ -185,6 +246,15 @@ export default async function EventPage({
       },
     },
   })
+  
+  // If event not found, check for slug redirect
+  if (!event) {
+    const newSlug = await checkSlugRedirect(combinedSlug)
+    if (newSlug) {
+      // Permanent redirect (301) to new slug
+      redirect(`/e/${newSlug}`)
+    }
+  }
 
   if (!event) {
     const organizers = await prisma.organizerProfile.findMany({
@@ -208,6 +278,11 @@ export default async function EventPage({
             description: true,
             flyerUrl: true,
             startsAt: true,
+            timezone: true,
+            // Reschedule tracking fields
+            previousStartsAt: true,
+            previousEndsAt: true,
+            rescheduledAt: true,
             venueName: true,
             venueAddress: true,
             city: true,
@@ -379,6 +454,20 @@ export default async function EventPage({
 
     const mapUrl = getMapUrl()
     const mapEmbedUrl = getMapEmbedUrl()
+    
+    // Rescheduled banner logic - show if event was rescheduled and hasn't passed yet
+    const showRescheduledBanner = event.previousStartsAt && 
+      event.rescheduledAt && 
+      new Date(event.startsAt) > new Date()
+    
+    const rescheduledBannerElement = showRescheduledBanner && event.previousStartsAt ? (
+      <RescheduledBanner
+        previousStartsAt={new Date(event.previousStartsAt)}
+        newStartsAt={new Date(event.startsAt)}
+        accentColor="#ffa500"
+        timezone={event.timezone}
+      />
+    ) : null
 
     // ============================================
     // BRUTALIST TEMPLATE - Raw, grid-exposed, stark
@@ -387,6 +476,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-black text-white font-mono">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
         {/* Exposed grid background */}
         <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.04]">
@@ -623,6 +713,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-black text-white relative overflow-hidden">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
         {/* Ambient glow */}
         <div
@@ -927,6 +1018,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-zinc-950 text-white">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
         {/* Subtle gradient */}
         <div className="fixed inset-0 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black pointer-events-none" />
@@ -1147,6 +1239,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-black text-white overflow-hidden">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
         {/* Chaotic background shapes */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -1382,6 +1475,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-[#0a0a0a] text-white">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
           {/* Warm gradient overlay */}
           <div className="fixed inset-0 pointer-events-none z-0">
@@ -1705,6 +1799,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-black text-white">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
           {/* Blurred background image */}
           {event.flyerUrl && (
@@ -2020,6 +2115,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-[#0c0c0c] text-white">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
           {/* Ambient gradient background */}
           <div
@@ -2405,6 +2501,7 @@ export default async function EventPage({
       return (
         <div className="min-h-screen bg-[#0a0612] text-white overflow-hidden">
           <ViewTracker eventId={event.id} />
+          {rescheduledBannerElement}
 
           {/* Vaporwave gradient background */}
           <div
@@ -2766,6 +2863,7 @@ export default async function EventPage({
     return (
       <div className="min-h-screen bg-neutral-950 text-white">
         <ViewTracker eventId={event.id} />
+        {rescheduledBannerElement}
 
       {/* Subtle texture */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.02]">
