@@ -433,13 +433,13 @@ export default async function EventPage({
     const accentIsLight = isLightColor(accentColor)
     // Primary text color based on background
     const textColor = bgIsLight ? '#000000' : '#ffffff'
-    const textMuted = bgIsLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)'
-    const textSubtle = bgIsLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)'
+    const _textMuted = bgIsLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)'
+    const _textSubtle = bgIsLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)'
     // Text color for accent-colored backgrounds (buttons, etc.)
     const accentTextColor = accentIsLight ? '#000000' : '#ffffff'
     // Border colors
-    const borderColor = bgIsLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
-    const borderColorStrong = bgIsLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'
+    const _borderColor = bgIsLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
+    const _borderColorStrong = bgIsLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'
 
     // Location display logic - use live design if provided
     const showLocationOnPage = liveDesign?.showLocationOnPage ?? event.showLocationOnPage
