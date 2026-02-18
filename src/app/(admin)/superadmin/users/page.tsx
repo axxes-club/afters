@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import type { UserRole } from "@prisma/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -31,7 +32,7 @@ export default async function UserManagement({
               { username: { contains: search, mode: "insensitive" } },
             ],
           },
-          roleFilter ? { role: roleFilter as any } : {},
+          roleFilter ? { role: roleFilter as UserRole } : {},
         ],
       },
       include: {

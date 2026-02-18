@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/prisma"
+import type { Prisma } from "@prisma/client"
+
+type EventWithDetails = Prisma.EventGetPayload<{
+  include: { organizer: true; _count: { select: { tickets: true; orders: true } } }
+}>
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -136,7 +141,7 @@ export default async function EventManagement({
   )
 }
 
-function EventTable({ events, showFlagReason }: { events: any[]; showFlagReason?: boolean }) {
+function EventTable({ events, showFlagReason }: { events: EventWithDetails[]; showFlagReason?: boolean }) {
   return (
     <>
       {/* Mobile Cards */}

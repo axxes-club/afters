@@ -350,7 +350,7 @@ export default function TranslationsPage() {
           <CardContent className="py-12 text-center">
             <Languages className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-lg font-medium">No translations found</p>
-            <p className="text-muted-foreground mb-4">Click "Sync from Files" to import translations</p>
+            <p className="text-muted-foreground mb-4">Click &quot;Sync from Files&quot; to import translations</p>
             <Button onClick={syncFromFiles} disabled={syncing}>
               {syncing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
               Sync from Files

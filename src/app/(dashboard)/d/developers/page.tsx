@@ -211,7 +211,7 @@ export default function DevelopersPage() {
                   <DialogHeader>
                     <DialogTitle>API Key Created</DialogTitle>
                     <DialogDescription>
-                      Copy your API key now. You won't be able to see it again.
+                      Copy your API key now. You won&apos;t be able to see it again.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
@@ -238,7 +238,7 @@ export default function DevelopersPage() {
                     </div>
                     <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-sm text-yellow-200">
                       <strong>Important:</strong> Store this key securely. It
-                      provides access to your account's data.
+                      provides access to your account&apos;s data.
                     </div>
                   </div>
                   <DialogFooter>

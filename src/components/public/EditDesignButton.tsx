@@ -60,14 +60,14 @@ export default function EditDesignButton({ eventId }: EditDesignButtonProps) {
 
   const [templateChangeNote, setTemplateChangeNote] = useState(false)
 
-  const handleDesignUpdate = (key: keyof DesignSettings, value: any) => {
+  const handleDesignUpdate = (key: keyof DesignSettings, value: DesignSettings[keyof DesignSettings]) => {
     updateDesign(key, value)
     // For template changes, navigate with preview params to see the change live
     if (key === 'pageTheme') {
       setTemplateChangeNote(true)
       // Navigate with preview params to show the new template
       const url = new URL(window.location.href)
-      url.searchParams.set('preview_theme', value)
+      url.searchParams.set('preview_theme', value as string)
       url.searchParams.set('preview_color', design.accentColor)
       url.searchParams.set('preview_typography', design.typography)
       window.location.href = url.toString()

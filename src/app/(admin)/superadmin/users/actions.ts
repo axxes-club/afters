@@ -151,9 +151,9 @@ export async function updateUserMetadata(userId: string, data: {
     
     revalidatePath("/superadmin/users")
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to update user:", error)
-    return { error: error.message || "Failed to update user" }
+    return { error: error instanceof Error ? error.message : "Failed to update user" }
   }
 }
 
@@ -232,8 +232,8 @@ export async function impersonateUser(userId: string) {
       message: `To fully impersonate, use Clerk Dashboard: https://dashboard.clerk.com`,
       email: user.email
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to impersonate user:", error)
-    return { error: error.message || "Failed to create impersonation session" }
+    return { error: error instanceof Error ? error.message : "Failed to create impersonation session" }
   }
 }

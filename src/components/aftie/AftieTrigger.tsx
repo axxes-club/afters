@@ -9,6 +9,7 @@ export function AftieTrigger() {
   // Don't render until hydrated to avoid hydration mismatch
   // Show for users with organizer profile (setupStatus.hasProfile)
   // The consent dialog will handle first-time setup
+  if (process.env.NODE_ENV === "production") return null
   if (!isHydrated || !setupStatus?.hasProfile || isOpen) return null
 
   return (

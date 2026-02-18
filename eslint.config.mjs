@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Claude hooks are Node.js CJS scripts, not linted
+    ".claude/**",
+    // Utility scripts are not production code
+    "scripts/**",
+    "prisma/**",
   ]),
 ]);
 

@@ -9,6 +9,16 @@ import { getSessionUser } from "@/lib/auth-utils"
 import EditDesignOverlay from "@/components/public/EventPageClient"
 import EventInfoSections from "@/components/public/EventInfoSections"
 import type { Metadata } from "next"
+import type { CSSProperties } from "react"
+
+interface LiveDesign {
+  accentColor?: string
+  pageTheme?: string
+  typography?: string
+  showLocationOnPage?: boolean
+  showMapOnPage?: boolean
+  isAddressHidden?: boolean
+}
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -280,7 +290,7 @@ export default async function EventPage({
 
   // Create render function that accepts live design
   // Preview params take priority for owners, allowing live preview via URL
-  const renderEventPage = (liveDesign?: any) => {
+  const renderEventPage = (liveDesign?: LiveDesign) => {
     const accentColor = (isOwner && preview_color) || liveDesign?.accentColor || event.accentColor || '#ff1493'
     const pageTheme = (isOwner && preview_theme) || liveDesign?.pageTheme || event.pageTheme || 'neon'
     const typography = (isOwner && preview_typography) || liveDesign?.typography || event.typography || 'headline'
@@ -439,7 +449,7 @@ export default async function EventPage({
                   <div className="text-xs tracking-widest uppercase text-white/40 mb-2">LOCATION</div>
                   <div className="text-xl font-bold uppercase flex items-center gap-3">
                     <Lock className="w-5 h-5" style={{ color: accentColor }} />
-                    {event.city} // SECRET
+                    {event.city}
                   </div>
                   <div className="text-xs text-white/40 mt-2">Address revealed on ticket</div>
                 </div>
@@ -491,8 +501,8 @@ export default async function EventPage({
                   className="group block w-full p-6 text-center text-xl font-black tracking-widest uppercase border-4 transition-colors"
                   style={{
                     borderColor: accentColor,
-                    ['--accent' as any]: accentColor,
-                  }}
+                    ['--accent']: accentColor,
+                  } as CSSProperties}
                 >
                   <span
                     className="transition-colors"
@@ -521,7 +531,7 @@ export default async function EventPage({
               className="block w-full p-4 text-center font-black tracking-widest uppercase"
               style={{ backgroundColor: accentColor, color: '#000' }}
             >
-              {ctaText} // {isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
+              {ctaText}{" // "}{isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
             </Link>
           ) : (
             <div className="w-full p-4 text-center font-black tracking-widest uppercase bg-white/10 text-white/30">
@@ -1275,7 +1285,7 @@ export default async function EventPage({
               className="block w-full py-4 text-center font-black text-xl uppercase"
               style={{ backgroundColor: accentColor, color: '#000' }}
             >
-              {ctaText} // {isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
+              {ctaText}{" // "}{isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
             </Link>
           ) : (
             <div className="w-full py-4 text-center font-black text-xl uppercase bg-white/10 text-white/30">
@@ -1725,7 +1735,7 @@ export default async function EventPage({
                     <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
                       <h2 className="text-xl font-bold mb-4">FAQs</h2>
                       <div className="space-y-3">
-                        {faqs.filter((faq: any) => faq && faq.question && faq.answer).map((faq: any, idx: number) => (
+                        {(faqs as { question: string; answer: string }[]).filter((faq) => faq?.question && faq?.answer).map((faq, idx: number) => (
                           <details key={idx} className="group">
                             <summary className="flex items-center justify-between cursor-pointer p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                               <span className="font-medium pr-4">{faq.question}</span>

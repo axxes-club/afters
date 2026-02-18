@@ -12,6 +12,7 @@ export function LivePreviewStyles() {
   // Flash effect when accent color changes
   useEffect(() => {
     if (prevColorRef.current !== design.accentColor && hasChanges) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowFlash(true)
       setTimeout(() => setShowFlash(false), 300)
     }
