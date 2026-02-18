@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
+import { randomInt } from "crypto"
 
 export const SCANNER_SESSION_COOKIE = "afters-scanner-session"
 
@@ -18,7 +19,9 @@ export interface ScannerSession {
 }
 
 export function generateScannerCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
+  // Use cryptographically secure random number generator
+  // randomInt is inclusive of min, exclusive of max
+  return randomInt(100000, 1000000).toString()
 }
 
 export async function createScannerToken(

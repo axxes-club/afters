@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
 
 // GET or create a test ticket for an event
 export async function GET(
@@ -7,9 +8,26 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    const { userId } = await auth()
     const { eventId } = await params
 
-    // Verify event exists and is published
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Get organizer profile for the current user
+    const profile = await prisma.organizerProfile.findUnique({
+      where: { userId },
+    })
+
+    if (!profile) {
+      return NextResponse.json(
+        { message: "Organizer profile required" },
+        { status: 400 }
+      )
+    }
+
+    // Verify event exists and user owns it
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       select: {
@@ -17,6 +35,7 @@ export async function GET(
         title: true,
         slug: true,
         isPublished: true,
+        organizerId: true,
         organizer: {
           select: { id: true, displayName: true },
         },
@@ -25,6 +44,11 @@ export async function GET(
 
     if (!event) {
       return NextResponse.json({ message: "Event not found" }, { status: 404 })
+    }
+
+    // Verify ownership
+    if (event.organizerId !== profile.id) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 })
     }
 
     if (!event.isPublished) {
@@ -139,7 +163,34 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    const { userId } = await auth()
     const { eventId } = await params
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    // Get organizer profile for the current user
+    const profile = await prisma.organizerProfile.findUnique({
+      where: { userId },
+    })
+
+    if (!profile) {
+      return NextResponse.json(
+        { message: "Organizer profile required" },
+        { status: 400 }
+      )
+    }
+
+    // Verify event ownership
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { organizerId: true },
+    })
+
+    if (!event || event.organizerId !== profile.id) {
+      return NextResponse.json({ message: "Event not found" }, { status: 404 })
+    }
 
     // Find and reset the test ticket
     const testTicket = await prisma.ticket.findFirst({

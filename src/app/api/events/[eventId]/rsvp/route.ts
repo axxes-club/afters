@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { Resend } from "resend"
 import { verifyTurnstileToken } from "@/components/Turnstile"
+import { escapeHtml, safeColor } from "@/lib/security"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -150,34 +151,36 @@ export async function POST(
       minute: '2-digit',
     })
 
+    // Escape all user-supplied content for email
+    const safeTitle = escapeHtml(event.title)
+    const safeVenue = escapeHtml(event.venueName)
+    const safeCity = escapeHtml(event.city)
+    const safeAddress = escapeHtml(event.venueAddress)
+    const safeOrgName = escapeHtml(event.organizer.displayName)
+    // Validate accent color - only allow valid hex colors
+    const accentColor = safeColor(event.accentColor) || '#ff1493'
+
     resend.emails.send({
       from: "Afters <noreply@afters.am>",
       to: email,
-      subject: `RSVP Confirmed: ${event.title}`,
+      subject: `RSVP Confirmed: ${safeTitle}`,
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #000; color: #fff; padding: 40px;">
           <h1 style="font-size: 24px; margin-bottom: 8px;">You're on the list!</h1>
-          <p style="color: #888; margin-bottom: 32px;">Your RSVP for ${event.title} has been confirmed.</p>
+          <p style="color: #888; margin-bottom: 32px;">Your RSVP for ${safeTitle} has been confirmed.</p>
 
-          <div style="background: #111; padding: 24px; border-left: 3px solid ${event.accentColor || '#ff1493'};">
-            <h2 style="font-size: 20px; margin: 0 0 16px 0;">${event.title}</h2>
-            <p style="color: #888; margin: 0 0 8px 0;">${dateStr} at ${timeStr}</p>
-            <p style="color: #888; margin: 0;">${event.venueName}, ${event.city}</p>
+          <div style="background: #111; padding: 24px; border-left: 3px solid ${accentColor};">
+            <h2 style="font-size: 20px; margin: 0 0 16px 0;">${safeTitle}</h2>
+            <p style="color: #888; margin: 0 0 8px 0;">${escapeHtml(dateStr)} at ${escapeHtml(timeStr)}</p>
+            <p style="color: #888; margin: 0;">${safeVenue}, ${safeCity}</p>
           </div>
 
           <div style="margin-top: 24px; padding: 16px; background: #111;">
             <p style="color: #888; margin: 0;">Guests: <strong style="color: #fff;">${totalGuests}</strong></p>
           </div>
 
-          ${!event.showLocationOnPage && event.venueAddress ? `
-            <div style="margin-top: 24px; padding: 16px; background: #111; border: 1px solid #333;">
-              <p style="color: ${event.accentColor || '#ff1493'}; margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase;">Secret Location</p>
-              <p style="color: #fff; margin: 0;">${event.venueAddress}</p>
-            </div>
-          ` : ''}
-
           <p style="color: #666; margin-top: 32px; font-size: 12px;">
-            Presented by ${event.organizer.displayName} &bull; Powered by Afters
+            Presented by ${safeOrgName} &bull; Powered by Afters
           </p>
         </div>
       `,

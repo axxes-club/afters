@@ -17,9 +17,24 @@ async function getSettings() {
   return settings
 }
 
-// GET /api/admin/settings - Get current site settings
+// GET /api/admin/settings - Get current site settings (superadmin only)
 export async function GET() {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Verify superadmin role
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    })
+
+    if (user?.role !== "SUPERADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     const settings = await getSettings()
     return NextResponse.json(settings)
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
 import QRCodeStyling from "qr-code-styling"
 
 export async function GET(
@@ -7,18 +8,42 @@ export async function GET(
   { params }: { params: Promise<{ ticketId: string }> }
 ) {
   try {
+    const { userId } = await auth()
     const { ticketId } = await params
     const { searchParams } = new URL(req.url)
     const size = parseInt(searchParams.get("size") || "300")
 
-    // Get ticket to check if it's a test ticket
+    // Get ticket with order info to verify ownership
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
-      select: { id: true, isTestTicket: true },
+      select: {
+        id: true,
+        isTestTicket: true,
+        userId: true,
+        order: {
+          select: {
+            email: true,
+            userId: true,
+          },
+        },
+      },
     })
 
     if (!ticket) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
+    }
+
+    // Security: Verify ticket ownership
+    // Allow if: logged in user owns the ticket, or matches order userId
+    const isOwner = userId && (
+      ticket.userId === userId ||
+      ticket.order?.userId === userId
+    )
+
+    // For test tickets, also allow event organizers (they need to test scanning)
+    // For non-test tickets, only the owner can access the QR
+    if (!isOwner && !ticket.isTestTicket) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const isTest = ticket.isTestTicket

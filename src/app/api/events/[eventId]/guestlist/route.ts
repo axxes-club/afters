@@ -151,8 +151,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Event not found" }, { status: 404 })
     }
 
+    // Include eventId in where clause to prevent cross-event deletion
     await prisma.guestlistEntry.delete({
-      where: { id: entryId },
+      where: { id: entryId, eventId },
     })
 
     return NextResponse.json({ success: true })

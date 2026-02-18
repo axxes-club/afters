@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { escapeHtml } from './security'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -49,13 +50,20 @@ export function generateTicketEmailHtml(data: {
   ticketCount: number
   orderNumber: string
 }) {
+  // Escape all user-supplied content to prevent XSS/HTML injection
+  const safeTitle = escapeHtml(data.eventTitle)
+  const safeDate = escapeHtml(data.eventDate)
+  const safeVenue = escapeHtml(data.venueName)
+  const safeAddress = escapeHtml(data.venueAddress)
+  const safeOrderNumber = escapeHtml(data.orderNumber)
+
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Tickets for ${data.eventTitle}</title>
+  <title>Your Tickets for ${safeTitle}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #000; font-family: 'Helvetica Neue', Arial, sans-serif;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #000;">
@@ -79,7 +87,7 @@ export function generateTicketEmailHtml(data: {
               </h2>
               
               <p style="margin: 0 0 30px; color: #888; font-size: 16px; line-height: 1.6;">
-                Your tickets for <strong style="color: #fff;">${data.eventTitle}</strong> are attached to this email.
+                Your tickets for <strong style="color: #fff;">${safeTitle}</strong> are attached to this email.
               </p>
               
               <!-- Event Details -->
@@ -90,16 +98,16 @@ export function generateTicketEmailHtml(data: {
                       Event Details
                     </p>
                     <p style="margin: 0 0 5px; color: #fff; font-size: 18px; font-weight: bold;">
-                      ${data.eventTitle}
+                      ${safeTitle}
                     </p>
                     <p style="margin: 0 0 5px; color: #888; font-size: 14px;">
-                      📅 ${data.eventDate}
+                      📅 ${safeDate}
                     </p>
                     <p style="margin: 0 0 5px; color: #888; font-size: 14px;">
-                      📍 ${data.venueName}
+                      📍 ${safeVenue}
                     </p>
                     <p style="margin: 0; color: #666; font-size: 13px;">
-                      ${data.venueAddress}
+                      ${safeAddress}
                     </p>
                   </td>
                 </tr>
@@ -128,7 +136,7 @@ export function generateTicketEmailHtml(data: {
           <tr>
             <td style="padding: 30px 0; text-align: center;">
               <p style="margin: 0 0 10px; color: #666; font-size: 12px;">
-                Order #${data.orderNumber}
+                Order #${safeOrderNumber}
               </p>
               <p style="margin: 0; color: #444; font-size: 11px;">
                 © ${new Date().getFullYear()} Afters. All rights reserved.

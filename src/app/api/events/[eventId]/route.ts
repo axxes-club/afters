@@ -7,26 +7,111 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    const { userId } = await auth()
     const { eventId } = await params
 
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      include: {
-        organizer: {
-          select: {
-            displayName: true,
-            slug: true,
-          },
-        },
-        ticketTiers: {
-          where: { isVisible: true },
-          orderBy: { sortOrder: "asc" },
+    // Check if user is the organizer (can see unpublished events)
+    let isOrganizer = false
+    if (userId) {
+      const profile = await prisma.organizerProfile.findUnique({
+        where: { userId },
+      })
+      if (profile) {
+        const ownedEvent = await prisma.event.findFirst({
+          where: { id: eventId, organizerId: profile.id },
+        })
+        isOrganizer = !!ownedEvent
+      }
+    }
+
+    // Select only public-safe fields for anonymous users
+    const publicSelect = {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      startsAt: true,
+      endsAt: true,
+      timezone: true,
+      venueName: true,
+      city: true,
+      state: true,
+      flyerUrl: true,
+      ageRestriction: true,
+      ticketingType: true,
+      externalTicketingUrl: true,
+      isRsvpOnly: true,
+      rsvpCapacity: true,
+      rsvpAllowPlusOnes: true,
+      rsvpMaxPlusOnes: true,
+      rsvpCount: true,
+      isAddressHidden: true,
+      lineup: true,
+      pageTheme: true,
+      accentColor: true,
+      expiresAfter: true,
+      isPublished: true,
+      status: true,
+      // Conditionally include venueAddress based on isAddressHidden
+      venueAddress: true,
+      organizer: {
+        select: {
+          displayName: true,
+          slug: true,
         },
       },
-    })
+      ticketTiers: {
+        where: { isVisible: true },
+        orderBy: { sortOrder: "asc" as const },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          quantity: true,
+          quantitySold: true,
+          salesStartAt: true,
+          salesEndAt: true,
+          minPerOrder: true,
+          maxPerOrder: true,
+        },
+      },
+    }
+
+    // Use different queries for organizer vs public to avoid select/include conflict
+    const event = isOrganizer
+      ? await prisma.event.findUnique({
+          where: { id: eventId },
+          include: {
+            organizer: {
+              select: {
+                displayName: true,
+                slug: true,
+              },
+            },
+            ticketTiers: {
+              where: { isVisible: true },
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+        })
+      : await prisma.event.findUnique({
+          where: { id: eventId },
+          select: publicSelect,
+        })
 
     if (!event) {
       return NextResponse.json({ message: "Event not found" }, { status: 404 })
+    }
+
+    // For anonymous users, only return published events
+    if (!isOrganizer && !event.isPublished) {
+      return NextResponse.json({ message: "Event not found" }, { status: 404 })
+    }
+
+    // Hide venue address if isAddressHidden is true (for anonymous users)
+    if (!isOrganizer && event.isAddressHidden) {
+      (event as Record<string, unknown>).venueAddress = null
     }
 
     return NextResponse.json(event)
@@ -159,10 +244,70 @@ export async function PATCH(
 
     const body = await req.json()
 
-    // PATCH only updates provided fields
+    // PATCH only updates provided fields - allowlist to prevent mass assignment
+    const {
+      title,
+      description,
+      startsAt,
+      endsAt,
+      timezone,
+      venueName,
+      venueAddress,
+      city,
+      state,
+      flyerUrl,
+      ageRestriction,
+      ticketingType,
+      externalTicketingUrl,
+      isAddressHidden,
+      lineup,
+      pageTheme,
+      accentColor,
+      isRsvpOnly,
+      rsvpCapacity,
+      rsvpAllowPlusOnes,
+      rsvpMaxPlusOnes,
+      expiresAfter,
+      isPublished,
+      status,
+    } = body
+
+    // Build update data only from allowed fields that are present
+    const updateData: Record<string, unknown> = {}
+    if (title !== undefined) updateData.title = title
+    if (description !== undefined) updateData.description = description
+    if (startsAt !== undefined) updateData.startsAt = startsAt ? new Date(startsAt) : null
+    if (endsAt !== undefined) updateData.endsAt = endsAt ? new Date(endsAt) : null
+    if (timezone !== undefined) updateData.timezone = timezone
+    if (venueName !== undefined) updateData.venueName = venueName
+    if (venueAddress !== undefined) updateData.venueAddress = venueAddress
+    if (city !== undefined) updateData.city = city
+    if (state !== undefined) updateData.state = state
+    if (flyerUrl !== undefined) updateData.flyerUrl = flyerUrl
+    if (ageRestriction !== undefined) updateData.ageRestriction = ageRestriction ? parseInt(ageRestriction) : null
+    if (ticketingType !== undefined) updateData.ticketingType = ticketingType
+    if (externalTicketingUrl !== undefined) {
+      let normalizedUrl = externalTicketingUrl
+      if (normalizedUrl && !normalizedUrl.startsWith('http')) {
+        normalizedUrl = `https://${normalizedUrl}`
+      }
+      updateData.externalTicketingUrl = normalizedUrl
+    }
+    if (isAddressHidden !== undefined) updateData.isAddressHidden = isAddressHidden
+    if (lineup !== undefined) updateData.lineup = lineup
+    if (pageTheme !== undefined) updateData.pageTheme = pageTheme
+    if (accentColor !== undefined) updateData.accentColor = accentColor
+    if (isRsvpOnly !== undefined) updateData.isRsvpOnly = isRsvpOnly
+    if (rsvpCapacity !== undefined) updateData.rsvpCapacity = rsvpCapacity ? parseInt(rsvpCapacity) : null
+    if (rsvpAllowPlusOnes !== undefined) updateData.rsvpAllowPlusOnes = rsvpAllowPlusOnes
+    if (rsvpMaxPlusOnes !== undefined) updateData.rsvpMaxPlusOnes = rsvpMaxPlusOnes ? parseInt(rsvpMaxPlusOnes) : null
+    if (expiresAfter !== undefined) updateData.expiresAfter = expiresAfter
+    if (isPublished !== undefined) updateData.isPublished = isPublished
+    if (status !== undefined) updateData.status = status
+
     const event = await prisma.event.update({
       where: { id: eventId },
-      data: body,
+      data: updateData,
     })
 
     return NextResponse.json(event)

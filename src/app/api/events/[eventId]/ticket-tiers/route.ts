@@ -7,11 +7,48 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    const { userId } = await auth()
     const { eventId } = await params
 
+    // Check if user is the organizer (can see hidden tiers)
+    let isOrganizer = false
+    if (userId) {
+      const profile = await prisma.organizerProfile.findUnique({
+        where: { userId },
+      })
+      if (profile) {
+        const event = await prisma.event.findFirst({
+          where: { id: eventId, organizerId: profile.id },
+        })
+        isOrganizer = !!event
+      }
+    }
+
+    // For anonymous users, only show visible tiers with limited fields
     const tiers = await prisma.ticketTier.findMany({
-      where: { eventId },
+      where: {
+        eventId,
+        // Only filter by isVisible for non-organizers
+        ...(isOrganizer ? {} : { isVisible: true }),
+      },
       orderBy: { sortOrder: "asc" },
+      // Limit fields for anonymous users
+      ...(isOrganizer ? {} : {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          quantity: true,
+          // Don't expose exact quantitySold to public - just show availability
+          isVisible: true,
+          salesStartAt: true,
+          salesEndAt: true,
+          minPerOrder: true,
+          maxPerOrder: true,
+          sortOrder: true,
+        },
+      }),
     })
 
     return NextResponse.json(tiers)
@@ -139,23 +176,42 @@ export async function PUT(
     }
 
     const body = await req.json()
-    const { id, ...data } = body
+    const { id } = body
 
     if (!id) {
       return NextResponse.json({ message: "Tier ID required" }, { status: 400 })
     }
 
-    // Remove price from data - free during beta
-    const { price: _, ...safeData } = data
+    // Allowlist updatable fields to prevent mass assignment
+    // Explicitly exclude: price (beta), quantitySold, id, eventId, createdAt, updatedAt
+    const {
+      name,
+      description,
+      quantity,
+      isVisible,
+      salesStartAt,
+      salesEndAt,
+      minPerOrder,
+      maxPerOrder,
+      sortOrder,
+    } = body
+
+    // Build update data only from allowed fields that are present
+    const updateData: Record<string, unknown> = {}
+    if (name !== undefined) updateData.name = name
+    if (description !== undefined) updateData.description = description
+    if (quantity !== undefined) updateData.quantity = quantity
+    if (isVisible !== undefined) updateData.isVisible = isVisible
+    if (salesStartAt !== undefined) updateData.salesStartAt = salesStartAt ? new Date(salesStartAt) : null
+    if (salesEndAt !== undefined) updateData.salesEndAt = salesEndAt ? new Date(salesEndAt) : null
+    if (minPerOrder !== undefined) updateData.minPerOrder = minPerOrder
+    if (maxPerOrder !== undefined) updateData.maxPerOrder = maxPerOrder
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder
+    // price changes disabled during beta - intentionally not included
 
     const tier = await prisma.ticketTier.update({
       where: { id, eventId },
-      data: {
-        ...safeData,
-        // price changes disabled during beta
-        salesStartAt: safeData.salesStartAt ? new Date(safeData.salesStartAt) : undefined,
-        salesEndAt: safeData.salesEndAt ? new Date(safeData.salesEndAt) : undefined,
-      },
+      data: updateData,
     })
 
     return NextResponse.json(tier)

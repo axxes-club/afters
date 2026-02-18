@@ -10,8 +10,10 @@ export async function POST(
 ) {
   try {
     const { orderId } = await params
+    const body = await req.json().catch(() => ({}))
+    const { email: confirmEmail } = body
 
-    // Get order with items - no auth required for guest checkout
+    // Get order with items
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -27,6 +29,25 @@ export async function POST(
 
     if (!order) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 })
+    }
+
+    // Security: Require email confirmation to verify ownership
+    // The caller must know the email associated with the order
+    if (!confirmEmail || confirmEmail.toLowerCase() !== order.email.toLowerCase()) {
+      return NextResponse.json(
+        { message: "Invalid confirmation" },
+        { status: 403 }
+      )
+    }
+
+    // Security: Prevent confirmation of stale orders (older than 1 hour)
+    const orderAge = Date.now() - new Date(order.createdAt).getTime()
+    const ONE_HOUR = 60 * 60 * 1000
+    if (orderAge > ONE_HOUR) {
+      return NextResponse.json(
+        { message: "Order has expired. Please create a new order." },
+        { status: 400 }
+      )
     }
 
     // Verify order is pending

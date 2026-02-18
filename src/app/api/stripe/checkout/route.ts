@@ -4,13 +4,13 @@ import { stripe } from "@/lib/stripe"
 
 export async function POST(req: Request) {
   try {
-    const { orderId } = await req.json()
+    const { orderId, email: confirmEmail } = await req.json()
 
     if (!orderId) {
       return NextResponse.json({ message: "Order ID required" }, { status: 400 })
     }
 
-    // Get order with event and organizer - no userId requirement for guest checkout
+    // Get order with event and organizer
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -29,6 +29,25 @@ export async function POST(req: Request) {
 
     if (!order) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 })
+    }
+
+    // Security: Require email confirmation to verify ownership
+    // The caller must know the email associated with the order
+    if (!confirmEmail || confirmEmail.toLowerCase() !== order.email.toLowerCase()) {
+      return NextResponse.json(
+        { message: "Invalid confirmation" },
+        { status: 403 }
+      )
+    }
+
+    // Security: Prevent checkout of stale orders (older than 1 hour)
+    const orderAge = Date.now() - new Date(order.createdAt).getTime()
+    const ONE_HOUR = 60 * 60 * 1000
+    if (orderAge > ONE_HOUR) {
+      return NextResponse.json(
+        { message: "Order has expired. Please create a new order." },
+        { status: 400 }
+      )
     }
 
     if (order.status !== "PENDING") {
