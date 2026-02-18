@@ -119,6 +119,17 @@ export default function DashboardLayout({
 
   // Apply accent color CSS variable
   const accentColor = uiPrefs.uiAccentColor || "#ff1493";
+  
+  // Font size scaling
+  const fontSizeClass = {
+    small: "text-sm",
+    normal: "text-base", 
+    large: "text-lg",
+  }[uiPrefs.uiFontSize];
+  
+  // Sidebar width based on compact mode
+  const sidebarWidth = uiPrefs.sidebarCompact ? "w-16" : "w-56";
+  const mainMargin = uiPrefs.sidebarCompact ? "md:ml-16" : "md:ml-56";
 
   // Check if we're in settings section
   const isInSettings = pathname.startsWith("/d/settings");
@@ -135,14 +146,17 @@ export default function DashboardLayout({
 
   return (
     <AftieProvider>
-      <div className="min-h-screen bg-black text-white flex overflow-x-hidden">
+      <div 
+        className="min-h-screen bg-black text-white flex overflow-x-hidden"
+        style={{ "--accent-color": accentColor } as React.CSSProperties}
+      >
         {/* Desktop Sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
+        <aside className={`hidden md:flex ${sidebarWidth} border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50 transition-all duration-200`}>
           {/* Logo */}
           {uiPrefs.sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
-              className="h-16 flex items-center justify-center px-4 border-b border-white/5"
+              className={`h-16 flex items-center justify-center ${uiPrefs.sidebarCompact ? "px-2" : "px-4"} border-b border-white/5`}
             >
               {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
                 <Link href="/d" className="flex items-center justify-center">
@@ -150,32 +164,37 @@ export default function DashboardLayout({
                   <img
                     src={uiPrefs.sidebarCustomLogoUrl}
                     alt="Logo"
-                    className="max-h-10 max-w-[180px] object-contain"
+                    className={`object-contain ${uiPrefs.sidebarCompact ? "max-h-8 max-w-[48px]" : "max-h-10 max-w-[180px]"}`}
                   />
                 </Link>
               ) : (
-                <Link href="/d" className="font-headline text-2xl tracking-wide">
-                  AFTERS<span style={{ color: accentColor }}>.</span>
+                <Link href="/d" className={`font-headline tracking-wide ${uiPrefs.sidebarCompact ? "text-xl" : "text-2xl"}`}>
+                  {uiPrefs.sidebarCompact ? (
+                    <span style={{ color: accentColor }}>.</span>
+                  ) : (
+                    <>AFTERS<span style={{ color: accentColor }}>.</span></>
+                  )}
                 </Link>
               )}
             </div>
           )}
 
           {/* Navigation */}
-          <nav className="flex-1 py-4 px-2 space-y-1">
+          <nav className={`flex-1 py-4 ${uiPrefs.sidebarCompact ? "px-1" : "px-2"} space-y-1`}>
             {/* Back button when in settings */}
             {isInSettings && (
               <Link
                 href="/d"
-                className="flex items-center gap-3 px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3"
+                className={`flex items-center ${uiPrefs.sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3`}
+                title={uiPrefs.sidebarCompact ? "Back to Base" : undefined}
               >
                 <ArrowLeft className="w-4 h-4 flex-shrink-0" />
-                <span>BASE</span>
+                {!uiPrefs.sidebarCompact && <span>BASE</span>}
               </Link>
             )}
             
             {/* Section label when in settings */}
-            {isInSettings && (
+            {isInSettings && !uiPrefs.sidebarCompact && (
               <div className="px-3 py-2 text-[10px] font-mono text-white/30 tracking-widest">
                 SETTINGS
               </div>
@@ -191,7 +210,7 @@ export default function DashboardLayout({
                   key={item.href}
                   href={item.href}
                   className={`
-                  flex items-center gap-3 px-3 py-2.5 text-xs font-mono tracking-wider transition-all
+                  flex items-center ${uiPrefs.sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all
                   ${
                     isActive
                       ? "text-black"
@@ -199,47 +218,50 @@ export default function DashboardLayout({
                   }
                 `}
                   style={isActive ? { backgroundColor: accentColor } : undefined}
+                  title={uiPrefs.sidebarCompact ? item.label : undefined}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
-                  <span>{item.label}</span>
+                  {!uiPrefs.sidebarCompact && <span>{item.label}</span>}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Date/Time & Status */}
-          <div className="px-3 py-4 border-t border-white/5 space-y-3">
-            <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
-              <span>
-                {new Date()
-                  .toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })
-                  .toUpperCase()}
-              </span>
-              <span className="text-white/10">|</span>
-              <span>
-                {new Date().toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
+          {/* Date/Time & Status - Hidden when compact */}
+          {!uiPrefs.sidebarCompact && (
+            <div className="px-3 py-4 border-t border-white/5 space-y-3">
               <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                <span>ONLINE</span>
-                <span className="text-white/20">(v{APP_VERSION_DISPLAY})</span>
+                <span>
+                  {new Date()
+                    .toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })
+                    .toUpperCase()}
+                </span>
+                <span className="text-white/10">|</span>
+                <span>
+                  {new Date().toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
-              <FeedbackButton />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span>ONLINE</span>
+                  <span className="text-white/20">(v{APP_VERSION_DISPLAY})</span>
+                </div>
+                <FeedbackButton />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* User */}
-          <div className="p-3 border-t border-white/5">
-            <div className="flex items-center gap-3" suppressHydrationWarning>
+          <div className={`${uiPrefs.sidebarCompact ? "p-2" : "p-3"} border-t border-white/5`}>
+            <div className={`flex items-center ${uiPrefs.sidebarCompact ? "justify-center" : "gap-3"}`} suppressHydrationWarning>
               <div className="flex-shrink-0">
                 <UserButton
                   appearance={{
@@ -249,11 +271,13 @@ export default function DashboardLayout({
                   }}
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-mono text-white/30 truncate">
-                  OPERATOR
-                </p>
-              </div>
+              {!uiPrefs.sidebarCompact && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-mono text-white/30 truncate">
+                    OPERATOR
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </aside>
@@ -294,7 +318,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 md:ml-56">
+        <main className={`flex-1 ${mainMargin} ${fontSizeClass} transition-all duration-200`}>
           {/* Mobile Header */}
           <header className="md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
             {/* Back button */}

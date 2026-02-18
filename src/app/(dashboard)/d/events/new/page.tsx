@@ -34,6 +34,7 @@ import { AuthGuard } from "@/components/AuthGuard"
 import { ArtistAutocomplete, RecentArtists } from "@/components/dashboard/ArtistAutocomplete"
 import { useAftie } from "@/components/aftie/AftieProvider"
 import { RecurrenceSelector, defaultRecurrenceConfig, type RecurrenceConfig } from "@/components/events/RecurrenceSelector"
+import { useAccentColor } from "@/hooks/useAccentColor"
 
 const US_CITIES = [
   "New York", "Brooklyn", "Charlotte", "Raleigh", "Los Angeles", "Miami",
@@ -62,6 +63,7 @@ interface LineupArtist {
 
 function NewEventForm() {
   const router = useRouter()
+  const uiAccent = useAccentColor() // Organizer's UI accent from settings
   const [loading, setLoading] = useState(false)
   const [flyerUrl, setFlyerUrl] = useState<string | null>(null)
   const [city, setCity] = useState<string>("")
@@ -72,7 +74,7 @@ function NewEventForm() {
 
   // Underground features
   const [isAddressHidden, setIsAddressHidden] = useState(false)
-  const [accentColor, setAccentColor] = useState<string>("#ff1493")
+  const [eventAccentColor, setEventAccentColor] = useState<string>("#ff1493") // Event's own accent
   const [lineup, setLineup] = useState<LineupArtist[]>([])
 
   // Event type: Ticketed vs RSVP
@@ -305,7 +307,7 @@ function NewEventForm() {
       ageRestriction: ageRestriction === "all" ? null : parseInt(ageRestriction),
       flyerUrl: flyerUrl,
       isAddressHidden,
-      accentColor,
+      accentColor: eventAccentColor,
       lineup: cleanLineup.length > 0 ? cleanLineup : null,
       // RSVP settings
       isRsvpOnly,
@@ -415,7 +417,7 @@ function NewEventForm() {
                 <SectionCard
                   icon={<ImageIcon className="w-4 h-4" />}
                   title="FLYER"
-                  color={accentColor}
+                  color={uiAccent}
                   compact
                 >
                   <FlyerUpload value={flyerUrl} onChange={setFlyerUrl} disabled={loading} />
@@ -547,7 +549,7 @@ function NewEventForm() {
               <SectionCard
                 icon={<Sparkles className="w-4 h-4" />}
                 title="EVENT DETAILS"
-                color={errors.title && touched.title ? "#ef4444" : accentColor}
+                color={errors.title && touched.title ? "#ef4444" : uiAccent}
               >
                 <div className="space-y-4">
                   <div data-field="title">
@@ -1017,7 +1019,7 @@ function NewEventForm() {
                 icon={<Palette className="w-4 h-4" />}
                 title="STYLE"
                 subtitle="Customize appearance"
-                color={accentColor}
+                color={eventAccentColor}
                 isOpen={showStyle}
                 onToggle={() => setShowStyle(!showStyle)}
               >
@@ -1031,11 +1033,11 @@ function NewEventForm() {
                         <button
                           key={color.value}
                           type="button"
-                          onClick={() => setAccentColor(color.value)}
+                          onClick={() => setEventAccentColor(color.value)}
                           aria-label={`Select ${color.name} accent color`}
-                          aria-pressed={accentColor === color.value}
+                          aria-pressed={eventAccentColor === color.value}
                           className={`w-10 h-10 md:w-12 md:h-12 transition-all ${
-                            accentColor === color.value
+                            eventAccentColor === color.value
                               ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
                               : "hover:scale-105"
                           }`}
@@ -1046,8 +1048,8 @@ function NewEventForm() {
                       <div className="relative w-10 h-10 md:w-12 md:h-12 border border-white/20 overflow-hidden">
                         <input
                           type="color"
-                          value={accentColor}
-                          onChange={(e) => setAccentColor(e.target.value)}
+                          value={eventAccentColor}
+                          onChange={(e) => setEventAccentColor(e.target.value)}
                           aria-label="Custom accent color"
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                         />
@@ -1062,7 +1064,7 @@ function NewEventForm() {
 
               {/* Submit - Mobile */}
               <div className="lg:hidden pt-4 pb-8">
-                <SubmitButton loading={loading} accentColor={accentColor} isSeries={recurrence.enabled} />
+                <SubmitButton loading={loading} accentColor={uiAccent} isSeries={recurrence.enabled} />
               </div>
             </div>
 
@@ -1083,14 +1085,14 @@ function NewEventForm() {
                 {/* Live Preview */}
                 <div
                   className="border bg-white/[0.02] overflow-hidden"
-                  style={{ borderColor: `${accentColor}30` }}
+                  style={{ borderColor: `${eventAccentColor}30` }}
                 >
                   <div
                     className="h-1"
-                    style={{ backgroundColor: accentColor }}
+                    style={{ backgroundColor: eventAccentColor }}
                   />
                   <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
-                    <Zap className="w-4 h-4" style={{ color: accentColor }} />
+                    <Zap className="w-4 h-4" style={{ color: eventAccentColor }} />
                     <span className="text-[10px] font-mono text-white/40 tracking-widest">PREVIEW</span>
                   </div>
                   <div className="p-4">
@@ -1122,7 +1124,7 @@ function NewEventForm() {
                 </div>
 
                 {/* Submit Button */}
-                <SubmitButton loading={loading} accentColor={accentColor} isSeries={recurrence.enabled} />
+                <SubmitButton loading={loading} accentColor={uiAccent} isSeries={recurrence.enabled} />
 
                 {/* Help Text */}
                 <p className="text-[10px] text-white/30 font-mono text-center px-4">
