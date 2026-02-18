@@ -33,6 +33,7 @@ import { FlyerUpload } from "@/components/FlyerUpload"
 import { AuthGuard } from "@/components/AuthGuard"
 import { ArtistAutocomplete, RecentArtists } from "@/components/dashboard/ArtistAutocomplete"
 import { useAftie } from "@/components/aftie/AftieProvider"
+import { RecurrenceSelector, defaultRecurrenceConfig, type RecurrenceConfig } from "@/components/events/RecurrenceSelector"
 
 const US_CITIES = [
   "New York", "Brooklyn", "Charlotte", "Raleigh", "Los Angeles", "Miami",
@@ -91,6 +92,9 @@ function NewEventForm() {
   // Expandable sections
   const [showLineup, setShowLineup] = useState(false)
   const [showStyle, setShowStyle] = useState(false)
+
+  // Recurring events
+  const [recurrence, setRecurrence] = useState<RecurrenceConfig>(defaultRecurrenceConfig)
 
   // AI Summarization
   const [isSummarizing, setIsSummarizing] = useState(false)
@@ -287,7 +291,8 @@ function NewEventForm() {
     const formData = new FormData(e.currentTarget)
     const cleanLineup = lineup.filter(a => a.name.trim() !== "")
 
-    const data = {
+    // Base event/template data
+    const eventData = {
       title: formData.get("title"),
       description: formData.get("description"),
       startsAt: startsAt || formData.get("startsAt"),
@@ -312,20 +317,68 @@ function NewEventForm() {
     }
 
     try {
-      const res = await fetch("/api/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
+      let res: Response
+      let successMessage: string
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.message || "Failed to create event")
+      if (recurrence.enabled) {
+        // Create recurring event series
+        const seriesData = {
+          title: eventData.title,
+          recurrencePattern: recurrence.pattern,
+          dayOfWeek: recurrence.dayOfWeek,
+          weekOfMonth: recurrence.weekOfMonth,
+          dayOfMonth: recurrence.dayOfMonth,
+          startsAt: eventData.startsAt,
+          endsAt: recurrence.endType === "date" ? recurrence.endDate : null,
+          maxOccurrences: recurrence.endType === "count" ? recurrence.occurrenceCount : null,
+          timezone: eventData.timezone,
+          generateCount: recurrence.endType === "count" ? recurrence.occurrenceCount : 8,
+          templateData: {
+            ...eventData,
+            durationMinutes: endTimeMode === "custom" && endsAt && startsAt
+              ? Math.round((new Date(endsAt).getTime() - new Date(startsAt).getTime()) / 60000)
+              : null,
+          },
+        }
+
+        res = await fetch("/api/v1/event-series", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(seriesData),
+        })
+
+        if (!res.ok) {
+          const error = await res.json()
+          throw new Error(error.message || error.error || "Failed to create event series")
+        }
+
+        const result = await res.json()
+        successMessage = `Created series with ${result.generatedCount} events!`
+        toast.success(successMessage)
+        // Navigate to the first event in the series
+        if (result.events && result.events.length > 0) {
+          router.push(`/d/events/${result.events[0].id}`)
+        } else {
+          router.push("/d/events")
+        }
+      } else {
+        // Create single event
+        res = await fetch("/api/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(eventData),
+        })
+
+        if (!res.ok) {
+          const error = await res.json()
+          throw new Error(error.message || "Failed to create event")
+        }
+
+        const event = await res.json()
+        successMessage = isRsvpOnly ? "RSVP event created!" : "Event created! Now add ticket tiers."
+        toast.success(successMessage)
+        router.push(`/d/events/${event.id}`)
       }
-
-      const event = await res.json()
-      toast.success(isRsvpOnly ? "RSVP event created!" : "Event created! Now add ticket tiers.")
-      router.push(`/d/events/${event.id}`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong")
     } finally {
@@ -724,6 +777,14 @@ function NewEventForm() {
                 </div>
               </SectionCard>
 
+              {/* Recurring Events */}
+              <RecurrenceSelector
+                value={recurrence}
+                onChange={setRecurrence}
+                startsAt={startsAt}
+                disabled={loading}
+              />
+
               {/* Venue */}
               <SectionCard
                 icon={<MapPin className="w-4 h-4" />}
@@ -1001,7 +1062,7 @@ function NewEventForm() {
 
               {/* Submit - Mobile */}
               <div className="lg:hidden pt-4 pb-8">
-                <SubmitButton loading={loading} accentColor={accentColor} />
+                <SubmitButton loading={loading} accentColor={accentColor} isSeries={recurrence.enabled} />
               </div>
             </div>
 
@@ -1061,13 +1122,15 @@ function NewEventForm() {
                 </div>
 
                 {/* Submit Button */}
-                <SubmitButton loading={loading} accentColor={accentColor} />
+                <SubmitButton loading={loading} accentColor={accentColor} isSeries={recurrence.enabled} />
 
                 {/* Help Text */}
                 <p className="text-[10px] text-white/30 font-mono text-center px-4">
-                  {isRsvpOnly
-                    ? "RSVP event - guests will register without payment"
-                    : "You'll add ticket tiers after creating the event"
+                  {recurrence.enabled
+                    ? `Creating ${recurrence.endType === "count" ? recurrence.occurrenceCount : "multiple"} recurring events`
+                    : isRsvpOnly
+                      ? "RSVP event - guests will register without payment"
+                      : "You'll add ticket tiers after creating the event"
                   }
                 </p>
               </div>
@@ -1163,7 +1226,7 @@ function ExpandableSection({
   )
 }
 
-function SubmitButton({ loading, accentColor }: { loading: boolean; accentColor: string }) {
+function SubmitButton({ loading, accentColor, isSeries }: { loading: boolean; accentColor: string; isSeries?: boolean }) {
   return (
     <button
       type="submit"
@@ -1174,12 +1237,12 @@ function SubmitButton({ loading, accentColor }: { loading: boolean; accentColor:
       {loading ? (
         <>
           <Loader2 className="w-4 h-4 animate-spin" />
-          CREATING...
+          {isSeries ? "CREATING SERIES..." : "CREATING..."}
         </>
       ) : (
         <>
           <Sparkles className="w-4 h-4" />
-          CREATE EVENT
+          {isSeries ? "CREATE SERIES" : "CREATE EVENT"}
         </>
       )}
     </button>

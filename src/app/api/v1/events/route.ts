@@ -6,6 +6,7 @@ import { withApiAuth, apiError, type ApiContext } from "@/lib/api-middleware"
 async function getEvents(req: NextRequest, ctx: ApiContext) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get("status") // draft, published, all
+  const seriesId = searchParams.get("seriesId") // Filter by series
   const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100)
   const offset = parseInt(searchParams.get("offset") || "0")
 
@@ -25,11 +26,14 @@ async function getEvents(req: NextRequest, ctx: ApiContext) {
         ? { isPublished: true }
         : {}
 
+  const seriesFilter = seriesId ? { seriesId } : {}
+
   const [events, total] = await Promise.all([
     prisma.event.findMany({
       where: {
         organizerId: profile.id,
         ...statusFilter,
+        ...seriesFilter,
       },
       select: {
         id: true,
@@ -48,8 +52,17 @@ async function getEvents(req: NextRequest, ctx: ApiContext) {
         status: true,
         isPublished: true,
         ticketingType: true,
+        seriesId: true,
+        seriesOccurrence: true,
+        isSeriesOverride: true,
         createdAt: true,
         updatedAt: true,
+        series: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
         ticketTiers: {
           select: {
             id: true,
@@ -75,6 +88,7 @@ async function getEvents(req: NextRequest, ctx: ApiContext) {
       where: {
         organizerId: profile.id,
         ...statusFilter,
+        ...seriesFilter,
       },
     }),
   ])

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
 import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
+import { SeriesBadge } from "@/components/events/SeriesBadge"
 import { getSessionUser } from "@/lib/auth-utils"
 import EditDesignOverlay from "@/components/public/EventPageClient"
 import EventInfoSections from "@/components/public/EventInfoSections"
@@ -169,6 +170,15 @@ export default async function EventPage({
           stripeChargesEnabled: true,
         },
       },
+      // Series/recurring event info
+      seriesId: true,
+      seriesOccurrence: true,
+      series: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
       ticketTiers: {
         where: { isVisible: true },
         orderBy: { sortOrder: "asc" },
@@ -230,6 +240,15 @@ export default async function EventPage({
                 stripeChargesEnabled: true,
               },
             },
+            // Series/recurring event info
+            seriesId: true,
+            seriesOccurrence: true,
+            series: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
             ticketTiers: {
               where: { isVisible: true },
               orderBy: { sortOrder: "asc" },
@@ -243,6 +262,28 @@ export default async function EventPage({
 
   if (!event) {
     notFound()
+  }
+
+  // Fetch other occurrences if this event is part of a series
+  let seriesOccurrences: { id: string; title: string; slug: string; startsAt: Date; seriesOccurrence: number | null }[] = []
+  if (event.seriesId) {
+    seriesOccurrences = await prisma.event.findMany({
+      where: {
+        seriesId: event.seriesId,
+        id: { not: event.id },
+        isPublished: true,
+        startsAt: { gte: new Date() },
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        startsAt: true,
+        seriesOccurrence: true,
+      },
+      orderBy: { startsAt: "asc" },
+      take: 5,
+    })
   }
 
   // Check if current user is the event owner
@@ -422,6 +463,19 @@ export default async function EventPage({
                   </div>
                 </div>
               </div>
+
+              {/* Series Badge */}
+              {event.series && (
+                <div className="mb-8">
+                  <SeriesBadge
+                    seriesTitle={event.series.title}
+                    currentOccurrence={event.seriesOccurrence}
+                    upcomingOccurrences={seriesOccurrences}
+                    accentColor={accentColor}
+                    variant="block"
+                  />
+                </div>
+              )}
 
               {/* Location */}
               {showLocation ? (
@@ -640,6 +694,19 @@ export default async function EventPage({
             <span className="w-1 h-1 rounded-full" style={{ backgroundColor: accentColor }} />
             <span>{timeStr}</span>
           </div>
+
+          {/* Series Badge */}
+          {event.series && (
+            <div className="mb-8">
+              <SeriesBadge
+                seriesTitle={event.series.title}
+                currentOccurrence={event.seriesOccurrence}
+                upcomingOccurrences={seriesOccurrences}
+                accentColor={accentColor}
+                variant="inline"
+              />
+            </div>
+          )}
 
           {/* Location */}
           <div
