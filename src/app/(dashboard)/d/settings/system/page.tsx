@@ -1,5 +1,5 @@
 import { APP_VERSION } from "@/lib/constants"
-import { GitBranch, Calendar, Package, FileText, ExternalLink } from "lucide-react"
+import { GitBranch, Calendar, Package, FileText } from "lucide-react"
 import fs from "fs"
 import path from "path"
 
@@ -93,33 +93,6 @@ export default function SettingsSystemPage() {
               <p className="text-lg font-mono font-bold">NEXT.JS 16</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Links Card */}
-      <div className="border border-white/10 bg-white/[0.02]">
-        <div className="px-4 py-2 border-b border-white/10">
-          <span className="text-[10px] font-mono text-white/40 tracking-widest">RESOURCES</span>
-        </div>
-        <div className="p-4 grid sm:grid-cols-2 gap-2">
-          <a
-            href="https://github.com/aftersapp/afters"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between p-3 border border-white/5 hover:border-white/10 hover:bg-white/[0.02] transition-all group"
-          >
-            <span className="text-sm font-mono text-white/60 group-hover:text-white">GitHub Repository</span>
-            <ExternalLink className="w-4 h-4 text-white/30 group-hover:text-white/60" />
-          </a>
-          <a
-            href="https://afters.am"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between p-3 border border-white/5 hover:border-white/10 hover:bg-white/[0.02] transition-all group"
-          >
-            <span className="text-sm font-mono text-white/60 group-hover:text-white">Production Site</span>
-            <ExternalLink className="w-4 h-4 text-white/30 group-hover:text-white/60" />
-          </a>
         </div>
       </div>
 
