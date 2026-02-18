@@ -485,7 +485,6 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
                   <div><span className="text-muted-foreground">Username:</span> <span className="ml-2">{userDetails.db?.username || 'Not set'}</span></div>
                   <div><span className="text-muted-foreground">Orders:</span> <span className="ml-2">{userDetails.db?._count?.orders}</span></div>
                   <div><span className="text-muted-foreground">Tickets:</span> <span className="ml-2">{userDetails.db?._count?.tickets}</span></div>
-                  <div><span className="text-muted-foreground">Follows:</span> <span className="ml-2">{userDetails.db?._count?.follows}</span></div>
                   <div><span className="text-muted-foreground">Saved Events:</span> <span className="ml-2">{userDetails.db?._count?.savedEvents}</span></div>
                 </div>
               </div>

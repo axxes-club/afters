@@ -22,9 +22,8 @@ export async function setupClerkTestSession(
   // This injects the testing token that Clerk recognizes
   const { setupClerkTestingToken } = await import('@clerk/testing/playwright');
 
-  await setupClerkTestingToken({
-    frontendApiUrl: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!,
-  });
+  // Pass the page object for Playwright integration
+  await setupClerkTestingToken({ page });
 }
 
 /**

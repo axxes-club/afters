@@ -43,7 +43,8 @@ export class NeonTestBranchManager {
       },
       endpoints: [
         {
-          type: 'read_write',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          type: 'read_write' as any,
         },
       ],
     });
@@ -119,7 +120,7 @@ export class NeonTestBranchManager {
    * List all e2e branches (for manual cleanup)
    */
   async listE2EBranches(): Promise<Array<{ id: string; name: string; createdAt: string }>> {
-    const response = await this.client.listProjectBranches(this.projectId);
+    const response = await this.client.listProjectBranches({ projectId: this.projectId });
 
     return response.data.branches
       .filter((b) => b.name.startsWith('e2e-'))

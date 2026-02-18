@@ -79,15 +79,11 @@ async function globalSetup(_config: FullConfig) {
  * Seed base test data that tests depend on
  */
 async function seedTestData(connectionString: string) {
-  // Import prisma with the test connection string
+  // Import prisma with the test connection string using Neon adapter
   const { PrismaClient } = await import('@prisma/client');
-  const prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: connectionString,
-      },
-    },
-  });
+  const { PrismaNeon } = await import('@prisma/adapter-neon');
+  const adapter = new PrismaNeon({ connectionString });
+  const prisma = new PrismaClient({ adapter });
 
   try {
     // Create a pre-onboarded test user that tests can use
