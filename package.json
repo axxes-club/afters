@@ -12,6 +12,11 @@
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:codegen": "playwright codegen http://localhost:3000",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -80,6 +85,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@clerk/testing": "^1.13.37",
+    "@neondatabase/api-client": "^2.6.0",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
