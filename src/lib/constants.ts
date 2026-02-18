@@ -1,5 +1,6 @@
-// App version - should match package.json version
-export const APP_VERSION = "0.2.2-beta"
+// App version - dynamically read from package.json
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+export const APP_VERSION = require("../../package.json").version as string
 
 // Display version - converts "0.2.2-beta" to "0.2.2b" for compact display
 export const APP_VERSION_DISPLAY = APP_VERSION.replace("-beta", "b")
