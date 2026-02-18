@@ -200,6 +200,16 @@ export const test = base.extend<Fixtures>({
 
         if (!response.ok()) {
           const errorText = await response.text();
+          // If server returns 500 with "not configured", the dev server needs restart
+          if (errorText.includes('E2E_AUTH_BYPASS_TOKEN not configured')) {
+            throw new Error(
+              'E2E_AUTH_BYPASS_TOKEN not configured on the dev server.\n' +
+              'Please restart your dev server to pick up the new environment variable:\n' +
+              '  1. Stop your dev server (Ctrl+C)\n' +
+              '  2. Run: pnpm dev\n' +
+              'The E2E_AUTH_BYPASS_TOKEN should be set in .env.local'
+            );
+          }
           console.warn(`Failed to seed user: ${response.status()} - ${errorText}`);
         }
       }
