@@ -31,20 +31,20 @@ import { useUIPreferences } from "@/components/providers";
 import { APP_VERSION_DISPLAY } from "@/lib/constants";
 
 const baseNavItems = [
-  { href: "/overview", label: "OVERVIEW", icon: LayoutDashboard, exact: true },
-  { href: "/overview/events", label: "EVENTS", icon: Calendar, exact: false },
-  { href: "/overview/settings", label: "SETTINGS", icon: Settings, exact: false },
+  { href: "/b", label: "OVERVIEW", icon: LayoutDashboard, exact: true },
+  { href: "/b/events", label: "EVENTS", icon: Calendar, exact: false },
+  { href: "/b/settings", label: "SETTINGS", icon: Settings, exact: false },
 ];
 
 const settingsNavItems = [
-  { href: "/overview/settings", label: "PROFILE", icon: User, exact: true },
-  { href: "/overview/settings/appearance", label: "APPEARANCE", icon: Palette, exact: false },
+  { href: "/b/settings", label: "PROFILE", icon: User, exact: true },
+  { href: "/b/settings/appearance", label: "APPEARANCE", icon: Palette, exact: false },
   ...(process.env.NODE_ENV !== "production"
-    ? [{ href: "/overview/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false }]
+    ? [{ href: "/b/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false }]
     : []),
-  { href: "/overview/settings/notifications", label: "NOTIFICATIONS", icon: Bell, exact: false },
-  { href: "/overview/settings/security", label: "SECURITY", icon: Shield, exact: false },
-  { href: "/overview/settings/system", label: "SYSTEM", icon: Info, exact: false },
+  { href: "/b/settings/notifications", label: "NOTIFICATIONS", icon: Bell, exact: false },
+  { href: "/b/settings/security", label: "SECURITY", icon: Shield, exact: false },
+  { href: "/b/settings/system", label: "SYSTEM", icon: Info, exact: false },
 ];
 
 const scannerNavItem = {
@@ -97,7 +97,7 @@ export default function DashboardLayout({
   const mainMargin = sidebarCompact ? "md:ml-16" : "md:ml-56";
 
   // Check if we're in settings section
-  const isInSettings = pathname.startsWith("/overview/settings");
+  const isInSettings = pathname.startsWith("/b/settings");
 
   // Build nav items based on context and permissions
   const mainNavItems = [
@@ -121,7 +121,7 @@ export default function DashboardLayout({
               className={`h-16 flex items-center justify-center ${sidebarCompact ? "px-2" : "px-4"} border-b border-white/5`}
             >
               {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
-                <Link href="/overview" className="flex items-center justify-center">
+                <Link href="/b" className="flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                   <img
                     src={sidebarCustomLogoUrl}
@@ -130,7 +130,7 @@ export default function DashboardLayout({
                   />
                 </Link>
               ) : (
-                <Link href="/overview" className={`font-headline tracking-wide ${sidebarCompact ? "text-xl" : "text-2xl"}`}>
+                <Link href="/b" className={`font-headline tracking-wide ${sidebarCompact ? "text-xl" : "text-2xl"}`}>
                   {sidebarCompact ? (
                     <span style={{ color: accentColor }}>.</span>
                   ) : (
@@ -146,7 +146,7 @@ export default function DashboardLayout({
             {/* Back button when in settings */}
             {isInSettings && (
               <Link
-                href="/overview"
+                href="/b"
                 className={`flex items-center ${sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3`}
                 title={sidebarCompact ? "Back to Base" : undefined}
               >
@@ -250,7 +250,7 @@ export default function DashboardLayout({
             {/* Show back button on mobile when in settings */}
             {isInSettings && (
               <Link
-                href="/overview"
+                href="/b"
                 className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all text-white/40"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -284,20 +284,20 @@ export default function DashboardLayout({
           {/* Mobile Header */}
           <header className="md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
             {/* Back button */}
-            {pathname !== "/overview" && (
+            {pathname !== "/b" && (
               <Link
                 href={
                   // Settings subpage -> settings root
-                  isInSettings && pathname !== "/overview/settings"
-                    ? "/overview/settings"
+                  isInSettings && pathname !== "/b/settings"
+                    ? "/b/settings"
                     // Settings root -> dashboard
                     : isInSettings
-                    ? "/overview"
+                    ? "/b"
                     // Events subpage -> events list
-                    : pathname.startsWith("/overview/events/") && pathname !== "/overview/events"
-                    ? "/overview/events"
+                    : pathname.startsWith("/b/events/") && pathname !== "/b/events"
+                    ? "/b/events"
                     // Default -> dashboard
-                    : "/overview"
+                    : "/b"
                 }
                 className="flex items-center justify-center w-8 h-8 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
               >
@@ -306,7 +306,7 @@ export default function DashboardLayout({
             )}
             {/* Left-aligned logo + settings indicator */}
             {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
-              <Link href="/overview" className="flex items-center gap-2">
+              <Link href="/b" className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                 <img
                   src={sidebarCustomLogoUrl}
@@ -318,14 +318,14 @@ export default function DashboardLayout({
                 )}
               </Link>
             ) : sidebarLogoMode !== "hidden" ? (
-              <Link href="/overview" className="flex items-center gap-2 font-headline text-xl tracking-wide">
+              <Link href="/b" className="flex items-center gap-2 font-headline text-xl tracking-wide">
                 AFTERS<span style={{ color: accentColor }}>.</span>
                 {isInSettings && (
                   <span className="text-xs font-mono text-white/40 ml-1">/ SETTINGS</span>
                 )}
               </Link>
             ) : (
-              <Link href="/overview" className="flex items-center gap-2">
+              <Link href="/b" className="flex items-center gap-2">
                 {isInSettings && (
                   <span className="text-xs font-mono text-white/40">SETTINGS</span>
                 )}

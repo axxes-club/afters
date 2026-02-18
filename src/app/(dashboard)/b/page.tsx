@@ -90,7 +90,7 @@ export default async function OverviewPage() {
               </p>
             </div>
             <Link
-              href="/overview/events/new"
+              href="/b/events/new"
               className="hidden sm:flex items-center gap-2 px-5 py-3 bg-[#ff1493] text-black font-mono font-bold text-sm tracking-wider hover:bg-[#ff1493]/90 transition-all group"
             >
               <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
@@ -156,7 +156,7 @@ export default async function OverviewPage() {
           </div>
 
           <Link
-            href={`/overview/events/${nextEvent.id}`}
+            href={`/b/events/${nextEvent.id}`}
             className="relative flex flex-col sm:flex-row p-4 sm:p-6 gap-4 sm:gap-6 hover:bg-white/[0.02] transition-all"
           >
             {/* Flyer Thumbnail */}
@@ -246,7 +246,7 @@ export default async function OverviewPage() {
             Create your first event and start selling tickets in minutes.
           </p>
           <Link
-            href="/overview/events/new"
+            href="/b/events/new"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff1493] text-black font-mono font-bold text-sm tracking-wider hover:bg-[#ff1493]/90 transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -264,7 +264,7 @@ export default async function OverviewPage() {
               <span className="text-xs font-mono text-white/40 tracking-widest">ALL EVENTS</span>
             </div>
             <Link
-              href="/overview/events"
+              href="/b/events"
               className="flex items-center gap-1 text-xs font-mono text-[#ff1493] hover:underline"
             >
               VIEW ALL <ChevronRight className="w-3 h-3" />
@@ -282,7 +282,7 @@ export default async function OverviewPage() {
               return (
                 <Link
                   key={event.id}
-                  href={`/overview/events/${event.id}`}
+                  href={`/b/events/${event.id}`}
                   className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-white/[0.02] transition-all group ${isPast ? "opacity-50" : ""}`}
                 >
                   {/* Date Block */}
@@ -354,7 +354,7 @@ export default async function OverviewPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <Link
-          href="/overview/events/new"
+          href="/b/events/new"
           className="border border-[#ff1493]/30 bg-[#ff1493]/5 p-4 sm:p-6 flex flex-col items-center gap-2 sm:gap-3 hover:border-[#ff1493]/60 hover:bg-[#ff1493]/10 transition-all group"
         >
           <div className="w-10 h-10 sm:w-12 sm:h-12 border border-[#ff1493]/30 flex items-center justify-center group-hover:border-[#ff1493] transition-colors">
@@ -363,7 +363,7 @@ export default async function OverviewPage() {
           <span className="text-xs sm:text-sm font-mono tracking-wider text-[#ff1493]">NEW EVENT</span>
         </Link>
         <Link
-          href="/overview/events"
+          href="/b/events"
           className="border border-white/10 p-4 sm:p-6 flex flex-col items-center gap-2 sm:gap-3 hover:border-white/20 hover:bg-white/[0.02] transition-all group"
         >
           <div className="w-10 h-10 sm:w-12 sm:h-12 border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-colors">

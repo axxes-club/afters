@@ -98,7 +98,7 @@ export default async function EventsPage() {
         </div>
         {profile && (
           <Link 
-            href="/overview/events/new"
+            href="/b/events/new"
             className="flex items-center gap-2 px-4 py-2.5 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -238,7 +238,7 @@ export default async function EventsPage() {
           </p>
           {profile && (
             <Link 
-              href="/overview/events/new"
+              href="/b/events/new"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
             >
               <Plus className="w-4 h-4" />

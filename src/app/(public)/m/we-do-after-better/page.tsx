@@ -97,7 +97,7 @@ export default function WeDoAfterBetterPage() {
             <span className="text-[#ff1493]">.</span>
           </Link>
           <Link
-            href="/overview"
+            href="/b"
             className="px-6 py-2 bg-[#ff1493] text-black text-xs font-bold tracking-wider uppercase hover:bg-white transition-colors"
           >
             Start Hosting
@@ -124,7 +124,7 @@ export default function WeDoAfterBetterPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/overview"
+              href="/b"
               className="group flex items-center gap-2 px-8 py-4 bg-[#ff1493] text-black font-bold tracking-wider uppercase hover:bg-white transition-all"
             >
               Create Your First Event
@@ -610,7 +610,7 @@ export default function WeDoAfterBetterPage() {
             Just you, your party, and a platform that actually gets it.
           </p>
           <Link
-            href="/overview"
+            href="/b"
             className="inline-flex items-center gap-2 px-10 py-5 bg-[#ff1493] text-black font-bold tracking-wider uppercase hover:bg-white transition-all"
           >
             Start Hosting Free

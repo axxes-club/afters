@@ -6,6 +6,6 @@ export default async function LegacyDashboardRedirect({
   params: Promise<{ path?: string[] }>;
 }) {
   const { path } = await params;
-  const targetPath = path ? `/overview/${path.join("/")}` : "/overview";
+  const targetPath = path ? `/b/${path.join("/")}` : "/b";
   redirect(targetPath);
 }

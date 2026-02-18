@@ -179,7 +179,7 @@ export default function DevelopersPage() {
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
-          <Link href="/overview/developers/docs">
+          <Link href="/b/developers/docs">
             <BookOpen className="w-4 h-4" />
             API Docs
           </Link>
@@ -395,7 +395,7 @@ export default function DevelopersPage() {
       {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="hover:border-white/20 transition-colors">
-          <Link href="/overview/developers/docs">
+          <Link href="/b/developers/docs">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
                 <div className="p-2 rounded-lg bg-[#ff1493]/10">

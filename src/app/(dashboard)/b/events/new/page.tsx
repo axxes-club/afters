@@ -361,7 +361,7 @@ function NewEventForm() {
         if (result.events && result.events.length > 0) {
           router.push(`/d/events/${result.events[0].id}`)
         } else {
-          router.push("/overview/events")
+          router.push("/b/events")
         }
       } else {
         // Create single event
