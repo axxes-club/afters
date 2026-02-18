@@ -5,6 +5,24 @@ import { X, Send, Sparkles, Loader2, MessageSquare, ExternalLink, CheckCircle } 
 import { useEffect, useRef, useMemo, FormEvent } from "react"
 import Link from "next/link"
 
+// Clean up message content by removing raw tool call markup
+// Some models output tool calls as XML-like text instead of structured calls
+function cleanMessageContent(content: string): string {
+  // Remove <function(...)>...</function> blocks
+  let cleaned = content.replace(/<function\([^)]*\)=[^<]*<\/function>/g, '')
+  
+  // Remove tool call JSON blocks that might appear
+  cleaned = cleaned.replace(/\{"tool_call":[^}]+\}/g, '')
+  
+  // Clean up any leftover fragments
+  cleaned = cleaned.replace(/<function\([^)]*\)=[^}]*\}?/g, '')
+  
+  // Remove multiple consecutive newlines
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
+  
+  return cleaned.trim()
+}
+
 // Parse message content to extract action links
 function parseMessageForLinks(content: string) {
   const dashboardUrlMatch = content.match(/\/d\/events\/([a-zA-Z0-9]+)/)
@@ -145,7 +163,16 @@ export function AftieChat() {
           </div>
         ) : (
           messages.map((message) => {
+            // Clean assistant messages to remove raw tool call markup
+            const displayContent = message.role === "assistant" 
+              ? cleanMessageContent(message.content) 
+              : message.content
             const parsed = message.role === "assistant" ? parseMessageForLinks(message.content) : null
+            
+            // Skip rendering if content is empty after cleaning (just a tool call)
+            if (message.role === "assistant" && !displayContent) {
+              return null
+            }
             
             return (
               <div
@@ -167,7 +194,7 @@ export function AftieChat() {
                     </div>
                   )}
                   
-                  <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                  <div className="whitespace-pre-wrap break-words">{displayContent}</div>
                   
                   {/* Action links */}
                   {parsed?.hasLinks && (

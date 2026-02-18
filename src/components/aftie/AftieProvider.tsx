@@ -13,6 +13,13 @@ interface Message {
   actionResult?: AftieActionResult
 }
 
+interface AftieSetupStatus {
+  hasProfile: boolean
+  isSetup: boolean
+  keyId?: string
+  createdAt?: string
+}
+
 // Page context for Aftie to understand where the user is
 export interface AftiePageContext {
   page: "dashboard" | "events" | "event-details" | "event-new" | "analytics" | "organizer" | "other"
@@ -61,6 +68,13 @@ interface AftieContextType {
   // Action handling - for components to react to actions
   lastAction: AftieActionResult | null
   clearLastAction: () => void
+  // Setup/consent state
+  isConsentDialogOpen: boolean
+  closeConsentDialog: () => void
+  approveAftie: () => Promise<void>
+  isApproving: boolean
+  setupStatus: AftieSetupStatus | null
+  revokeAftie: () => Promise<void>
 }
 
 const AftieContext = createContext<AftieContextType | null>(null)
@@ -85,6 +99,13 @@ const defaultAftieContext: AftieContextType = {
   setPageContext: () => {},
   lastAction: null,
   clearLastAction: () => {},
+  // Setup/consent defaults
+  isConsentDialogOpen: false,
+  closeConsentDialog: () => {},
+  approveAftie: async () => {},
+  isApproving: false,
+  setupStatus: null,
+  revokeAftie: async () => {},
 }
 
 export function useAftie() {
@@ -111,6 +132,12 @@ export function AftieProvider({ children }: AftieProviderProps) {
   const [lastAction, setLastAction] = useState<AftieActionResult | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const router = useRouter()
+  
+  // Setup/consent state
+  const [isConsentDialogOpen, setIsConsentDialogOpen] = useState(false)
+  const [isApproving, setIsApproving] = useState(false)
+  const [setupStatus, setSetupStatus] = useState<AftieSetupStatus | null>(null)
+  const [setupChecked, setSetupChecked] = useState(false)
 
   // Initialize beta state from localStorage
   useEffect(() => {
@@ -135,6 +162,79 @@ export function AftieProvider({ children }: AftieProviderProps) {
     return () => {
       delete (window as unknown as { afty_ai_beta_toggle?: () => void }).afty_ai_beta_toggle
     }
+  }, [])
+
+  // Check Aftie setup status on mount
+  useEffect(() => {
+    async function checkSetup() {
+      try {
+        const res = await fetch("/api/aftie/setup")
+        if (res.ok) {
+          const data = await res.json()
+          setSetupStatus(data)
+        }
+      } catch (error) {
+        console.error("Failed to check Aftie setup:", error)
+      } finally {
+        setSetupChecked(true)
+      }
+    }
+    checkSetup()
+  }, [])
+
+  // Approve Aftie - create the API key
+  const approveAftie = useCallback(async () => {
+    setIsApproving(true)
+    try {
+      const res = await fetch("/api/aftie/setup", { method: "POST" })
+      if (res.ok) {
+        const data = await res.json()
+        setSetupStatus({
+          hasProfile: true,
+          isSetup: true,
+          keyId: data.keyId,
+          createdAt: data.createdAt,
+        })
+        setIsConsentDialogOpen(false)
+        // Auto-open chat after approval
+        setIsOpen(true)
+        // Add welcome message
+        setMessages([{
+          id: `assistant-welcome-${Date.now()}`,
+          role: "assistant",
+          content: "Hey! I'm Aftie, your AI assistant. I can help you create and manage events, check ticket sales, and more. What would you like to do?",
+        }])
+      } else {
+        const error = await res.json()
+        console.error("Failed to approve Aftie:", error)
+      }
+    } catch (error) {
+      console.error("Failed to approve Aftie:", error)
+    } finally {
+      setIsApproving(false)
+    }
+  }, [])
+
+  // Revoke Aftie access
+  const revokeAftie = useCallback(async () => {
+    try {
+      const res = await fetch("/api/aftie/setup", { method: "DELETE" })
+      if (res.ok) {
+        setSetupStatus({
+          hasProfile: true,
+          isSetup: false,
+        })
+        setMessages([])
+        setIsOpen(false)
+      }
+    } catch (error) {
+      console.error("Failed to revoke Aftie:", error)
+    }
+  }, [])
+
+  // Close consent dialog
+  const closeConsentDialog = useCallback(() => {
+    setIsConsentDialogOpen(false)
   }, [])
 
   // Parse action results from message content
@@ -272,17 +372,41 @@ export function AftieProvider({ children }: AftieProviderProps) {
   }, [messages, isLoading, pageContext, parseActionResult, router])
 
   const openChat = useCallback(() => {
+    // If setup hasn't been checked yet, wait
+    if (!setupChecked) return
+    
+    // If Aftie isn't set up, show consent dialog
+    if (!setupStatus?.isSetup) {
+      setIsConsentDialogOpen(true)
+      return
+    }
+    
     setIsOpen(true)
     setIsCommandPaletteOpen(false)
-  }, [])
+  }, [setupChecked, setupStatus?.isSetup])
 
   const closeChat = useCallback(() => {
     setIsOpen(false)
   }, [])
 
   const toggleChat = useCallback(() => {
-    setIsOpen(prev => !prev)
-  }, [])
+    // If setup hasn't been checked yet, wait
+    if (!setupChecked) return
+    
+    // If currently open, just close
+    if (isOpen) {
+      setIsOpen(false)
+      return
+    }
+    
+    // If Aftie isn't set up, show consent dialog
+    if (!setupStatus?.isSetup) {
+      setIsConsentDialogOpen(true)
+      return
+    }
+    
+    setIsOpen(true)
+  }, [setupChecked, isOpen, setupStatus?.isSetup])
 
   const openCommandPalette = useCallback(() => {
     setIsCommandPaletteOpen(true)
@@ -318,6 +442,13 @@ export function AftieProvider({ children }: AftieProviderProps) {
         setPageContext,
         lastAction,
         clearLastAction,
+        // Setup/consent
+        isConsentDialogOpen,
+        closeConsentDialog,
+        approveAftie,
+        isApproving,
+        setupStatus,
+        revokeAftie,
       }}
     >
       {children}

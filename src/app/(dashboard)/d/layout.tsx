@@ -17,6 +17,7 @@ import {
   AftieTrigger,
   AftieCommandPalette,
   AftieKeyboardListener,
+  AftieConsentDialog,
 } from "@/components/aftie";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { APP_VERSION } from "@/lib/constants";
@@ -226,6 +227,7 @@ export default function DashboardLayout({
         <AftieTrigger />
         <AftieChat />
         <AftieCommandPalette />
+        <AftieConsentDialog />
       </div>
     </AftieProvider>
   );

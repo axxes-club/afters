@@ -1,4 +1,4 @@
-import { streamText, tool, stepCountIs } from "ai"
+import { generateText, tool } from "ai"
 import { auth } from "@clerk/nextjs/server"
 import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
@@ -354,20 +354,24 @@ Use this context for any questions about "this event", ticket sales, or content 
       }),
     }
 
-    const result = streamText({
+    // Use generateText instead of streamText for proper tool execution
+    // Groq's streaming doesn't properly handle tool calls
+    const result = await generateText({
       model: AI_MODEL,
       system: AFTIE_SYSTEM_PROMPT + contextInfo,
       messages,
       tools,
-      // CRITICAL: Allow multiple steps so AI can respond AFTER tool execution
-      // Default is stepCountIs(1) which stops immediately after first tool call
-      stopWhen: stepCountIs(5),
-      onStepFinish: ({ stepType, toolResults }) => {
-        console.log("🔧 Aftie step:", stepType, toolResults?.length || 0, "tool results")
-      },
+      maxSteps: 5, // Allow multiple steps so AI can respond AFTER tool execution
     })
 
-    return result.toTextStreamResponse()
+    console.log("🔧 Aftie result:", result.text?.slice(0, 100), "...")
+    console.log("🔧 Aftie tool calls:", result.toolCalls?.length || 0)
+    console.log("🔧 Aftie tool results:", result.toolResults?.length || 0)
+
+    // Return the text response
+    return new Response(result.text, {
+      headers: { "Content-Type": "text/plain" },
+    })
   } catch (error) {
     console.error("Chat error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
