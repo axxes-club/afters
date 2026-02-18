@@ -83,7 +83,7 @@ export default function DevelopersPage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="#docs"
+              href="/api-docs.html"
               className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 text-white font-mono text-sm tracking-wider hover:bg-white/5 transition-all"
             >
               <BookOpen className="w-4 h-4" />
