@@ -482,7 +482,7 @@ export default function ScannerPage({
               </div>
               <div className="pt-4 border-t border-white/10">
                 <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
-                <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all">
+                <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all" suppressHydrationWarning>
                   {typeof window !== 'undefined' ? window.location.href : `/scan/${eventId}`}
                 </code>
               </div>

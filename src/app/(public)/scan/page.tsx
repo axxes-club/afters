@@ -27,9 +27,15 @@ export default function ScannerEntryPage() {
   // Organizer auth state
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [isOrganizer, setIsOrganizer] = useState(false)
+  const [todayDateString, setTodayDateString] = useState<string | null>(null)
   const [organizerName, setOrganizerName] = useState("")
   const [organizerEvents, setOrganizerEvents] = useState<OrganizerEvent[]>([])
   const [selectingEvent, setSelectingEvent] = useState<string | null>(null)
+
+  // Set today's date string on client to avoid hydration mismatch
+  useEffect(() => {
+    setTodayDateString(new Date().toDateString())
+  }, [])
 
   // Check if user is logged in as organizer
   useEffect(() => {
@@ -254,7 +260,7 @@ export default function ScannerEntryPage() {
               </div>
               <div className="pt-4 border-t border-white/10">
                 <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
-                <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all">
+                <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all" suppressHydrationWarning>
                   {typeof window !== 'undefined' ? window.location.href : '/scan'}
                 </code>
               </div>
@@ -310,7 +316,7 @@ export default function ScannerEntryPage() {
             {organizerEvents.map((event) => {
               const isSelecting = selectingEvent === event.id
               const eventDate = new Date(event.startsAt)
-              const isToday = eventDate.toDateString() === new Date().toDateString()
+              const isToday = todayDateString !== null && eventDate.toDateString() === todayDateString
 
               return (
                 <button

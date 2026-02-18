@@ -572,12 +572,22 @@ export default function DemoPage() {
     name: "",
     venue: "",
     city: "",
-    date: getNextSaturday(),
+    date: "", // Set on client to avoid hydration mismatch
     tier: TIER_PRESETS[0],
-    ticketNumber: genTicketNumber(),
+    ticketNumber: "", // Set on client to avoid hydration mismatch
     ticketId: "",
   })
   const [typing, setTyping] = useState(false)
+
+  // Initialize client-only values after mount to avoid hydration mismatch
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEvent((prev) => ({
+      ...prev,
+      date: prev.date || getNextSaturday(),
+      ticketNumber: prev.ticketNumber || genTicketNumber(),
+    }))
+  }, [])
   const [overlay, setOverlay] = useState<"ticket" | "scanner" | "result" | null>(null)
   const idRef = useRef(0)
   const chatEnd = useRef<HTMLDivElement>(null)
@@ -675,9 +685,9 @@ export default function DemoPage() {
       name: "",
       venue: "",
       city: "",
-      date: getNextSaturday(),
+      date: getNextSaturday(), // Safe here - only called on client after user interaction
       tier: TIER_PRESETS[0],
-      ticketNumber: genTicketNumber(),
+      ticketNumber: genTicketNumber(), // Safe here - only called on client after user interaction
       ticketId: "",
     })
     setTyping(false)

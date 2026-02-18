@@ -40,11 +40,14 @@ export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClie
     tierName: string
   } | null>(null)
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null)
+  const [shareUrl, setShareUrl] = useState('')
 
   const accentColor = event.accentColor || '#ff1493'
-  const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/e/${event.slug}/test-ticket`
-    : ''
+
+  // Set shareUrl on client to avoid hydration mismatch
+  useEffect(() => {
+    setShareUrl(`${window.location.origin}/e/${event.slug}/test-ticket`)
+  }, [event.slug])
 
   useEffect(() => {
     fetchTestTicket()
