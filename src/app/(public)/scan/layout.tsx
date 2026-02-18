@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   ScanLine,
   ChevronLeft,
+  Settings,
 } from "lucide-react"
 import { UserButton, SignedIn } from "@clerk/nextjs"
 import { FeedbackButton } from "@/components/FeedbackButton"
@@ -16,6 +17,7 @@ import { APP_VERSION_DISPLAY } from "@/lib/constants"
 const navItems = [
   { href: "/d", label: "BASE", icon: LayoutDashboard, exact: true },
   { href: "/d/events", label: "EVENTS", icon: Calendar },
+  { href: "/d/settings", label: "SETTINGS", icon: Settings },
   { href: "/scan", label: "SCANNER", icon: ScanLine },
 ]
 
