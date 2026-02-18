@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { GhostBanner } from "@/components/GhostBanner";
+import { UIPreferencesProvider } from "@/components/providers";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/lib/uploadthing";
@@ -154,11 +155,13 @@ export default async function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <NextIntlClientProvider messages={messages}>
-            <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-            <GhostBanner />
-            <RedirectHandler />
-            {children}
-            <Toaster />
+            <UIPreferencesProvider>
+              <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+              <GhostBanner />
+              <RedirectHandler />
+              {children}
+              <Toaster />
+            </UIPreferencesProvider>
           </NextIntlClientProvider>
         </body>
       </html>

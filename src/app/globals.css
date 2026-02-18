@@ -103,6 +103,13 @@
 :root {
   --radius: 0.5rem;
   --spacing: 0.25rem;
+  
+  /* User-customizable accent color (set by UIPreferencesProvider) */
+  --accent-color: #ff1493;
+  --accent-color-rgb: 255, 20, 147;
+  
+  /* Font scale (set by UIPreferencesProvider) */
+  --font-scale: 1;
   /* Dark theme - black background */
   --background: #000000;
   --foreground: #ffffff;
@@ -694,4 +701,128 @@
 .dotted-divider {
   border-style: dashed;
   border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ===== SITE-WIDE ACCENT COLOR UTILITIES ===== */
+
+/* Background with accent color */
+.bg-accent-dynamic {
+  background-color: var(--accent-color, #ff1493);
+}
+
+/* Text with accent color */
+.text-accent-dynamic {
+  color: var(--accent-color, #ff1493);
+}
+
+/* Border with accent color */
+.border-accent-dynamic {
+  border-color: var(--accent-color, #ff1493);
+}
+
+/* Ring/outline with accent color */
+.ring-accent-dynamic {
+  --tw-ring-color: var(--accent-color, #ff1493);
+}
+
+/* Hover variants */
+.hover\:bg-accent-dynamic:hover {
+  background-color: var(--accent-color, #ff1493);
+}
+
+.hover\:text-accent-dynamic:hover {
+  color: var(--accent-color, #ff1493);
+}
+
+.hover\:border-accent-dynamic:hover {
+  border-color: var(--accent-color, #ff1493);
+}
+
+/* Focus variants */
+.focus\:ring-accent-dynamic:focus {
+  --tw-ring-color: var(--accent-color, #ff1493);
+}
+
+.focus\:border-accent-dynamic:focus {
+  border-color: var(--accent-color, #ff1493);
+}
+
+/* Opacity variants using RGB */
+.bg-accent-dynamic\/10 {
+  background-color: rgba(var(--accent-color-rgb, 255, 20, 147), 0.1);
+}
+
+.bg-accent-dynamic\/20 {
+  background-color: rgba(var(--accent-color-rgb, 255, 20, 147), 0.2);
+}
+
+.bg-accent-dynamic\/30 {
+  background-color: rgba(var(--accent-color-rgb, 255, 20, 147), 0.3);
+}
+
+.border-accent-dynamic\/30 {
+  border-color: rgba(var(--accent-color-rgb, 255, 20, 147), 0.3);
+}
+
+.border-accent-dynamic\/50 {
+  border-color: rgba(var(--accent-color-rgb, 255, 20, 147), 0.5);
+}
+
+/* Accent glow effect */
+.glow-accent {
+  box-shadow: 0 0 20px rgba(var(--accent-color-rgb, 255, 20, 147), 0.3),
+              0 0 40px rgba(var(--accent-color-rgb, 255, 20, 147), 0.2),
+              0 0 60px rgba(var(--accent-color-rgb, 255, 20, 147), 0.1);
+}
+
+.text-glow-accent {
+  text-shadow: 0 0 10px rgba(var(--accent-color-rgb, 255, 20, 147), 0.5),
+               0 0 20px rgba(var(--accent-color-rgb, 255, 20, 147), 0.3);
+}
+
+/* Gradient using accent */
+.text-gradient-accent {
+  background: linear-gradient(135deg, var(--accent-color, #ff1493) 0%, #ff69b4 50%, #ffc6fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Primary button using accent color */
+.btn-accent {
+  background-color: var(--accent-color, #ff1493);
+  color: #000;
+  transition: all 0.2s ease;
+}
+
+.btn-accent:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 20px rgba(var(--accent-color-rgb, 255, 20, 147), 0.4);
+}
+
+.btn-accent:active {
+  filter: brightness(0.95);
+}
+
+/* Outline button using accent color */
+.btn-accent-outline {
+  background-color: transparent;
+  border: 1px solid var(--accent-color, #ff1493);
+  color: var(--accent-color, #ff1493);
+  transition: all 0.2s ease;
+}
+
+.btn-accent-outline:hover {
+  background-color: rgba(var(--accent-color-rgb, 255, 20, 147), 0.1);
+}
+
+/* Selection with accent color */
+::selection {
+  background: rgba(var(--accent-color-rgb, 255, 20, 147), 0.3);
+  color: #fff;
+}
+
+/* Scrollbar thumb with accent on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color, #ff1493);
 }

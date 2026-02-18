@@ -27,6 +27,7 @@ import {
   AftieConsentDialog,
 } from "@/components/aftie";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { useUIPreferences } from "@/components/providers";
 import { APP_VERSION_DISPLAY } from "@/lib/constants";
 
 const baseNavItems = [
@@ -59,29 +60,15 @@ const superadminNavItem = {
   exact: false,
 };
 
-interface UIPreferences {
-  sidebarLogoMode: "afters" | "custom" | "hidden";
-  sidebarCustomLogoUrl: string | null;
-  sidebarCompact: boolean;
-  uiAccentColor: string | null;
-  uiFontSize: "small" | "normal" | "large";
-}
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { preferences } = useUIPreferences();
   const [hasEvents, setHasEvents] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [uiPrefs, setUIPrefs] = useState<UIPreferences>({
-    sidebarLogoMode: "afters",
-    sidebarCustomLogoUrl: null,
-    sidebarCompact: false,
-    uiAccentColor: null,
-    uiFontSize: "normal",
-  });
 
   // Check if user has events to show/hide scanner
   useEffect(() => {
@@ -99,37 +86,15 @@ export default function DashboardLayout({
       .catch(() => setIsSuperAdmin(false));
   }, []);
 
-  // Load UI preferences
-  useEffect(() => {
-    fetch("/api/user/preferences")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.organizerProfile) {
-          setUIPrefs({
-            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
-            sidebarCustomLogoUrl: data.organizerProfile.sidebarCustomLogoUrl || null,
-            sidebarCompact: data.organizerProfile.sidebarCompact || false,
-            uiAccentColor: data.organizerProfile.uiAccentColor || null,
-            uiFontSize: data.organizerProfile.uiFontSize || "normal",
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  // Apply accent color CSS variable
-  const accentColor = uiPrefs.uiAccentColor || "#ff1493";
-  
-  // Font size scaling
-  const fontSizeClass = {
-    small: "text-sm",
-    normal: "text-base", 
-    large: "text-lg",
-  }[uiPrefs.uiFontSize];
+  // Get preferences from context (site-wide provider handles CSS variables)
+  const accentColor = preferences.accentColor;
+  const sidebarCompact = preferences.sidebarCompact;
+  const sidebarLogoMode = preferences.sidebarLogoMode;
+  const sidebarCustomLogoUrl = preferences.sidebarCustomLogoUrl;
   
   // Sidebar width based on compact mode
-  const sidebarWidth = uiPrefs.sidebarCompact ? "w-16" : "w-56";
-  const mainMargin = uiPrefs.sidebarCompact ? "md:ml-16" : "md:ml-56";
+  const sidebarWidth = sidebarCompact ? "w-16" : "w-56";
+  const mainMargin = sidebarCompact ? "md:ml-16" : "md:ml-56";
 
   // Check if we're in settings section
   const isInSettings = pathname.startsWith("/d/settings");
@@ -146,30 +111,27 @@ export default function DashboardLayout({
 
   return (
     <AftieProvider>
-      <div 
-        className="min-h-screen bg-black text-white flex overflow-x-hidden"
-        style={{ "--accent-color": accentColor } as React.CSSProperties}
-      >
+      <div className="min-h-screen bg-black text-white flex overflow-x-hidden">
         {/* Desktop Sidebar - Hidden on mobile */}
         <aside className={`hidden md:flex ${sidebarWidth} border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50 transition-all duration-200`}>
           {/* Logo */}
-          {uiPrefs.sidebarLogoMode !== "hidden" && (
+          {sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
-              className={`h-16 flex items-center justify-center ${uiPrefs.sidebarCompact ? "px-2" : "px-4"} border-b border-white/5`}
+              className={`h-16 flex items-center justify-center ${sidebarCompact ? "px-2" : "px-4"} border-b border-white/5`}
             >
-              {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
+              {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
                 <Link href="/d" className="flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                   <img
-                    src={uiPrefs.sidebarCustomLogoUrl}
+                    src={sidebarCustomLogoUrl}
                     alt="Logo"
-                    className={`object-contain ${uiPrefs.sidebarCompact ? "max-h-8 max-w-[48px]" : "max-h-10 max-w-[180px]"}`}
+                    className={`object-contain ${sidebarCompact ? "max-h-8 max-w-[48px]" : "max-h-10 max-w-[180px]"}`}
                   />
                 </Link>
               ) : (
-                <Link href="/d" className={`font-headline tracking-wide ${uiPrefs.sidebarCompact ? "text-xl" : "text-2xl"}`}>
-                  {uiPrefs.sidebarCompact ? (
+                <Link href="/d" className={`font-headline tracking-wide ${sidebarCompact ? "text-xl" : "text-2xl"}`}>
+                  {sidebarCompact ? (
                     <span style={{ color: accentColor }}>.</span>
                   ) : (
                     <>AFTERS<span style={{ color: accentColor }}>.</span></>
@@ -180,21 +142,21 @@ export default function DashboardLayout({
           )}
 
           {/* Navigation */}
-          <nav className={`flex-1 py-4 ${uiPrefs.sidebarCompact ? "px-1" : "px-2"} space-y-1`}>
+          <nav className={`flex-1 py-4 ${sidebarCompact ? "px-1" : "px-2"} space-y-1`}>
             {/* Back button when in settings */}
             {isInSettings && (
               <Link
                 href="/d"
-                className={`flex items-center ${uiPrefs.sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3`}
-                title={uiPrefs.sidebarCompact ? "Back to Base" : undefined}
+                className={`flex items-center ${sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3`}
+                title={sidebarCompact ? "Back to Base" : undefined}
               >
                 <ArrowLeft className="w-4 h-4 flex-shrink-0" />
-                {!uiPrefs.sidebarCompact && <span>BASE</span>}
+                {!sidebarCompact && <span>BASE</span>}
               </Link>
             )}
             
             {/* Section label when in settings */}
-            {isInSettings && !uiPrefs.sidebarCompact && (
+            {isInSettings && !sidebarCompact && (
               <div className="px-3 py-2 text-[10px] font-mono text-white/30 tracking-widest">
                 SETTINGS
               </div>
@@ -210,7 +172,7 @@ export default function DashboardLayout({
                   key={item.href}
                   href={item.href}
                   className={`
-                  flex items-center ${uiPrefs.sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all
+                  flex items-center ${sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all
                   ${
                     isActive
                       ? "text-black"
@@ -218,17 +180,17 @@ export default function DashboardLayout({
                   }
                 `}
                   style={isActive ? { backgroundColor: accentColor } : undefined}
-                  title={uiPrefs.sidebarCompact ? item.label : undefined}
+                  title={sidebarCompact ? item.label : undefined}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
-                  {!uiPrefs.sidebarCompact && <span>{item.label}</span>}
+                  {!sidebarCompact && <span>{item.label}</span>}
                 </Link>
               );
             })}
           </nav>
 
           {/* Date/Time & Status - Hidden when compact */}
-          {!uiPrefs.sidebarCompact && (
+          {!sidebarCompact && (
             <div className="px-3 py-4 border-t border-white/5 space-y-3">
               <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
                 <span>
@@ -260,8 +222,8 @@ export default function DashboardLayout({
           )}
 
           {/* User */}
-          <div className={`${uiPrefs.sidebarCompact ? "p-2" : "p-3"} border-t border-white/5`}>
-            <div className={`flex items-center ${uiPrefs.sidebarCompact ? "justify-center" : "gap-3"}`} suppressHydrationWarning>
+          <div className={`${sidebarCompact ? "p-2" : "p-3"} border-t border-white/5`}>
+            <div className={`flex items-center ${sidebarCompact ? "justify-center" : "gap-3"}`} suppressHydrationWarning>
               <div className="flex-shrink-0">
                 <UserButton
                   appearance={{
@@ -271,7 +233,7 @@ export default function DashboardLayout({
                   }}
                 />
               </div>
-              {!uiPrefs.sidebarCompact && (
+              {!sidebarCompact && (
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-mono text-white/30 truncate">
                     OPERATOR
@@ -318,7 +280,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* Main Content */}
-        <main className={`flex-1 ${mainMargin} ${fontSizeClass} transition-all duration-200`}>
+        <main className={`flex-1 ${mainMargin} transition-all duration-200`}>
           {/* Mobile Header */}
           <header className="md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
             {/* Back button */}
@@ -343,11 +305,11 @@ export default function DashboardLayout({
               </Link>
             )}
             {/* Left-aligned logo + settings indicator */}
-            {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
+            {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
               <Link href="/d" className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                 <img
-                  src={uiPrefs.sidebarCustomLogoUrl}
+                  src={sidebarCustomLogoUrl}
                   alt="Logo"
                   className="max-h-8 max-w-[120px] object-contain"
                 />
@@ -355,7 +317,7 @@ export default function DashboardLayout({
                   <span className="text-xs font-mono text-white/40">/ SETTINGS</span>
                 )}
               </Link>
-            ) : uiPrefs.sidebarLogoMode !== "hidden" ? (
+            ) : sidebarLogoMode !== "hidden" ? (
               <Link href="/d" className="flex items-center gap-2 font-headline text-xl tracking-wide">
                 AFTERS<span style={{ color: accentColor }}>.</span>
                 {isInSettings && (
