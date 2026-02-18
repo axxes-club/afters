@@ -15,17 +15,57 @@ import { Analytics } from "@vercel/analytics/next";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap", // Prevent FOIT (Flash of Invisible Text)
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
-  title: "Afters",
+  title: {
+    default: "Afters - Nightlife Events & After-Parties",
+    template: "%s | Afters",
+  },
   description:
-    "Discover and book tickets to the best nightlife events and after-parties",
+    "Discover and book tickets to the best nightlife events, after-parties, and underground raves. Create and manage events with our free platform.",
+  keywords: ["nightlife", "events", "tickets", "after-party", "rave", "club", "electronic music", "DJ"],
+  authors: [{ name: "Afters" }],
+  creator: "Afters",
+  publisher: "Afters",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://afters.am"),
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "Afters",
+    title: "Afters - Nightlife Events & After-Parties",
+    description: "Discover and book tickets to the best nightlife events and after-parties.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Afters - Nightlife Events & After-Parties",
+    description: "Discover and book tickets to the best nightlife events and after-parties.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export const viewport = {
@@ -105,6 +145,14 @@ export default async function RootLayout({
       }}
     >
       <html lang={locale}>
+        <head>
+          {/* Preconnect to critical third-party origins */}
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://utfs.io" />
+          <link rel="dns-prefetch" href="https://clerk.afters.am" />
+          <link rel="dns-prefetch" href="https://api.stripe.com" />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
