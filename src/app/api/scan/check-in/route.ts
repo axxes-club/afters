@@ -66,7 +66,6 @@ export async function POST(req: NextRequest) {
       const parts = ticketId.split("-")
       let ticketNumber = `TK-${parts[1]?.substring(0, 6).toUpperCase() || "DEMO00"}`
       let tierName = "General Admission"
-      let eventName = "Demo Event"
 
       // Try to extract embedded data if present
       if (parts.length > 2) {
@@ -74,7 +73,6 @@ export async function POST(req: NextRequest) {
           const data = JSON.parse(atob(parts.slice(2).join("-")))
           ticketNumber = data.n || ticketNumber
           tierName = data.t || tierName
-          eventName = data.e || eventName
         } catch {
           // Use defaults if parsing fails
         }

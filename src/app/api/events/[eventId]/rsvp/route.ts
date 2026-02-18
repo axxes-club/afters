@@ -155,7 +155,6 @@ export async function POST(
     const safeTitle = escapeHtml(event.title)
     const safeVenue = escapeHtml(event.venueName)
     const safeCity = escapeHtml(event.city)
-    const safeAddress = escapeHtml(event.venueAddress)
     const safeOrgName = escapeHtml(event.organizer.displayName)
     // Validate accent color - only allow valid hex colors
     const accentColor = safeColor(event.accentColor) || '#ff1493'

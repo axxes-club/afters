@@ -55,7 +55,7 @@ export function EventFlagButton({ eventId, isFlagged, flagReason }: EventFlagBut
       } else {
         toast.error("Failed to flag event")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to flag event")
     } finally {
       setLoading(false)
@@ -81,7 +81,7 @@ export function EventFlagButton({ eventId, isFlagged, flagReason }: EventFlagBut
       } else {
         toast.error("Failed to remove flag")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove flag")
     } finally {
       setLoading(false)

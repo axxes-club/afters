@@ -29,11 +29,7 @@ export function MapPreview({
   // Build full address for geocoding
   const fullAddress = `${venueAddress}, ${city}${state ? `, ${state}` : ""}`
   const encodedAddress = encodeURIComponent(fullAddress)
-  const encodedVenue = encodeURIComponent(venueName)
 
-  // OpenStreetMap embed URL (no API key needed)
-  const osmEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=-74.02,40.7,-73.95,40.75&layer=mapnik&marker=${encodedAddress}`
-  
   // Use Nominatim-based embed which handles address search
   // This embeds a map centered on the address
   const mapEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=m&z=${mapZoom}&output=embed&iwloc=near`

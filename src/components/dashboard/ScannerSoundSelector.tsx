@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { Volume2, Check, Play, Square } from "lucide-react"
 import { toast } from "sonner"
 

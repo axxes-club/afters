@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useCallback, use } from "react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { ArrowLeft, Users, Calendar, MapPin, Loader2, Mail, User, UserPlus, Check } from "lucide-react"
 import Link from "next/link"
@@ -30,7 +29,6 @@ interface Event {
 
 export default function RsvpPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  const router = useRouter()
 
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)

@@ -2,7 +2,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { SystemHealth, FeatureType } from "@prisma/client"
+import { SystemHealth } from "@prisma/client"
 import { Zap, HardHat, Sparkles, Trash2, AlertCircle, CheckCircle2, type LucideIcon } from "lucide-react"
 import { getAllStatuses, getOverallStatus } from "@/lib/status-utils"
 

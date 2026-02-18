@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, Save, Palette, Globe, Music, Mail, FileText, Building2 } from "lucide-react"
+import { Loader2, Save, Palette, Globe, Building2 } from "lucide-react"
 import { URL_PREFIXES } from "@/lib/constants"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -110,7 +110,7 @@ export function ArtistProfileForm({ profile }: Props) {
       } else {
         toast.error(data.error || "Failed to save profile")
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong")
     }
 

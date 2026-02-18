@@ -13,11 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Flag, Loader2, FlagOff } from "lucide-react"
 import { toast } from "sonner"
@@ -27,10 +23,9 @@ interface UserFlagButtonProps {
   userId: string
   isFlagged: boolean
   flagReason?: string | null
-  children: React.ReactNode
 }
 
-export function UserFlagButton({ userId, isFlagged, flagReason, children }: UserFlagButtonProps) {
+export function UserFlagButton({ userId, isFlagged, flagReason }: UserFlagButtonProps) {
   const router = useRouter()
   const [showDialog, setShowDialog] = useState(false)
   const [reason, setReason] = useState(flagReason || "")
@@ -57,7 +52,7 @@ export function UserFlagButton({ userId, isFlagged, flagReason, children }: User
       } else {
         toast.error("Failed to flag user")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to flag user")
     } finally {
       setLoading(false)
@@ -83,7 +78,7 @@ export function UserFlagButton({ userId, isFlagged, flagReason, children }: User
       } else {
         toast.error("Failed to remove flag")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove flag")
     } finally {
       setLoading(false)

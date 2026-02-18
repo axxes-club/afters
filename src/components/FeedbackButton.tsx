@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useUser } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
-import { MessageSquarePlus, X, Send, Loader2, Upload, Image as ImageIcon, Trash2 } from "lucide-react"
+import { MessageSquarePlus, X, Send, Loader2, Upload } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -215,6 +215,7 @@ export function FeedbackButton() {
                   <div className="flex gap-2 flex-wrap">
                     {screenshots.map((url, i) => (
                       <div key={i} className="relative w-20 h-20 border border-white/10 bg-white/5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
                         <button
                           onClick={() => removeScreenshot(i)}

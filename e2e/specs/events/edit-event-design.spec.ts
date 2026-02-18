@@ -24,7 +24,6 @@ test.describe('Event Design Editing', () => {
   });
 
   test('should display design tab with all options', async ({
-    page,
     eventEditPage,
   }) => {
     await eventEditPage.goto(eventId);
@@ -63,7 +62,6 @@ test.describe('Event Design Editing', () => {
   });
 
   test('should change typography style', async ({
-    page,
     eventEditPage,
   }) => {
     await eventEditPage.goto(eventId);
@@ -101,7 +99,6 @@ test.describe('Event Design Editing', () => {
   });
 
   test('should select custom accent color', async ({
-    page,
     eventEditPage,
   }) => {
     await eventEditPage.goto(eventId);

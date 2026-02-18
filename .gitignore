@@ -28,6 +28,13 @@
 .DS_Store
 *.pem
 
+# AI tools
+.aider*
+.claude/
+.sidecar/
+.verdent/
+version-guardian.zip
+
 # debug
 npm-debug.log*
 yarn-debug.log*

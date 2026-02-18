@@ -50,6 +50,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     fetchGuestlist()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId])
 
   async function fetchGuestlist() {
@@ -95,7 +96,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
         const err = await res.json()
         toast.error(err.error || "Failed to add guest")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to add guest")
     } finally {
       setAddLoading(false)
@@ -116,7 +117,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
       } else {
         toast.error("Failed to remove guest")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove guest")
     }
   }

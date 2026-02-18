@@ -4,7 +4,6 @@ import { useEffect, useState, use, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -42,9 +41,7 @@ import {
   Share2,
   Zap,
   UserCheck,
-  Clock,
   Timer,
-  Map,
 } from "lucide-react";
 import { formatCents } from "@/lib/stripe";
 import { FlyerUpload } from "@/components/FlyerUpload";
@@ -174,6 +171,7 @@ function EventDashboardContent({
     fetchEvent();
     fetchStripeStatus();
     fetchDoorStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   // Sync expiresAfter state with event data

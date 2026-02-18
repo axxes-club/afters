@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { SystemStatus, FeatureType } from "@prisma/client";
 import { getStatusesForFeature } from "@/lib/status-utils";
-import { AlertCircle, Zap, HardHat, Sparkles, Trash2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { AlertCircle, Zap, HardHat, Sparkles, Trash2, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface StatusBannerProps {

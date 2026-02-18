@@ -104,7 +104,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
     try {
       const details = await getUserDetails(userId)
       setUserDetails(details)
-    } catch (error) {
+    } catch {
       toast.error("Failed to load user details")
       setShowDetailsDialog(false)
     }
@@ -165,7 +165,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
       await deleteUser(userId)
       toast.success("User deleted successfully")
       setShowDeleteDialog(false)
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete user")
     }
     setLoading(false)
@@ -188,7 +188,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
       } else {
         toast.error(data.error || 'Failed to start ghost session')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to start ghost session')
     }
     setLoading(false)
@@ -221,7 +221,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
       } else {
         toast.error("Failed to flag user")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to flag user")
     } finally {
       setLoading(false)
@@ -247,7 +247,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
       } else {
         toast.error("Failed to remove flag")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove flag")
     } finally {
       setLoading(false)

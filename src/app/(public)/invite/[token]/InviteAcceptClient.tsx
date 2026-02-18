@@ -120,6 +120,7 @@ export function InviteAcceptClient({
         {/* Organizer logo/name */}
         <div className="mb-6">
           {organizerLogo ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={organizerLogo}
               alt={organizerName}

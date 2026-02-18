@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client"
 type EventWithDetails = Prisma.EventGetPayload<{
   include: { organizer: true; _count: { select: { tickets: true; orders: true } } }
 }>
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, MapPin, ExternalLink, Ticket, Flag, AlertTriangle } from "lucide-react"
@@ -50,8 +50,6 @@ export default async function EventManagement({
       orderBy: { flaggedAt: "desc" },
     })
   ])
-
-  const events = tab === "flagged" ? flaggedEvents : allEvents
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">

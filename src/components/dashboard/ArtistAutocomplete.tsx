@@ -30,7 +30,6 @@ export function ArtistAutocomplete({
   const [pastArtists, setPastArtists] = useState<PastArtist[]>([])
   const [suggestions, setSuggestions] = useState<PastArtist[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [loading, setLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -38,14 +37,11 @@ export function ArtistAutocomplete({
   useEffect(() => {
     async function fetchPastArtists() {
       try {
-        setLoading(true)
         const res = await fetch("/api/organizer/past-artists")
         const data = await res.json()
         setPastArtists(data.artists || [])
       } catch {
         // Ignore errors
-      } finally {
-        setLoading(false)
       }
     }
     fetchPastArtists()
@@ -54,6 +50,7 @@ export function ArtistAutocomplete({
   // Filter suggestions based on input
   useEffect(() => {
     if (!value.trim()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions(pastArtists.slice(0, 5)) // Show top 5 recent
     } else {
       const filtered = pastArtists.filter((artist) =>
@@ -120,6 +117,7 @@ export function ArtistAutocomplete({
               className="w-full px-3 py-2 flex items-center gap-3 hover:bg-white/5 transition-colors text-left"
             >
               {artist.imageUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={artist.imageUrl}
                   alt={artist.name}

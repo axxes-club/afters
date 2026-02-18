@@ -16,6 +16,7 @@ export function ShiftHistory({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     fetchShifts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId])
 
   async function fetchShifts() {

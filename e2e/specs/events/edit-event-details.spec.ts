@@ -24,7 +24,6 @@ test.describe('Event Details Editing', () => {
   });
 
   test('should display details tab with all sections', async ({
-    page,
     eventEditPage,
   }) => {
     await eventEditPage.goto(eventId);
@@ -152,7 +151,6 @@ test.describe('Event Details Editing', () => {
   });
 
   test('should update all details at once', async ({
-    page,
     eventEditPage,
   }) => {
     await eventEditPage.goto(eventId);
