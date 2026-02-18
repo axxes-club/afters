@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,7 +12,6 @@ import { Check } from 'lucide-react'
 import { locales, localeNames, localeFlags, type Locale } from '@/i18n/config'
 
 export function LanguageSwitcher() {
-  const router = useRouter()
   const [currentLocale, setCurrentLocale] = useState<Locale>('en')
   const [isLoading, setIsLoading] = useState(false)
 

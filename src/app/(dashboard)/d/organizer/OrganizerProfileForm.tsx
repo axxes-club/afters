@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, Save, Globe, Upload } from "lucide-react"
+import { Loader2, Save, Globe } from "lucide-react"
 import { URL_PREFIXES } from "@/lib/constants"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -71,7 +71,7 @@ export function OrganizerProfileForm({ profile }: Props) {
       } else {
         toast.error(data.error || "Failed to save profile")
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong")
     }
 

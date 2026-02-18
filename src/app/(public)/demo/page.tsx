@@ -7,7 +7,6 @@ import {
   Send,
   Share2,
   Check,
-  MapPin,
   Ticket,
   X,
   Copy,
@@ -15,10 +14,8 @@ import {
   RotateCcw,
   ChevronRight,
   Zap,
-  Calendar,
   Users,
   BarChart3,
-  Smartphone,
 } from "lucide-react"
 
 const QrScanner = dynamic(

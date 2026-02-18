@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Radio, Lock, Zap, AlertCircle, Calendar, MapPin, ChevronRight, User, LayoutDashboard, ScanLine, Monitor, Smartphone, Share } from "lucide-react"
+import { Radio, Lock, Zap, AlertCircle, Calendar, MapPin, ChevronRight, User, LayoutDashboard, ScanLine, Smartphone, Share } from "lucide-react"
 import { toast } from "sonner"
 
 interface OrganizerEvent {
@@ -34,6 +34,7 @@ export default function ScannerEntryPage() {
   // Check if user is logged in as organizer
   useEffect(() => {
     checkOrganizerAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function checkOrganizerAuth() {
@@ -96,6 +97,7 @@ export default function ScannerEntryPage() {
     if (fullCode.length === 6 && code.every((d) => d !== "")) {
       verifyCode(fullCode)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code])
 
   async function verifyCode(fullCode: string) {

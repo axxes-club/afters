@@ -1,6 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Lock, ShieldCheck, Users, UserRound, Music, Building2 } from "lucide-react"
+import { Lock, ShieldCheck, UserRound, Music, Building2 } from "lucide-react"
 
 export default function RolesAndPermissionsPage() {
   // Define role permissions

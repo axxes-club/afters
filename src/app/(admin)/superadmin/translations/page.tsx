@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -82,7 +81,7 @@ export default function TranslationsPage() {
       const res = await fetch('/api/admin/translations')
       const data = await res.json()
       setTranslations(data.translations || [])
-    } catch (error) {
+    } catch {
       toast.error('Failed to load translations')
     } finally {
       setLoading(false)
@@ -100,7 +99,7 @@ export default function TranslationsPage() {
       } else {
         toast.error(data.error || 'Sync failed')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to sync translations')
     } finally {
       setSyncing(false)
@@ -123,7 +122,7 @@ export default function TranslationsPage() {
       } else {
         toast.error(data.error || 'Failed to save')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to save translation')
     } finally {
       setSaving(false)
@@ -152,7 +151,7 @@ export default function TranslationsPage() {
       } else {
         toast.error(data.error || 'Failed to add')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to add translation')
     } finally {
       setSaving(false)

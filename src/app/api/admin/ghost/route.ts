@@ -99,7 +99,7 @@ export async function GET() {
         adminId: adminUserId
       }
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ ghosting: null })
   }
 }

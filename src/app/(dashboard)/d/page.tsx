@@ -44,7 +44,6 @@ export default async function DashboardPage() {
   const upcomingEvents = profile.events.filter(
     (e) => new Date(e.startsAt) > now,
   );
-  const pastEvents = profile.events.filter((e) => new Date(e.startsAt) <= now);
 
   const totalTicketsSold = profile.events.reduce(
     (sum, e) => sum + e.ticketTiers.reduce((s, t) => s + t.quantitySold, 0),

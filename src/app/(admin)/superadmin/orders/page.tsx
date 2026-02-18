@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Receipt, Search, Download, Eye, RefreshCcw } from "lucide-react"
+import { Receipt, Eye } from "lucide-react"
 import Link from "next/link"
 
 async function getOrders() {

@@ -6,17 +6,10 @@ import type { Event, TicketTier } from "@prisma/client"
 type EventWithTiers = Event & { ticketTiers: TicketTier[] }
 import Link from "next/link"
 import Image from "next/image"
-import { 
-  Plus, 
+import {
+  Plus,
   Calendar,
   MapPin,
-  Clock,
-  Ticket,
-  MoreVertical,
-  ExternalLink,
-  Eye,
-  EyeOff,
-  Trash2
 } from "lucide-react"
 import { formatCents } from "@/lib/stripe"
 

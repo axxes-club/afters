@@ -92,7 +92,6 @@ test.describe('Event Creation', () => {
 
   test('should toggle between ticketed and RSVP modes', async ({
     eventCreatePage,
-    page,
   }) => {
     await eventCreatePage.goto();
 

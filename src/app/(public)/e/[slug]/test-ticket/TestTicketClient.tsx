@@ -48,6 +48,7 @@ export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClie
 
   useEffect(() => {
     fetchTestTicket()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.id])
 
   async function fetchTestTicket() {
@@ -90,7 +91,7 @@ export function TestTicketClient({ event, eventDate, eventTime }: TestTicketClie
       } else {
         toast.error("Failed to reset ticket")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to reset ticket")
     } finally {
       setResetting(false)

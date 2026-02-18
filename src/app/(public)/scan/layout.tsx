@@ -7,7 +7,7 @@ import {
   LayoutDashboard,
   ScanLine,
 } from "lucide-react"
-import { UserButton, SignedIn, SignedOut } from "@clerk/nextjs"
+import { UserButton, SignedIn } from "@clerk/nextjs"
 
 const navItems = [
   { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },

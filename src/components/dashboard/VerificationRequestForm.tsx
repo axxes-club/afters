@@ -33,7 +33,6 @@ interface VerificationStatus {
 }
 
 export function VerificationRequestForm() {
-  const t = useTranslations('verification')
   const tCommon = useTranslations('common')
   
   const [status, setStatus] = useState<VerificationStatus | null>(null)
@@ -89,7 +88,7 @@ export function VerificationRequestForm() {
         const error = await res.json()
         toast.error(error.error || "Failed to submit request")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit request")
     } finally {
       setSubmitting(false)

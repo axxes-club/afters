@@ -150,7 +150,7 @@ export default function FeedbackManagementPage() {
         const error = await res.json()
         toast.error(error.message || "Failed to update feedback")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update feedback")
     } finally {
       setSaving(false)

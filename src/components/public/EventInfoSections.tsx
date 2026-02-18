@@ -1,12 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-
-interface FAQ {
-  question: string
-  answer: string
-}
-
 interface EventInfoSectionsProps {
   about?: string | null
   refundPolicy?: string | null

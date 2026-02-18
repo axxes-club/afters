@@ -13,7 +13,6 @@ import {
   Music,
   Building2,
   UserCircle,
-  Ticket,
   Users,
   ScanLine,
   LucideIcon,
@@ -79,7 +78,6 @@ function isNavItemActive(
 }
 
 export function DashboardSidebar({
-  isSuperAdmin,
   isOrganizer,
   isArtist,
   isPersonal,

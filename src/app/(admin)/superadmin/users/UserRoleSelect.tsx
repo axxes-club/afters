@@ -46,7 +46,7 @@ export function UserRoleSelect({ userId, initialRole, disabled }: UserRoleSelect
       await updateUserRole(userId, newRole)
       setRole(newRole)
       toast.success("User role updated")
-    } catch (error) {
+    } catch {
       toast.error("Failed to update role")
       // Revert select value
     } finally {

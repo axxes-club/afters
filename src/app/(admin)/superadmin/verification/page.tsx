@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -26,7 +25,6 @@ import {
   User,
   Link as LinkIcon,
   FileText,
-  ExternalLink,
   ShieldCheck,
   AlertCircle
 } from "lucide-react"
@@ -115,7 +113,7 @@ export default function VerificationManagementPage() {
         const error = await res.json()
         toast.error(error.error || "Failed to process request")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to process request")
     } finally {
       setProcessing(false)

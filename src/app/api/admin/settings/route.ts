@@ -47,7 +47,7 @@ export async function GET() {
 }
 
 // PATCH /api/admin/settings - Update site settings (superadmin only)
-export async function PATCH(request: Request) {
+export async function PATCH() {
   try {
     const { userId } = await auth()
     if (!userId) {

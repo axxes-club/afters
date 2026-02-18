@@ -34,6 +34,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     fetchScanners()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId])
 
   async function fetchScanners() {

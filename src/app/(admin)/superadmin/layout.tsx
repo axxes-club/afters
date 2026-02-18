@@ -10,7 +10,7 @@ export default async function SuperadminLayout({
 }) {
   try {
     await requireSuperAdmin()
-  } catch (error) {
+  } catch {
     redirect("/d")
   }
 

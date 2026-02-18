@@ -186,6 +186,7 @@ export default function ScannerPage({
 
   useEffect(() => {
     checkExistingSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function checkExistingSession() {
@@ -286,6 +287,7 @@ export default function ScannerPage({
         setLoading(false)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [loading]
   )
 
@@ -349,8 +351,8 @@ export default function ScannerPage({
         const data = await res.json()
         setGuestlistEntries(data.entries || [])
       }
-    } catch (error) {
-      console.error("Failed to fetch guestlist:", error)
+    } catch (_error) {
+      console.error("Failed to fetch guestlist:", _error)
     }
   }
 
@@ -374,7 +376,7 @@ export default function ScannerPage({
       } else {
         toast.error(data.error || "Check-in failed")
       }
-    } catch (error) {
+    } catch {
       toast.error("Check-in failed")
     }
   }
@@ -384,6 +386,7 @@ export default function ScannerPage({
     if (viewMode === "guestlist" && authenticated) {
       fetchGuestlist(guestlistSearch)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, authenticated])
 
   // Debounced search for guestlist
@@ -394,6 +397,7 @@ export default function ScannerPage({
       }, 300)
       return () => clearTimeout(timeout)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guestlistSearch])
 
   // Loading state

@@ -56,7 +56,7 @@ export function GhostBanner() {
       toast.success('Ghost session ended')
       // Reload to refresh user context
       window.location.href = '/superadmin/users'
-    } catch (error) {
+    } catch {
       toast.error('Failed to end ghost session')
     }
     setLoading(false)
