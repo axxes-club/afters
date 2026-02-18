@@ -133,6 +133,22 @@ function darkenColor(hex: string, factor: number): string {
   return rgbToHex(r, g, b)
 }
 
+function lightenColor(hex: string, factor: number): string {
+  const r = Math.round(parseInt(hex.slice(1, 3), 16) + (255 - parseInt(hex.slice(1, 3), 16)) * factor)
+  const g = Math.round(parseInt(hex.slice(3, 5), 16) + (255 - parseInt(hex.slice(3, 5), 16)) * factor)
+  const b = Math.round(parseInt(hex.slice(5, 7), 16) + (255 - parseInt(hex.slice(5, 7), 16)) * factor)
+  return rgbToHex(r, g, b)
+}
+
+// Generate color variations from flyer colors
+function generateColorVariations(colors: string[]): { original: string; light: string; dark: string }[] {
+  return colors.map(color => ({
+    original: color,
+    light: lightenColor(color, 0.3),
+    dark: darkenColor(color, 0.7),
+  }))
+}
+
 const TYPOGRAPHY_OPTIONS = [
   { id: "mono", name: "MONO", preview: "JetBrains Mono", className: "font-mono", description: "Technical, precise" },
   { id: "headline", name: "HEADLINE", preview: "Bebas Neue", className: "font-headline", description: "Bold, impactful" },
@@ -943,31 +959,103 @@ export function EventDesignTab({
             </div>
 
             {flyerColors.length > 0 ? (
-              <div
-                className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
-                style={{ WebkitOverflowScrolling: "touch" }}
-              >
-                {flyerColors.map((color, index) => (
-                  <button
-                    key={`flyer-${index}`}
-                    onClick={() => setAccentColor(color)}
-                    className={`
-                      w-10 h-10 flex-shrink-0 transition-all relative border-2 border-purple-500/30
-                      ${accentColor === color
-                        ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
-                        : "hover:scale-105 hover:border-purple-500/60"
-                      }
-                    `}
-                    style={{ backgroundColor: color }}
-                    title={`Flyer color ${color.toUpperCase()}`}
+              <div className="space-y-3">
+                {/* Original flyer colors */}
+                <div>
+                  <div className="text-[9px] font-mono text-purple-400/60 mb-2 uppercase tracking-wider">Original</div>
+                  <div
+                    className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                    style={{ WebkitOverflowScrolling: "touch" }}
                   >
-                    {accentColor === color && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Check className="w-4 h-4 text-black drop-shadow-lg" />
-                      </div>
-                    )}
-                  </button>
-                ))}
+                    {flyerColors.map((color, index) => (
+                      <button
+                        key={`flyer-orig-${index}`}
+                        onClick={() => setAccentColor(color)}
+                        className={`
+                          w-9 h-9 flex-shrink-0 transition-all relative border-2 border-purple-500/30
+                          ${accentColor === color
+                            ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                            : "hover:scale-105 hover:border-purple-500/60"
+                          }
+                        `}
+                        style={{ backgroundColor: color }}
+                        title={color.toUpperCase()}
+                      >
+                        {accentColor === color && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Check className="w-3 h-3 text-black drop-shadow-lg" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Lighter variations */}
+                <div>
+                  <div className="text-[9px] font-mono text-purple-400/60 mb-2 uppercase tracking-wider">Lighter</div>
+                  <div
+                    className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {flyerColors.map((color, index) => {
+                      const lightColor = lightenColor(color, 0.3)
+                      return (
+                        <button
+                          key={`flyer-light-${index}`}
+                          onClick={() => setAccentColor(lightColor)}
+                          className={`
+                            w-9 h-9 flex-shrink-0 transition-all relative border-2 border-purple-500/20
+                            ${accentColor === lightColor
+                              ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                              : "hover:scale-105 hover:border-purple-500/40"
+                            }
+                          `}
+                          style={{ backgroundColor: lightColor }}
+                          title={`Light ${lightColor.toUpperCase()}`}
+                        >
+                          {accentColor === lightColor && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Check className="w-3 h-3 text-black drop-shadow-lg" />
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                {/* Darker variations */}
+                <div>
+                  <div className="text-[9px] font-mono text-purple-400/60 mb-2 uppercase tracking-wider">Darker</div>
+                  <div
+                    className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {flyerColors.map((color, index) => {
+                      const darkColor = darkenColor(color, 0.3)
+                      return (
+                        <button
+                          key={`flyer-dark-${index}`}
+                          onClick={() => setAccentColor(darkColor)}
+                          className={`
+                            w-9 h-9 flex-shrink-0 transition-all relative border-2 border-purple-500/20
+                            ${accentColor === darkColor
+                              ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                              : "hover:scale-105 hover:border-purple-500/40"
+                            }
+                          `}
+                          style={{ backgroundColor: darkColor }}
+                          title={`Dark ${darkColor.toUpperCase()}`}
+                        >
+                          {accentColor === darkColor && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Check className="w-3 h-3 text-white drop-shadow-lg" />
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             ) : !extractingColors ? (
               <div className="text-[10px] font-mono text-white/30 py-2">
@@ -1046,40 +1134,139 @@ export function EventDesignTab({
 
         {/* Flyer Background Colors */}
         {flyerUrl && flyerColors.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3 h-3 text-slate-400" />
-              <span className="text-[10px] font-mono text-slate-400 tracking-wider">DARKER TONES FROM FLYER</span>
+              <span className="text-[10px] font-mono text-slate-400 tracking-wider">FROM FLYER</span>
             </div>
-            <div
-              className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
-              style={{ WebkitOverflowScrolling: "touch" }}
-            >
-              {flyerColors.map((color, index) => {
-                // Darken the flyer colors for background use
-                const darkenedColor = darkenColor(color, 0.7)
-                return (
+            {/* Very dark variations (best for backgrounds) */}
+            <div>
+              <div className="text-[9px] font-mono text-slate-500 mb-2 uppercase tracking-wider">Very Dark (70%)</div>
+              <div
+                className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                {flyerColors.map((color, index) => {
+                  const veryDarkColor = darkenColor(color, 0.85)
+                  return (
+                    <button
+                      key={`flyer-bg-vdark-${index}`}
+                      onClick={() => setBackgroundColor(veryDarkColor)}
+                      className={`
+                        w-9 h-9 flex-shrink-0 transition-all relative border border-white/20
+                        ${backgroundColor === veryDarkColor
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                          : "hover:scale-105"
+                        }
+                      `}
+                      style={{ backgroundColor: veryDarkColor }}
+                      title={veryDarkColor.toUpperCase()}
+                    >
+                      {backgroundColor === veryDarkColor && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white drop-shadow-lg" />
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            {/* Dark variations */}
+            <div>
+              <div className="text-[9px] font-mono text-slate-500 mb-2 uppercase tracking-wider">Dark (50%)</div>
+              <div
+                className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                {flyerColors.map((color, index) => {
+                  const darkColor = darkenColor(color, 0.7)
+                  return (
+                    <button
+                      key={`flyer-bg-dark-${index}`}
+                      onClick={() => setBackgroundColor(darkColor)}
+                      className={`
+                        w-9 h-9 flex-shrink-0 transition-all relative border border-white/20
+                        ${backgroundColor === darkColor
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                          : "hover:scale-105"
+                        }
+                      `}
+                      style={{ backgroundColor: darkColor }}
+                      title={darkColor.toUpperCase()}
+                    >
+                      {backgroundColor === darkColor && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white drop-shadow-lg" />
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            {/* Medium dark variations */}
+            <div>
+              <div className="text-[9px] font-mono text-slate-500 mb-2 uppercase tracking-wider">Medium (30%)</div>
+              <div
+                className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                {flyerColors.map((color, index) => {
+                  const medColor = darkenColor(color, 0.5)
+                  return (
+                    <button
+                      key={`flyer-bg-med-${index}`}
+                      onClick={() => setBackgroundColor(medColor)}
+                      className={`
+                        w-9 h-9 flex-shrink-0 transition-all relative border border-white/20
+                        ${backgroundColor === medColor
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                          : "hover:scale-105"
+                        }
+                      `}
+                      style={{ backgroundColor: medColor }}
+                      title={medColor.toUpperCase()}
+                    >
+                      {backgroundColor === medColor && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white drop-shadow-lg" />
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            {/* Original colors */}
+            <div>
+              <div className="text-[9px] font-mono text-slate-500 mb-2 uppercase tracking-wider">Original</div>
+              <div
+                className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                {flyerColors.map((color, index) => (
                   <button
-                    key={`flyer-bg-${index}`}
-                    onClick={() => setBackgroundColor(darkenedColor)}
+                    key={`flyer-bg-orig-${index}`}
+                    onClick={() => setBackgroundColor(color)}
                     className={`
-                      w-10 h-10 flex-shrink-0 transition-all relative border border-white/20
-                      ${backgroundColor === darkenedColor
+                      w-9 h-9 flex-shrink-0 transition-all relative border border-white/20
+                      ${backgroundColor === color
                         ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
                         : "hover:scale-105"
                       }
                     `}
-                    style={{ backgroundColor: darkenedColor }}
-                    title={`Darkened ${color.toUpperCase()}`}
+                    style={{ backgroundColor: color }}
+                    title={color.toUpperCase()}
                   >
-                    {backgroundColor === darkenedColor && (
+                    {backgroundColor === color && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white drop-shadow-lg" />
+                        <Check className="w-3 h-3 text-black drop-shadow-lg" />
                       </div>
                     )}
                   </button>
-                )
-              })}
+                ))}
+              </div>
             </div>
           </div>
         )}

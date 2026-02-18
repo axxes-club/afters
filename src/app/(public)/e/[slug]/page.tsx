@@ -407,6 +407,18 @@ export default async function EventPage({
     modern: 'font-sans',
   }
 
+  // Helper to calculate relative luminance for contrast detection
+  const getLuminance = (hex: string): number => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255
+    const g = parseInt(hex.slice(3, 5), 16) / 255
+    const b = parseInt(hex.slice(5, 7), 16) / 255
+    const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+  }
+
+  // Determine if a color is "light" (needs dark text) or "dark" (needs light text)
+  const isLightColor = (hex: string): boolean => getLuminance(hex) > 0.179
+
   // Create render function that accepts live design
   // Preview params take priority for owners, allowing live preview via URL
   const renderEventPage = (liveDesign?: LiveDesign) => {
@@ -415,6 +427,19 @@ export default async function EventPage({
     const pageTheme = (isOwner && preview_theme) || liveDesign?.pageTheme || event.pageTheme || 'neon'
     const typography = (isOwner && preview_typography) || liveDesign?.typography || event.typography || 'headline'
     const typographyClass = typographyMap[typography] || 'font-headline'
+
+    // Automatic contrast detection
+    const bgIsLight = isLightColor(backgroundColor)
+    const accentIsLight = isLightColor(accentColor)
+    // Primary text color based on background
+    const textColor = bgIsLight ? '#000000' : '#ffffff'
+    const textMuted = bgIsLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)'
+    const textSubtle = bgIsLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)'
+    // Text color for accent-colored backgrounds (buttons, etc.)
+    const accentTextColor = accentIsLight ? '#000000' : '#ffffff'
+    // Border colors
+    const borderColor = bgIsLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
+    const borderColorStrong = bgIsLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'
 
     // Location display logic - use live design if provided
     const showLocationOnPage = liveDesign?.showLocationOnPage ?? event.showLocationOnPage
@@ -478,7 +503,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'brutalist') {
       return (
-        <div className="min-h-screen text-white font-mono" style={{ backgroundColor }}>
+        <div className="min-h-screen font-mono" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -677,7 +702,7 @@ export default async function EventPage({
             <Link
               href={ctaUrl}
               className="block w-full p-4 text-center font-black tracking-widest uppercase"
-              style={{ backgroundColor: accentColor, color: '#000' }}
+              style={{ backgroundColor: accentColor, color: accentTextColor }}
             >
               {ctaText}{" // "}{isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
             </Link>
@@ -715,7 +740,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'neon') {
       return (
-        <div className="min-h-screen text-white relative overflow-hidden" style={{ backgroundColor }}>
+        <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -989,7 +1014,7 @@ export default async function EventPage({
               <Link
                 href={ctaUrl}
                 className="px-6 py-3 flex items-center gap-2"
-                style={{ backgroundColor: accentColor, color: '#000' }}
+                style={{ backgroundColor: accentColor, color: accentTextColor }}
               >
                 {!isRsvpEvent && <Ticket className="w-4 h-4" />}
                 {isRsvpEvent && <Users className="w-4 h-4" />}
@@ -1020,7 +1045,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'minimal') {
       return (
-        <div className="min-h-screen text-white" style={{ backgroundColor }}>
+        <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -1241,7 +1266,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'tilt') {
       return (
-        <div className="min-h-screen text-white overflow-hidden" style={{ backgroundColor }}>
+        <div className="min-h-screen overflow-hidden" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -1420,7 +1445,7 @@ export default async function EventPage({
                 <Link
                   href={ctaUrl}
                   className={`inline-block px-16 py-6 ${typographyClass} text-2xl font-black uppercase -rotate-2 hover:rotate-0 transition-transform`}
-                  style={{ backgroundColor: accentColor, color: '#000' }}
+                  style={{ backgroundColor: accentColor, color: accentTextColor }}
                 >
                   {isRsvpEvent ? 'RSVP NOW' : 'GET TICKETS NOW'}
                 </Link>
@@ -1447,7 +1472,7 @@ export default async function EventPage({
             <Link
               href={ctaUrl}
               className="block w-full py-4 text-center font-black text-xl uppercase"
-              style={{ backgroundColor: accentColor, color: '#000' }}
+              style={{ backgroundColor: accentColor, color: accentTextColor }}
             >
               {ctaText}{" // "}{isRsvpEvent ? 'FREE' : (lowestPrice === 0 ? 'FREE' : formatCents(lowestPrice))}
             </Link>
@@ -1477,7 +1502,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'lush') {
       return (
-        <div className="min-h-screen text-white" style={{ backgroundColor }}>
+        <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -1801,7 +1826,7 @@ export default async function EventPage({
       const faqs = Array.isArray(event.faqs) ? event.faqs : []
 
       return (
-        <div className="min-h-screen text-white" style={{ backgroundColor }}>
+        <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -2117,7 +2142,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'card') {
       return (
-        <div className="min-h-screen text-white" style={{ backgroundColor }}>
+        <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -2503,7 +2528,7 @@ export default async function EventPage({
     // ============================================
     if (pageTheme === 'vapor') {
       return (
-        <div className="min-h-screen text-white overflow-hidden" style={{ backgroundColor }}>
+        <div className="min-h-screen overflow-hidden" style={{ backgroundColor, color: textColor }}>
           <ViewTracker eventId={event.id} />
           {rescheduledBannerElement}
 
@@ -2865,7 +2890,7 @@ export default async function EventPage({
     // EDITORIAL TEMPLATE - Magazine-style, sophisticated (DEFAULT)
     // ============================================
     return (
-      <div className="min-h-screen text-white" style={{ backgroundColor }}>
+      <div className="min-h-screen" style={{ backgroundColor, color: textColor }}>
         <ViewTracker eventId={event.id} />
         {rescheduledBannerElement}
 
