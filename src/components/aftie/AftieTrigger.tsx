@@ -7,20 +7,18 @@ export function AftieTrigger() {
   const { isOpen, toggleChat, isHydrated, setupStatus } = useAftie()
 
   // Don't render until hydrated to avoid hydration mismatch
-  // Show for users with organizer profile (setupStatus.hasProfile)
-  // The consent dialog will handle first-time setup
+  // Hide in production, when chat is open, or when user doesn't have profile
+  // Hide when Aftie AI is disabled (isSetup = false)
   if (process.env.NODE_ENV === "production") return null
-  if (!isHydrated || !setupStatus?.hasProfile || isOpen) return null
+  if (!isHydrated || !setupStatus?.hasProfile || !setupStatus?.isSetup || isOpen) return null
 
   return (
     <button
       onClick={toggleChat}
-      className="fixed bottom-4 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/60 shadow-xl shadow-[#ff1493]/30 flex items-center justify-center hover:scale-110 hover:shadow-[#ff1493]/50 active:scale-95 transition-all duration-200 z-50 group"
+      className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#ff1493] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-200 z-50"
       aria-label="Open Aftie AI Assistant"
     >
-      <Sparkles className="w-6 h-6 text-white group-hover:animate-pulse" />
-      {/* Subtle pulse ring */}
-      <span className="absolute inset-0 rounded-full bg-[#ff1493]/20 animate-ping opacity-75" style={{ animationDuration: '2s' }} />
+      <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
     </button>
   )
 }

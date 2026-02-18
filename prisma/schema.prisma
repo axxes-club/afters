@@ -258,6 +258,13 @@ model OrganizerProfile {
   // Aftie AI Image Generation Settings
   aftieImageProvider       String?  // 'openai' | 'gemini' | null
   aftieImageApiKey         String?  // User's API key for image generation (TODO: encrypt at rest)
+
+  // UI Customization Preferences
+  sidebarLogoMode          String   @default("afters") // 'afters' | 'custom' | 'hidden'
+  sidebarCustomLogoUrl     String?  // URL for custom logo when sidebarLogoMode = 'custom'
+  sidebarCompact           Boolean  @default(false) // Compact sidebar mode
+  uiAccentColor            String?  // Custom accent color for dashboard UI
+  uiFontSize               String   @default("normal") // 'small' | 'normal' | 'large'
 }
 
 enum TicketingType {
