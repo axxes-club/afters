@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Key, Plus, Copy, Check, Trash2, ExternalLink, Clock, BookOpen } from "lucide-react"
+import { Key, Plus, Copy, Check, Trash2, ExternalLink, Clock, BookOpen, Box, Link2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -392,10 +392,51 @@ export default function DevelopersPage() {
         </CardContent>
       </Card>
 
+      {/* OAuth & Integrations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="hover:border-white/20 transition-colors">
+          <Link href="/b/developers/apps">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="p-2 rounded-lg bg-[#ff1493]/10">
+                  <Box className="w-6 h-6 text-[#ff1493]" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">OAuth Apps</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Register apps for OAuth 2.0 integration with one-click authorization.
+                  </p>
+                </div>
+                <ExternalLink className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+
+        <Card className="hover:border-white/20 transition-colors">
+          <Link href="/b/developers/connections">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="p-2 rounded-lg bg-white/10">
+                  <Link2 className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">Connected Apps</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Manage third-party apps you&apos;ve authorized to access your account.
+                  </p>
+                </div>
+                <ExternalLink className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+      </div>
+
       {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="hover:border-white/20 transition-colors">
-          <Link href="/b/developers/docs">
+          <Link href="/developers">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
                 <div className="p-2 rounded-lg bg-[#ff1493]/10">

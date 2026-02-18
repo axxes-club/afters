@@ -1,0 +1,32 @@
+<svg width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="200" fill="#000000"/>
+  
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ff1493" stroke-width="0.5" opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="200" fill="url(#grid)"/>
+  
+  <!-- Glow effect -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff1493" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ff1493" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="400" cy="100" rx="300" ry="100" fill="url(#glow)"/>
+  
+  <!-- The dot -->
+  <circle cx="320" cy="100" r="12" fill="#ff1493"/>
+  
+  <!-- afters text -->
+  <text x="350" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="300" letter-spacing="8" fill="#ffffff">
+    afters
+  </text>
+  
+  <!-- Horizontal line accents -->
+  <line x1="100" y1="170" x2="250" y2="170" stroke="#ff1493" stroke-width="1" opacity="0.3"/>
+  <line x1="550" y1="170" x2="700" y2="170" stroke="#ff1493" stroke-width="1" opacity="0.3"/>
+</svg>
