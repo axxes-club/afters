@@ -37,6 +37,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  Github,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -60,6 +61,7 @@ interface FeedbackEntry {
   userAgent: string | null
   status: "new" | "reviewed" | "resolved" | "wontfix"
   adminNotes: string | null
+  githubIssueUrl: string | null
   createdAt: string
   updatedAt: string
   user: FeedbackUser | null
@@ -98,6 +100,7 @@ export default function FeedbackManagementPage() {
   const [saving, setSaving] = useState(false)
   const [activityExpanded, setActivityExpanded] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [creatingIssue, setCreatingIssue] = useState(false)
 
   useEffect(() => {
     fetchFeedback()
@@ -154,6 +157,40 @@ export default function FeedbackManagementPage() {
       toast.error("Failed to update feedback")
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleCreateGitHubIssue() {
+    if (!selectedFeedback) return
+    setCreatingIssue(true)
+
+    try {
+      const res = await fetch(`/api/feedback/${selectedFeedback.id}/github-issue`, {
+        method: "POST",
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        toast.success("GitHub issue created!")
+        // Update the local state
+        setSelectedFeedback(prev => prev ? { ...prev, githubIssueUrl: data.issueUrl } : null)
+        // Open the issue in a new tab
+        window.open(data.issueUrl, "_blank")
+        fetchFeedback()
+      } else {
+        if (data.url) {
+          // Issue already exists
+          toast.info("Issue already exists")
+          window.open(data.url, "_blank")
+        } else {
+          toast.error(data.error || "Failed to create GitHub issue")
+        }
+      }
+    } catch {
+      toast.error("Failed to create GitHub issue")
+    } finally {
+      setCreatingIssue(false)
     }
   }
 
@@ -277,6 +314,12 @@ export default function FeedbackManagementPage() {
                               <Badge variant="outline" className="text-white/60">
                                 <ImageIcon className="h-3 w-3 mr-1" />
                                 {screenshots.length}
+                              </Badge>
+                            )}
+                            {entry.githubIssueUrl && (
+                              <Badge variant="outline" className="text-purple-400 border-purple-400/30">
+                                <Github className="h-3 w-3 mr-1" />
+                                Issue
                               </Badge>
                             )}
                           </div>
@@ -479,6 +522,26 @@ export default function FeedbackManagementPage() {
             <Button variant="outline" onClick={() => setDetailDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
+            {selectedFeedback?.githubIssueUrl ? (
+              <Button
+                variant="outline"
+                onClick={() => window.open(selectedFeedback.githubIssueUrl!, "_blank")}
+                className="w-full sm:w-auto"
+              >
+                <Github className="h-4 w-4 mr-2" />
+                View Issue
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={handleCreateGitHubIssue}
+                disabled={creatingIssue}
+                className="w-full sm:w-auto"
+              >
+                {creatingIssue ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Github className="h-4 w-4 mr-2" />}
+                Create Issue
+              </Button>
+            )}
             <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto bg-[#ff1493] hover:bg-[#ff1493]/80">
               {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
               Save Changes
