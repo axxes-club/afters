@@ -151,3 +151,191 @@ export function generateTicketEmailHtml(data: {
 </html>
   `
 }
+
+export function generateEventReminderEmailHtml(data: {
+  eventTitle: string
+  hoursUntilStart: number
+  eventDate: string
+  venueName: string
+}) {
+  const safeTitle = escapeHtml(data.eventTitle)
+  const safeDate = escapeHtml(data.eventDate)
+  const safeVenue = escapeHtml(data.venueName)
+  const timeText = data.hoursUntilStart === 1 ? "1 hour" : `${data.hoursUntilStart} hours`
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Reminder - ${safeTitle}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #000; font-family: 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #000;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width: 600px;">
+          <!-- Header -->
+          <tr>
+            <td style="text-align: center; padding-bottom: 30px;">
+              <h1 style="margin: 0; color: #ff1493; font-size: 48px; font-weight: bold;">
+                .
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="background-color: #111; border: 1px solid #222; padding: 40px;">
+              <h2 style="margin: 0 0 20px; color: #fff; font-size: 24px;">
+                ⏰ ${safeTitle} starts in ${timeText}!
+              </h2>
+              
+              <p style="margin: 0 0 30px; color: #888; font-size: 16px; line-height: 1.6;">
+                This is a friendly reminder that your event is coming up soon.
+              </p>
+              
+              <!-- Event Details -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px; background-color: #0a0a0a; border: 1px solid #222;">
+                    <p style="margin: 0 0 5px; color: #fff; font-size: 18px; font-weight: bold;">
+                      ${safeTitle}
+                    </p>
+                    <p style="margin: 0 0 5px; color: #888; font-size: 14px;">
+                      📅 ${safeDate}
+                    </p>
+                    <p style="margin: 0; color: #888; font-size: 14px;">
+                      📍 ${safeVenue}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- CTA -->
+              <a href="https://afters.am/d/events" style="display: inline-block; padding: 14px 28px; background-color: #ff1493; color: #000; text-decoration: none; font-weight: bold; font-size: 14px;">
+                View Event Dashboard →
+              </a>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 0; text-align: center;">
+              <p style="margin: 0; color: #444; font-size: 11px;">
+                © ${new Date().getFullYear()} Afters. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `
+}
+
+export function generateOrganizerSaleEmailHtml(data: {
+  eventTitle: string
+  ticketCount: number
+  amount: number
+  buyerEmail: string
+  orderNumber: string
+}) {
+  const safeTitle = escapeHtml(data.eventTitle)
+  const safeBuyerEmail = escapeHtml(data.buyerEmail)
+  const safeOrderNumber = escapeHtml(data.orderNumber)
+  const formattedAmount = (data.amount / 100).toFixed(2)
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Sale - ${safeTitle}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #000; font-family: 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #000;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width: 600px;">
+          <!-- Header -->
+          <tr>
+            <td style="text-align: center; padding-bottom: 30px;">
+              <h1 style="margin: 0; color: #ff1493; font-size: 48px; font-weight: bold;">
+                .
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="background-color: #111; border: 1px solid #222; padding: 40px;">
+              <h2 style="margin: 0 0 20px; color: #00ff88; font-size: 24px;">
+                💰 You made a sale!
+              </h2>
+              
+              <p style="margin: 0 0 30px; color: #888; font-size: 16px; line-height: 1.6;">
+                Someone just bought tickets for <strong style="color: #fff;">${safeTitle}</strong>
+              </p>
+              
+              <!-- Sale Details -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px; background-color: #0a0a0a; border: 1px solid #00ff88;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #222;">
+                          <span style="color: #888; font-size: 14px;">Tickets</span>
+                          <span style="color: #fff; font-size: 14px; float: right; font-weight: bold;">${data.ticketCount}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #222;">
+                          <span style="color: #888; font-size: 14px;">Amount</span>
+                          <span style="color: #00ff88; font-size: 14px; float: right; font-weight: bold;">$${formattedAmount}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #222;">
+                          <span style="color: #888; font-size: 14px;">Buyer</span>
+                          <span style="color: #fff; font-size: 14px; float: right;">${safeBuyerEmail}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0;">
+                          <span style="color: #888; font-size: 14px;">Order</span>
+                          <span style="color: #666; font-size: 14px; float: right;">#${safeOrderNumber}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- CTA -->
+              <a href="https://afters.am/d/events" style="display: inline-block; padding: 14px 28px; background-color: #ff1493; color: #000; text-decoration: none; font-weight: bold; font-size: 14px;">
+                View Dashboard →
+              </a>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 0; text-align: center;">
+              <p style="margin: 0; color: #444; font-size: 11px;">
+                © ${new Date().getFullYear()} Afters. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `
+}
