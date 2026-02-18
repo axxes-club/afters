@@ -152,7 +152,6 @@ export function AftieProvider({ children }: AftieProviderProps) {
       setIsBetaEnabled(prev => {
         const newValue = !prev
         localStorage.setItem(BETA_STORAGE_KEY, newValue.toString())
-        console.log(`🤖 Aftie AI beta ${newValue ? "ENABLED" : "DISABLED"}`)
         return newValue
       })
     }

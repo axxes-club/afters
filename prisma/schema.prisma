@@ -259,7 +259,7 @@ model OrganizerProfile {
 
   // Aftie AI Image Generation Settings
   aftieImageProvider       String?  // 'openai' | 'gemini' | null
-  aftieImageApiKey         String?  // Encrypted API key for image generation
+  aftieImageApiKey         String?  // User's API key for image generation (TODO: encrypt at rest)
 }
 
 enum TicketingType {
