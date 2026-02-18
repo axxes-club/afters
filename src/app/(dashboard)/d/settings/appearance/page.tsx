@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Save, ImageIcon, Eye, EyeOff, Type } from "lucide-react"
 import { toast } from "sonner"
+import { useUIPreferences } from "@/components/providers"
 
-interface UIPreferences {
+interface LocalUIPreferences {
   sidebarLogoMode: "afters" | "custom" | "hidden"
   sidebarCustomLogoUrl: string | null
   sidebarCompact: boolean
@@ -16,9 +17,10 @@ interface UIPreferences {
 }
 
 export default function AppearanceSettingsPage() {
+  const { preferences: globalPrefs, refreshPreferences } = useUIPreferences()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [preferences, setPreferences] = useState<UIPreferences>({
+  const [preferences, setPreferences] = useState<LocalUIPreferences>({
     sidebarLogoMode: "afters",
     sidebarCustomLogoUrl: null,
     sidebarCompact: false,
@@ -57,9 +59,9 @@ export default function AppearanceSettingsPage() {
       })
 
       if (res.ok) {
-        toast.success("Preferences saved!")
-        // Trigger a page refresh to apply changes to sidebar
-        window.location.reload()
+        toast.success("Preferences saved! Changes applied site-wide.")
+        // Refresh the global UI preferences context (no page reload needed)
+        await refreshPreferences()
       } else {
         const data = await res.json()
         toast.error(data.error || "Failed to save")

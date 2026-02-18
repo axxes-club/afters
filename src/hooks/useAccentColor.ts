@@ -7,17 +7,7 @@ const DEFAULT_ACCENT = "#ff1493"
 function getAccentFromDOM(): string {
   if (typeof window === "undefined") return DEFAULT_ACCENT
   
-  // Check parent elements (dashboard layout sets it on a div)
-  const dashboardWrapper = document.querySelector("[style*='--accent-color']")
-  if (dashboardWrapper) {
-    const wrapperStyle = getComputedStyle(dashboardWrapper)
-    const wrapperVar = wrapperStyle.getPropertyValue("--accent-color").trim()
-    if (wrapperVar) {
-      return wrapperVar
-    }
-  }
-  
-  // Fallback to root
+  // Read from root CSS variable (set by UIPreferencesProvider)
   const root = document.documentElement
   const computedStyle = getComputedStyle(root)
   const cssVar = computedStyle.getPropertyValue("--accent-color").trim()
@@ -61,12 +51,12 @@ export function useAccentColor() {
     // Initial update
     updateCache()
     
-    // Watch for style changes
+    // Watch for style changes on :root
     const observer = new MutationObserver(updateCache)
-    const dashboardWrapper = document.querySelector("[style*='--accent-color']")
-    if (dashboardWrapper) {
-      observer.observe(dashboardWrapper, { attributes: true, attributeFilter: ["style"] })
-    }
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ["style"] 
+    })
     
     return () => observer.disconnect()
   }, [])
