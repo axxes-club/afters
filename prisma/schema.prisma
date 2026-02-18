@@ -812,16 +812,18 @@ enum ScanResult {
 }
 
 model EventScanner {
-  id        String         @id @default(cuid())
-  eventId   String
-  name      String
-  code      String
-  isActive  Boolean        @default(true)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  scanLogs  ScanLog[]
-  shifts    ScannerShift[]
+  id          String         @id @default(cuid())
+  eventId     String
+  name        String
+  code        String
+  email       String?        // Optional email for sending scanner credentials
+  emailSentAt DateTime?      // When credentials were last sent
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  event       Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scanLogs    ScanLog[]
+  shifts      ScannerShift[]
 
   @@unique([eventId, code])
   @@index([eventId])

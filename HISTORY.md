@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.15 (2026-02-18)
+
+- Add optional email for event scanners (Issue #33, PR #36)
+- Scanners can receive credentials via email automatically on creation
+- Email includes scanner code, event details, and direct link to scanner page
+- Add resend credentials button with rate limiting (max 3/hour)
+- New Checkbox UI component using Radix UI
+- i18n support for scanner email strings (en, es-ES, es-LA, pt-BR)
+
 ## 0.2.14 (2026-02-18)
 
 - Add ticket/RSVP status indicators to events dashboard (Issue #37, PR #38)

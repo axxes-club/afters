@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -11,12 +12,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Plus, Trash2, Copy, QrCode, ExternalLink } from "lucide-react"
+import { Plus, Trash2, Copy, QrCode, ExternalLink, Mail, RotateCw, Check } from "lucide-react"
 
 interface Scanner {
   id: string
   name: string
   code: string
+  email: string | null
+  emailSentAt: string | null
   isActive: boolean
   createdAt: string
   _count?: {
@@ -30,7 +33,10 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true)
   const [showDialog, setShowDialog] = useState(false)
   const [newName, setNewName] = useState("")
+  const [newEmail, setNewEmail] = useState("")
+  const [sendEmailOnCreate, setSendEmailOnCreate] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [resendingId, setResendingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchScanners()
@@ -57,12 +63,23 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
       return
     }
 
+    // Validate email if provided
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (newEmail.trim() && !emailRegex.test(newEmail.trim())) {
+      toast.error("Please enter a valid email address")
+      return
+    }
+
     setCreating(true)
     try {
       const res = await fetch(`/api/events/${eventId}/scanners`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName.trim() }),
+        body: JSON.stringify({ 
+          name: newName.trim(),
+          email: newEmail.trim() || null,
+          sendEmail: newEmail.trim() ? sendEmailOnCreate : false,
+        }),
       })
 
       if (res.ok) {
@@ -70,7 +87,16 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
         setScanners([data.scanner, ...scanners])
         setShowDialog(false)
         setNewName("")
-        toast.success(`Scanner created! Code: ${data.scanner.code}`)
+        setNewEmail("")
+        setSendEmailOnCreate(true)
+        
+        if (data.emailSent) {
+          toast.success(`Scanner created! Credentials sent to ${data.scanner.email}`)
+        } else if (data.emailError) {
+          toast.warning(`Scanner created. Code: ${data.scanner.code}. ${data.emailError}`)
+        } else {
+          toast.success(`Scanner created! Code: ${data.scanner.code}`)
+        }
       } else {
         const error = await res.json()
         toast.error(error.error || "Failed to create scanner")
@@ -121,6 +147,38 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
       }
     } catch {
       toast.error("Failed to delete scanner")
+    }
+  }
+
+  async function resendCredentials(scanner: Scanner) {
+    if (!scanner.email) return
+    
+    setResendingId(scanner.id)
+    try {
+      const res = await fetch(
+        `/api/events/${eventId}/scanners/${scanner.id}/resend`,
+        { method: "POST" }
+      )
+
+      const data = await res.json()
+
+      if (res.ok) {
+        toast.success(`Credentials re-sent to ${scanner.email}`)
+        // Update the scanner's emailSentAt
+        setScanners(
+          scanners.map((s) =>
+            s.id === scanner.id ? { ...s, emailSentAt: new Date().toISOString() } : s
+          )
+        )
+      } else if (res.status === 429) {
+        toast.error(data.error || "Rate limit exceeded. Please try again later.")
+      } else {
+        toast.error(data.error || "Failed to resend credentials")
+      }
+    } catch {
+      toast.error("Failed to resend credentials")
+    } finally {
+      setResendingId(null)
     }
   }
 
@@ -218,6 +276,30 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                     </p>
                   )}
                 </div>
+                {/* Email Row */}
+                {scanner.email && (
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <div className="flex items-center gap-1.5 text-[10px] font-mono text-white/40">
+                      <Mail className="w-3 h-3" />
+                      <span className="truncate max-w-[180px]">{scanner.email}</span>
+                      {scanner.emailSentAt && (
+                        <span className="flex items-center gap-0.5 text-green-400/70">
+                          <Check className="w-2.5 h-2.5" />
+                          sent
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => resendCredentials(scanner)}
+                      disabled={resendingId === scanner.id}
+                      className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-mono text-white/40 hover:text-[#ff1493] hover:bg-white/5 transition-all disabled:opacity-50"
+                      title="Resend credentials"
+                    >
+                      <RotateCw className={`w-2.5 h-2.5 ${resendingId === scanner.id ? 'animate-spin' : ''}`} />
+                      resend
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-4">
                 <button
@@ -257,7 +339,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
               Create Scanner
             </DialogTitle>
             <DialogDescription className="text-xs text-white/40">
-              Enter the staff member&apos;s name. A unique 6-digit code will be generated.
+              Enter the staff member&apos;s details. A unique 6-digit code will be generated.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -270,13 +352,42 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                 placeholder="e.g., John Smith"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createScanner()}
                 className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="scanner-email" className="text-xs font-mono text-white/50">
+                Email <span className="text-white/30">(optional)</span>
+              </Label>
+              <Input
+                id="scanner-email"
+                type="email"
+                placeholder="e.g., john@example.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+              />
+              <p className="text-[10px] text-white/30 font-mono">
+                Scanner credentials will be sent to this email
+              </p>
+            </div>
+            {newEmail.trim() && (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="send-email"
+                  checked={sendEmailOnCreate}
+                  onCheckedChange={(checked: boolean | "indeterminate") => setSendEmailOnCreate(checked === true)}
+                  className="border-white/20 data-[state=checked]:bg-[#ff1493] data-[state=checked]:border-[#ff1493]"
+                />
+                <Label htmlFor="send-email" className="text-xs font-mono text-white/50 cursor-pointer">
+                  Send scanner link and code via email
+                </Label>
+              </div>
+            )}
             <button
               onClick={createScanner}
               disabled={creating}
+              onKeyDown={(e) => e.key === "Enter" && createScanner()}
               className="w-full py-2.5 bg-[#ff1493] text-black font-mono font-bold hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
             >
               {creating ? "Creating..." : "Create Scanner"}

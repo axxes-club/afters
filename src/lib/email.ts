@@ -468,3 +468,157 @@ export function generateOrganizerSaleEmailHtml(data: {
 </html>
   `
 }
+
+export function generateScannerCredentialsEmailHtml(data: {
+  scannerName: string
+  eventTitle: string
+  eventDate: string
+  eventVenue: string
+  scannerCode: string
+  scanUrl: string
+}) {
+  const safeName = escapeHtml(data.scannerName)
+  const safeTitle = escapeHtml(data.eventTitle)
+  const safeDate = escapeHtml(data.eventDate)
+  const safeVenue = escapeHtml(data.eventVenue)
+  const safeCode = escapeHtml(data.scannerCode)
+  const safeUrl = escapeHtml(data.scanUrl)
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scanner Access for ${safeTitle}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #000; font-family: 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #000;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width: 600px;">
+          <!-- Header -->
+          <tr>
+            <td style="text-align: center; padding-bottom: 30px;">
+              <h1 style="margin: 0; color: #ff1493; font-size: 48px; font-weight: bold;">
+                .
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="background-color: #111; border: 1px solid #222; padding: 40px;">
+              <h2 style="margin: 0 0 20px; color: #fff; font-size: 24px;">
+                Hey ${safeName}! 🎫
+              </h2>
+              
+              <p style="margin: 0 0 30px; color: #888; font-size: 16px; line-height: 1.6;">
+                You've been added as a door scanner for <strong style="color: #fff;">${safeTitle}</strong>.
+              </p>
+              
+              <!-- Event Details -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px; background-color: #0a0a0a; border: 1px solid #222;">
+                    <p style="margin: 0 0 10px; color: #ff1493; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+                      Event Details
+                    </p>
+                    <p style="margin: 0 0 5px; color: #fff; font-size: 18px; font-weight: bold;">
+                      ${safeTitle}
+                    </p>
+                    <p style="margin: 0 0 5px; color: #888; font-size: 14px;">
+                      📅 ${safeDate}
+                    </p>
+                    <p style="margin: 0; color: #888; font-size: 14px;">
+                      📍 ${safeVenue}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Scanner Code (prominent) -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 25px; background-color: #0a0a0a; border: 2px solid #ff1493; text-align: center;">
+                    <p style="margin: 0 0 10px; color: #ff1493; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+                      Your Scanner Code
+                    </p>
+                    <p style="margin: 0; color: #fff; font-size: 36px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">
+                      ${safeCode}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="${safeUrl}" style="display: inline-block; padding: 16px 32px; background-color: #ff1493; color: #000; text-decoration: none; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+                      Open Scanner →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Instructions -->
+              <div style="padding: 20px; background-color: #0a0a0a; border-left: 3px solid #ff1493;">
+                <p style="margin: 0 0 10px; color: #fff; font-size: 14px; font-weight: bold;">
+                  How to scan tickets:
+                </p>
+                <ol style="margin: 0; padding-left: 20px; color: #888; font-size: 14px; line-height: 1.8;">
+                  <li>Open the scanner link on your phone</li>
+                  <li>Enter your 6-digit code</li>
+                  <li>Point your camera at ticket QR codes</li>
+                </ol>
+              </div>
+              
+              <!-- Security Note -->
+              <p style="margin: 30px 0 0; color: #666; font-size: 12px; line-height: 1.6;">
+                ⚠️ Keep this code private — don't share it with others. If you have any issues, contact the event organizer.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 0; text-align: center;">
+              <p style="margin: 0; color: #444; font-size: 11px;">
+                © ${new Date().getFullYear()} Afters. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `
+}
+
+export async function sendScannerCredentialsEmail(data: {
+  to: string
+  scannerName: string
+  eventTitle: string
+  eventDate: string
+  eventVenue: string
+  scannerCode: string
+  scanUrl: string
+}) {
+  const html = generateScannerCredentialsEmailHtml({
+    scannerName: data.scannerName,
+    eventTitle: data.eventTitle,
+    eventDate: data.eventDate,
+    eventVenue: data.eventVenue,
+    scannerCode: data.scannerCode,
+    scanUrl: data.scanUrl,
+  })
+
+  return sendEmail({
+    to: data.to,
+    subject: `You've been added as a scanner for "${data.eventTitle}"`,
+    html,
+  })
+}
