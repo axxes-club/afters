@@ -9,6 +9,7 @@ import {
   ScanLine,
   ChevronLeft,
   Shield,
+  Settings,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import {
@@ -25,6 +26,7 @@ import { APP_VERSION } from "@/lib/constants";
 const baseNavItems = [
   { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
   { href: "/d/events", label: "EVENTS", icon: Calendar, exact: false },
+  { href: "/d/settings", label: "SETTINGS", icon: Settings, exact: false },
 ];
 
 const scannerNavItem = {
