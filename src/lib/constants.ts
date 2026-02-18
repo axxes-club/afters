@@ -1,6 +1,9 @@
 // App version - should match package.json version
 export const APP_VERSION = "0.2.2-beta"
 
+// Display version - converts "0.2.2-beta" to "0.2.2b" for compact display
+export const APP_VERSION_DISPLAY = APP_VERSION.replace("-beta", "b")
+
 // Site domain configuration
 // Primary domain - afters.am is now the main domain
 export const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN || "afters.am"
