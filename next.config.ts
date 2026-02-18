@@ -4,15 +4,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
-  // Performance optimizations
-  poweredByHeader: false, // Remove X-Powered-By header
-  compress: true, // Enable gzip compression
-
   images: {
-    // Optimize images
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: "https",
@@ -70,10 +62,6 @@ const nextConfig: NextConfig = {
   },
   // Moved from experimental.serverComponentsExternalPackages (deprecated in Next.js 16)
   serverExternalPackages: ["pg"],
-
 };
-
-// Note: Security headers should be configured in vercel.json for Vercel deployments
-// See: https://vercel.com/docs/concepts/projects/project-configuration#headers
 
 export default withNextIntl(nextConfig);
