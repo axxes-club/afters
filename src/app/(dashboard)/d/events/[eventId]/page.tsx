@@ -478,7 +478,7 @@ function EventDashboardContent({
     setEventTypeLoading(true);
     try {
       const res = await fetch(`/api/events/${eventId}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isRsvpOnly: isRsvp }),
       });
