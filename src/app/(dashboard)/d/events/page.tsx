@@ -1,14 +1,9 @@
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import type { Event, TicketTier, Ticket, Rsvp, TicketStatus, RsvpStatus } from "@prisma/client"
+import type { Event, TicketTier, TicketStatus, RsvpStatus } from "@prisma/client"
 
 type EventWithTiers = Event & { ticketTiers: TicketTier[] }
-type TicketWithDetails = Ticket & { 
-  event: Event
-  ticketTier: TicketTier
-}
-type RsvpWithEvent = Rsvp & { event: Event }
 
 import Link from "next/link"
 import Image from "next/image"
