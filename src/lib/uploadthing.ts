@@ -25,6 +25,13 @@ export const ourFileRouter = {
       console.log("Uploaded feedback screenshot:", fileUrl)
       return { url: fileUrl }
     }),
+  // Custom logo for sidebar
+  customLogo: f({ image: { maxFileSize: "2MB", maxFileCount: 1 } })
+    .onUploadComplete(async ({ file }) => {
+      const fileUrl = file.url || file.ufsUrl
+      console.log("Uploaded custom logo:", fileUrl)
+      return { url: fileUrl }
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter
