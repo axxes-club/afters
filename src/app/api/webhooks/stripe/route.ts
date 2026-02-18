@@ -4,7 +4,8 @@ import Stripe from "stripe"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
-import { sendEmail, generateTicketEmailHtml } from "@/lib/email"
+import { sendEmail, generateTicketEmailHtml, generateOrganizerSaleEmailHtml } from "@/lib/email"
+import { notifyTicketSale } from "@/lib/push"
 import { waitUntil } from "@vercel/functions"
 
 export async function POST(req: Request) {
@@ -142,6 +143,45 @@ export async function POST(req: Request) {
               })
 
               console.log(`Sent ${createdTickets.length} tickets to ${order.email}`)
+
+              // Notify organizer of the sale (push + email)
+              const organizer = await prisma.organizerProfile.findFirst({
+                where: { userId: order.event.organizerId },
+                include: { user: true },
+              })
+
+              if (organizer?.user) {
+                // Send push notification to organizer
+                await notifyTicketSale(
+                  organizer.userId,
+                  order.event.title,
+                  createdTickets.length,
+                  order.total
+                )
+
+                // Check if organizer wants email notifications for sales
+                const prefs = await prisma.notificationPreference.findUnique({
+                  where: { userId: organizer.userId },
+                })
+
+                if (!prefs || prefs.emailTicketSales) {
+                  const saleEmailHtml = generateOrganizerSaleEmailHtml({
+                    eventTitle: order.event.title,
+                    ticketCount: createdTickets.length,
+                    amount: order.total,
+                    buyerEmail: order.email,
+                    orderNumber: order.orderNumber,
+                  })
+
+                  await sendEmail({
+                    to: organizer.user.email,
+                    subject: `💰 ${createdTickets.length} ticket${createdTickets.length > 1 ? 's' : ''} sold for ${order.event.title}`,
+                    html: saleEmailHtml,
+                  })
+
+                  console.log(`Notified organizer ${organizer.user.email} of sale`)
+                }
+              }
             } catch (emailError) {
               console.error('Failed to send ticket email:', emailError)
             }
