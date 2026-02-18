@@ -16,6 +16,7 @@ export async function GET() {
         title: true,
         hasGuestlist: true,
         scannerSound: true,
+        accentColor: true,
         _count: {
           select: {
             tickets: true,
@@ -41,6 +42,7 @@ export async function GET() {
         eventTitle: event?.title || "",
         hasGuestlist: event?.hasGuestlist || false,
         scannerSound: event?.scannerSound || "basic",
+        accentColor: event?.accentColor || "#ff1493",
       },
       stats: {
         scanned: event?.tickets.length || 0,

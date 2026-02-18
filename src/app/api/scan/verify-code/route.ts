@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
             startsAt: true,
             hasGuestlist: true,
             scannerSound: true,
+            accentColor: true,
             _count: {
               select: { tickets: true }
             },
@@ -80,6 +81,7 @@ export async function POST(req: NextRequest) {
         eventTitle: scanner.event.title,
         hasGuestlist: scanner.event.hasGuestlist,
         scannerSound: scanner.event.scannerSound || "basic",
+        accentColor: scanner.event.accentColor || "#ff1493",
       },
       stats: {
         scanned: scanner.event.tickets.length,
