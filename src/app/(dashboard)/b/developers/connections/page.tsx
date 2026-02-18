@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import {
   AlertDialog,
@@ -129,7 +129,7 @@ export default function ConnectionsPage() {
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 bg-white/5 border border-white/10 flex items-center justify-center">
                         {connection.app.logoUrl ? (
-                          <img src={connection.app.logoUrl} alt="" className="w-6 h-6 rounded" />
+                          <Image src={connection.app.logoUrl} alt="" width={24} height={24} className="w-6 h-6 rounded" />
                         ) : (
                           <Box className="w-4 h-4 text-[#ff1493]" />
                         )}
