@@ -1,4 +1,4 @@
-import { streamText, tool } from "ai"
+import { streamText, tool, stepCountIs } from "ai"
 import { auth } from "@clerk/nextjs/server"
 import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
@@ -49,18 +49,18 @@ ${context.eventDetails ? `- Event Details:
   - Lineup: ${context.eventDetails.lineup?.map((a: { name: string }) => a.name).join(", ") || "Not set"}
   - Genre/Vibe: ${context.eventDetails.genre || context.eventDetails.vibe || "Not specified"}` : ""}
 
-Use this context for any questions about "this event", ticket sales, or content writing requests like "write something for the about section".`
+Use this context for any questions about "this event", ticket sales, or content writing requests.`
     } else if (context?.page === "events") {
       contextInfo = "\n\nCURRENT CONTEXT: User is on the events list page."
     } else if (context?.page === "event-new") {
       contextInfo = "\n\nCURRENT CONTEXT: User is creating a new event."
     }
 
-    // Create tools using AI SDK v6 tool helper
+    // Create tools with proper typing
     const tools = {
       createEvent: tool({
-        description: "Create a new event for the user. Use this when the user wants to create an event.",
-        inputSchema: z.object({
+        description: "Create a new event for the user. Use this when the user wants to create an event. After creating, tell the user what was created and provide the dashboard link.",
+        parameters: z.object({
           title: z.string().describe("Event title/name"),
           description: z.string().optional().describe("Event description"),
           venueName: z.string().describe("Venue name"),
@@ -71,7 +71,17 @@ Use this context for any questions about "this event", ticket sales, or content 
           endsAt: z.string().optional().describe("End date/time in ISO format"),
           ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
         }),
-        execute: async (params) => {
+        execute: async (params: {
+          title: string
+          description?: string
+          venueName: string
+          venueAddress: string
+          city: string
+          state?: string
+          startsAt: string
+          endsAt?: string
+          ageRestriction?: number
+        }) => {
           try {
             // Generate slug
             const baseSlug = params.title
@@ -111,15 +121,13 @@ Use this context for any questions about "this event", ticket sales, or content 
 
             return {
               success: true,
-              event: {
-                id: event.id,
-                title: event.title,
-                slug: event.slug,
-                startsAt: event.startsAt.toISOString(),
-                status: "DRAFT",
-              },
+              eventId: event.id,
+              eventTitle: event.title,
+              slug: event.slug,
+              startsAt: event.startsAt.toISOString(),
+              status: "DRAFT",
               dashboardUrl: `/d/events/${event.id}`,
-              message: `Created "${event.title}" as a draft.`,
+              publicUrl: `/e/${event.slug}`,
             }
           } catch (error) {
             console.error("Create event error:", error)
@@ -130,10 +138,10 @@ Use this context for any questions about "this event", ticket sales, or content 
 
       listEvents: tool({
         description: "List the user's events. Use this when user asks about their events.",
-        inputSchema: z.object({
+        parameters: z.object({
           status: z.enum(["all", "upcoming", "past", "draft"]).optional().describe("Filter by status"),
         }),
-        execute: async (params) => {
+        execute: async (params: { status?: "all" | "upcoming" | "past" | "draft" }) => {
           try {
             const now = new Date()
             const where: Record<string, unknown> = { organizerId: profile.id }
@@ -169,6 +177,7 @@ Use this context for any questions about "this event", ticket sales, or content 
                 date: e.startsAt.toLocaleDateString(),
                 city: e.city,
                 status: e.isPublished ? "Published" : "Draft",
+                dashboardUrl: `/d/events/${e.id}`,
               })),
               count: events.length,
             }
@@ -180,8 +189,8 @@ Use this context for any questions about "this event", ticket sales, or content 
       }),
 
       updateEvent: tool({
-        description: "Update an existing event",
-        inputSchema: z.object({
+        description: "Update an existing event. After updating, confirm what was changed.",
+        parameters: z.object({
           eventId: z.string().describe("The event ID to update"),
           title: z.string().optional(),
           description: z.string().optional(),
@@ -189,7 +198,14 @@ Use this context for any questions about "this event", ticket sales, or content 
           venueAddress: z.string().optional(),
           startsAt: z.string().optional(),
         }),
-        execute: async (params) => {
+        execute: async (params: {
+          eventId: string
+          title?: string
+          description?: string
+          venueName?: string
+          venueAddress?: string
+          startsAt?: string
+        }) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -214,8 +230,10 @@ Use this context for any questions about "this event", ticket sales, or content 
 
             return {
               success: true,
-              event: { id: event.id, title: event.title },
-              message: `Updated "${event.title}"`,
+              eventId: event.id,
+              eventTitle: event.title,
+              updatedFields: Object.keys(updateData),
+              dashboardUrl: `/d/events/${event.id}`,
             }
           } catch (error) {
             console.error("Update event error:", error)
@@ -225,11 +243,11 @@ Use this context for any questions about "this event", ticket sales, or content 
       }),
 
       publishEvent: tool({
-        description: "Publish a draft event to make it live",
-        inputSchema: z.object({
+        description: "Publish a draft event to make it live. After publishing, provide both dashboard and public URLs.",
+        parameters: z.object({
           eventId: z.string().describe("The event ID"),
         }),
-        execute: async (params) => {
+        execute: async (params: { eventId: string }) => {
           try {
             // Verify ownership
             const existing = await prisma.event.findFirst({
@@ -247,9 +265,11 @@ Use this context for any questions about "this event", ticket sales, or content 
 
             return {
               success: true,
-              event: { id: event.id, title: event.title, slug: event.slug },
+              eventId: event.id,
+              eventTitle: event.title,
+              slug: event.slug,
+              dashboardUrl: `/d/events/${event.id}`,
               publicUrl: `/e/${event.slug}`,
-              message: `Published "${event.title}"!`,
             }
           } catch (error) {
             console.error("Publish event error:", error)
@@ -260,10 +280,10 @@ Use this context for any questions about "this event", ticket sales, or content 
 
       getEventStats: tool({
         description: "Get ticket sales and check-in statistics for an event. Use this when user asks about tickets sold, revenue, check-ins, or attendees.",
-        inputSchema: z.object({
+        parameters: z.object({
           eventId: z.string().describe("The event ID"),
         }),
-        execute: async (params) => {
+        execute: async (params: { eventId: string }) => {
           try {
             // Verify ownership and get event with stats
             const event = await prisma.event.findFirst({
@@ -294,10 +314,10 @@ Use this context for any questions about "this event", ticket sales, or content 
               return { success: false, error: "Event not found" }
             }
 
-            const totalSold = event.ticketTiers.reduce((sum: number, t: { quantitySold: number }) => sum + t.quantitySold, 0)
-            const totalCapacity = event.ticketTiers.reduce((sum: number, t: { quantity: number }) => sum + t.quantity, 0)
-            const totalRevenue = event.ticketTiers.reduce((sum: number, t: { quantitySold: number; price: number }) => sum + (t.quantitySold * t.price), 0)
-            const checkedIn = event.tickets.filter((t: { checkedInAt: Date | null }) => t.checkedInAt !== null).length
+            const totalSold = event.ticketTiers.reduce((sum, t) => sum + t.quantitySold, 0)
+            const totalCapacity = event.ticketTiers.reduce((sum, t) => sum + t.quantity, 0)
+            const totalRevenue = event.ticketTiers.reduce((sum, t) => sum + (t.quantitySold * t.price), 0)
+            const checkedIn = event.tickets.filter(t => t.checkedInAt !== null).length
 
             // For RSVP events
             if (event.isRsvpOnly) {
@@ -308,7 +328,6 @@ Use this context for any questions about "this event", ticket sales, or content 
                 rsvpCount: event.rsvpCount,
                 rsvpCapacity: event.rsvpCapacity,
                 checkedIn,
-                message: `${event.rsvpCount} RSVPs${event.rsvpCapacity ? ` (capacity: ${event.rsvpCapacity})` : ""}, ${checkedIn} checked in.`,
               }
             }
 
@@ -320,13 +339,12 @@ Use this context for any questions about "this event", ticket sales, or content 
               checkedIn,
               totalRevenue: totalRevenue / 100, // Convert cents to dollars
               orderCount: event._count.orders,
-              tierBreakdown: event.ticketTiers.map((t: { name: string; quantitySold: number; quantity: number; price: number }) => ({
+              tierBreakdown: event.ticketTiers.map(t => ({
                 name: t.name,
                 sold: t.quantitySold,
                 capacity: t.quantity,
                 price: t.price / 100,
               })),
-              message: `${totalSold}/${totalCapacity} tickets sold ($${(totalRevenue / 100).toFixed(2)} revenue), ${checkedIn} checked in.`,
             }
           } catch (error) {
             console.error("Get event stats error:", error)
@@ -341,6 +359,12 @@ Use this context for any questions about "this event", ticket sales, or content 
       system: AFTIE_SYSTEM_PROMPT + contextInfo,
       messages,
       tools,
+      // CRITICAL: Allow multiple steps so AI can respond AFTER tool execution
+      // Default is stepCountIs(1) which stops immediately after first tool call
+      stopWhen: stepCountIs(5),
+      onStepFinish: ({ stepType, toolResults }) => {
+        console.log("🔧 Aftie step:", stepType, toolResults?.length || 0, "tool results")
+      },
     })
 
     return result.toTextStreamResponse()

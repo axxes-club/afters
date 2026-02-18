@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from "react"
+import { useRouter } from "next/navigation"
 
 const BETA_STORAGE_KEY = "afty_ai_beta_enabled"
 
@@ -8,6 +9,8 @@ interface Message {
   id: string
   role: "user" | "assistant"
   content: string
+  // Action result parsed from the message
+  actionResult?: AftieActionResult
 }
 
 // Page context for Aftie to understand where the user is
@@ -15,9 +18,7 @@ export interface AftiePageContext {
   page: "dashboard" | "events" | "event-details" | "event-new" | "analytics" | "organizer" | "other"
   eventId?: string
   eventTitle?: string
-  // Editing context - what field/section is the user currently focused on?
   editingField?: "description" | "title" | "venue" | "lineup" | "tickets" | "design" | "location" | "media" | null
-  // Additional context about the event for content generation
   eventDetails?: {
     venueName?: string
     city?: string
@@ -26,6 +27,15 @@ export interface AftiePageContext {
     genre?: string
     vibe?: string
   }
+}
+
+// Action result from tool calls
+export interface AftieActionResult {
+  type: "createEvent" | "updateEvent" | "publishEvent" | "listEvents" | "getEventStats"
+  success: boolean
+  eventId?: string
+  dashboardUrl?: string
+  publicUrl?: string
 }
 
 interface AftieContextType {
@@ -48,11 +58,14 @@ interface AftieContextType {
   // Page context
   pageContext: AftiePageContext
   setPageContext: (context: AftiePageContext) => void
+  // Action handling - for components to react to actions
+  lastAction: AftieActionResult | null
+  clearLastAction: () => void
 }
 
 const AftieContext = createContext<AftieContextType | null>(null)
 
-// Default fallback values when context is unavailable (e.g., during SSR or outside provider)
+// Default fallback values
 const defaultAftieContext: AftieContextType = {
   isOpen: false,
   openChat: () => {},
@@ -70,11 +83,12 @@ const defaultAftieContext: AftieContextType = {
   isHydrated: false,
   pageContext: { page: "other" },
   setPageContext: () => {},
+  lastAction: null,
+  clearLastAction: () => {},
 }
 
 export function useAftie() {
   const context = useContext(AftieContext)
-  // Return fallback values if context not available (prevents crash during edge cases)
   if (!context) {
     return defaultAftieContext
   }
@@ -94,9 +108,11 @@ export function AftieProvider({ children }: AftieProviderProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [pageContext, setPageContext] = useState<AftiePageContext>({ page: "dashboard" })
+  const [lastAction, setLastAction] = useState<AftieActionResult | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const router = useRouter()
 
-  // Initialize beta state from localStorage and set up global toggle
+  // Initialize beta state from localStorage
   useEffect(() => {
     setIsHydrated(true)
 
@@ -119,6 +135,37 @@ export function AftieProvider({ children }: AftieProviderProps) {
     return () => {
       delete (window as unknown as { afty_ai_beta_toggle?: () => void }).afty_ai_beta_toggle
     }
+  }, [])
+
+  // Parse action results from message content
+  const parseActionResult = useCallback((content: string): AftieActionResult | undefined => {
+    const contentLower = content.toLowerCase()
+    
+    // Extract URLs
+    const dashboardUrlMatch = content.match(/\/d\/events\/([a-zA-Z0-9]+)/)
+    const publicUrlMatch = content.match(/\/e\/([a-zA-Z0-9-]+)/)
+    
+    // Detect action type
+    let type: AftieActionResult["type"] | null = null
+    if (contentLower.includes("created") && dashboardUrlMatch) {
+      type = "createEvent"
+    } else if (contentLower.includes("published") && publicUrlMatch) {
+      type = "publishEvent"
+    } else if (contentLower.includes("updated") && dashboardUrlMatch) {
+      type = "updateEvent"
+    }
+    
+    if (type) {
+      return {
+        type,
+        success: true,
+        eventId: dashboardUrlMatch?.[1],
+        dashboardUrl: dashboardUrlMatch?.[0],
+        publicUrl: publicUrlMatch?.[0],
+      }
+    }
+    
+    return undefined
   }, [])
 
   const sendMessage = useCallback(async (text: string) => {
@@ -172,20 +219,38 @@ export function AftieProvider({ children }: AftieProviderProps) {
       setMessages(prev => [...prev, assistantMessage])
 
       const decoder = new TextDecoder()
-      let content = ""
+      let fullContent = ""
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
         const chunk = decoder.decode(value, { stream: true })
-        content += chunk
+        fullContent += chunk
 
         setMessages(prev =>
           prev.map(m =>
-            m.id === assistantMessage.id ? { ...m, content } : m
+            m.id === assistantMessage.id ? { ...m, content: fullContent } : m
           )
         )
+      }
+
+      // After streaming completes, check for action results
+      const actionResult = parseActionResult(fullContent)
+      if (actionResult) {
+        // Update the message with the action result
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === assistantMessage.id ? { ...m, actionResult } : m
+          )
+        )
+        
+        // Set last action for components to react to
+        setLastAction(actionResult)
+        
+        // Trigger page refresh to show updated data
+        console.log("🔄 Aftie action completed, refreshing page data...")
+        router.refresh()
       }
     } catch (error) {
       if ((error as Error).name === "AbortError") {
@@ -193,7 +258,6 @@ export function AftieProvider({ children }: AftieProviderProps) {
       }
       console.error("Aftie chat error:", error)
 
-      // Add error message
       setMessages(prev => [
         ...prev,
         {
@@ -205,7 +269,7 @@ export function AftieProvider({ children }: AftieProviderProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, isLoading, pageContext])
+  }, [messages, isLoading, pageContext, parseActionResult, router])
 
   const openChat = useCallback(() => {
     setIsOpen(true)
@@ -229,6 +293,10 @@ export function AftieProvider({ children }: AftieProviderProps) {
     setIsCommandPaletteOpen(false)
   }, [])
 
+  const clearLastAction = useCallback(() => {
+    setLastAction(null)
+  }, [])
+
   return (
     <AftieContext.Provider
       value={{
@@ -248,6 +316,8 @@ export function AftieProvider({ children }: AftieProviderProps) {
         isHydrated,
         pageContext,
         setPageContext,
+        lastAction,
+        clearLastAction,
       }}
     >
       {children}

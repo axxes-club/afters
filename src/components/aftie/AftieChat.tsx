@@ -1,8 +1,27 @@
 "use client"
 
 import { useAftie } from "./AftieProvider"
-import { X, Send, Sparkles, Loader2, MessageSquare } from "lucide-react"
-import { useEffect, useRef, FormEvent } from "react"
+import { X, Send, Sparkles, Loader2, MessageSquare, ExternalLink, CheckCircle } from "lucide-react"
+import { useEffect, useRef, useMemo, FormEvent } from "react"
+import Link from "next/link"
+
+// Parse message content to extract action links
+function parseMessageForLinks(content: string) {
+  const dashboardUrlMatch = content.match(/\/d\/events\/([a-zA-Z0-9]+)/)
+  const publicUrlMatch = content.match(/\/e\/([a-zA-Z0-9-]+)/)
+  
+  const contentLower = content.toLowerCase()
+  const isSuccess = contentLower.includes("created") || 
+                   contentLower.includes("published") ||
+                   contentLower.includes("updated")
+  
+  return {
+    dashboardUrl: dashboardUrlMatch?.[0],
+    publicUrl: publicUrlMatch?.[0],
+    isSuccess,
+    hasLinks: !!(dashboardUrlMatch || publicUrlMatch),
+  }
+}
 
 export function AftieChat() {
   const {
@@ -16,10 +35,11 @@ export function AftieChat() {
     isBetaEnabled,
     isHydrated,
     pageContext,
+    lastAction,
   } = useAftie()
 
   // Get context-aware example prompts
-  const getExamplePrompts = () => {
+  const examplePrompts = useMemo(() => {
     if (pageContext.page === "event-details" && pageContext.eventTitle) {
       return [
         { label: "Ticket sales", prompt: "How many tickets have we sold?" },
@@ -29,20 +49,17 @@ export function AftieChat() {
     }
     if (pageContext.page === "events") {
       return [
-        { label: "Create event", prompt: "Create a new event called Summer Vibes at The Warehouse on March 15th at 10pm" },
+        { label: "Create event", prompt: "Create a new event called Summer Vibes at The Warehouse, 123 Main St, NYC on March 15th 2025 at 10pm" },
         { label: "My events", prompt: "Show me my upcoming events" },
         { label: "Drafts", prompt: "Show me my draft events" },
       ]
     }
-    // Default prompts
     return [
       { label: "Create event", prompt: "Create a new event" },
       { label: "My events", prompt: "Show me my events" },
       { label: "Help", prompt: "What can you help me with?" },
     ]
-  }
-
-  const examplePrompts = getExamplePrompts()
+  }, [pageContext])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -55,13 +72,13 @@ export function AftieChat() {
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
-      inputRef.current?.focus()
+      setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [isOpen])
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    if (input.trim()) {
+    if (input.trim() && !isLoading) {
       sendMessage(input)
     }
   }
@@ -70,9 +87,9 @@ export function AftieChat() {
   if (!isHydrated || !isBetaEnabled || !isOpen) return null
 
   return (
-    <div className="fixed bottom-4 right-4 w-[380px] h-[500px] bg-black border border-white/10 shadow-2xl flex flex-col z-50">
+    <div className="fixed bottom-4 right-4 w-[400px] h-[520px] bg-black border border-white/10 shadow-2xl flex flex-col z-50 rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/80 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/50 flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-white" />
@@ -84,7 +101,7 @@ export function AftieChat() {
         </div>
         <button
           onClick={closeChat}
-          className="p-1.5 hover:bg-white/5 transition-colors"
+          className="p-1.5 hover:bg-white/5 transition-colors rounded"
         >
           <X className="w-4 h-4 text-white/50" />
         </button>
@@ -100,7 +117,7 @@ export function AftieChat() {
 
             {/* Context indicator */}
             {pageContext.page === "event-details" && pageContext.eventTitle && (
-              <div className="mb-4 px-3 py-2 bg-[#ff1493]/10 border border-[#ff1493]/20 text-left">
+              <div className="mb-4 px-3 py-2 bg-[#ff1493]/10 border border-[#ff1493]/20 text-left rounded">
                 <p className="text-[10px] font-mono text-[#ff1493]/60 mb-1">VIEWING EVENT</p>
                 <p className="text-xs font-mono text-white truncate">{pageContext.eventTitle}</p>
               </div>
@@ -116,7 +133,7 @@ export function AftieChat() {
                     setInput(example.prompt)
                     sendMessage(example.prompt)
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-white/5 border border-white/10 hover:border-[#ff1493]/30 hover:bg-white/[0.08] transition-all text-left group"
+                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-white/5 border border-white/10 hover:border-[#ff1493]/30 hover:bg-white/[0.08] transition-all text-left group rounded"
                 >
                   <MessageSquare className="w-3.5 h-3.5 text-white/30 group-hover:text-[#ff1493] transition-colors flex-shrink-0" />
                   <span className="text-xs font-mono text-white/60 group-hover:text-white transition-colors truncate">
@@ -127,37 +144,87 @@ export function AftieChat() {
             </div>
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
+          messages.map((message) => {
+            const parsed = message.role === "assistant" ? parseMessageForLinks(message.content) : null
+            
+            return (
               <div
-                className={`max-w-[85%] px-3 py-2 text-sm ${
-                  message.role === "user"
-                    ? "bg-[#ff1493]/20 text-white"
-                    : "bg-white/5 text-white/90"
-                }`}
+                key={message.id}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                <div className="whitespace-pre-wrap">{message.content}</div>
+                <div
+                  className={`max-w-[85%] px-3 py-2 text-sm rounded ${
+                    message.role === "user"
+                      ? "bg-[#ff1493]/20 text-white"
+                      : "bg-white/5 text-white/90"
+                  }`}
+                >
+                  {/* Success indicator for action messages */}
+                  {parsed?.isSuccess && (
+                    <div className="flex items-center gap-1.5 mb-2 text-green-400">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-mono tracking-wider">ACTION COMPLETED</span>
+                    </div>
+                  )}
+                  
+                  <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                  
+                  {/* Action links */}
+                  {parsed?.hasLinks && (
+                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
+                      {parsed.dashboardUrl && (
+                        <Link
+                          href={parsed.dashboardUrl}
+                          onClick={closeChat}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#ff1493]/20 hover:bg-[#ff1493]/30 text-[#ff1493] text-xs font-mono rounded transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Open in Dashboard
+                        </Link>
+                      )}
+                      {parsed.publicUrl && (
+                        <Link
+                          href={parsed.publicUrl}
+                          target="_blank"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white/80 text-xs font-mono rounded transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          View Public Page
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
-        {isLoading && messages[messages.length - 1]?.role === "user" && (
+        
+        {/* Loading indicator */}
+        {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white/5 px-3 py-2">
+            <div className="bg-white/5 px-3 py-2 rounded flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin text-[#ff1493]" />
+              <span className="text-xs text-white/40">Thinking...</span>
             </div>
           </div>
         )}
+        
+        {/* Data refresh notification */}
+        {lastAction?.success && (
+          <div className="flex justify-center">
+            <div className="px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded text-green-400 text-xs font-mono flex items-center gap-1.5 animate-pulse">
+              <CheckCircle className="w-3 h-3" />
+              Page data refreshed
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-3 border-t border-white/10">
+      <form onSubmit={handleSubmit} className="p-3 border-t border-white/10 bg-black/50">
         <div className="flex gap-2">
           <input
             ref={inputRef}
@@ -165,14 +232,19 @@ export function AftieChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Aftie..."
-            className="flex-1 h-10 px-3 bg-white/5 border border-white/10 text-white font-mono text-sm placeholder:text-white/30 focus:border-[#ff1493]/50 focus:outline-none"
+            disabled={isLoading}
+            className="flex-1 h-10 px-3 bg-white/5 border border-white/10 text-white font-mono text-sm placeholder:text-white/30 focus:border-[#ff1493]/50 focus:outline-none rounded disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="h-10 w-10 flex items-center justify-center bg-[#ff1493] hover:bg-[#ff1493]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-10 w-10 flex items-center justify-center bg-[#ff1493] hover:bg-[#ff1493]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
           >
-            <Send className="w-4 h-4" />
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </button>
         </div>
       </form>
