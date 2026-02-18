@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Key, Plus, Copy, Check, Trash2, Clock, BookOpen, Loader2 } from "lucide-react"
+import { Key, Plus, Copy, Check, Trash2, Clock, ArrowRight, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -41,17 +41,17 @@ interface ApiKey {
 }
 
 const SCOPE_OPTIONS = [
-  { value: "events:read", label: "Read Events", description: "View event details" },
-  { value: "events:write", label: "Write Events", description: "Create and update events" },
-  { value: "events:delete", label: "Delete Events", description: "Delete events" },
-  { value: "orders:read", label: "Read Orders", description: "View order details" },
-  { value: "tickets:read", label: "Read Tickets", description: "View ticket details" },
-  { value: "tickets:checkin", label: "Check In Tickets", description: "Check in tickets" },
-  { value: "analytics:read", label: "Read Analytics", description: "View event analytics" },
-  { value: "guestlist:read", label: "Read Guestlist", description: "View guestlist entries" },
-  { value: "guestlist:write", label: "Write Guestlist", description: "Manage guestlist" },
-  { value: "scanners:read", label: "Read Scanners", description: "View scanner details" },
-  { value: "scanners:write", label: "Write Scanners", description: "Manage scanners" },
+  { value: "events:read", label: "Read Events" },
+  { value: "events:write", label: "Write Events" },
+  { value: "events:delete", label: "Delete Events" },
+  { value: "orders:read", label: "Read Orders" },
+  { value: "tickets:read", label: "Read Tickets" },
+  { value: "tickets:checkin", label: "Check In" },
+  { value: "analytics:read", label: "Analytics" },
+  { value: "guestlist:read", label: "Read Guestlist" },
+  { value: "guestlist:write", label: "Write Guestlist" },
+  { value: "scanners:read", label: "Read Scanners" },
+  { value: "scanners:write", label: "Write Scanners" },
 ]
 
 export default function ApiKeysPage() {
@@ -85,10 +85,9 @@ export default function ApiKeysPage() {
 
   async function createApiKey() {
     if (!newKeyName.trim()) {
-      toast.error("Please enter a name for your API key")
+      toast.error("Please enter a name")
       return
     }
-
     setCreating(true)
     try {
       const res = await fetch("/api/api-keys", {
@@ -96,7 +95,6 @@ export default function ApiKeysPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newKeyName, scopes: selectedScopes }),
       })
-
       if (res.ok) {
         const data = await res.json()
         setNewKey(data)
@@ -121,8 +119,7 @@ export default function ApiKeysPage() {
         setApiKeys((prev) => prev.filter((k) => k.id !== keyId))
         toast.success(`${keyName} revoked`)
       } else {
-        const error = await res.json()
-        toast.error(error.message || "Failed to revoke API key")
+        toast.error("Failed to revoke API key")
       }
     } catch (error) {
       console.error("Failed to revoke API key:", error)
@@ -133,7 +130,7 @@ export default function ApiKeysPage() {
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text)
     setCopied(true)
-    toast.success("Copied to clipboard")
+    toast.success("Copied")
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -161,158 +158,130 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-emerald-900/10 via-black to-white/5">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(45deg, rgba(16,185,129,0.1) 1px, transparent 1px)`,
-            backgroundSize: '20px 20px'
-          }} />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">API KEYS</h1>
+          <p className="text-white/40 text-sm font-mono mt-1">Programmatic access</p>
         </div>
-        
-        <div className="relative p-8 md:p-12">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <Key className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="font-headline text-4xl md:text-5xl tracking-wide">
-                  API<span className="text-emerald-400">.</span>KEYS
-                </h1>
-                <p className="text-white/40 font-mono text-sm mt-2">PROGRAMMATIC ACCESS TOKENS</p>
-              </div>
-            </div>
-
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-mono tracking-wider">
-                  <Plus className="w-4 h-4" />
-                  NEW KEY
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                {newKey ? (
-                  <>
-                    <DialogHeader>
-                      <DialogTitle className="font-headline text-2xl">Key Created</DialogTitle>
-                      <DialogDescription>
-                        Copy your API key now. You won&apos;t see it again.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-mono text-white/40">YOUR API KEY</Label>
-                        <div className="flex gap-2">
-                          <Input value={newKey.key} readOnly className="font-mono text-sm bg-black/40" />
-                          <Button size="icon" variant="outline" onClick={() => copyToClipboard(newKey.key!)}>
-                            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 text-sm text-yellow-200">
-                        <strong>Important:</strong> Store this key securely. It provides access to your account.
-                      </div>
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff1493] text-black text-[10px] font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all">
+              <Plus className="w-3 h-3" />
+              NEW KEY
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            {newKey ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="font-mono">Key Created</DialogTitle>
+                  <DialogDescription>Copy now — you won&apos;t see this again.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="flex gap-2">
+                    <Input value={newKey.key} readOnly className="font-mono text-sm" />
+                    <Button size="icon" variant="outline" onClick={() => copyToClipboard(newKey.key!)}>
+                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-yellow-400/80 bg-yellow-500/10 p-3 border border-yellow-500/20">
+                    Store this key securely. It provides access to your account.
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button onClick={resetCreateDialog} className="w-full">Done</Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="font-mono">Create API Key</DialogTitle>
+                  <DialogDescription>Generate a new key for API access</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-mono text-white/40">NAME</Label>
+                    <Input
+                      placeholder="e.g., Production Server"
+                      value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-mono text-white/40">PERMISSIONS</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {SCOPE_OPTIONS.map((scope) => (
+                        <button
+                          key={scope.value}
+                          type="button"
+                          onClick={() => toggleScope(scope.value)}
+                          className={`px-2 py-1 text-xs font-mono border transition-all ${
+                            selectedScopes.includes(scope.value)
+                              ? "border-[#ff1493] bg-[#ff1493]/10 text-[#ff1493]"
+                              : "border-white/10 text-white/50 hover:border-white/20"
+                          }`}
+                        >
+                          {scope.label}
+                        </button>
+                      ))}
                     </div>
-                    <DialogFooter>
-                      <Button onClick={resetCreateDialog} className="w-full">Done</Button>
-                    </DialogFooter>
-                  </>
-                ) : (
-                  <>
-                    <DialogHeader>
-                      <DialogTitle className="font-headline text-2xl">Create API Key</DialogTitle>
-                      <DialogDescription>Generate a new key for API access</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-mono text-white/40">NAME</Label>
-                        <Input
-                          placeholder="e.g., Production Server"
-                          value={newKeyName}
-                          onChange={(e) => setNewKeyName(e.target.value)}
-                          className="bg-black/40"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-mono text-white/40">PERMISSIONS</Label>
-                        <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                          {SCOPE_OPTIONS.map((scope) => (
-                            <button
-                              key={scope.value}
-                              type="button"
-                              onClick={() => toggleScope(scope.value)}
-                              className={`text-left p-3 border transition-all ${
-                                selectedScopes.includes(scope.value)
-                                  ? "border-emerald-500 bg-emerald-500/10"
-                                  : "border-white/10 hover:border-white/20"
-                              }`}
-                            >
-                              <div className="text-sm font-medium">{scope.label}</div>
-                              <div className="text-xs text-white/40">{scope.description}</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter className="gap-2">
-                      <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-                      <Button onClick={createApiKey} disabled={creating} className="bg-emerald-500 hover:bg-emerald-600 text-black">
-                        {creating ? "Creating..." : "Create Key"}
-                      </Button>
-                    </DialogFooter>
-                  </>
-                )}
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
+                  </div>
+                </div>
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                  <Button onClick={createApiKey} disabled={creating} className="bg-[#ff1493] hover:bg-[#ff1493]/80 text-black">
+                    {creating ? "Creating..." : "Create"}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Keys List */}
       <div className="border border-white/10 bg-white/[0.02]">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h2 className="font-mono text-xs tracking-widest text-white/40">ACTIVE KEYS</h2>
-          <span className="font-mono text-xs text-white/20">{apiKeys.length} total</span>
+        <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
+          <span className="text-[10px] font-mono text-white/40 tracking-widest">ACTIVE KEYS</span>
+          <span className="text-[10px] font-mono text-white/20">{apiKeys.length}</span>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 animate-spin text-white/20" />
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-5 h-5 animate-spin text-white/20" />
           </div>
         ) : apiKeys.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Key className="w-12 h-12 text-white/10 mb-4" />
-            <p className="text-white/40 font-mono text-sm mb-2">No API keys yet</p>
-            <p className="text-white/20 text-sm">Create a key to start using the API</p>
+          <div className="p-12 text-center">
+            <Key className="w-8 h-8 mx-auto text-white/10 mb-3" />
+            <p className="text-white/40 font-mono text-sm">No API keys</p>
           </div>
         ) : (
           <div className="divide-y divide-white/5">
             {apiKeys.map((key) => (
-              <div key={key.id} className="p-5 flex items-start justify-between gap-4 hover:bg-white/[0.02] transition-colors">
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-medium truncate">{key.name}</span>
-                    <code className="text-xs bg-white/5 px-2 py-0.5 font-mono text-white/40 shrink-0">
+              <div key={key.id} className="p-4 flex items-start justify-between gap-4 hover:bg-white/[0.02] transition-colors">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm truncate">{key.name}</span>
+                    <code className="text-[10px] bg-white/5 px-1.5 py-0.5 font-mono text-white/30">
                       {key.keyPrefix}...
                     </code>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-white/30">
-                    <span className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-3 text-[10px] text-white/30">
+                    <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      Last used: {formatDate(key.lastUsedAt)}
+                      {formatDate(key.lastUsedAt)}
                     </span>
-                    <span className="hidden sm:inline">Created: {formatDate(key.createdAt)}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mt-2">
                     {key.scopes.slice(0, 3).map((scope) => (
-                      <Badge key={scope} variant="secondary" className="text-[10px] bg-white/5 border-0">
+                      <Badge key={scope} variant="secondary" className="text-[9px] bg-white/5 border-0 px-1.5 py-0">
                         {scope}
                       </Badge>
                     ))}
                     {key.scopes.length > 3 && (
-                      <Badge variant="secondary" className="text-[10px] bg-white/5 border-0">
+                      <Badge variant="secondary" className="text-[9px] bg-white/5 border-0 px-1.5 py-0">
                         +{key.scopes.length - 3}
                       </Badge>
                     )}
@@ -320,15 +289,15 @@ export default function ApiKeysPage() {
                 </div>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 shrink-0">
+                    <button className="p-2 text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all">
                       <Trash2 className="w-4 h-4" />
-                    </Button>
+                    </button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Revoke API Key</AlertDialogTitle>
+                      <AlertDialogTitle>Revoke Key</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Revoke &quot;{key.name}&quot;? Applications using this key will stop working.
+                        Revoke &quot;{key.name}&quot;? Apps using this key will stop working.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -345,17 +314,16 @@ export default function ApiKeysPage() {
         )}
       </div>
 
-      {/* Documentation Link */}
-      <Link href="/d/developers/docs" className="block border border-white/10 bg-white/[0.02] p-6 hover:bg-white/[0.04] hover:border-white/20 transition-all group">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-            <BookOpen className="w-6 h-6 text-white/40 group-hover:text-white/60" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-mono text-sm tracking-wider text-white group-hover:text-white">API DOCUMENTATION</h3>
-            <p className="text-white/40 text-sm">Learn how to integrate with the Afters API</p>
-          </div>
+      {/* Docs Link */}
+      <Link
+        href="/d/developers/docs"
+        className="border border-white/10 p-4 flex items-center justify-between hover:border-[#ff1493]/30 hover:bg-white/[0.02] transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <Key className="w-4 h-4 text-white/30 group-hover:text-[#ff1493] transition-colors" />
+          <span className="text-sm font-mono text-white/60 group-hover:text-white transition-colors">API Documentation</span>
         </div>
+        <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-[#ff1493] transition-colors" />
       </Link>
     </div>
   )
