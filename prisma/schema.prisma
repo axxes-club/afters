@@ -38,8 +38,10 @@ model User {
   savedEvents      SavedEvent[]
   tickets          Ticket[]
   staffMemberships StaffMember[]
-  activities       UserActivity[]
-  apiKeys          ApiKey[]
+  activities              UserActivity[]
+  apiKeys                 ApiKey[]
+  notificationPreference  NotificationPreference?
+  pushSubscriptions       PushSubscription[]
 
   @@index([isFlagged])
 }
@@ -61,6 +63,41 @@ model ApiKey {
 
   @@index([userId])
   @@index([keyPrefix])
+}
+
+// Notification Preferences for email and push notifications
+model NotificationPreference {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Email preferences
+  emailTicketSales      Boolean  @default(true)
+  emailEventReminders   Boolean  @default(true)
+  emailCheckInSummaries Boolean  @default(false)
+  emailProductUpdates   Boolean  @default(false)
+
+  // Push preferences
+  pushTicketSales       Boolean  @default(true)
+  pushEventReminders    Boolean  @default(true)
+  pushCheckInSummaries  Boolean  @default(false)
+  pushProductUpdates    Boolean  @default(false)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// Push subscription for browser push notifications
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Personal profile for regular users (/p/<username>)

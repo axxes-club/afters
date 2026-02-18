@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.8 (2026-02-18)
+
+- Implement full notification settings with database persistence
+- Add browser push notifications with VAPID keys
+- Add email notification preferences (ticket sales, reminders, check-ins, updates)
+- Add push notification preferences per notification type
+- Add service worker for receiving push events
+- Add usePushNotifications hook for client-side subscription management
+- Add push utility library for server-side notifications
+- Add API tests for notifications endpoints (104 tests total)
+
 ## 0.2.7 (2026-02-18)
 
 - Add UI customization: custom logos, accent colors, text sizes
