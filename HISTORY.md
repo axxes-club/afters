@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.12 (2026-02-18)
+
+- Add recurring events support (Issue #31, PR #34)
+- New EventSeries model for recurring event configurations
+- Support RRULE patterns: weekly, biweekly, monthly (by day or date)
+- Add templateData JSON for shared defaults (venue, theme, lineup, ticket tiers)
+- Series template changes propagate to unmodified future occurrences
+- Add RecurrenceSelector component for event creation form
+- Add SeriesBadge component showing series context on event pages
+- Add SeriesList dashboard component for series management
+- New API endpoints: `/api/v1/event-series` (CRUD + generate occurrences)
+- Event model extended with seriesId, seriesOccurrence, isSeriesOverride fields
+- Date-suffixed slug generation for series occurrences
+
 ## 0.2.11 (2026-02-18)
 
 - Redesign Aftie AI settings page with hero activation section
