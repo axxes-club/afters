@@ -167,7 +167,7 @@ function EventDashboardContent({
     } else {
       params.set("tab", tab);
     }
-    router.push(`/d/events/${eventId}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+    router.push(`/b/events/${eventId}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
   }
 
   useEffect(() => {
