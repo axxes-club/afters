@@ -13,7 +13,6 @@ import {
   User,
   Key,
   Sparkles,
-  CreditCard,
   Bell,
   ArrowLeft,
 } from "lucide-react";
@@ -39,7 +38,6 @@ const settingsNavItems = [
   { href: "/d/settings", label: "PROFILE", icon: User, exact: true },
   { href: "/d/settings/api-keys", label: "API KEYS", icon: Key, exact: false },
   { href: "/d/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false },
-  { href: "/d/settings/billing", label: "BILLING", icon: CreditCard, exact: false },
   { href: "/d/settings/notifications", label: "NOTIFICATIONS", icon: Bell, exact: false },
   { href: "/d/settings/security", label: "SECURITY", icon: Shield, exact: false },
 ];

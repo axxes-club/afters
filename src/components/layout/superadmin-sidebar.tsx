@@ -14,6 +14,7 @@ import {
   Languages,
   BadgeCheck,
   Settings,
+  MessageSquare,
 } from "lucide-react";
 
 const navItems = [
@@ -47,6 +48,11 @@ const navItems = [
     title: "Verification",
     href: "/superadmin/verification",
     icon: BadgeCheck,
+  },
+  {
+    title: "Feedback",
+    href: "/superadmin/feedback",
+    icon: MessageSquare,
   },
   {
     title: "Translations",

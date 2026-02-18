@@ -4,8 +4,6 @@ import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 
-export const maxDuration = 30 // Allow streaming for up to 30 seconds
-
 export async function POST(req: Request) {
   try {
     // Check if API key is configured
@@ -179,14 +177,44 @@ Use this context for any questions about "this event", ticket sales, or content 
       }),
 
       updateEvent: tool({
-        description: "Update an existing event. After updating, confirm what was changed.",
+        description: "Update an existing event. Can update basic info, timing, location, design, content, and lineup. After updating, confirm what was changed.",
         inputSchema: z.object({
           eventId: z.string().describe("The event ID to update"),
-          title: z.string().optional(),
-          description: z.string().optional(),
-          venueName: z.string().optional(),
-          venueAddress: z.string().optional(),
-          startsAt: z.string().optional(),
+          // Basic info
+          title: z.string().optional().describe("Event title"),
+          description: z.string().optional().describe("Short event description"),
+          // Timing
+          startsAt: z.string().optional().describe("Start date/time in ISO format"),
+          endsAt: z.string().optional().describe("End date/time in ISO format"),
+          timezone: z.string().optional().describe("Timezone (e.g., America/New_York)"),
+          // Location
+          venueName: z.string().optional().describe("Venue name"),
+          venueAddress: z.string().optional().describe("Full venue address"),
+          city: z.string().optional().describe("City name"),
+          state: z.string().optional().describe("State abbreviation"),
+          // Event details
+          ageRestriction: z.number().optional().describe("Minimum age (e.g., 21)"),
+          flyerUrl: z.string().optional().describe("URL to event flyer image"),
+          about: z.string().optional().describe("Detailed about section for the event"),
+          refundPolicy: z.string().optional().describe("Refund/cancellation policy text"),
+          // Lineup - array of artists
+          lineup: z.array(z.object({
+            name: z.string().describe("Artist name"),
+            role: z.string().optional().describe("Role like 'Headliner', 'Support', 'DJ'"),
+            imageUrl: z.string().optional().describe("Artist image URL"),
+            socialUrl: z.string().optional().describe("Artist social media URL"),
+          })).optional().describe("Event lineup array"),
+          // FAQs
+          faqs: z.array(z.object({
+            question: z.string().describe("FAQ question"),
+            answer: z.string().describe("FAQ answer"),
+          })).optional().describe("Frequently asked questions array"),
+          // Gallery
+          gallery: z.array(z.string()).optional().describe("Array of gallery image URLs"),
+          // Design
+          pageTheme: z.enum(["brutalist", "neon", "minimal", "tilt", "lush", "nice", "editorial", "card", "vapor"]).optional().describe("Event page visual theme"),
+          accentColor: z.string().optional().describe("Accent color in hex format (e.g., #ff1493)"),
+          typography: z.enum(["mono", "headline", "elegant", "modern"]).optional().describe("Typography style"),
         }),
         execute: async (params) => {
           try {
@@ -200,11 +228,37 @@ Use this context for any questions about "this event", ticket sales, or content 
             }
 
             const updateData: Record<string, unknown> = {}
+
+            // Basic info
             if (params.title) updateData.title = params.title
             if (params.description) updateData.description = params.description
+
+            // Timing
+            if (params.startsAt) updateData.startsAt = new Date(params.startsAt)
+            if (params.endsAt) updateData.endsAt = new Date(params.endsAt)
+            if (params.timezone) updateData.timezone = params.timezone
+
+            // Location
             if (params.venueName) updateData.venueName = params.venueName
             if (params.venueAddress) updateData.venueAddress = params.venueAddress
-            if (params.startsAt) updateData.startsAt = new Date(params.startsAt)
+            if (params.city) updateData.city = params.city
+            if (params.state) updateData.state = params.state
+
+            // Event details
+            if (params.ageRestriction !== undefined) updateData.ageRestriction = params.ageRestriction
+            if (params.flyerUrl) updateData.flyerUrl = params.flyerUrl
+            if (params.about) updateData.about = params.about
+            if (params.refundPolicy) updateData.refundPolicy = params.refundPolicy
+
+            // JSON fields
+            if (params.lineup) updateData.lineup = params.lineup
+            if (params.faqs) updateData.faqs = params.faqs
+            if (params.gallery) updateData.gallery = params.gallery
+
+            // Design
+            if (params.pageTheme) updateData.pageTheme = params.pageTheme
+            if (params.accentColor) updateData.accentColor = params.accentColor
+            if (params.typography) updateData.typography = params.typography
 
             const event = await prisma.event.update({
               where: { id: params.eventId },
@@ -332,6 +386,19 @@ Use this context for any questions about "this event", ticket sales, or content 
           } catch (error) {
             console.error("Get event stats error:", error)
             return { success: false, error: "Failed to get event stats" }
+          }
+        },
+      }),
+
+      generateFlyer: tool({
+        description: "Generate an AI flyer image for an event. Currently not available - feature coming soon.",
+        inputSchema: z.object({
+          eventId: z.string().describe("The event ID to generate a flyer for"),
+        }),
+        execute: async () => {
+          return {
+            success: false,
+            error: "AI flyer generation is coming soon! For now, you can upload your own flyer image in the event editor.",
           }
         },
       }),
