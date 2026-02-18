@@ -437,19 +437,12 @@ function NewEventForm() {
                       />
                     </div>
 
-<<<<<<< HEAD
                     <div
                       role="button"
                       tabIndex={0}
                       onClick={() => setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
                       onKeyDown={(e) => e.key === "Enter" && setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
                       className={`w-full flex items-center justify-between p-4 border transition-all cursor-pointer ${
-=======
-                    <button
-                      type="button"
-                      onClick={() => setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
-                      className={`w-full flex items-center justify-between p-4 border transition-all ${
->>>>>>> origin/main
                         rsvpAllowPlusOnes
                           ? "border-[#00ff88]/50 bg-[#00ff88]/5"
                           : "border-white/10 hover:border-white/20"
@@ -467,11 +460,7 @@ function NewEventForm() {
                       <div onClick={(e) => e.stopPropagation()}>
                         <Switch checked={rsvpAllowPlusOnes} onCheckedChange={setRsvpAllowPlusOnes} />
                       </div>
-<<<<<<< HEAD
                     </div>
-=======
-                    </button>
->>>>>>> origin/main
 
                     {rsvpAllowPlusOnes && (
                       <div>
@@ -810,19 +799,12 @@ function NewEventForm() {
                   </div>
 
                   {/* Secret Location Toggle */}
-<<<<<<< HEAD
                   <div
                     role="button"
                     tabIndex={0}
                     onClick={() => setIsAddressHidden(!isAddressHidden)}
                     onKeyDown={(e) => e.key === "Enter" && setIsAddressHidden(!isAddressHidden)}
                     className={`w-full flex items-center justify-between p-4 border transition-all cursor-pointer ${
-=======
-                  <button
-                    type="button"
-                    onClick={() => setIsAddressHidden(!isAddressHidden)}
-                    className={`w-full flex items-center justify-between p-4 border transition-all ${
->>>>>>> origin/main
                       isAddressHidden
                         ? "border-[#ff6b00]/50 bg-[#ff6b00]/5"
                         : "border-white/10 hover:border-white/20"
@@ -840,11 +822,7 @@ function NewEventForm() {
                     <div onClick={(e) => e.stopPropagation()}>
                       <Switch checked={isAddressHidden} onCheckedChange={setIsAddressHidden} />
                     </div>
-<<<<<<< HEAD
                   </div>
-=======
-                  </button>
->>>>>>> origin/main
                 </div>
               </SectionCard>
 
