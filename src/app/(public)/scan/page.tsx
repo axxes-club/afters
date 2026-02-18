@@ -249,15 +249,30 @@ export default function ScannerEntryPage() {
               Scanning tickets requires a mobile device with a camera. Open this page on your phone to start scanning.
             </p>
             <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
-              <div className="flex items-center gap-3 text-left">
-                <div className="w-8 h-8 bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center flex-shrink-0">
-                  <Share className="w-4 h-4 text-[#ff1493]" />
+              <button
+                onClick={() => {
+                  const url = window.location.href;
+                  if (navigator.share) {
+                    navigator.share({
+                      title: "Afters Scanner",
+                      text: "Open this scanner on your phone",
+                      url,
+                    });
+                  } else {
+                    navigator.clipboard.writeText(url);
+                    toast.success("URL copied to clipboard");
+                  }
+                }}
+                className="w-full flex items-center gap-3 text-left hover:bg-white/5 p-2 -m-2 transition-colors"
+              >
+                <div className="w-10 h-10 bg-[#ff1493] flex items-center justify-center flex-shrink-0">
+                  <Share className="w-5 h-5 text-black" />
                 </div>
-                <div>
-                  <p className="text-white font-mono text-sm">AirDrop this link</p>
-                  <p className="text-white/40 font-mono text-xs">Share directly to your iPhone</p>
+                <div className="flex-1">
+                  <p className="text-white font-mono text-sm">Share / AirDrop</p>
+                  <p className="text-white/40 font-mono text-xs">Send this link to your iPhone</p>
                 </div>
-              </div>
+              </button>
               <div className="pt-4 border-t border-white/10">
                 <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
                 <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all" suppressHydrationWarning>
@@ -480,15 +495,30 @@ export default function ScannerEntryPage() {
             Scanning tickets requires a mobile device with a camera. Open this page on your phone to start scanning.
           </p>
           <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-8 h-8 bg-[#ff1493]/10 border border-[#ff1493]/30 flex items-center justify-center flex-shrink-0">
-                <Share className="w-4 h-4 text-[#ff1493]" />
+            <button
+              onClick={() => {
+                const url = window.location.href;
+                if (navigator.share) {
+                  navigator.share({
+                    title: "Afters Scanner",
+                    text: "Open this scanner on your phone",
+                    url,
+                  });
+                } else {
+                  navigator.clipboard.writeText(url);
+                  toast.success("URL copied to clipboard");
+                }
+              }}
+              className="w-full flex items-center gap-3 text-left hover:bg-white/5 p-2 -m-2 transition-colors"
+            >
+              <div className="w-10 h-10 bg-[#ff1493] flex items-center justify-center flex-shrink-0">
+                <Share className="w-5 h-5 text-black" />
               </div>
-              <div>
-                <p className="text-white font-mono text-sm">AirDrop this link</p>
-                <p className="text-white/40 font-mono text-xs">Share directly to your iPhone</p>
+              <div className="flex-1">
+                <p className="text-white font-mono text-sm">Share / AirDrop</p>
+                <p className="text-white/40 font-mono text-xs">Send this link to your iPhone</p>
               </div>
-            </div>
+            </button>
             <div className="pt-4 border-t border-white/10">
               <p className="text-[10px] font-mono text-white/30 mb-2">SCANNER URL</p>
               <code className="block w-full px-3 py-2 bg-black border border-white/10 text-[#ff1493] font-mono text-sm break-all">

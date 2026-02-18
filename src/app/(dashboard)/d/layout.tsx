@@ -15,6 +15,7 @@ import {
   Bell,
   ArrowLeft,
   Info,
+  Palette,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import {
@@ -36,6 +37,7 @@ const baseNavItems = [
 
 const settingsNavItems = [
   { href: "/d/settings", label: "PROFILE", icon: User, exact: true },
+  { href: "/d/settings/appearance", label: "APPEARANCE", icon: Palette, exact: false },
   ...(process.env.NODE_ENV !== "production"
     ? [{ href: "/d/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false }]
     : []),
@@ -57,6 +59,14 @@ const superadminNavItem = {
   exact: false,
 };
 
+interface UIPreferences {
+  sidebarLogoMode: "afters" | "custom" | "hidden";
+  sidebarCustomLogoUrl: string | null;
+  sidebarCompact: boolean;
+  uiAccentColor: string | null;
+  uiFontSize: "small" | "normal" | "large";
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -65,6 +75,13 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [hasEvents, setHasEvents] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [uiPrefs, setUIPrefs] = useState<UIPreferences>({
+    sidebarLogoMode: "afters",
+    sidebarCustomLogoUrl: null,
+    sidebarCompact: false,
+    uiAccentColor: null,
+    uiFontSize: "normal",
+  });
 
   // Check if user has events to show/hide scanner
   useEffect(() => {
@@ -81,6 +98,27 @@ export default function DashboardLayout({
       .then((data) => setIsSuperAdmin(data.role === "SUPERADMIN"))
       .catch(() => setIsSuperAdmin(false));
   }, []);
+
+  // Load UI preferences
+  useEffect(() => {
+    fetch("/api/user/preferences")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.organizerProfile) {
+          setUIPrefs({
+            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
+            sidebarCustomLogoUrl: data.organizerProfile.sidebarCustomLogoUrl || null,
+            sidebarCompact: data.organizerProfile.sidebarCompact || false,
+            uiAccentColor: data.organizerProfile.uiAccentColor || null,
+            uiFontSize: data.organizerProfile.uiFontSize || "normal",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Apply accent color CSS variable
+  const accentColor = uiPrefs.uiAccentColor || "#ff1493";
 
   // Check if we're in settings section
   const isInSettings = pathname.startsWith("/d/settings");
@@ -101,14 +139,27 @@ export default function DashboardLayout({
         {/* Desktop Sidebar - Hidden on mobile */}
         <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
           {/* Logo */}
-          <div
-            id="nav-logo"
-            className="h-16 flex items-center justify-center px-4 border-b border-white/5"
-          >
-            <Link href="/d" className="font-headline text-2xl tracking-wide">
-              AFTERS<span className="text-[#ff1493]">.</span>
-            </Link>
-          </div>
+          {uiPrefs.sidebarLogoMode !== "hidden" && (
+            <div
+              id="nav-logo"
+              className="h-16 flex items-center justify-center px-4 border-b border-white/5"
+            >
+              {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
+                <Link href="/d" className="flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
+                  <img
+                    src={uiPrefs.sidebarCustomLogoUrl}
+                    alt="Logo"
+                    className="max-h-10 max-w-[180px] object-contain"
+                  />
+                </Link>
+              ) : (
+                <Link href="/d" className="font-headline text-2xl tracking-wide">
+                  AFTERS<span style={{ color: accentColor }}>.</span>
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* Navigation */}
           <nav className="flex-1 py-4 px-2 space-y-1">
@@ -143,10 +194,11 @@ export default function DashboardLayout({
                   flex items-center gap-3 px-3 py-2.5 text-xs font-mono tracking-wider transition-all
                   ${
                     isActive
-                      ? "bg-[#ff1493] text-black"
+                      ? "text-black"
                       : "text-white/50 hover:text-white hover:bg-white/5"
                   }
                 `}
+                  style={isActive ? { backgroundColor: accentColor } : undefined}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
                   <span>{item.label}</span>
@@ -228,10 +280,8 @@ export default function DashboardLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`
-                  flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all
-                  ${isActive ? "text-[#ff1493]" : "text-white/40"}
-                `}
+                  className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all"
+                  style={{ color: isActive ? accentColor : "rgba(255,255,255,0.4)" }}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="text-[10px] font-mono tracking-wider">
@@ -269,12 +319,32 @@ export default function DashboardLayout({
               </Link>
             )}
             {/* Left-aligned logo + settings indicator */}
-            <Link href="/d" className="flex items-center gap-2 font-headline text-xl tracking-wide">
-              AFTERS<span className="text-[#ff1493]">.</span>
-              {isInSettings && (
-                <span className="text-xs font-mono text-white/40 ml-1">/ SETTINGS</span>
-              )}
-            </Link>
+            {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
+              <Link href="/d" className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
+                <img
+                  src={uiPrefs.sidebarCustomLogoUrl}
+                  alt="Logo"
+                  className="max-h-8 max-w-[120px] object-contain"
+                />
+                {isInSettings && (
+                  <span className="text-xs font-mono text-white/40">/ SETTINGS</span>
+                )}
+              </Link>
+            ) : uiPrefs.sidebarLogoMode !== "hidden" ? (
+              <Link href="/d" className="flex items-center gap-2 font-headline text-xl tracking-wide">
+                AFTERS<span style={{ color: accentColor }}>.</span>
+                {isInSettings && (
+                  <span className="text-xs font-mono text-white/40 ml-1">/ SETTINGS</span>
+                )}
+              </Link>
+            ) : (
+              <Link href="/d" className="flex items-center gap-2">
+                {isInSettings && (
+                  <span className="text-xs font-mono text-white/40">SETTINGS</span>
+                )}
+              </Link>
+            )}
           </header>
 
           {/* Page Content */}
