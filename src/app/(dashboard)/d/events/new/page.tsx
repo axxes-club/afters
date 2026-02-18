@@ -370,9 +370,10 @@ function NewEventForm() {
               </div>
 
               {/* Event Type Selector */}
-              <div className="grid grid-cols-2 gap-3">
+              <div role="group" aria-label="Event type" className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
+                  aria-pressed={!isRsvpOnly}
                   onClick={() => setIsRsvpOnly(false)}
                   className={`p-4 border transition-all text-left ${
                     !isRsvpOnly
@@ -394,6 +395,7 @@ function NewEventForm() {
                 </button>
                 <button
                   type="button"
+                  aria-pressed={isRsvpOnly}
                   onClick={() => setIsRsvpOnly(true)}
                   className={`p-4 border transition-all text-left ${
                     isRsvpOnly
@@ -430,6 +432,7 @@ function NewEventForm() {
                       <Input
                         type="number"
                         min="1"
+                        aria-label="RSVP capacity (leave empty for unlimited)"
                         value={rsvpCapacity}
                         onChange={(e) => setRsvpCapacity(e.target.value)}
                         placeholder="e.g., 100"
@@ -440,6 +443,8 @@ function NewEventForm() {
                     <div
                       role="button"
                       tabIndex={0}
+                      aria-label="Allow guests to bring plus ones"
+                      aria-pressed={rsvpAllowPlusOnes}
                       onClick={() => setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
                       onKeyDown={(e) => e.key === "Enter" && setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
                       className={`w-full flex items-center justify-between p-4 border transition-all cursor-pointer ${
@@ -468,7 +473,7 @@ function NewEventForm() {
                           MAX +1s PER GUEST
                         </label>
                         <Select value={rsvpMaxPlusOnes} onValueChange={setRsvpMaxPlusOnes}>
-                          <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                          <SelectTrigger aria-label="Maximum plus-ones per guest" className="h-12 bg-black border-white/10 font-mono">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-black border-white/10">
@@ -498,6 +503,9 @@ function NewEventForm() {
                     </label>
                     <Input
                       name="title"
+                      aria-label="Event title"
+                      aria-required="true"
+                      aria-describedby={errors.title && touched.title ? "title-error" : undefined}
                       placeholder="e.g., VOID — Warehouse Session"
                       value={title}
                       onChange={(e) => {
@@ -512,7 +520,7 @@ function NewEventForm() {
                       }`}
                     />
                     {errors.title && touched.title && (
-                      <p className="text-red-400 text-xs font-mono mt-1.5">{errors.title}</p>
+                      <p id="title-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.title}</p>
                     )}
                   </div>
 
@@ -539,6 +547,7 @@ function NewEventForm() {
                     </div>
                     <Textarea
                       name="description"
+                      aria-label="Event description"
                       placeholder="Tell people what to expect..."
                       rows={3}
                       value={description}
@@ -591,6 +600,9 @@ function NewEventForm() {
                     <Input
                       name="startsAt"
                       type="datetime-local"
+                      aria-label="Event start date and time"
+                      aria-required="true"
+                      aria-describedby={errors.startsAt && touched.startsAt ? "startsAt-error" : undefined}
                       value={startsAt}
                       onChange={(e) => {
                         setStartsAt(e.target.value)
@@ -604,7 +616,7 @@ function NewEventForm() {
                       }`}
                     />
                     {errors.startsAt && touched.startsAt && (
-                      <p className="text-red-400 text-xs font-mono mt-1.5">{errors.startsAt}</p>
+                      <p id="startsAt-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.startsAt}</p>
                     )}
                   </div>
                   <div>
@@ -612,9 +624,10 @@ function NewEventForm() {
                       ENDS
                     </label>
                     {/* End Time Mode Toggle */}
-                    <div className="flex gap-2 mb-2">
+                    <div role="group" aria-label="End time mode" className="flex gap-2 mb-2">
                       <button
                         type="button"
+                        aria-pressed={endTimeMode === "late"}
                         onClick={() => setEndTimeMode("late")}
                         className={`flex-1 h-8 text-[10px] font-mono tracking-wider transition-all ${
                           endTimeMode === "late"
@@ -626,6 +639,7 @@ function NewEventForm() {
                       </button>
                       <button
                         type="button"
+                        aria-pressed={endTimeMode === "custom"}
                         onClick={() => setEndTimeMode("custom")}
                         className={`flex-1 h-8 text-[10px] font-mono tracking-wider transition-all ${
                           endTimeMode === "custom"
@@ -640,6 +654,7 @@ function NewEventForm() {
                       <Input
                         name="endsAt"
                         type="datetime-local"
+                        aria-label="Event end date and time"
                         value={endsAt}
                         onChange={(e) => setEndsAt(e.target.value)}
                         className="h-12 bg-black border-white/10 font-mono focus:border-white/30 focus:ring-0"
@@ -658,7 +673,7 @@ function NewEventForm() {
                       TIMEZONE
                     </label>
                     <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                      <SelectTrigger aria-label="Timezone" className="h-12 bg-black border-white/10 font-mono">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-black border-white/10">
@@ -674,7 +689,7 @@ function NewEventForm() {
                       AGE
                     </label>
                     <Select value={ageRestriction} onValueChange={setAgeRestriction}>
-                      <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                      <SelectTrigger aria-label="Age restriction" className="h-12 bg-black border-white/10 font-mono">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-black border-white/10">
@@ -691,7 +706,7 @@ function NewEventForm() {
                     EVENT EXPIRATION
                   </label>
                   <Select value={expiresAfter} onValueChange={setExpiresAfter}>
-                    <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                    <SelectTrigger aria-label="Event expiration" className="h-12 bg-black border-white/10 font-mono">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black border-white/10">
@@ -722,6 +737,9 @@ function NewEventForm() {
                     </label>
                     <Input
                       name="venueName"
+                      aria-label="Venue name"
+                      aria-required="true"
+                      aria-describedby={errors.venueName && touched.venueName ? "venueName-error" : undefined}
                       placeholder="e.g., The Warehouse"
                       onChange={() => clearError("venueName")}
                       onBlur={() => markTouched("venueName")}
@@ -732,7 +750,7 @@ function NewEventForm() {
                       }`}
                     />
                     {errors.venueName && touched.venueName && (
-                      <p className="text-red-400 text-xs font-mono mt-1.5">{errors.venueName}</p>
+                      <p id="venueName-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.venueName}</p>
                     )}
                   </div>
 
@@ -742,6 +760,9 @@ function NewEventForm() {
                     </label>
                     <Input
                       name="venueAddress"
+                      aria-label="Venue address"
+                      aria-required="true"
+                      aria-describedby={errors.venueAddress && touched.venueAddress ? "venueAddress-error" : undefined}
                       placeholder="e.g., 123 Industrial Ave"
                       onChange={() => clearError("venueAddress")}
                       onBlur={() => markTouched("venueAddress")}
@@ -752,7 +773,7 @@ function NewEventForm() {
                       }`}
                     />
                     {errors.venueAddress && touched.venueAddress && (
-                      <p className="text-red-400 text-xs font-mono mt-1.5">{errors.venueAddress}</p>
+                      <p id="venueAddress-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.venueAddress}</p>
                     )}
                   </div>
 
@@ -769,7 +790,11 @@ function NewEventForm() {
                           markTouched("city")
                         }}
                       >
-                        <SelectTrigger className={`h-12 bg-black font-mono ${
+                        <SelectTrigger
+                          aria-label="City"
+                          aria-required="true"
+                          aria-describedby={errors.city && touched.city ? "city-error" : undefined}
+                          className={`h-12 bg-black font-mono ${
                           errors.city && touched.city
                             ? "border-red-500"
                             : "border-white/10"
@@ -783,7 +808,7 @@ function NewEventForm() {
                         </SelectContent>
                       </Select>
                       {errors.city && touched.city && (
-                        <p className="text-red-400 text-xs font-mono mt-1.5">{errors.city}</p>
+                        <p id="city-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.city}</p>
                       )}
                     </div>
                     <div>
@@ -792,6 +817,7 @@ function NewEventForm() {
                       </label>
                       <Input
                         name="state"
+                        aria-label="State"
                         placeholder="e.g., NY"
                         className="h-12 bg-black border-white/10 font-mono placeholder:text-white/20 focus:border-white/30 focus:ring-0"
                       />
@@ -802,6 +828,8 @@ function NewEventForm() {
                   <div
                     role="button"
                     tabIndex={0}
+                    aria-label="Hide event location until ticket purchase"
+                    aria-pressed={isAddressHidden}
                     onClick={() => setIsAddressHidden(!isAddressHidden)}
                     onKeyDown={(e) => e.key === "Enter" && setIsAddressHidden(!isAddressHidden)}
                     className={`w-full flex items-center justify-between p-4 border transition-all cursor-pointer ${
@@ -846,9 +874,10 @@ function NewEventForm() {
                         <button
                           type="button"
                           onClick={() => removeArtist(index)}
+                          aria-label={`Remove artist ${index + 1} from lineup`}
                           className="p-1 text-white/30 hover:text-red-400 transition-colors"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -866,6 +895,7 @@ function NewEventForm() {
                         <Input
                           value={artist.role}
                           onChange={(e) => updateArtist(index, "role", e.target.value)}
+                          aria-label={`Role for artist ${index + 1}`}
                           placeholder="Role"
                           className="h-10 bg-black border-white/10 font-mono text-sm"
                         />
@@ -878,6 +908,7 @@ function NewEventForm() {
                             type="time"
                             value={artist.showtime || ""}
                             onChange={(e) => updateArtist(index, "showtime", e.target.value)}
+                            aria-label={`Showtime for artist ${index + 1}`}
                             className="h-8 w-28 bg-black border-white/10 font-mono text-xs"
                           />
                         </div>
@@ -940,6 +971,8 @@ function NewEventForm() {
                           key={color.value}
                           type="button"
                           onClick={() => setAccentColor(color.value)}
+                          aria-label={`Select ${color.name} accent color`}
+                          aria-pressed={accentColor === color.value}
                           className={`w-10 h-10 md:w-12 md:h-12 transition-all ${
                             accentColor === color.value
                               ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
@@ -954,6 +987,7 @@ function NewEventForm() {
                           type="color"
                           value={accentColor}
                           onChange={(e) => setAccentColor(e.target.value)}
+                          aria-label="Custom accent color"
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -1096,6 +1130,8 @@ function ExpandableSection({
       <button
         type="button"
         onClick={onToggle}
+        aria-expanded={isOpen}
+        aria-label={`${title}: ${subtitle}${isOpen ? " (expanded)" : " (collapsed)"}`}
         className="w-full px-4 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-all"
         style={{ borderLeftWidth: "3px", borderLeftColor: isOpen ? color : "transparent" }}
       >

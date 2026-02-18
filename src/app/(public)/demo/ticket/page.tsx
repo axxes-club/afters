@@ -61,6 +61,7 @@ function TicketView() {
   }
 
   // Generate a ticketId that the scanner can recognize
+  // eslint-disable-next-line react-hooks/purity
   const ticketId = data.id || `demo-${Date.now()}-${btoa(JSON.stringify({ n: data.n, t: data.t, e: data.e }))}`
 
   return (

@@ -108,6 +108,7 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
       }
       document.head.appendChild(script)
     } else if (window.turnstile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoaded(true)
       renderWidget()
     } else {

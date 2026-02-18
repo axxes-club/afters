@@ -22,7 +22,7 @@ interface LivePreviewContextType {
   hasChanges: boolean
   isPreviewMode: boolean
   canUndo: boolean
-  updateDesign: (key: keyof DesignSettings, value: any) => void
+  updateDesign: (key: keyof DesignSettings, value: DesignSettings[keyof DesignSettings]) => void
   undo: () => void
   resetToOriginal: () => void
   setPreviewMode: (mode: boolean) => void
@@ -54,7 +54,7 @@ export function LivePreviewProvider({ children, initialDesign }: LivePreviewProv
   const hasChanges = JSON.stringify(history.current) !== JSON.stringify(originalDesign)
   const canUndo = history.past.length > 0
 
-  const updateDesign = useCallback((key: keyof DesignSettings, value: any) => {
+  const updateDesign = useCallback((key: keyof DesignSettings, value: DesignSettings[keyof DesignSettings]) => {
     setHistory(prev => ({
       past: [...prev.past, prev.current].slice(-20), // Keep last 20 states
       current: { ...prev.current, [key]: value },

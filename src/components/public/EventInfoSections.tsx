@@ -10,7 +10,7 @@ interface FAQ {
 interface EventInfoSectionsProps {
   about?: string | null
   refundPolicy?: string | null
-  faqs?: any // Accept any type since it comes from Prisma JsonValue
+  faqs?: unknown // Accept any type since it comes from Prisma JsonValue
   className?: string
   variant?: 'default' | 'brutalist' | 'neon' | 'minimal' | 'tilt' | 'lush'
   accentColor?: string

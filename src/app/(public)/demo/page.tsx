@@ -292,6 +292,7 @@ function TicketOverlay({
   const [canShare, setCanShare] = useState(false)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCanShare(typeof navigator !== "undefined" && !!navigator.share)
   }, [])
 

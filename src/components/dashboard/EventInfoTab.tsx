@@ -114,7 +114,7 @@ export default function EventInfoTab({
         <div className="space-y-4">
           {faqs.length === 0 ? (
             <div className="text-center py-8 px-4 border border-dashed border-white/10 rounded-lg text-white/40 text-sm">
-              No FAQs yet. Click "Add FAQ" to create one.
+              No FAQs yet. Click &quot;Add FAQ&quot; to create one.
             </div>
           ) : (
             faqs.map((faq, index) => (
@@ -164,7 +164,7 @@ export default function EventInfoTab({
           className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-white/30 resize-y"
         />
         <p className="text-xs text-white/40 mt-1">
-          Be clear about refund eligibility, deadlines, and process. Example: "Full refund up to 7 days before the event. No refunds within 7 days of the event date."
+          Be clear about refund eligibility, deadlines, and process. Example: &quot;Full refund up to 7 days before the event. No refunds within 7 days of the event date.&quot;
         </p>
       </div>
 

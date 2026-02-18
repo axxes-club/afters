@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireSuperAdmin } from "@/lib/auth-utils"
+import type { VerificationStatus } from "@prisma/client"
 
 // Get all verification requests
 export async function GET(request: Request) {
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
     const status = searchParams.get("status") || undefined
 
     const requests = await prisma.verificationRequest.findMany({
-      where: status ? { status: status as any } : undefined,
+      where: status ? { status: status as VerificationStatus } : undefined,
       orderBy: { createdAt: "desc" },
       take: 100
     })

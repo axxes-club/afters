@@ -1,6 +1,9 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import type { Event, TicketTier } from "@prisma/client"
+
+type EventWithTiers = Event & { ticketTiers: TicketTier[] }
 import Link from "next/link"
 import Image from "next/image"
 import { 
@@ -108,10 +111,10 @@ export default async function EventsPage() {
   )
 }
 
-function EventCard({ event }: { event: any }) {
-  const soldCount = event.ticketTiers.reduce((s: number, t: any) => s + t.quantitySold, 0)
-  const totalCount = event.ticketTiers.reduce((s: number, t: any) => s + t.quantity, 0)
-  const revenue = event.ticketTiers.reduce((s: number, t: any) => s + (t.quantitySold * t.price), 0)
+function EventCard({ event }: { event: EventWithTiers }) {
+  const soldCount = event.ticketTiers.reduce((s: number, t: TicketTier) => s + t.quantitySold, 0)
+  const totalCount = event.ticketTiers.reduce((s: number, t: TicketTier) => s + t.quantity, 0)
+  const revenue = event.ticketTiers.reduce((s: number, t: TicketTier) => s + (t.quantitySold * t.price), 0)
   const percentSold = totalCount > 0 ? (soldCount / totalCount) * 100 : 0
 
   return (
@@ -186,9 +189,9 @@ function EventCard({ event }: { event: any }) {
   )
 }
 
-function PastEventRow({ event }: { event: any }) {
-  const soldCount = event.ticketTiers.reduce((s: number, t: any) => s + t.quantitySold, 0)
-  const revenue = event.ticketTiers.reduce((s: number, t: any) => s + (t.quantitySold * t.price), 0)
+function PastEventRow({ event }: { event: EventWithTiers }) {
+  const soldCount = event.ticketTiers.reduce((s: number, t: TicketTier) => s + t.quantitySold, 0)
+  const revenue = event.ticketTiers.reduce((s: number, t: TicketTier) => s + (t.quantitySold * t.price), 0)
 
   return (
     <Link 

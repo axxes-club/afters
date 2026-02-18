@@ -31,6 +31,7 @@ export function SuccessConfetti({
 
   useEffect(() => {
     if (trigger && !isActive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsActive(true)
 
       // Generate particles

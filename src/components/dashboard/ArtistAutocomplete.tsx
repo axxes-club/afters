@@ -83,11 +83,17 @@ export function ArtistAutocomplete({
     [onChange, onSelectArtist]
   )
 
+  const listboxId = "artist-suggestions-listbox"
+
   return (
     <div ref={containerRef} className="relative">
       <input
         ref={inputRef}
         type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={showSuggestions && suggestions.length > 0}
+        aria-controls={listboxId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setShowSuggestions(true)}
@@ -98,7 +104,7 @@ export function ArtistAutocomplete({
 
       {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-black border border-white/10 shadow-lg max-h-60 overflow-auto">
+        <div id={listboxId} role="listbox" aria-label="Artist suggestions" className="absolute z-50 w-full mt-1 bg-black border border-white/10 shadow-lg max-h-60 overflow-auto">
           {!value.trim() && (
             <div className="px-3 py-2 text-[10px] font-mono text-white/30 tracking-widest border-b border-white/5">
               RECENT ARTISTS
@@ -108,6 +114,8 @@ export function ArtistAutocomplete({
             <button
               key={`${artist.name}-${index}`}
               type="button"
+              role="option"
+              aria-selected={false}
               onClick={() => handleSelect(artist)}
               className="w-full px-3 py-2 flex items-center gap-3 hover:bg-white/5 transition-colors text-left"
             >
@@ -181,6 +189,7 @@ export function RecentArtists({ onSelect, excludeNames = [] }: RecentArtistsProp
           <button
             key={artist.name}
             type="button"
+            aria-label={`Add ${artist.name} to lineup`}
             onClick={() => onSelect(artist)}
             className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 hover:border-[#ff1493]/50 hover:bg-[#ff1493]/5 transition-all text-xs"
           >

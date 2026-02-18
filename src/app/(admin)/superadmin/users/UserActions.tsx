@@ -54,14 +54,16 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { 
-  deleteUser, 
-  banUser, 
-  unbanUser, 
-  sendPasswordResetEmail, 
+import {
+  deleteUser,
+  banUser,
+  unbanUser,
+  sendPasswordResetEmail,
   updateUserMetadata,
   getUserDetails
 } from "./actions"
+
+type UserDetails = Awaited<ReturnType<typeof getUserDetails>>
 
 interface UserActionsProps {
   userId: string
@@ -83,7 +85,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [showFlagDialog, setShowFlagDialog] = useState(false)
-  const [userDetails, setUserDetails] = useState<any>(null)
+  const [userDetails, setUserDetails] = useState<UserDetails>(null)
   const [editForm, setEditForm] = useState({
     firstName,
     lastName,
@@ -456,7 +458,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
                   <div>
                     <span className="text-muted-foreground text-xs">Email Addresses:</span>
                     <ul className="text-xs mt-1">
-                      {userDetails.clerk.emailAddresses.map((e: any, i: number) => (
+                      {userDetails.clerk.emailAddresses.map((e, i: number) => (
                         <li key={i} className="flex items-center gap-2">
                           {e.email}
                           {e.verified && <span className="text-green-500">(verified)</span>}
@@ -469,7 +471,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
                   <div>
                     <span className="text-muted-foreground text-xs">Connected Accounts:</span>
                     <ul className="text-xs mt-1">
-                      {userDetails.clerk.externalAccounts.map((e: any, i: number) => (
+                      {userDetails.clerk.externalAccounts.map((e, i: number) => (
                         <li key={i}>{e.provider}: {e.email}</li>
                       ))}
                     </ul>

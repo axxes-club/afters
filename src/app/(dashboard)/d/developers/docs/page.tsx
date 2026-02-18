@@ -395,7 +395,7 @@ export default function ApiDocsPage() {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            Don't have an API key?{" "}
+            Don&apos;t have an API key?{" "}
             <Link href="/d/developers" className="text-[#ff1493] hover:underline">
               Create one here
             </Link>
