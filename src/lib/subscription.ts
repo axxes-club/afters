@@ -95,7 +95,6 @@ export type Permission =
  * This function always returns true regardless of subscription status.
  */
 export async function hasSignaturePlan(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _organizerProfileId: string
 ): Promise<boolean> {
   // Paywall removed: all organizers get full access
@@ -108,7 +107,6 @@ export async function hasSignaturePlan(
  * NOTE: Paywall removed — all organizers can use staff features.
  */
 export async function canUseStaff(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _organizerProfileId: string
 ): Promise<boolean> {
   // Paywall removed: all organizers get staff features
