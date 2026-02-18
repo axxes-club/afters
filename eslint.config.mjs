@@ -29,6 +29,8 @@ const eslintConfig = defineConfig([
     // Utility scripts are not production code
     "scripts/**",
     "prisma/**",
+    // Test coverage output
+    "coverage/**",
   ]),
 ]);
 
