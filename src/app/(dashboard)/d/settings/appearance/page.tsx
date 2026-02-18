@@ -17,7 +17,7 @@ interface LocalUIPreferences {
 }
 
 export default function AppearanceSettingsPage() {
-  const { preferences: globalPrefs, refreshPreferences } = useUIPreferences()
+  const { refreshPreferences } = useUIPreferences()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [preferences, setPreferences] = useState<LocalUIPreferences>({

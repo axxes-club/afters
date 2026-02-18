@@ -1,17 +1,40 @@
 name: E2E Tests
 
 on:
-  # Only run on PRs to main (not on every push)
+  # Run on PRs to main
   pull_request:
     branches: [main]
-  # Allow manual trigger
+  # Manual trigger with options
   workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to test'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+          - all
+      shard:
+        description: 'Test shard (e.g., 1/3)'
+        required: false
+        default: ''
+        type: string
+      debug:
+        description: 'Enable debug mode'
+        required: false
+        default: false
+        type: boolean
 
 env:
   CI: true
   PLAYWRIGHT_BASE_URL: http://localhost:3000
+  PNPM_VERSION: 9
 
 jobs:
+  # ─── Check Secrets ───
   check-secrets:
     name: Check Required Secrets
     runs-on: ubuntu-latest
@@ -26,28 +49,31 @@ jobs:
             echo "✅ Required secrets are configured"
           else
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Required secrets not configured - E2E tests will be skipped"
-            echo "Please configure the following secrets in repository settings:"
-            echo "  - DATABASE_URL"
-            echo "  - CLERK_SECRET_KEY_TEST"
-            echo "  - CLERK_PUBLISHABLE_KEY_TEST"
+            echo "::warning::Required secrets not configured - E2E tests will be skipped"
           fi
 
+  # ─── E2E Tests ───
   e2e:
-    name: E2E Tests
+    name: E2E Tests (${{ matrix.browser }}${{ matrix.shard && format(' - Shard {0}', matrix.shard) || '' }})
     runs-on: ubuntu-latest
     needs: check-secrets
     if: needs.check-secrets.outputs.secrets-available == 'true'
     timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ github.event.inputs.browser == 'all' && fromJSON('["chromium", "firefox", "webkit"]') || fromJSON(format('["{0}"]', github.event.inputs.browser || 'chromium')) }}
+        shard: ${{ github.event.inputs.shard && fromJSON(format('["{0}"]', github.event.inputs.shard)) || fromJSON('[""]') }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -55,17 +81,44 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(cat package.json | jq -r '.devDependencies["@playwright/test"]')" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}-${{ matrix.browser }}
+
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Install system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps ${{ matrix.browser }}
 
       - name: Generate Prisma client
         run: npx prisma generate
 
       - name: Run E2E tests
-        run: pnpm test:e2e --project=chromium
+        run: |
+          SHARD_ARG=""
+          if [ -n "${{ matrix.shard }}" ]; then
+            SHARD_ARG="--shard=${{ matrix.shard }}"
+          fi
+          
+          DEBUG_ARG=""
+          if [ "${{ github.event.inputs.debug }}" == "true" ]; then
+            DEBUG_ARG="--debug"
+          fi
+          
+          pnpm test:e2e --project=${{ matrix.browser }} $SHARD_ARG $DEBUG_ARG
         env:
           # Clerk test credentials
           CLERK_TESTING_TOKEN: ${{ secrets.CLERK_TESTING_TOKEN }}
@@ -93,7 +146,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}${{ matrix.shard && format('-shard-{0}', matrix.shard) || '' }}
           path: playwright-report/
           retention-days: 30
 
@@ -101,10 +154,23 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: test-screenshots
+          name: test-screenshots-${{ matrix.browser }}${{ matrix.shard && format('-shard-{0}', matrix.shard) || '' }}
           path: test-results/
           retention-days: 7
 
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "### 🎭 E2E Test Results (${{ matrix.browser }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f playwright-report/index.html ]; then
+            echo "✅ Tests completed. See artifacts for full report." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Report not generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ─── Skip Notice ───
   skip-notice:
     name: E2E Tests (Skipped)
     runs-on: ubuntu-latest
@@ -113,11 +179,39 @@ jobs:
     steps:
       - name: Notice
         run: |
-          echo "::warning::E2E tests skipped - required secrets not configured"
-          echo "To enable E2E tests, configure the following repository secrets:"
-          echo "  - DATABASE_URL"
-          echo "  - CLERK_SECRET_KEY_TEST"
-          echo "  - CLERK_PUBLISHABLE_KEY_TEST"
-          echo "  - CLERK_TESTING_TOKEN (optional)"
-          echo "  - NEON_API_KEY (optional)"
-          echo "  - NEON_PROJECT_ID (optional)"
+          echo "### ⚠️ E2E Tests Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Required secrets not configured. Please add:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`DATABASE_URL\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`CLERK_SECRET_KEY_TEST\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`CLERK_PUBLISHABLE_KEY_TEST\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Optional secrets for full functionality:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`CLERK_TESTING_TOKEN\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`NEON_API_KEY\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`NEON_PROJECT_ID\`" >> $GITHUB_STEP_SUMMARY
+
+  # ─── Merge Results ───
+  e2e-results:
+    name: E2E Results
+    runs-on: ubuntu-latest
+    needs: [check-secrets, e2e]
+    if: always() && needs.check-secrets.outputs.secrets-available == 'true'
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: playwright-report-*
+          merge-multiple: true
+
+      - name: Summary
+        run: |
+          echo "### 🎭 E2E Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d "artifacts" ]; then
+            echo "Reports downloaded. Check individual job artifacts for details." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No reports found." >> $GITHUB_STEP_SUMMARY
+          fi
