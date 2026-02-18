@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4 (2026-02-18)
+
+- Fix system settings page showing incorrect version by reading from package.json
+- Fix E2E workflow to skip gracefully when secrets not configured
+
 ## 0.2.3 (2026-02-18)
 
 - Add E2E testing infrastructure with Playwright
