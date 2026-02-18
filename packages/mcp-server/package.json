@@ -1,0 +1,25 @@
+{
+  "name": "@afters/mcp-server",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for afters event management",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "afters-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["mcp", "afters", "events", "ticketing", "ai"],
+  "author": "afters",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

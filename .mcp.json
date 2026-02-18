@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "afters": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "env": {
+        "AFTERS_API_KEY": "${AFTERS_API_KEY}"
+      }
+    },
     "groq": {
       "command": "uvx",
       "args": ["groq-mcp"],
