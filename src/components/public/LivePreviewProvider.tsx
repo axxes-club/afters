@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, ReactNode } from 'rea
 
 export interface DesignSettings {
   accentColor: string
+  backgroundColor: string
   typography: string
   pageTheme: string
   showLocationOnPage: boolean

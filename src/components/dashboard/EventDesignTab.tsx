@@ -13,6 +13,17 @@ const ACCENT_COLORS = [
   { value: "#ffd700", name: "Gold" },
 ]
 
+const BACKGROUND_COLORS = [
+  { value: "#000000", name: "Black" },
+  { value: "#0a0a0a", name: "Off Black" },
+  { value: "#111111", name: "Dark Gray" },
+  { value: "#1a1a1a", name: "Charcoal" },
+  { value: "#0a0612", name: "Deep Purple" },
+  { value: "#0a0a14", name: "Midnight Blue" },
+  { value: "#0f0a0a", name: "Dark Wine" },
+  { value: "#0a100a", name: "Forest" },
+]
+
 // Extract dominant colors from an image
 function extractColorsFromImage(imageUrl: string): Promise<string[]> {
   return new Promise((resolve) => {
@@ -115,6 +126,13 @@ function colorDistance(hex1: string, hex2: string): number {
   return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2)
 }
 
+function darkenColor(hex: string, factor: number): string {
+  const r = Math.round(parseInt(hex.slice(1, 3), 16) * (1 - factor))
+  const g = Math.round(parseInt(hex.slice(3, 5), 16) * (1 - factor))
+  const b = Math.round(parseInt(hex.slice(5, 7), 16) * (1 - factor))
+  return rgbToHex(r, g, b)
+}
+
 const TYPOGRAPHY_OPTIONS = [
   { id: "mono", name: "MONO", preview: "JetBrains Mono", className: "font-mono", description: "Technical, precise" },
   { id: "headline", name: "HEADLINE", preview: "Bebas Neue", className: "font-headline", description: "Bold, impactful" },
@@ -175,6 +193,7 @@ interface EventDesignTabProps {
   initialTemplate?: string
   initialTypography?: string
   initialAccentColor?: string
+  initialBackgroundColor?: string
   flyerUrl?: string | null
 }
 
@@ -183,11 +202,13 @@ export function EventDesignTab({
   initialTemplate = "neon",
   initialTypography = "headline",
   initialAccentColor = "#ff1493",
+  initialBackgroundColor = "#000000",
   flyerUrl,
 }: EventDesignTabProps) {
   const [selectedTemplate, setSelectedTemplate] = useState(initialTemplate)
   const [selectedTypography, setSelectedTypography] = useState(initialTypography)
   const [accentColor, setAccentColor] = useState(initialAccentColor)
+  const [backgroundColor, setBackgroundColor] = useState(initialBackgroundColor)
   const [saving, setSaving] = useState(false)
   const [activeIndex, setActiveIndex] = useState(
     TEMPLATES.findIndex((t) => t.id === initialTemplate) || 0
@@ -317,6 +338,7 @@ export function EventDesignTab({
           pageTheme: selectedTemplate,
           typography: selectedTypography,
           accentColor,
+          backgroundColor,
         }),
       })
 
@@ -965,6 +987,113 @@ export function EventDesignTab({
             <div className="text-xs font-mono text-white/60">Current accent</div>
             <div className="text-sm font-mono font-bold" style={{ color: accentColor }}>
               {accentColor.toUpperCase()}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Background Color Selector */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 border border-slate-500/30 bg-slate-500/5 flex items-center justify-center">
+            <Layout className="w-4 h-4 text-slate-400" />
+          </div>
+          <div>
+            <h3 className="font-mono font-bold text-sm tracking-wide">BACKGROUND COLOR</h3>
+            <p className="text-[10px] font-mono text-white/40">Page background color</p>
+          </div>
+        </div>
+
+        <div
+          className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {BACKGROUND_COLORS.map((color) => (
+            <button
+              key={color.value}
+              onClick={() => setBackgroundColor(color.value)}
+              className={`
+                w-10 h-10 flex-shrink-0 transition-all relative border border-white/20
+                ${backgroundColor === color.value
+                  ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                  : "hover:scale-105"
+                }
+              `}
+              style={{ backgroundColor: color.value }}
+              title={color.name}
+            >
+              {backgroundColor === color.value && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-white drop-shadow-lg" />
+                </div>
+              )}
+            </button>
+          ))}
+
+          {/* Custom color picker */}
+          <div className="relative w-10 h-10 flex-shrink-0 border-2 border-dashed border-white/20 overflow-hidden hover:border-white/40 transition-colors">
+            <input
+              type="color"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+              className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Plus className="w-4 h-4 text-white/40" />
+            </div>
+          </div>
+        </div>
+
+        {/* Flyer Background Colors */}
+        {flyerUrl && flyerColors.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3 h-3 text-slate-400" />
+              <span className="text-[10px] font-mono text-slate-400 tracking-wider">DARKER TONES FROM FLYER</span>
+            </div>
+            <div
+              className="flex items-center gap-3 overflow-x-auto overflow-y-visible scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap py-1"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {flyerColors.map((color, index) => {
+                // Darken the flyer colors for background use
+                const darkenedColor = darkenColor(color, 0.7)
+                return (
+                  <button
+                    key={`flyer-bg-${index}`}
+                    onClick={() => setBackgroundColor(darkenedColor)}
+                    className={`
+                      w-10 h-10 flex-shrink-0 transition-all relative border border-white/20
+                      ${backgroundColor === darkenedColor
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                        : "hover:scale-105"
+                      }
+                    `}
+                    style={{ backgroundColor: darkenedColor }}
+                    title={`Darkened ${color.toUpperCase()}`}
+                  >
+                    {backgroundColor === darkenedColor && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white drop-shadow-lg" />
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Background preview */}
+        <div className="flex items-center gap-3 p-3 border border-white/10" style={{ backgroundColor }}>
+          <div
+            className="w-6 h-6 flex-shrink-0 border border-white/20"
+            style={{ backgroundColor }}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-mono text-white/60">Current background</div>
+            <div className="text-sm font-mono font-bold text-white">
+              {backgroundColor.toUpperCase()}
             </div>
           </div>
         </div>

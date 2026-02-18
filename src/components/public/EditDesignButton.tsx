@@ -17,6 +17,15 @@ const ACCENT_COLORS = [
   { value: '#ffd700', name: 'Gold' },
 ]
 
+const BACKGROUND_COLORS = [
+  { value: '#000000', name: 'Black' },
+  { value: '#0a0a0a', name: 'Off Black' },
+  { value: '#111111', name: 'Dark Gray' },
+  { value: '#1a1a1a', name: 'Charcoal' },
+  { value: '#0a0612', name: 'Deep Purple' },
+  { value: '#0a0a14', name: 'Midnight Blue' },
+]
+
 const TYPOGRAPHY_OPTIONS = [
   { id: 'mono', name: 'MONO', preview: 'JetBrains Mono' },
   { id: 'headline', name: 'HEADLINE', preview: 'Bebas Neue' },
@@ -209,6 +218,45 @@ export default function EditDesignButton({ eventId }: EditDesignButtonProps) {
                   type="color"
                   value={design.accentColor}
                   onChange={(e) => handleDesignUpdate('accentColor', e.target.value)}
+                  className="w-full h-11 rounded-lg border border-white/10 bg-black/40 cursor-pointer"
+                />
+              </div>
+            </section>
+
+            {/* Background Color */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <div
+                  className="w-6 h-6 rounded-md border-2 border-white/30"
+                  style={{ backgroundColor: design.backgroundColor }}
+                />
+                <label className="text-white/60 text-xs uppercase tracking-widest font-medium">
+                  Background
+                </label>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {BACKGROUND_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    onClick={() => handleDesignUpdate('backgroundColor', color.value)}
+                    className="group relative h-11 rounded-lg border-2 transition-all duration-200 hover:scale-105"
+                    style={{
+                      backgroundColor: color.value,
+                      borderColor:
+                        design.backgroundColor === color.value ? 'white' : 'rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    <span className="text-white/70 text-xs font-medium group-hover:text-white">
+                      {color.name.split(' ')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3">
+                <input
+                  type="color"
+                  value={design.backgroundColor}
+                  onChange={(e) => handleDesignUpdate('backgroundColor', e.target.value)}
                   className="w-full h-11 rounded-lg border border-white/10 bg-black/40 cursor-pointer"
                 />
               </div>
