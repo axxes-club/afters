@@ -1,6 +1,47 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { sendEmail, generateEventRescheduledEmailHtml } from "@/lib/email"
+
+// Helper function to generate a unique slug
+async function generateUniqueSlug(title: string, organizerId: string, currentSlug: string): Promise<string> {
+  const baseSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+
+  // If the title generates the same slug, keep it
+  if (baseSlug === currentSlug) {
+    return currentSlug
+  }
+
+  let slug = baseSlug
+  let counter = 1
+  
+  while (true) {
+    const existing = await prisma.event.findFirst({
+      where: { organizerId, slug },
+    })
+    if (!existing) break
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
+  
+  return slug
+}
+
+// Helper to format date for email
+function formatDateForEmail(date: Date, timezone: string): string {
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: timezone,
+  })
+}
 
 export async function GET(
   req: Request,
@@ -233,9 +274,17 @@ export async function PATCH(
       )
     }
 
-    // Verify ownership
+    // Verify ownership and get existing event with attendee counts
     const existingEvent = await prisma.event.findUnique({
       where: { id: eventId },
+      include: {
+        _count: {
+          select: {
+            tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } },
+            rsvps: { where: { status: { in: ["CONFIRMED", "CHECKED_IN"] } } },
+          },
+        },
+      },
     })
 
     if (!existingEvent || existingEvent.organizerId !== profile.id) {
@@ -247,6 +296,7 @@ export async function PATCH(
     // PATCH only updates provided fields - allowlist to prevent mass assignment
     const {
       title,
+      slug: customSlug, // Allow manual slug customization
       description,
       startsAt,
       endsAt,
@@ -270,14 +320,118 @@ export async function PATCH(
       expiresAfter,
       isPublished,
       status,
+      // New flags for controlling behavior
+      updateSlug, // If true and title changes, regenerate slug
+      notifyAttendees, // If true and dates change, send notifications
+      organizerMessage, // Custom message to include in reschedule notifications
     } = body
 
     // Build update data only from allowed fields that are present
     const updateData: Record<string, unknown> = {}
-    if (title !== undefined) updateData.title = title
+    const changeLogs: Array<{ field: string; oldValue: string; newValue: string }> = []
+    
+    // Track if we need to handle slug redirect or date notifications
+    let needsSlugRedirect = false
+    let needsDateNotification = false
+    const oldSlug = existingEvent.slug
+
+    // Handle title change and slug update
+    if (title !== undefined && title !== existingEvent.title) {
+      updateData.title = title
+      changeLogs.push({
+        field: "title",
+        oldValue: existingEvent.title,
+        newValue: title,
+      })
+
+      // If updateSlug flag is set or customSlug is provided, update the slug
+      if (updateSlug || customSlug) {
+        const newSlug = customSlug || await generateUniqueSlug(title, profile.id, existingEvent.slug)
+        if (newSlug !== existingEvent.slug) {
+          updateData.slug = newSlug
+          needsSlugRedirect = true
+          changeLogs.push({
+            field: "slug",
+            oldValue: existingEvent.slug,
+            newValue: newSlug,
+          })
+        }
+      }
+    }
+
+    // Handle manual slug change (without title change)
+    if (customSlug !== undefined && customSlug !== existingEvent.slug && title === undefined) {
+      // Validate slug uniqueness
+      const slugExists = await prisma.event.findFirst({
+        where: { 
+          organizerId: profile.id, 
+          slug: customSlug,
+          id: { not: eventId },
+        },
+      })
+      if (slugExists) {
+        return NextResponse.json(
+          { message: "This URL slug is already in use" },
+          { status: 400 }
+        )
+      }
+      updateData.slug = customSlug
+      needsSlugRedirect = true
+      changeLogs.push({
+        field: "slug",
+        oldValue: existingEvent.slug,
+        newValue: customSlug,
+      })
+    }
+
+    // Handle date changes
+    if (startsAt !== undefined) {
+      const newStartsAt = startsAt ? new Date(startsAt) : null
+      if (newStartsAt && newStartsAt.getTime() !== existingEvent.startsAt.getTime()) {
+        updateData.startsAt = newStartsAt
+        changeLogs.push({
+          field: "startsAt",
+          oldValue: existingEvent.startsAt.toISOString(),
+          newValue: newStartsAt.toISOString(),
+        })
+        
+        // Set previous date and rescheduled timestamp if event has attendees
+        const hasAttendees = existingEvent._count.tickets > 0 || existingEvent._count.rsvps > 0
+        if (hasAttendees && existingEvent.isPublished) {
+          updateData.previousStartsAt = existingEvent.previousStartsAt || existingEvent.startsAt
+          updateData.rescheduledAt = new Date()
+          needsDateNotification = notifyAttendees !== false // Default to true
+        }
+      }
+    }
+    
+    if (endsAt !== undefined) {
+      const newEndsAt = endsAt ? new Date(endsAt) : null
+      const oldEndsAt = existingEvent.endsAt
+      const endsAtChanged = (newEndsAt?.getTime() ?? null) !== (oldEndsAt?.getTime() ?? null)
+      
+      if (endsAtChanged) {
+        updateData.endsAt = newEndsAt
+        changeLogs.push({
+          field: "endsAt",
+          oldValue: oldEndsAt?.toISOString() || "",
+          newValue: newEndsAt?.toISOString() || "",
+        })
+        
+        // Track previous end date
+        const hasAttendees = existingEvent._count.tickets > 0 || existingEvent._count.rsvps > 0
+        if (hasAttendees && existingEvent.isPublished) {
+          updateData.previousEndsAt = existingEvent.previousEndsAt || existingEvent.endsAt
+          if (!updateData.rescheduledAt) {
+            updateData.rescheduledAt = new Date()
+          }
+          needsDateNotification = notifyAttendees !== false
+        }
+      }
+    }
+
+    // Other fields
     if (description !== undefined) updateData.description = description
-    if (startsAt !== undefined) updateData.startsAt = startsAt ? new Date(startsAt) : null
-    if (endsAt !== undefined) updateData.endsAt = endsAt ? new Date(endsAt) : null
     if (timezone !== undefined) updateData.timezone = timezone
     if (venueName !== undefined) updateData.venueName = venueName
     if (venueAddress !== undefined) updateData.venueAddress = venueAddress
@@ -305,12 +459,60 @@ export async function PATCH(
     if (isPublished !== undefined) updateData.isPublished = isPublished
     if (status !== undefined) updateData.status = status
 
-    const event = await prisma.event.update({
-      where: { id: eventId },
-      data: updateData,
+    // Execute update in a transaction with slug redirect and change logs
+    const result = await prisma.$transaction(async (tx) => {
+      // Create slug redirect if needed
+      if (needsSlugRedirect) {
+        await tx.eventSlugRedirect.upsert({
+          where: {
+            eventId_oldSlug: {
+              eventId,
+              oldSlug,
+            },
+          },
+          create: {
+            eventId,
+            oldSlug,
+          },
+          update: {}, // No update needed, just ensure it exists
+        })
+      }
+
+      // Create change logs
+      if (changeLogs.length > 0) {
+        await tx.eventChangeLog.createMany({
+          data: changeLogs.map((log) => ({
+            eventId,
+            field: log.field,
+            oldValue: log.oldValue,
+            newValue: log.newValue,
+            changedBy: userId,
+          })),
+        })
+      }
+
+      // Update the event
+      const updatedEvent = await tx.event.update({
+        where: { id: eventId },
+        data: updateData,
+      })
+
+      return updatedEvent
     })
 
-    return NextResponse.json(event)
+    // Send reschedule notifications asynchronously (don't block response)
+    if (needsDateNotification) {
+      // Fire and forget - send notifications in background
+      sendRescheduleNotifications(eventId, existingEvent, result, organizerMessage).catch((err) => {
+        console.error("Failed to send reschedule notifications:", err)
+      })
+    }
+
+    return NextResponse.json({
+      ...result,
+      slugChanged: needsSlugRedirect,
+      notificationsSent: needsDateNotification,
+    })
   } catch (error) {
     console.error("Error patching event:", error)
     return NextResponse.json(
@@ -318,6 +520,90 @@ export async function PATCH(
       { status: 500 }
     )
   }
+}
+
+// Helper function to send reschedule notifications
+async function sendRescheduleNotifications(
+  eventId: string,
+  oldEvent: {
+    title: string
+    startsAt: Date
+    endsAt: Date | null
+    timezone: string
+    venueName: string
+    venueAddress: string
+    slug: string
+  },
+  newEvent: {
+    title: string
+    startsAt: Date
+    endsAt: Date | null
+    slug: string
+  },
+  organizerMessage?: string
+) {
+  // Get all attendees (ticket holders + RSVPs)
+  const [tickets, rsvps] = await Promise.all([
+    prisma.ticket.findMany({
+      where: { 
+        eventId,
+        status: { in: ["VALID", "CHECKED_IN"] },
+      },
+      include: {
+        order: {
+          select: { email: true },
+        },
+      },
+    }),
+    prisma.rsvp.findMany({
+      where: { 
+        eventId,
+        status: { in: ["CONFIRMED", "CHECKED_IN"] },
+      },
+      select: { email: true },
+    }),
+  ])
+
+  // Collect unique emails
+  const emailSet = new Set<string>()
+  tickets.forEach((t) => emailSet.add(t.order.email))
+  rsvps.forEach((r) => emailSet.add(r.email))
+
+  const emails = Array.from(emailSet)
+  if (emails.length === 0) return
+
+  const eventUrl = `https://afters.am/e/${newEvent.slug}`
+  const oldDate = formatDateForEmail(oldEvent.startsAt, oldEvent.timezone)
+  const newDate = formatDateForEmail(newEvent.startsAt, oldEvent.timezone)
+
+  const html = generateEventRescheduledEmailHtml({
+    eventTitle: newEvent.title,
+    oldDate,
+    newDate,
+    venueName: oldEvent.venueName,
+    venueAddress: oldEvent.venueAddress,
+    eventUrl,
+    organizerMessage,
+  })
+
+  // Send emails in batches (Resend has rate limits)
+  const batchSize = 50
+  for (let i = 0; i < emails.length; i += batchSize) {
+    const batch = emails.slice(i, i + batchSize)
+    await Promise.all(
+      batch.map((email) =>
+        sendEmail({
+          to: email,
+          subject: `📅 ${newEvent.title} has been rescheduled`,
+          html,
+        }).catch((err) => {
+          console.error(`Failed to send reschedule email to ${email}:`, err)
+        })
+      )
+    )
+  }
+
+  console.log(`Sent reschedule notifications to ${emails.length} attendees for event ${eventId}`)
 }
 
 export async function DELETE(
