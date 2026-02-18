@@ -414,6 +414,11 @@ model Event {
   // Event expiration settings
   expiresAfter         String           @default("6h") // 'on_end', '6h', '12h', '24h', '48h', '1w', 'never'
 
+  // Reschedule tracking fields
+  previousStartsAt     DateTime?        // Previous start date (set when rescheduled)
+  previousEndsAt       DateTime?        // Previous end date (set when rescheduled)
+  rescheduledAt        DateTime?        // When the event was last rescheduled
+
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   organizer            OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
@@ -426,12 +431,41 @@ model Event {
   scanLogs             ScanLog[]
   guestlistEntries     GuestlistEntry[]
   rsvps                Rsvp[]
+  slugRedirects        EventSlugRedirect[]
+  changeLogs           EventChangeLog[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
   @@index([isFlagged])
   @@index([status, isPublished])
   @@index([seriesId])
+}
+
+// Slug redirect for old event URLs (when title is renamed)
+model EventSlugRedirect {
+  id        String   @id @default(cuid())
+  eventId   String
+  oldSlug   String
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, oldSlug])
+  @@index([oldSlug])
+}
+
+// Audit log for event changes (title, dates)
+model EventChangeLog {
+  id        String   @id @default(cuid())
+  eventId   String
+  field     String   // "title", "startsAt", "endsAt", "slug"
+  oldValue  String
+  newValue  String
+  changedBy String   // User ID who made the change
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([createdAt])
 }
 
 model TicketTier {
