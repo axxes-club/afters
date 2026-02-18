@@ -21,7 +21,7 @@ export default async function AccountPage() {
       organizerProfile: {
         include: {
           _count: {
-            select: { events: true, followers: true }
+            select: { events: true }
           }
         }
       },
@@ -69,15 +69,9 @@ export default async function AccountPage() {
                 <h2 className="text-xl font-semibold">{user.organizerProfile.displayName}</h2>
                 <p className="text-sm text-muted-foreground">@{user.organizerProfile.slug}</p>
               </div>
-              <div className="flex items-center gap-6 text-center">
-                <div>
-                  <p className="text-2xl font-bold">{user.organizerProfile._count.events}</p>
-                  <p className="text-sm text-muted-foreground">Events</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{user.organizerProfile._count.followers}</p>
-                  <p className="text-sm text-muted-foreground">Followers</p>
-                </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">{user.organizerProfile._count.events}</p>
+                <p className="text-sm text-muted-foreground">Events</p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t flex gap-2">

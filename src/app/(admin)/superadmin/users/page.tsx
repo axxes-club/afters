@@ -41,7 +41,7 @@ export default async function UserManagement({
         artistProfile: true,
         personalProfile: true,
         _count: {
-          select: { orders: true, tickets: true, follows: true, savedEvents: true }
+          select: { orders: true, tickets: true, savedEvents: true }
         }
       },
       orderBy: { createdAt: "desc" },
@@ -56,7 +56,7 @@ export default async function UserManagement({
         artistProfile: true,
         personalProfile: true,
         _count: {
-          select: { orders: true, tickets: true, follows: true, savedEvents: true }
+          select: { orders: true, tickets: true, savedEvents: true }
         }
       },
       orderBy: { flaggedAt: "desc" },
@@ -321,7 +321,6 @@ export default async function UserManagement({
                         <div className="flex flex-col gap-0.5 text-xs">
                           <span>Orders: {user._count.orders}</span>
                           <span>Tickets: {user._count.tickets}</span>
-                          <span>Follows: {user._count.follows}</span>
                           <span>Saved: {user._count.savedEvents}</span>
                         </div>
                       </td>

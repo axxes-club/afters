@@ -224,21 +224,8 @@ export async function GET() {
             _count: { select: { tickets: true, orders: true } },
           },
         },
-        followers: {
-          take: 10,
-          include: {
-            follower: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                imageUrl: true,
-              },
-            },
-          },
-        },
         _count: {
-          select: { events: true, followers: true },
+          select: { events: true },
         },
       },
     });

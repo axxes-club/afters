@@ -31,7 +31,6 @@ model User {
   flagReason       String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  follows          Follow[]
   orders           Order[]
   organizerProfile OrganizerProfile?
   artistProfile    ArtistProfile?
@@ -247,7 +246,6 @@ model OrganizerProfile {
   websiteUrl               String?
   youtubeUrl               String?
   events                   Event[]
-  followers                Follow[]
   user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscription             Subscription?
   staffMembers             StaffMember[]
@@ -511,19 +509,6 @@ model EventView {
 
   @@index([eventId, createdAt])
   @@index([eventId])
-}
-
-model Follow {
-  id          String           @id @default(cuid())
-  followerId  String
-  followingId String
-  createdAt   DateTime         @default(now())
-  follower    User             @relation(fields: [followerId], references: [id], onDelete: Cascade)
-  following   OrganizerProfile @relation(fields: [followingId], references: [id], onDelete: Cascade)
-
-  @@unique([followerId, followingId])
-  @@index([followerId])
-  @@index([followingId])
 }
 
 model SavedEvent {

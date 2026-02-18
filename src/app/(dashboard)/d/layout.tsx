@@ -15,6 +15,7 @@ import {
   Sparkles,
   Bell,
   ArrowLeft,
+  Info,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import {
@@ -26,7 +27,7 @@ import {
   AftieConsentDialog,
 } from "@/components/aftie";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { APP_VERSION } from "@/lib/constants";
+import { APP_VERSION_DISPLAY } from "@/lib/constants";
 
 const baseNavItems = [
   { href: "/d", label: "BASE", icon: LayoutDashboard, exact: true },
@@ -40,6 +41,7 @@ const settingsNavItems = [
   { href: "/d/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false },
   { href: "/d/settings/notifications", label: "NOTIFICATIONS", icon: Bell, exact: false },
   { href: "/d/settings/security", label: "SECURITY", icon: Shield, exact: false },
+  { href: "/d/settings/system", label: "SYSTEM", icon: Info, exact: false },
 ];
 
 const scannerNavItem = {
@@ -177,7 +179,7 @@ export default function DashboardLayout({
               <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                 <span>ONLINE</span>
-                <span className="text-white/20">(v{APP_VERSION})</span>
+                <span className="text-white/20">(v{APP_VERSION_DISPLAY})</span>
               </div>
               <FeedbackButton />
             </div>

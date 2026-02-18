@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getEffectiveUserId } from "@/lib/auth-utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Calendar, Users, ExternalLink, Pencil, Shield } from "lucide-react"
+import { Calendar, Pencil, Shield } from "lucide-react"
 import Link from "next/link"
 
 export default async function SettingsProfilePage() {
@@ -19,7 +19,7 @@ export default async function SettingsProfilePage() {
       organizerProfile: {
         include: {
           _count: {
-            select: { events: true, followers: true }
+            select: { events: true }
           }
         }
       },
@@ -103,31 +103,14 @@ export default async function SettingsProfilePage() {
                 <h3 className="text-lg font-mono font-bold truncate">{user.organizerProfile.displayName}</h3>
                 <p className="text-sm text-white/40 font-mono">@{user.organizerProfile.slug}</p>
               </div>
-              <Link
-                href={`/o/${user.organizerProfile.slug}`}
-                target="_blank"
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 text-xs font-mono text-white/60 hover:border-white/20 hover:text-white transition-all"
-              >
-                <ExternalLink className="w-3 h-3" />
-                VIEW
-              </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border border-white/10 p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Calendar className="w-4 h-4 text-white/30" />
-                  <span className="text-[10px] font-mono text-white/30 tracking-widest">EVENTS</span>
-                </div>
-                <p className="text-2xl font-mono font-bold">{user.organizerProfile._count.events}</p>
+            <div className="border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <Calendar className="w-4 h-4 text-white/30" />
+                <span className="text-[10px] font-mono text-white/30 tracking-widest">EVENTS</span>
               </div>
-              <div className="border border-white/10 p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Users className="w-4 h-4 text-white/30" />
-                  <span className="text-[10px] font-mono text-white/30 tracking-widest">FOLLOWERS</span>
-                </div>
-                <p className="text-2xl font-mono font-bold">{user.organizerProfile._count.followers}</p>
-              </div>
+              <p className="text-2xl font-mono font-bold">{user.organizerProfile._count.events}</p>
             </div>
           </div>
         </div>

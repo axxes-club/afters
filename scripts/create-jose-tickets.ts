@@ -141,42 +141,14 @@ async function main() {
     }
   }
 
-  // Follow some organizers
-  console.log('\n👥 Following organizers for Jose...');
-  
-  const organizers = await prisma.organizerProfile.findMany({ take: 3 });
-  
-  for (const org of organizers) {
-    const existing = await prisma.follow.findUnique({
-      where: {
-        followerId_followingId: {
-          followerId: JOSE_USER_ID,
-          followingId: org.id
-        }
-      }
-    });
-
-    if (!existing) {
-      await prisma.follow.create({
-        data: {
-          followerId: JOSE_USER_ID,
-          followingId: org.id,
-        }
-      });
-      console.log(`   ➕ Following: ${org.displayName}`);
-    }
-  }
-
   // Final count
   const ticketCount = await prisma.ticket.count({ where: { userId: JOSE_USER_ID } });
   const savedCount = await prisma.savedEvent.count({ where: { userId: JOSE_USER_ID } });
-  const followCount = await prisma.follow.count({ where: { followerId: JOSE_USER_ID } });
 
   console.log('\n' + '='.repeat(50));
   console.log('🎊 Jose Account Setup Complete!');
   console.log(`🎟️ Total tickets: ${ticketCount}`);
   console.log(`💾 Saved events: ${savedCount}`);
-  console.log(`👥 Following: ${followCount}`);
   console.log('='.repeat(50));
 }
 

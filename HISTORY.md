@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3 (2026-02-18)
+
+- Add E2E testing infrastructure with Playwright
+- Add System settings page with build info and changelog
+- Remove Resources section from System settings
+- Remove follower functionality and simplify profiles
+
 ## 0.2.2-beta (2026-02-18)
 
 - Add superadmin feedback management system with status updates

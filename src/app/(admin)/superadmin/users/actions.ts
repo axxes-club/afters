@@ -174,7 +174,6 @@ export async function getUserDetails(userId: string) {
           select: {
             orders: true,
             tickets: true,
-            follows: true,
             savedEvents: true,
           }
         }
