@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { NextRequest } from "next/server"
 
 // Hoist mocks to avoid initialization errors
 const { mockPrisma, mockGetScannerSession, mockCookies } = vi.hoisted(() => {
@@ -86,7 +87,7 @@ describe("Scanner Check-in API", () => {
       })
       mockPrisma.scanLog.create.mockResolvedValue({})
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -106,7 +107,7 @@ describe("Scanner Check-in API", () => {
     it("should return 401 if scanner session expired", async () => {
       mockGetScannerSession.mockResolvedValue(null)
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -127,7 +128,7 @@ describe("Scanner Check-in API", () => {
         isActive: false,
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -148,7 +149,7 @@ describe("Scanner Check-in API", () => {
         isActive: true,
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
@@ -170,7 +171,7 @@ describe("Scanner Check-in API", () => {
       })
       mockPrisma.ticket.findUnique.mockResolvedValue(null)
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "nonexistent" }),
@@ -195,7 +196,7 @@ describe("Scanner Check-in API", () => {
         eventId: "different-event",
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -221,7 +222,7 @@ describe("Scanner Check-in API", () => {
         checkedInAt: new Date("2025-01-15T20:00:00Z"),
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -247,7 +248,7 @@ describe("Scanner Check-in API", () => {
         status: "CANCELLED",
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -272,7 +273,7 @@ describe("Scanner Check-in API", () => {
         status: "REFUNDED",
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -293,7 +294,7 @@ describe("Scanner Check-in API", () => {
         isActive: true,
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "demo-123456" }),
@@ -326,7 +327,7 @@ describe("Scanner Check-in API", () => {
         checkedInAt: new Date(),
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -353,7 +354,7 @@ describe("Scanner Check-in API", () => {
         checkedInAt: new Date(),
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -382,7 +383,7 @@ describe("Scanner Check-in API", () => {
       })
       mockPrisma.scanLog.create.mockResolvedValue({})
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),
@@ -420,7 +421,7 @@ describe("Scanner Check-in API", () => {
         checkedInAt: new Date(),
       })
 
-      const request = new Request("http://localhost:3000/api/scan/check-in", {
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketId: "ticket-123" }),

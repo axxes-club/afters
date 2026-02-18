@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // Hoist mocks to avoid initialization errors
@@ -49,7 +50,7 @@ describe("Events API", () => {
         },
       ])
 
-      const request = new Request("http://localhost:3000/api/events")
+      const request = new NextRequest("http://localhost:3000/api/events")
 
       const response = await GET(request)
       const data = await response.json()
@@ -86,7 +87,7 @@ describe("Events API", () => {
         ticketTiers: [],
       })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/events?slug=specific-event"
       )
 
@@ -102,7 +103,7 @@ describe("Events API", () => {
       mockPrisma.event.findFirst.mockResolvedValue(null)
       mockPrisma.organizerProfile.findMany.mockResolvedValue([])
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/events?slug=nonexistent"
       )
 
@@ -116,7 +117,7 @@ describe("Events API", () => {
     it("should filter by city", async () => {
       mockPrisma.event.findMany.mockResolvedValue([])
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/events?city=Miami"
       )
 
@@ -134,7 +135,7 @@ describe("Events API", () => {
     it("should filter by organizerId", async () => {
       mockPrisma.event.findMany.mockResolvedValue([])
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/events?organizerId=org-123"
       )
 
@@ -152,7 +153,7 @@ describe("Events API", () => {
     it("should only return future events", async () => {
       mockPrisma.event.findMany.mockResolvedValue([])
 
-      const request = new Request("http://localhost:3000/api/events")
+      const request = new NextRequest("http://localhost:3000/api/events")
 
       await GET(request)
 
@@ -184,7 +185,7 @@ describe("Events API", () => {
         ticketTiers: [],
       })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/events?slug=test-org-party"
       )
 
@@ -220,7 +221,7 @@ describe("Events API", () => {
         organizerId: "org-123",
       })
 
-      const request = new Request("http://localhost:3000/api/events", {
+      const request = new NextRequest("http://localhost:3000/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validEventData),
@@ -236,7 +237,7 @@ describe("Events API", () => {
     it("should return 401 for unauthenticated users", async () => {
       mockAuth.mockResolvedValue({ userId: null })
 
-      const request = new Request("http://localhost:3000/api/events", {
+      const request = new NextRequest("http://localhost:3000/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validEventData),
@@ -253,7 +254,7 @@ describe("Events API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
       mockPrisma.organizerProfile.findUnique.mockResolvedValue(null)
 
-      const request = new Request("http://localhost:3000/api/events", {
+      const request = new NextRequest("http://localhost:3000/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validEventData),
@@ -273,7 +274,7 @@ describe("Events API", () => {
         userId: "user-123",
       })
 
-      const request = new Request("http://localhost:3000/api/events", {
+      const request = new NextRequest("http://localhost:3000/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Incomplete" }),
@@ -302,7 +303,7 @@ describe("Events API", () => {
         organizerId: "org-123",
       })
 
-      const request = new Request("http://localhost:3000/api/events", {
+      const request = new NextRequest("http://localhost:3000/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validEventData),
@@ -329,7 +330,7 @@ describe("Events API", () => {
         })
       })
 
-      const request = new Request("http://localhost:3000/api/events", {
+      const request = new NextRequest("http://localhost:3000/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -364,7 +365,7 @@ describe("Events API", () => {
         })
       })
 
-      const request = new Request("http://localhost:3000/api/events", {
+      const request = new NextRequest("http://localhost:3000/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

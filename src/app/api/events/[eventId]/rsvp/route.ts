@@ -4,7 +4,14 @@ import { Resend } from "resend"
 import { verifyTurnstileToken } from "@/components/Turnstile"
 import { escapeHtml, safeColor } from "@/lib/security"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization to avoid build-time errors when RESEND_API_KEY is not set
+let resend: Resend | null = null
+function getResendClient(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY || '')
+  }
+  return resend
+}
 
 export async function POST(
   req: NextRequest,
@@ -159,7 +166,7 @@ export async function POST(
     // Validate accent color - only allow valid hex colors
     const accentColor = safeColor(event.accentColor) || '#ff1493'
 
-    resend.emails.send({
+    getResendClient().emails.send({
       from: "Afters <noreply@afters.am>",
       to: email,
       subject: `RSVP Confirmed: ${safeTitle}`,

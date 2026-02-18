@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { NextRequest } from "next/server"
 
 // Hoist mocks to avoid initialization errors
 const { mockAuth, mockPrisma, mockValidateApiKey, mockCheckApiRateLimit } =
@@ -72,7 +73,7 @@ describe("Public API v1 Events", () => {
       ])
       mockPrisma.event.count.mockResolvedValue(1)
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         headers: { "X-API-Key": "aftr_test123456789012345678901234" },
       })
 
@@ -92,7 +93,7 @@ describe("Public API v1 Events", () => {
         error: "Invalid API key format",
       })
 
-      const request = new Request("http://localhost:3000/api/v1/events")
+      const request = new NextRequest("http://localhost:3000/api/v1/events")
 
       const response = await GET(request)
       const data = await response.json()
@@ -114,7 +115,7 @@ describe("Public API v1 Events", () => {
         resetAt: Date.now() + 60000,
       })
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         headers: { "X-API-Key": "aftr_test123456789012345678901234" },
       })
 
@@ -138,7 +139,7 @@ describe("Public API v1 Events", () => {
         resetAt: Date.now() + 60000,
       })
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         headers: { "X-API-Key": "aftr_test123456789012345678901234" },
       })
 
@@ -163,7 +164,7 @@ describe("Public API v1 Events", () => {
       })
       mockPrisma.organizerProfile.findUnique.mockResolvedValue(null)
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         headers: { "X-API-Key": "aftr_test123456789012345678901234" },
       })
 
@@ -193,7 +194,7 @@ describe("Public API v1 Events", () => {
       mockPrisma.event.findMany.mockResolvedValue([])
       mockPrisma.event.count.mockResolvedValue(0)
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/v1/events?status=published",
         {
           headers: { "X-API-Key": "aftr_test123456789012345678901234" },
@@ -230,7 +231,7 @@ describe("Public API v1 Events", () => {
       mockPrisma.event.findMany.mockResolvedValue([])
       mockPrisma.event.count.mockResolvedValue(50)
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/v1/events?limit=10&offset=20",
         {
           headers: { "X-API-Key": "aftr_test123456789012345678901234" },
@@ -260,7 +261,7 @@ describe("Public API v1 Events", () => {
       mockPrisma.event.count.mockResolvedValue(0)
 
       // No API key provided, but session auth should work
-      const request = new Request("http://localhost:3000/api/v1/events")
+      const request = new NextRequest("http://localhost:3000/api/v1/events")
 
       const response = await GET(request)
       const data = await response.json()
@@ -305,7 +306,7 @@ describe("Public API v1 Events", () => {
         createdAt: new Date(),
       })
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         method: "POST",
         headers: {
           "X-API-Key": "aftr_test123456789012345678901234",
@@ -339,7 +340,7 @@ describe("Public API v1 Events", () => {
         userId: "user-123",
       })
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         method: "POST",
         headers: {
           "X-API-Key": "aftr_test123456789012345678901234",
@@ -371,7 +372,7 @@ describe("Public API v1 Events", () => {
         resetAt: Date.now() + 60000,
       })
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         method: "POST",
         headers: {
           "X-API-Key": "aftr_test123456789012345678901234",
@@ -416,7 +417,7 @@ describe("Public API v1 Events", () => {
         createdAt: new Date(),
       })
 
-      const request = new Request("http://localhost:3000/api/v1/events", {
+      const request = new NextRequest("http://localhost:3000/api/v1/events", {
         method: "POST",
         headers: {
           "X-API-Key": "aftr_test123456789012345678901234",

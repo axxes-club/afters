@@ -88,6 +88,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@axe-core/react": "^4.11.1",
     "@clerk/testing": "^1.13.37",
     "@neondatabase/api-client": "^2.6.0",

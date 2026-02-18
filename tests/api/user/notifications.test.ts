@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // Hoist mocks to avoid initialization errors
@@ -126,7 +127,7 @@ describe("User Notifications API", () => {
       })
       mockPrisma.pushSubscription.count.mockResolvedValue(0)
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications",
         {
           method: "PUT",
@@ -149,7 +150,7 @@ describe("User Notifications API", () => {
     it("should return 401 if user is not authenticated", async () => {
       mockAuth.mockResolvedValue({ userId: null })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications",
         {
           method: "PUT",
@@ -170,7 +171,7 @@ describe("User Notifications API", () => {
     it("should return 400 for invalid boolean value", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications",
         {
           method: "PUT",
@@ -192,7 +193,7 @@ describe("User Notifications API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" })
       mockPrisma.notificationPreference.upsert.mockRejectedValue(new Error("DB error"))
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications",
         {
           method: "PUT",
@@ -226,7 +227,7 @@ describe("User Notifications API", () => {
       })
       mockPrisma.pushSubscription.count.mockResolvedValue(1)
 
-      const request = new Request(
+      const request = new NextRequest(
         "http://localhost:3000/api/user/notifications",
         {
           method: "PUT",
