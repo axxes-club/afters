@@ -176,6 +176,16 @@ export default function ApiKeysPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
+          API KEYS
+        </h1>
+        <p className="text-white/40 text-sm font-mono mt-1">
+          Manage API keys for programmatic access
+        </p>
+      </div>
+
       {/* Aftie API Key - Special Section */}
       {aftieKey && (
         <Card className="border-[#ff1493]/20 bg-[#ff1493]/5">

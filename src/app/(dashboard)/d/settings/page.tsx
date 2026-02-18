@@ -34,6 +34,16 @@ export default async function SettingsProfilePage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
+          PROFILE
+        </h1>
+        <p className="text-white/40 text-sm font-mono mt-1">
+          Manage your account information
+        </p>
+      </div>
+
       {/* Account Info */}
       <Card className="border-white/10 bg-white/[0.02]">
         <CardHeader>

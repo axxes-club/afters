@@ -137,6 +137,16 @@ export default function AftieSettingsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
+          AFTIE AI
+        </h1>
+        <p className="text-white/40 text-sm font-mono mt-1">
+          Manage your AI assistant
+        </p>
+      </div>
+
       {/* Aftie Status Card */}
       <Card className={`border-2 ${status?.isSetup ? "border-[#ff1493]/30 bg-[#ff1493]/5" : "border-white/10 bg-white/[0.02]"}`}>
         <CardHeader>

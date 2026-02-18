@@ -10,6 +10,12 @@ import {
   ChevronLeft,
   Shield,
   Settings,
+  User,
+  Key,
+  Sparkles,
+  CreditCard,
+  Bell,
+  ArrowLeft,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import {
@@ -27,6 +33,15 @@ const baseNavItems = [
   { href: "/d", label: "CONTROL", icon: LayoutDashboard, exact: true },
   { href: "/d/events", label: "EVENTS", icon: Calendar, exact: false },
   { href: "/d/settings", label: "SETTINGS", icon: Settings, exact: false },
+];
+
+const settingsNavItems = [
+  { href: "/d/settings", label: "PROFILE", icon: User, exact: true },
+  { href: "/d/settings/api-keys", label: "API KEYS", icon: Key, exact: false },
+  { href: "/d/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false },
+  { href: "/d/settings/billing", label: "BILLING", icon: CreditCard, exact: false },
+  { href: "/d/settings/notifications", label: "NOTIFICATIONS", icon: Bell, exact: false },
+  { href: "/d/settings/security", label: "SECURITY", icon: Shield, exact: false },
 ];
 
 const scannerNavItem = {
@@ -67,12 +82,18 @@ export default function DashboardLayout({
       .catch(() => setIsSuperAdmin(false));
   }, []);
 
-  // Build nav items based on user permissions
-  const navItems = [
+  // Check if we're in settings section
+  const isInSettings = pathname.startsWith("/d/settings");
+
+  // Build nav items based on context and permissions
+  const mainNavItems = [
     ...baseNavItems,
     ...(hasEvents ? [scannerNavItem] : []),
     ...(isSuperAdmin ? [superadminNavItem] : []),
   ];
+
+  // Use settings nav when in settings, otherwise main nav
+  const navItems = isInSettings ? settingsNavItems : mainNavItems;
 
   return (
     <AftieProvider>
@@ -92,6 +113,24 @@ export default function DashboardLayout({
 
           {/* Navigation */}
           <nav className="flex-1 py-4 px-2 space-y-1">
+            {/* Back button when in settings */}
+            {isInSettings && (
+              <Link
+                href="/d"
+                className="flex items-center gap-3 px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3"
+              >
+                <ArrowLeft className="w-4 h-4 flex-shrink-0" />
+                <span>DASHBOARD</span>
+              </Link>
+            )}
+            
+            {/* Section label when in settings */}
+            {isInSettings && (
+              <div className="px-3 py-2 text-[10px] font-mono text-white/30 tracking-widest">
+                SETTINGS
+              </div>
+            )}
+
             {navItems.map((item) => {
               const isActive = item.exact
                 ? pathname === item.href
@@ -171,7 +210,17 @@ export default function DashboardLayout({
         {/* Mobile Bottom Toolbar */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/10 safe-area-bottom">
           <div className="flex items-center justify-around h-16 px-2">
-            {navItems.map((item) => {
+            {/* Show back button on mobile when in settings */}
+            {isInSettings && (
+              <Link
+                href="/d"
+                className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all text-white/40"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="text-[10px] font-mono tracking-wider">BACK</span>
+              </Link>
+            )}
+            {navItems.slice(0, isInSettings ? 4 : undefined).map((item) => {
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname.startsWith(item.href);
@@ -203,8 +252,16 @@ export default function DashboardLayout({
             {pathname !== "/d" && (
               <Link
                 href={
-                  pathname.startsWith("/d/events/") && pathname !== "/d/events"
+                  // Settings subpage -> settings root
+                  isInSettings && pathname !== "/d/settings"
+                    ? "/d/settings"
+                    // Settings root -> dashboard
+                    : isInSettings
+                    ? "/d"
+                    // Events subpage -> events list
+                    : pathname.startsWith("/d/events/") && pathname !== "/d/events"
                     ? "/d/events"
+                    // Default -> dashboard
                     : "/d"
                 }
                 className="flex items-center justify-center w-8 h-8 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
@@ -212,9 +269,12 @@ export default function DashboardLayout({
                 <ChevronLeft className="w-5 h-5" />
               </Link>
             )}
-            {/* Left-aligned logo */}
-            <Link href="/d">
+            {/* Left-aligned logo + settings indicator */}
+            <Link href="/d" className="flex items-center gap-2">
               <span className="font-headline text-2xl text-[#ff1493]">.</span>
+              {isInSettings && (
+                <span className="text-xs font-mono text-white/40">/ SETTINGS</span>
+              )}
             </Link>
           </header>
 

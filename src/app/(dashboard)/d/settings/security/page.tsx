@@ -8,6 +8,16 @@ import { Shield, Key, Smartphone, Clock, ExternalLink } from "lucide-react"
 export default function SecurityPage() {
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
+          SECURITY
+        </h1>
+        <p className="text-white/40 text-sm font-mono mt-1">
+          Manage your account security
+        </p>
+      </div>
+
       {/* Authentication */}
       <Card className="border-white/10 bg-white/[0.02]">
         <CardHeader>
