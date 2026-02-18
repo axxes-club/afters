@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.14 (2026-02-18)
+
+- Add ticket/RSVP status indicators to events dashboard (Issue #37, PR #38)
+- New "MY TICKETS & RSVPs" section showing events user is attending
+- Display ticket tier name, RSVP status, plus-ones count
+- Show check-in status and valid/pending/cancelled states
+- Color-coded badges: pink for tickets, cyan for RSVPs
+
 ## 0.2.12 (2026-02-18)
 
 - Add recurring events support (Issue #31, PR #34)
