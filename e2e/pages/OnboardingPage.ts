@@ -83,7 +83,7 @@ export class OnboardingPage extends BasePage {
     await this.submitProfile();
 
     // Should redirect to dashboard
-    await expect(this.page).toHaveURL(/\/d/, { timeout: 15000 });
+    await expect(this.page).toHaveURL(/\/b/, { timeout: 15000 });
   }
 
   /**

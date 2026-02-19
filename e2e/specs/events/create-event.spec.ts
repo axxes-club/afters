@@ -23,7 +23,7 @@ test.describe('Event Creation', () => {
 
     // Verify we're on the event edit page
     expect(eventId).toBeTruthy();
-    await expect(page).toHaveURL(new RegExp(`/d/events/${eventId}`));
+    await expect(page).toHaveURL(new RegExp(`/b/events/${eventId}`));
 
     // Verify event title is shown somewhere on the page
     await expect(page.getByText(testEvent.title)).toBeVisible({ timeout: 10000 });
@@ -48,7 +48,7 @@ test.describe('Event Creation', () => {
     });
 
     expect(eventId).toBeTruthy();
-    await expect(page).toHaveURL(new RegExp(`/d/events/${eventId}`));
+    await expect(page).toHaveURL(new RegExp(`/b/events/${eventId}`));
   });
 
   test('should create an RSVP event with plus ones enabled', async ({
@@ -69,7 +69,7 @@ test.describe('Event Creation', () => {
     });
 
     expect(eventId).toBeTruthy();
-    await expect(page).toHaveURL(new RegExp(`/d/events/${eventId}`));
+    await expect(page).toHaveURL(new RegExp(`/b/events/${eventId}`));
   });
 
   test('should show create event form with all sections', async ({

@@ -16,11 +16,16 @@ export function LanguageSwitcher() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Get current locale from cookie
-    fetch('/api/locale')
-      .then(res => res.json())
-      .then(data => setCurrentLocale(data.locale as Locale))
-      .catch(() => {})
+    const controller = new AbortController()
+    const loadLocale = async () => {
+      try {
+        const res = await fetch('/api/locale', { signal: controller.signal })
+        const data = await res.json()
+        setCurrentLocale(data.locale as Locale)
+      } catch {}
+    }
+    loadLocale()
+    return () => controller.abort()
   }, [])
 
   const changeLocale = async (locale: Locale) => {

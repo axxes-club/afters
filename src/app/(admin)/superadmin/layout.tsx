@@ -1,6 +1,6 @@
 import { Header } from "@/components/layout/header"
 import { SuperadminSidebar } from "@/components/layout/superadmin-sidebar"
-import { requireSuperAdmin } from "@/lib/auth-utils"
+import { isSuperAdmin } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
 
 export default async function SuperadminLayout({
@@ -8,9 +8,8 @@ export default async function SuperadminLayout({
 }: {
   children: React.ReactNode
 }) {
-  try {
-    await requireSuperAdmin()
-  } catch {
+  const isAdmin = await isSuperAdmin()
+  if (!isAdmin) {
     redirect("/b")
   }
 

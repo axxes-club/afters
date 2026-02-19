@@ -64,22 +64,28 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
   const [timeRange, setTimeRange] = useState("30")
 
   useEffect(() => {
+    const controller = new AbortController()
     async function fetchAnalytics() {
       setLoading(true)
       try {
-        const res = await fetch(`/api/events/${eventId}/analytics?days=${timeRange}`)
+        const res = await fetch(`/api/events/${eventId}/analytics?days=${timeRange}`, { signal: controller.signal })
         if (res.ok) {
           const analytics = await res.json()
           setData(analytics)
         }
       } catch (error) {
-        console.error("Failed to fetch analytics:", error)
+        if (!controller.signal.aborted) {
+          console.error("Failed to fetch analytics:", error)
+        }
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchAnalytics()
+    return () => controller.abort()
   }, [eventId, timeRange])
 
   if (loading) {

@@ -86,7 +86,7 @@ export async function clearClerkSession(context: BrowserContext): Promise<void> 
  */
 export async function isAuthenticated(page: Page): Promise<boolean> {
   // Check for common authenticated UI elements
-  const dashboardLink = page.locator('a[href="/d"]');
+  const dashboardLink = page.locator('a[href="/b"]');
   const signOutButton = page.locator('button:has-text("Sign out")');
   const userButton = page.locator('[data-clerk-component="user-button"]');
 

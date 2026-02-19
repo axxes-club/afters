@@ -10,6 +10,7 @@ import { UIPreferencesProvider } from "@/components/providers";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/lib/uploadthing";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -144,9 +145,6 @@ export default async function RootLayout({
     >
       <html lang={locale}>
         <head>
-          {/* Preconnect to critical third-party origins */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link rel="preconnect" href="https://utfs.io" />
           <link rel="dns-prefetch" href="https://clerk.afters.am" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
@@ -175,7 +173,9 @@ function RedirectHandler() {
   const legacyDomains = ["afters.netlify.app", "afters.xxx"];
   
   return (
-    <script
+    <Script
+      id="legacy-redirect"
+      strategy="beforeInteractive"
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
@@ -196,5 +196,5 @@ function RedirectHandler() {
         `,
       }}
     />
-  );
+  )
 }

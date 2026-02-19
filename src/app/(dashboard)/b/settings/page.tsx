@@ -62,9 +62,11 @@ export default function SettingsProfilePage() {
   })
 
   useEffect(() => {
-    fetch("/api/user/profile")
-      .then((res) => res.json())
-      .then((data) => {
+    const controller = new AbortController()
+    const loadProfile = async () => {
+      try {
+        const res = await fetch("/api/user/profile", { signal: controller.signal })
+        const data = await res.json()
         setUser(data)
         if (data.organizerProfile) {
           setFormData({
@@ -84,11 +86,15 @@ export default function SettingsProfilePage() {
           })
         }
         setLoading(false)
-      })
-      .catch(() => {
-        toast.error("Failed to load profile")
-        setLoading(false)
-      })
+      } catch {
+        if (!controller.signal.aborted) {
+          toast.error("Failed to load profile")
+          setLoading(false)
+        }
+      }
+    }
+    loadProfile()
+    return () => controller.abort()
   }, [])
 
   const handleSave = async () => {
