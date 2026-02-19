@@ -39,10 +39,12 @@ vi.mock("resend", () => ({
 }))
 
 import { POST } from "@/app/api/events/[eventId]/rsvp/route"
+import { rsvpRateLimitMap } from "@/lib/rate-limit"
 
 describe("RSVP API", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    rsvpRateLimitMap.clear()
     mockVerifyTurnstile.mockResolvedValue(true)
     mockResend.emails.send.mockResolvedValue({ id: "email-1" })
   })
@@ -286,20 +288,7 @@ describe("RSVP API", () => {
     expect(data.message).toBe("Event is at capacity")
   })
 
-  it("should allow RSVP without Turnstile token", async () => {
-    mockPrisma.event.findUnique.mockResolvedValue(mockEvent)
-    mockPrisma.rsvp.findUnique.mockResolvedValue(null)
-    mockPrisma.$transaction.mockImplementation(async (fn: any) => {
-      return fn({
-        rsvp: {
-          create: vi.fn().mockResolvedValue({ id: "rsvp-123" }),
-        },
-        event: {
-          update: vi.fn().mockResolvedValue({}),
-        },
-      })
-    })
-
+  it("should reject RSVP without Turnstile token", async () => {
     const request = new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -311,9 +300,37 @@ describe("RSVP API", () => {
     })
 
     const response = await POST(request, { params: Promise.resolve({ eventId: "event-123" }) })
+    const data = await response.json()
 
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(400)
+    expect(data.message).toContain("Verification required")
     expect(mockVerifyTurnstile).not.toHaveBeenCalled()
+  })
+
+  it("should return 429 when rate limited", async () => {
+    // Make requests until rate limited (default: 10 per minute)
+    const makeRequest = () => {
+      return new NextRequest("http://localhost:3000/api/events/event-123/rsvp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "192.168.1.100",
+        },
+        body: JSON.stringify(validRsvpData),
+      })
+    }
+
+    // Exhaust the rate limit
+    for (let i = 0; i < 10; i++) {
+      await POST(makeRequest(), { params: Promise.resolve({ eventId: "event-123" }) })
+    }
+
+    // 11th request should be rate limited
+    const response = await POST(makeRequest(), { params: Promise.resolve({ eventId: "event-123" }) })
+    const data = await response.json()
+
+    expect(response.status).toBe(429)
+    expect(data.message).toContain("Too many requests")
   })
 
   it("should normalize email to lowercase", async () => {
