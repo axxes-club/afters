@@ -15,6 +15,7 @@ import {
   BadgeCheck,
   Settings,
   MessageSquare,
+  Key,
 } from "lucide-react";
 
 const navItems = [
@@ -63,6 +64,11 @@ const navItems = [
     title: "Roles & Perms",
     href: "/superadmin/roles",
     icon: ShieldCheck,
+  },
+  {
+    title: "OAuth Apps",
+    href: "/superadmin/oauth",
+    icon: Key,
   },
   {
     title: "System Status",

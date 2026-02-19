@@ -43,16 +43,21 @@ export async function GET(request: NextRequest) {
     })
     
     if (!app) {
-      return NextResponse.json({ error: 'Invalid client_id' }, { status: 400 })
+      console.error(`OAuth validate: Invalid client_id "${clientId}" - app not found`)
+      return NextResponse.json({ error: 'Invalid client_id. The application may not be registered.' }, { status: 400 })
     }
     
     if (!app.isActive) {
+      console.error(`OAuth validate: App "${app.name}" (${clientId}) is disabled`)
       return NextResponse.json({ error: 'This application has been disabled' }, { status: 400 })
     }
     
     // Validate redirect URI
     if (!validateRedirectUri(redirectUri, app.redirectUris)) {
-      return NextResponse.json({ error: 'Invalid redirect_uri' }, { status: 400 })
+      console.error(`OAuth validate: Invalid redirect_uri for app "${app.name}". Got: "${redirectUri}", Allowed: ${JSON.stringify(app.redirectUris)}`)
+      return NextResponse.json({ 
+        error: 'Invalid redirect_uri. The redirect URL does not match the registered callback URLs.' 
+      }, { status: 400 })
     }
     
     // Validate and filter scopes
