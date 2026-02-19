@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { Input } from "@/components/ui/input";
 import { MapPin, Clock } from "lucide-react";
 
@@ -38,8 +38,10 @@ export function VenueAutocomplete({
   const [suggestions, setSuggestions] = useState<VenueSuggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listboxId = useId();
 
   // Fetch venue history on mount
   useEffect(() => {
@@ -80,10 +82,16 @@ export function VenueAutocomplete({
       s.venueAddress.toLowerCase().includes(value.toLowerCase())
   );
 
+  // Reset highlighted index when filtered suggestions change
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [value]);
+
   const handleSelect = (venue: VenueSuggestion) => {
     onChange(venue.venueName);
     onSelectVenue(venue);
     setShowDropdown(false);
+    setHighlightedIndex(-1);
     inputRef.current?.focus();
   };
 
@@ -99,8 +107,45 @@ export function VenueAutocomplete({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setShowDropdown(false);
+    if (!showDropdown || filteredSuggestions.length === 0) {
+      // Open dropdown on arrow down when closed
+      if (e.key === "ArrowDown" && filteredSuggestions.length > 0) {
+        e.preventDefault();
+        setShowDropdown(true);
+        setHighlightedIndex(0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev < filteredSuggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : filteredSuggestions.length - 1
+        );
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < filteredSuggestions.length) {
+          handleSelect(filteredSuggestions[highlightedIndex]);
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setShowDropdown(false);
+        setHighlightedIndex(-1);
+        break;
+      case "Tab":
+        // Close dropdown on tab without preventing default
+        setShowDropdown(false);
+        setHighlightedIndex(-1);
+        break;
     }
   };
 
@@ -125,21 +170,39 @@ export function VenueAutocomplete({
             : "border-white/10 focus:border-white/30"
         } ${className}`}
         autoComplete="off"
+        role="combobox"
+        aria-expanded={showDropdown && filteredSuggestions.length > 0}
+        aria-haspopup="listbox"
+        aria-controls={listboxId}
+        aria-activedescendant={
+          highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined
+        }
         {...ariaProps}
       />
 
       {/* Suggestions dropdown */}
       {showDropdown && filteredSuggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-black border border-white/10 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="Recent venues"
+          className="absolute z-50 w-full mt-1 bg-black border border-white/10 rounded-md shadow-lg max-h-60 overflow-y-auto"
+        >
           <div className="px-3 py-2 text-[10px] font-mono text-white/30 tracking-widest border-b border-white/5">
             RECENT VENUES
           </div>
           {filteredSuggestions.map((venue, index) => (
             <button
               key={`${venue.venueName}-${venue.venueAddress}-${index}`}
+              id={`${listboxId}-option-${index}`}
               type="button"
+              role="option"
+              aria-selected={index === highlightedIndex}
               onClick={() => handleSelect(venue)}
-              className="w-full px-3 py-3 text-left hover:bg-white/5 transition-colors flex items-start gap-3 border-b border-white/5 last:border-0"
+              onMouseEnter={() => setHighlightedIndex(index)}
+              className={`w-full px-3 py-3 text-left transition-colors flex items-start gap-3 border-b border-white/5 last:border-0 ${
+                index === highlightedIndex ? "bg-white/10" : "hover:bg-white/5"
+              }`}
             >
               <MapPin className="w-4 h-4 text-white/30 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">

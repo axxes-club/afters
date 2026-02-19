@@ -558,7 +558,7 @@ function NewEventForm() {
                           MAX +1s PER GUEST
                         </label>
                         <Select value={rsvpMaxPlusOnes} onValueChange={setRsvpMaxPlusOnes}>
-                          <SelectTrigger aria-label="Maximum plus-ones per guest" className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base">
+                          <SelectTrigger tabIndex={0} aria-label="Maximum plus-ones per guest" className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-black border-white/10">
@@ -760,7 +760,7 @@ function NewEventForm() {
                       TIMEZONE
                     </label>
                     <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger aria-label="Timezone" className="h-12 md:h-14 w-full bg-black border-white/10 font-mono text-sm md:text-base">
+                      <SelectTrigger tabIndex={0} aria-label="Timezone" className="h-12 md:h-14 w-full bg-black border-white/10 font-mono text-sm md:text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-black border-white/10">
@@ -776,7 +776,7 @@ function NewEventForm() {
                       AGE
                     </label>
                     <Select value={ageRestriction} onValueChange={setAgeRestriction}>
-                      <SelectTrigger aria-label="Age restriction" className="h-12 md:h-14 w-full bg-black border-white/10 font-mono text-sm md:text-base">
+                      <SelectTrigger tabIndex={0} aria-label="Age restriction" className="h-12 md:h-14 w-full bg-black border-white/10 font-mono text-sm md:text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-black border-white/10">
@@ -793,7 +793,7 @@ function NewEventForm() {
                     EVENT EXPIRATION
                   </label>
                   <Select value={expiresAfter} onValueChange={setExpiresAfter}>
-                    <SelectTrigger aria-label="Event expiration" className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base">
+                    <SelectTrigger tabIndex={0} aria-label="Event expiration" className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black border-white/10">
