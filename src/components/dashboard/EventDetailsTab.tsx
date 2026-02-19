@@ -24,6 +24,65 @@ import { Switch } from "@/components/ui/switch"
 import { ArtistAutocomplete } from "@/components/dashboard/ArtistAutocomplete"
 import { useUploadThing } from "@/lib/uploadthing-client"
 
+type ExpandedSections = {
+  about: boolean
+  lineup: boolean
+  faqs: boolean
+  gallery: boolean
+}
+
+function SectionHeader({
+  icon,
+  title,
+  subtitle,
+  sectionKey,
+  color = "#ff1493",
+  count,
+  expanded,
+  onToggle,
+}: {
+  icon: React.ReactNode
+  title: string
+  subtitle: string
+  sectionKey: keyof ExpandedSections
+  color?: string
+  count?: number
+  expanded: boolean
+  onToggle: (key: keyof ExpandedSections) => void
+}) {
+  return (
+    <button
+      onClick={() => onToggle(sectionKey)}
+      className="w-full flex items-center justify-between p-4 border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className="w-10 h-10 flex items-center justify-center"
+          style={{ backgroundColor: `${color}15`, borderColor: `${color}30` }}
+        >
+          {icon}
+        </div>
+        <div className="text-left">
+          <div className="flex items-center gap-2">
+            <h3 className="font-mono font-bold text-sm tracking-wide">{title}</h3>
+            {count !== undefined && count > 0 && (
+              <span className="text-[10px] font-mono px-1.5 py-0.5 bg-white/10 text-white/60">
+                {count}
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] font-mono text-white/40">{subtitle}</p>
+        </div>
+      </div>
+      {expanded ? (
+        <ChevronUp className="w-5 h-5 text-white/40" />
+      ) : (
+        <ChevronDown className="w-5 h-5 text-white/40" />
+      )}
+    </button>
+  )
+}
+
 interface FAQ {
   question: string
   answer: string
@@ -55,12 +114,16 @@ interface EventDetailsTabProps {
   initialGallery?: string[]
 }
 
+const EMPTY_FAQS: FAQ[] = []
+const EMPTY_LINEUP: LineupArtist[] = []
+const EMPTY_GALLERY: string[] = []
+
 export function EventDetailsTab({
   eventId,
   initialAbout = "",
-  initialFaqs = [],
-  initialLineup = [],
-  initialGallery = [],
+  initialFaqs = EMPTY_FAQS,
+  initialLineup = EMPTY_LINEUP,
+  initialGallery = EMPTY_GALLERY,
 }: EventDetailsTabProps) {
   const [about, setAbout] = useState(initialAbout)
   const [faqs, setFaqs] = useState<FAQ[]>(initialFaqs.length > 0 ? initialFaqs : [])
@@ -70,7 +133,7 @@ export function EventDetailsTab({
   const [gallery, setGallery] = useState<string[]>(initialGallery)
   const [saving, setSaving] = useState(false)
   const [uploadingGallery, setUploadingGallery] = useState(false)
-  const [expandedSections, setExpandedSections] = useState({
+  const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     about: true,
     lineup: false,
     faqs: false,
@@ -119,7 +182,7 @@ export function EventDetailsTab({
     setGallery((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
+  const toggleSection = (section: keyof ExpandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
   }
 
@@ -196,52 +259,6 @@ export function EventDetailsTab({
     }
   }
 
-  const SectionHeader = ({
-    icon,
-    title,
-    subtitle,
-    sectionKey,
-    color = "#ff1493",
-    count,
-  }: {
-    icon: React.ReactNode
-    title: string
-    subtitle: string
-    sectionKey: keyof typeof expandedSections
-    color?: string
-    count?: number
-  }) => (
-    <button
-      onClick={() => toggleSection(sectionKey)}
-      className="w-full flex items-center justify-between p-4 border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className="w-10 h-10 flex items-center justify-center"
-          style={{ backgroundColor: `${color}15`, borderColor: `${color}30` }}
-        >
-          {icon}
-        </div>
-        <div className="text-left">
-          <div className="flex items-center gap-2">
-            <h3 className="font-mono font-bold text-sm tracking-wide">{title}</h3>
-            {count !== undefined && count > 0 && (
-              <span className="text-[10px] font-mono px-1.5 py-0.5 bg-white/10 text-white/60">
-                {count}
-              </span>
-            )}
-          </div>
-          <p className="text-[10px] font-mono text-white/40">{subtitle}</p>
-        </div>
-      </div>
-      {expandedSections[sectionKey] ? (
-        <ChevronUp className="w-5 h-5 text-white/40" />
-      ) : (
-        <ChevronDown className="w-5 h-5 text-white/40" />
-      )}
-    </button>
-  )
-
   return (
     <div className="space-y-4">
       {/* About Section */}
@@ -252,6 +269,8 @@ export function EventDetailsTab({
           subtitle="Event description and details"
           sectionKey="about"
           count={about.length > 0 ? 1 : undefined}
+          expanded={expandedSections.about}
+          onToggle={toggleSection}
         />
         {expandedSections.about && (
           <div className="p-4 border border-t-0 border-white/10 bg-black space-y-4">
@@ -278,6 +297,8 @@ export function EventDetailsTab({
           sectionKey="lineup"
           color="#00d4ff"
           count={lineup.filter(a => a.name.trim()).length}
+          expanded={expandedSections.lineup}
+          onToggle={toggleSection}
         />
         {expandedSections.lineup && (
           <div className="p-4 border border-t-0 border-white/10 bg-black space-y-4">
@@ -361,6 +382,8 @@ export function EventDetailsTab({
           sectionKey="faqs"
           color="#ff6b00"
           count={faqs.filter(f => f.question.trim()).length}
+          expanded={expandedSections.faqs}
+          onToggle={toggleSection}
         />
         {expandedSections.faqs && (
           <div className="p-4 border border-t-0 border-white/10 bg-black space-y-4">
@@ -423,6 +446,8 @@ export function EventDetailsTab({
           sectionKey="gallery"
           color="#a855f7"
           count={gallery.length}
+          expanded={expandedSections.gallery}
+          onToggle={toggleSection}
         />
         {expandedSections.gallery && (
           <div className="p-4 border border-t-0 border-white/10 bg-black space-y-4">

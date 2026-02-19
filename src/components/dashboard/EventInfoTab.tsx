@@ -15,11 +15,13 @@ interface EventInfoTabProps {
   initialFaqs?: FAQ[] | null
 }
 
+const EMPTY_FAQS: FAQ[] = []
+
 export default function EventInfoTab({
   eventId,
   initialAbout = '',
   initialRefundPolicy = '',
-  initialFaqs = [],
+  initialFaqs = EMPTY_FAQS,
 }: EventInfoTabProps) {
   const [about, setAbout] = useState(initialAbout || '')
   const [refundPolicy, setRefundPolicy] = useState(initialRefundPolicy || '')

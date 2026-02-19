@@ -12,37 +12,38 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [checkingProfile, setCheckingProfile] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
     const checkOrganizerProfile = async () => {
       if (!isLoaded || !isSignedIn || !userId) {
         return;
       }
 
       try {
-        // Check if user has an organizer profile
-        const response = await fetch(`/api/check-profile`);
+        const response = await fetch(`/api/check-profile`, { signal: controller.signal });
         if (response.ok) {
           const { hasProfile } = await response.json();
           setHasOrganizerProfile(hasProfile);
 
           if (!hasProfile) {
-            // Profile will be auto-created on /b, redirect there
             router.push('/b');
           } else {
             setCheckingProfile(false);
           }
         } else {
-          // If there's an error checking profile, redirect to dashboard (profile will be auto-created)
           router.push('/b');
         }
       } catch (error) {
-        console.error('Error checking organizer profile:', error);
-        router.push('/b');
+        if (!controller.signal.aborted) {
+          console.error('Error checking organizer profile:', error);
+          router.push('/b');
+        }
       }
     };
 
     if (isLoaded && isSignedIn) {
       checkOrganizerProfile();
     }
+    return () => controller.abort();
   }, [isLoaded, isSignedIn, userId, router]);
 
   // Show loading state while checking authentication and profile

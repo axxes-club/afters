@@ -76,6 +76,8 @@ export default function HomePage() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+        {/* Visually hidden h1 for accessibility */}
+        <h1 className="sr-only">Afters - Event Ticketing for the Underground</h1>
 
         {/* Two buttons: Host or Scan */}
         <div className="flex items-center gap-6">

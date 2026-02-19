@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Shield, AlertTriangle, Check, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -34,6 +34,18 @@ const SCOPE_INFO: Record<string, ScopeInfo> = {
 }
 
 export default function OAuthAuthorizePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    }>
+      <OAuthAuthorizeContent />
+    </Suspense>
+  )
+}
+
+function OAuthAuthorizeContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
@@ -52,6 +64,7 @@ export default function OAuthAuthorizePage() {
   const codeChallengeMethod = searchParams.get('code_challenge_method')
   
   useEffect(() => {
+    const controller = new AbortController()
     const validateRequest = async () => {
       if (!clientId || !redirectUri) {
         setError('Missing required parameters: client_id and redirect_uri')
@@ -73,7 +86,7 @@ export default function OAuthAuthorizePage() {
         })}`
         
         console.log('[OAuth] Validating request:', validateUrl)
-        const response = await fetch(validateUrl)
+        const response = await fetch(validateUrl, { signal: controller.signal })
         
         let data
         try {
@@ -103,13 +116,16 @@ export default function OAuthAuthorizePage() {
         setScopes(data.scopes)
         setLoading(false)
       } catch (fetchError) {
-        console.error('[OAuth] Fetch error:', fetchError)
-        setError('Failed to validate authorization request. Please try again.')
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          console.error('[OAuth] Fetch error:', fetchError)
+          setError('Failed to validate authorization request. Please try again.')
+          setLoading(false)
+        }
       }
     }
     
     validateRequest()
+    return () => controller.abort()
   }, [clientId, redirectUri, scope, responseType])
   
   const handleAuthorize = async (approved: boolean) => {

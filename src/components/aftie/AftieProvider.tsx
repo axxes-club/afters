@@ -165,20 +165,26 @@ export function AftieProvider({ children }: AftieProviderProps) {
 
   // Check Aftie setup status on mount
   useEffect(() => {
+    const controller = new AbortController()
     async function checkSetup() {
       try {
-        const res = await fetch("/api/aftie/setup")
+        const res = await fetch("/api/aftie/setup", { signal: controller.signal })
         if (res.ok) {
           const data = await res.json()
           setSetupStatus(data)
         }
       } catch (error) {
-        console.error("Failed to check Aftie setup:", error)
+        if (!controller.signal.aborted) {
+          console.error("Failed to check Aftie setup:", error)
+        }
       } finally {
-        setSetupChecked(true)
+        if (!controller.signal.aborted) {
+          setSetupChecked(true)
+        }
       }
     }
     checkSetup()
+    return () => controller.abort()
   }, [])
 
   // Approve Aftie - create the API key

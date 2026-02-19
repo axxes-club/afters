@@ -24,18 +24,19 @@ function getVisitorId(): string {
 
 export function ViewTracker({ eventId }: ViewTrackerProps) {
   useEffect(() => {
-    // Track view after a small delay to ensure it's a real visit
     const timer = setTimeout(() => {
       const visitorId = getVisitorId()
-      
-      fetch(`/api/events/${eventId}/views`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitorId }),
-      }).catch(() => {
-        // Silently ignore errors - don't break the page for analytics
-      })
-    }, 1000) // 1 second delay to filter bots/quick bounces
+      const trackView = async () => {
+        try {
+          await fetch(`/api/events/${eventId}/views`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ visitorId }),
+          })
+        } catch {}
+      }
+      trackView()
+    }, 1000)
     
     return () => clearTimeout(timer)
   }, [eventId])
