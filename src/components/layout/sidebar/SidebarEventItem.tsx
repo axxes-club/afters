@@ -41,8 +41,8 @@ export function SidebarEventItem({
       <Link
         href={`/b/event-editor/${event.id}/overview`}
         className={`
-          block w-10 h-12 rounded overflow-hidden transition-all
-          ${isActive ? "ring-2" : "opacity-70 hover:opacity-100"}
+          block w-10 h-12 rounded-lg overflow-hidden transition-all
+          ${isActive ? "ring-2 ring-offset-1 ring-offset-black" : "opacity-80 hover:opacity-100 hover:scale-105"}
         `}
         style={
           isActive
@@ -60,7 +60,8 @@ export function SidebarEventItem({
           />
         ) : (
           <div
-            className="w-full h-full flex items-center justify-center text-[10px] font-mono text-white/50 bg-white/5"
+            className="w-full h-full flex items-center justify-center text-sm font-headline font-bold bg-gradient-to-br from-white/10 to-white/5 border border-white/10"
+            style={{ color: `${accentColor}80` }}
           >
             {event.title.charAt(0).toUpperCase()}
           </div>

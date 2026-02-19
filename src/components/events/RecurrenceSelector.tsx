@@ -96,17 +96,29 @@ export function RecurrenceSelector({
       {/* Toggle Header */}
       <button
         type="button"
+        tabIndex={0}
         onClick={() => {
           const newEnabled = !value.enabled
           setIsExpanded(newEnabled)
           update({ enabled: newEnabled })
         }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            const newEnabled = !value.enabled
+            setIsExpanded(newEnabled)
+            update({ enabled: newEnabled })
+          }
+        }}
         disabled={disabled}
-        className="w-full px-4 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-all disabled:opacity-50"
+        aria-expanded={value.enabled}
+        aria-controls="recurrence-options"
+        aria-pressed={value.enabled}
+        className="w-full px-4 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500/50"
         style={{ borderLeftWidth: "3px", borderLeftColor: value.enabled ? "#a855f7" : "transparent" }}
       >
         <div className="flex items-center gap-3">
-          <Repeat className={`w-4 h-4 ${value.enabled ? "text-purple-400" : "text-white/30"}`} />
+          <Repeat className={`w-4 h-4 ${value.enabled ? "text-purple-400" : "text-white/30"}`} aria-hidden="true" />
           <div className="text-left">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono text-white/60 tracking-widest">RECURRING EVENT</span>
@@ -137,6 +149,7 @@ export function RecurrenceSelector({
           {value.enabled && (
             <ChevronDown
               className={`w-4 h-4 text-white/30 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+              aria-hidden="true"
             />
           )}
         </div>
@@ -144,10 +157,10 @@ export function RecurrenceSelector({
 
       {/* Expanded Options */}
       {value.enabled && isExpanded && (
-        <div className="px-4 pb-4 pt-2 border-t border-white/10 space-y-4">
+        <div id="recurrence-options" className="px-4 pb-4 pt-2 border-t border-white/10 space-y-4">
           {/* Pattern Selection */}
           <div>
-            <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+            <label id="repeat-label" className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
               REPEAT
             </label>
             <Select
@@ -155,7 +168,7 @@ export function RecurrenceSelector({
               onValueChange={(v) => update({ pattern: v as RecurrencePattern })}
               disabled={disabled}
             >
-              <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+              <SelectTrigger tabIndex={0} aria-labelledby="repeat-label" className="h-12 bg-black border-white/10 font-mono">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-black border-white/10">
@@ -171,7 +184,7 @@ export function RecurrenceSelector({
           {/* Day/Week Selection based on pattern */}
           {(value.pattern === "weekly" || value.pattern === "biweekly") && (
             <div>
-              <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+              <label id="day-label" className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
                 ON DAY
               </label>
               <Select
@@ -179,7 +192,7 @@ export function RecurrenceSelector({
                 onValueChange={(v) => update({ dayOfWeek: parseInt(v) })}
                 disabled={disabled}
               >
-                <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                <SelectTrigger tabIndex={0} aria-labelledby="day-label" className="h-12 bg-black border-white/10 font-mono">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-black border-white/10">
@@ -196,7 +209,7 @@ export function RecurrenceSelector({
           {value.pattern === "monthly-by-day" && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                <label id="which-label" className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
                   WHICH
                 </label>
                 <Select
@@ -204,7 +217,7 @@ export function RecurrenceSelector({
                   onValueChange={(v) => update({ weekOfMonth: parseInt(v) })}
                   disabled={disabled}
                 >
-                  <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                  <SelectTrigger tabIndex={0} aria-labelledby="which-label" className="h-12 bg-black border-white/10 font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-black border-white/10">
@@ -217,7 +230,7 @@ export function RecurrenceSelector({
                 </Select>
               </div>
               <div>
-                <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                <label id="monthly-day-label" className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
                   DAY
                 </label>
                 <Select
@@ -225,7 +238,7 @@ export function RecurrenceSelector({
                   onValueChange={(v) => update({ dayOfWeek: parseInt(v) })}
                   disabled={disabled}
                 >
-                  <SelectTrigger className="h-12 bg-black border-white/10 font-mono">
+                  <SelectTrigger tabIndex={0} aria-labelledby="monthly-day-label" className="h-12 bg-black border-white/10 font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-black border-white/10">
@@ -242,7 +255,7 @@ export function RecurrenceSelector({
 
           {value.pattern === "monthly-by-date" && (
             <div>
-              <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+              <label id="day-of-month-label" className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
                 DAY OF MONTH
               </label>
               <Input
@@ -252,6 +265,7 @@ export function RecurrenceSelector({
                 value={value.dayOfMonth}
                 onChange={(e) => update({ dayOfMonth: parseInt(e.target.value) || 1 })}
                 disabled={disabled}
+                aria-labelledby="day-of-month-label"
                 className="h-12 bg-black border-white/10 font-mono"
               />
             </div>
@@ -259,12 +273,12 @@ export function RecurrenceSelector({
 
           {/* End Condition */}
           <div>
-            <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+            <label id="ends-label" className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
               ENDS
             </label>
             <div className="space-y-3">
               {/* End type selector */}
-              <div className="flex gap-2">
+              <div role="group" aria-labelledby="ends-label" className="flex gap-2">
                 {[
                   { value: "never" as const, label: "Never" },
                   { value: "count" as const, label: "After" },
@@ -273,9 +287,17 @@ export function RecurrenceSelector({
                   <button
                     key={option.value}
                     type="button"
+                    tabIndex={0}
                     onClick={() => update({ endType: option.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        update({ endType: option.value })
+                      }
+                    }}
                     disabled={disabled}
-                    className={`flex-1 h-10 text-[10px] font-mono tracking-wider transition-all ${
+                    aria-pressed={value.endType === option.value}
+                    className={`flex-1 h-10 text-[10px] font-mono tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-1 focus:ring-offset-black ${
                       value.endType === option.value
                         ? "bg-purple-500/10 border border-purple-500/50 text-purple-400"
                         : "border border-white/10 text-white/40 hover:border-white/20"
@@ -289,7 +311,7 @@ export function RecurrenceSelector({
               {/* Conditional inputs */}
               {value.endType === "count" && (
                 <div className="flex items-center gap-3">
-                  <Hash className="w-4 h-4 text-white/30" />
+                  <Hash className="w-4 h-4 text-white/30" aria-hidden="true" />
                   <Input
                     type="number"
                     min={2}
@@ -297,6 +319,7 @@ export function RecurrenceSelector({
                     value={value.occurrenceCount}
                     onChange={(e) => update({ occurrenceCount: parseInt(e.target.value) || 8 })}
                     disabled={disabled}
+                    aria-label="Number of occurrences"
                     className="h-10 w-20 bg-black border-white/10 font-mono text-center"
                   />
                   <span className="text-sm text-white/40 font-mono">occurrences</span>
@@ -305,12 +328,13 @@ export function RecurrenceSelector({
 
               {value.endType === "date" && (
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-white/30" />
+                  <Calendar className="w-4 h-4 text-white/30" aria-hidden="true" />
                   <Input
                     type="date"
                     value={value.endDate}
                     onChange={(e) => update({ endDate: e.target.value })}
                     disabled={disabled}
+                    aria-label="End date for recurring events"
                     className="h-10 bg-black border-white/10 font-mono"
                   />
                 </div>

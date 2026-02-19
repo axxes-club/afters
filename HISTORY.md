@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.17 (2026-02-19)
+
+- Fix collapsed sidebar styling (logo, nav items, event thumbnails) (PR #56)
+- Add keyboard accessibility to event creation form
+- Tonight/Tomorrow buttons now keyboard accessible with Enter/Space
+- LATE/SET TIME toggle now keyboard accessible
+- RecurrenceSelector toggle and end type buttons now keyboard accessible
+- LINEUP/STYLE expandable sections now keyboard accessible
+- Added explicit tabIndex, onKeyDown handlers, and ARIA attributes
+
 ## 0.2.16 (2026-02-18)
 
 - Apply organizer's UI accent color to event create/edit pages (Issue #40, PR #41)
