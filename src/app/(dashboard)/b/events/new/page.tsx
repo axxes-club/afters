@@ -35,6 +35,7 @@ import { ArtistAutocomplete, RecentArtists } from "@/components/dashboard/Artist
 import { useAftie } from "@/components/aftie/AftieProvider"
 import { RecurrenceSelector, defaultRecurrenceConfig, type RecurrenceConfig } from "@/components/events/RecurrenceSelector"
 import { useAccentColor } from "@/hooks/useAccentColor"
+import { VenueAutocomplete } from "@/components/VenueAutocomplete"
 
 const US_CITIES = [
   "New York", "Brooklyn", "Charlotte", "Raleigh", "Los Angeles", "Miami",
@@ -67,6 +68,9 @@ function NewEventForm() {
   const [loading, setLoading] = useState(false)
   const [flyerUrl, setFlyerUrl] = useState<string | null>(null)
   const [city, setCity] = useState<string>("")
+  const [venueName, setVenueName] = useState<string>("")
+  const [venueAddress, setVenueAddress] = useState<string>("")
+  const [venueState, setVenueState] = useState<string>("")
   const [timezone, setTimezone] = useState<string>("America/New_York")
   const [ageRestriction, setAgeRestriction] = useState<string>("21")
   const [title, setTitle] = useState<string>("")
@@ -359,7 +363,7 @@ function NewEventForm() {
         toast.success(successMessage)
         // Navigate to the first event in the series
         if (result.events && result.events.length > 0) {
-          router.push(`/d/events/${result.events[0].id}`)
+          router.push(`/b/event-editor/${result.events[0].id}/overview`)
         } else {
           router.push("/b/events")
         }
@@ -379,7 +383,7 @@ function NewEventForm() {
         const event = await res.json()
         successMessage = isRsvpOnly ? "RSVP event created!" : "Event created! Now add ticket tiers."
         toast.success(successMessage)
-        router.push(`/d/events/${event.id}`)
+        router.push(`/b/event-editor/${event.id}/overview`)
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong")
@@ -826,20 +830,31 @@ function NewEventForm() {
                     <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       VENUE NAME *
                     </label>
-                    <Input
-                      name="venueName"
-                      aria-label="Venue name"
-                      aria-required="true"
-                      aria-describedby={errors.venueName && touched.venueName ? "venueName-error" : undefined}
-                      placeholder="e.g., The Warehouse"
-                      onChange={() => clearError("venueName")}
+                    <VenueAutocomplete
+                      value={venueName}
+                      onChange={(value) => {
+                        setVenueName(value)
+                        clearError("venueName")
+                      }}
+                      onSelectVenue={(venue) => {
+                        setVenueName(venue.venueName)
+                        setVenueAddress(venue.venueAddress)
+                        setCity(venue.city)
+                        setVenueState(venue.state || "")
+                        clearError("venueName")
+                        clearError("venueAddress")
+                        clearError("city")
+                        markTouched("venueName")
+                        markTouched("venueAddress")
+                        markTouched("city")
+                      }}
                       onBlur={() => markTouched("venueName")}
-                      className={`h-12 md:h-14 bg-black font-mono text-sm md:text-base placeholder:text-white/20 focus:ring-0 ${
-                        errors.venueName && touched.venueName
-                          ? "border-red-500 focus:border-red-500"
-                          : "border-white/10 focus:border-white/30"
-                      }`}
+                      error={!!(errors.venueName && touched.venueName)}
+                      aria-label="Venue name"
+                      aria-required={true}
+                      aria-describedby={errors.venueName && touched.venueName ? "venueName-error" : undefined}
                     />
+                    <input type="hidden" name="venueName" value={venueName} />
                     {errors.venueName && touched.venueName && (
                       <p id="venueName-error" role="alert" className="text-red-400 text-xs md:text-sm font-mono mt-1.5">{errors.venueName}</p>
                     )}
@@ -851,11 +866,15 @@ function NewEventForm() {
                     </label>
                     <Input
                       name="venueAddress"
+                      value={venueAddress}
+                      onChange={(e) => {
+                        setVenueAddress(e.target.value)
+                        clearError("venueAddress")
+                      }}
                       aria-label="Venue address"
                       aria-required="true"
                       aria-describedby={errors.venueAddress && touched.venueAddress ? "venueAddress-error" : undefined}
                       placeholder="e.g., 123 Industrial Ave"
-                      onChange={() => clearError("venueAddress")}
                       onBlur={() => markTouched("venueAddress")}
                       className={`h-12 md:h-14 bg-black font-mono text-sm md:text-base placeholder:text-white/20 focus:ring-0 ${
                         errors.venueAddress && touched.venueAddress
@@ -882,10 +901,11 @@ function NewEventForm() {
                         }}
                       >
                         <SelectTrigger
+                          tabIndex={0}
                           aria-label="City"
                           aria-required="true"
                           aria-describedby={errors.city && touched.city ? "city-error" : undefined}
-                          className={`h-12 md:h-14 bg-black font-mono text-sm md:text-base ${
+                          className={`h-12 md:h-14 bg-black font-mono text-sm md:text-base w-full ${
                           errors.city && touched.city
                             ? "border-red-500"
                             : "border-white/10"
@@ -898,6 +918,7 @@ function NewEventForm() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <input type="hidden" name="city" value={city} />
                       {errors.city && touched.city && (
                         <p id="city-error" role="alert" className="text-red-400 text-xs md:text-sm font-mono mt-1.5">{errors.city}</p>
                       )}
@@ -908,6 +929,8 @@ function NewEventForm() {
                       </label>
                       <Input
                         name="state"
+                        value={venueState}
+                        onChange={(e) => setVenueState(e.target.value)}
                         aria-label="State"
                         placeholder="e.g., NY"
                         className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base placeholder:text-white/20 focus:border-white/30 focus:ring-0"
