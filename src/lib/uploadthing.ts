@@ -1,10 +1,31 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next"
-import { UTApi } from "uploadthing/server"
+import { UploadThingError, UTApi } from "uploadthing/server"
+import { auth } from "@clerk/nextjs/server"
+import { requireOrganizer } from "@/lib/auth-utils"
 
 const f = createUploadthing()
 
+export async function organizerMiddleware() {
+  try {
+    const user = await requireOrganizer()
+    return { userId: user.id }
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("Unauthorized")) {
+      throw new UploadThingError("Unauthorized")
+    }
+    throw err
+  }
+}
+
+export async function authMiddleware() {
+  const { userId } = await auth()
+  if (!userId) throw new UploadThingError("Unauthorized")
+  return { userId }
+}
+
 export const ourFileRouter = {
   eventFlyer: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(organizerMiddleware)
     .onUploadComplete(async ({ file }) => {
       // v7 uses 'url', older versions used 'ufsUrl'
       const fileUrl = file.url || file.ufsUrl
@@ -13,6 +34,7 @@ export const ourFileRouter = {
     }),
   // Event gallery images
   eventGallery: f({ image: { maxFileSize: "4MB", maxFileCount: 10 } })
+    .middleware(organizerMiddleware)
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl
       console.log("Uploaded gallery image:", fileUrl)
@@ -20,6 +42,7 @@ export const ourFileRouter = {
     }),
   // Feedback screenshots
   feedbackScreenshot: f({ image: { maxFileSize: "4MB", maxFileCount: 3 } })
+    .middleware(authMiddleware)
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl
       console.log("Uploaded feedback screenshot:", fileUrl)
@@ -27,6 +50,7 @@ export const ourFileRouter = {
     }),
   // Custom logo for sidebar
   customLogo: f({ image: { maxFileSize: "2MB", maxFileCount: 1 } })
+    .middleware(organizerMiddleware)
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl
       console.log("Uploaded custom logo:", fileUrl)
