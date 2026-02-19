@@ -15,7 +15,8 @@ const { mockPrisma } = vi.hoisted(() => {
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }))
 
-import { POST, viewRateLimitMap } from "@/app/api/events/[eventId]/views/route"
+import { POST } from "@/app/api/events/[eventId]/views/route"
+import { viewRateLimitMap } from "@/lib/view-rate-limit"
 
 const mockEvent = { id: "event-123", isPublished: true }
 
