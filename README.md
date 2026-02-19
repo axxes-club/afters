@@ -14,6 +14,8 @@
 <p align="center">
   <a href="https://afters.am">website</a>
   &nbsp;·&nbsp;
+  <a href="https://axxes-club.github.io/afters/">docs</a>
+  &nbsp;·&nbsp;
   <a href="#quick-start">quick start</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/axxes-club/afters/issues">report bug</a>

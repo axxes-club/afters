@@ -39,11 +39,12 @@ export default function ScanLayout({
     uiAccentColor: null,
   })
 
-  // Load UI preferences
   useEffect(() => {
-    fetch("/api/user/preferences")
-      .then((res) => res.json())
-      .then((data) => {
+    const controller = new AbortController()
+    const loadPreferences = async () => {
+      try {
+        const res = await fetch("/api/user/preferences", { signal: controller.signal })
+        const data = await res.json()
         if (data.organizerProfile) {
           setUIPrefs({
             sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
@@ -51,8 +52,10 @@ export default function ScanLayout({
             uiAccentColor: data.organizerProfile.uiAccentColor || null,
           })
         }
-      })
-      .catch(() => {})
+      } catch {}
+    }
+    loadPreferences()
+    return () => controller.abort()
   }, [])
 
   // Apply accent color CSS variable

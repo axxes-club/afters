@@ -20,20 +20,20 @@ export function GhostBanner() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Check ghost status on mount
-    fetch('/api/admin/ghost')
-      .then(res => res.json())
-      .then(data => {
+    const controller = new AbortController()
+    const checkGhostStatus = async () => {
+      try {
+        const res = await fetch('/api/admin/ghost', { signal: controller.signal })
+        const data = await res.json()
         if (data.ghosting) {
           setGhosting(data.ghosting)
-          // Add padding to body to push content down
           document.body.style.paddingTop = `${GHOST_BANNER_HEIGHT}px`
         }
-      })
-      .catch(() => {})
-
-    // Cleanup on unmount
+      } catch {}
+    }
+    checkGhostStatus()
     return () => {
+      controller.abort()
       document.body.style.paddingTop = ''
     }
   }, [])

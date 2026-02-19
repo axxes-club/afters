@@ -33,18 +33,17 @@ export function ArtistAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Fetch past artists on mount
   useEffect(() => {
+    const controller = new AbortController()
     async function fetchPastArtists() {
       try {
-        const res = await fetch("/api/organizer/past-artists")
+        const res = await fetch("/api/organizer/past-artists", { signal: controller.signal })
         const data = await res.json()
         setPastArtists(data.artists || [])
-      } catch {
-        // Ignore errors
-      }
+      } catch {}
     }
     fetchPastArtists()
+    return () => controller.abort()
   }, [])
 
   // Filter suggestions based on input
@@ -152,23 +151,27 @@ interface RecentArtistsProps {
   excludeNames?: string[]
 }
 
-export function RecentArtists({ onSelect, excludeNames = [] }: RecentArtistsProps) {
+const EMPTY_NAMES: string[] = []
+
+export function RecentArtists({ onSelect, excludeNames = EMPTY_NAMES }: RecentArtistsProps) {
   const [pastArtists, setPastArtists] = useState<PastArtist[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const controller = new AbortController()
     async function fetchPastArtists() {
       try {
-        const res = await fetch("/api/organizer/past-artists")
+        const res = await fetch("/api/organizer/past-artists", { signal: controller.signal })
         const data = await res.json()
         setPastArtists(data.artists || [])
-      } catch {
-        // Ignore
-      } finally {
-        setLoading(false)
+      } catch {} finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
     fetchPastArtists()
+    return () => controller.abort()
   }, [])
 
   const availableArtists = pastArtists.filter(
