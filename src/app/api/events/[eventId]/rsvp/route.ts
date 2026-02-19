@@ -13,23 +13,58 @@ function getResendClient(): Resend {
   return resend
 }
 
+// In-memory rate limiting for RSVP endpoint (per IP)
+export const rsvpRateLimitMap = new Map<string, { count: number; resetAt: number }>()
+
+function checkRsvpRateLimit(ip: string, maxAttempts = 10, windowMs = 60000): boolean {
+  const now = Date.now()
+  const record = rsvpRateLimitMap.get(ip)
+
+  if (!record || now > record.resetAt) {
+    rsvpRateLimitMap.set(ip, { count: 1, resetAt: now + windowMs })
+    return true
+  }
+
+  if (record.count >= maxAttempts) {
+    return false
+  }
+
+  record.count++
+  return true
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
     const { eventId } = await params
+
+    // Rate limit by IP
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown"
+    if (!checkRsvpRateLimit(ip)) {
+      return NextResponse.json(
+        { message: "Too many requests. Please try again later." },
+        { status: 429 }
+      )
+    }
+
     const { name, email, phone, plusOnes, message, turnstileToken } = await req.json()
 
-    // Verify human
-    if (turnstileToken) {
-      const isHuman = await verifyTurnstileToken(turnstileToken)
-      if (!isHuman) {
-        return NextResponse.json(
-          { message: "Verification failed. Please try again." },
-          { status: 400 }
-        )
-      }
+    // Require and verify Turnstile token
+    if (!turnstileToken) {
+      return NextResponse.json(
+        { message: "Verification required. Please complete the challenge." },
+        { status: 400 }
+      )
+    }
+
+    const isHuman = await verifyTurnstileToken(turnstileToken)
+    if (!isHuman) {
+      return NextResponse.json(
+        { message: "Verification failed. Please try again." },
+        { status: 400 }
+      )
     }
 
     // Validate required fields
