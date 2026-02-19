@@ -55,7 +55,7 @@ test.describe('Accessibility', () => {
     });
 
     test('dashboard should be accessible', async ({ page }) => {
-      await page.goto('/d');
+      await page.goto('/b');
       
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa'])
@@ -80,7 +80,7 @@ test.describe('Accessibility', () => {
     });
 
     test('event create page should be accessible', async ({ page }) => {
-      await page.goto('/d/events/new');
+      await page.goto('/b/events/new');
       
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa'])

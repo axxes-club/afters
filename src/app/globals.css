@@ -826,3 +826,23 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-color, #ff1493);
 }
+
+/* ===== FORM INPUT FIXES ===== */
+
+/* Ensure datetime inputs don't overflow their containers */
+input[type="datetime-local"],
+input[type="date"],
+input[type="time"] {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Hide the default calendar icon on datetime inputs for cleaner look on mobile */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}

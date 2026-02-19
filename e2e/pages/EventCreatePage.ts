@@ -2,7 +2,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 /**
- * Page object for event creation (/d/events/new)
+ * Page object for event creation (/b/events/new)
  */
 export class EventCreatePage extends BasePage {
   // Event type toggles
@@ -77,7 +77,7 @@ export class EventCreatePage extends BasePage {
    * Navigate to create event page
    */
   async goto() {
-    await this.navigateTo('/d/events/new');
+    await this.navigateTo('/b/events/new');
   }
 
   /**
@@ -228,11 +228,11 @@ export class EventCreatePage extends BasePage {
     await this.submit();
 
     // Wait for redirect to event edit page
-    await expect(this.page).toHaveURL(/\/d\/events\/[a-zA-Z0-9]+/, { timeout: 20000 });
+    await expect(this.page).toHaveURL(/\/b\/events\/[a-zA-Z0-9]+/, { timeout: 20000 });
 
     // Extract event ID from URL
     const url = this.page.url();
-    const match = url.match(/\/d\/events\/([a-zA-Z0-9]+)/);
+    const match = url.match(/\/b\/events\/([a-zA-Z0-9]+)/);
 
     if (!match) {
       throw new Error(`Could not extract event ID from URL: ${url}`);

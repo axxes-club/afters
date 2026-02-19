@@ -393,8 +393,8 @@ function NewEventForm() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">NEW EVENT</h1>
-          <p className="text-white/40 text-xs font-mono mt-0.5">Set up your party and start selling</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-mono font-bold tracking-tight">NEW EVENT</h1>
+          <p className="text-white/40 text-xs md:text-sm font-mono mt-0.5 md:mt-1">Set up your party and start selling</p>
         </div>
         {/* <button
           type="button"
@@ -409,42 +409,67 @@ function NewEventForm() {
       <div className="max-w-6xl mx-auto">
 
         <form ref={formRef} onSubmit={onSubmit} noValidate>
-          <div className="grid lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
+          {/* Two-column layout only at xl (1280px+) to give iPad proper single-column experience */}
+          <div className="grid xl:grid-cols-[1fr_380px] gap-6 md:gap-8 xl:gap-10">
             {/* Main Content */}
-            <div className="space-y-4 md:space-y-6 order-2 lg:order-1">
-              {/* Flyer Upload - Mobile Only (inline) */}
-              <div className="lg:hidden">
+            <div className="space-y-4 md:space-y-5 lg:space-y-6 order-2 xl:order-1">
+              {/* Flyer Upload - Tablet+ inline card, hidden on xl where sidebar shows */}
+              <div className="xl:hidden">
                 <SectionCard
                   icon={<ImageIcon className="w-4 h-4" />}
                   title="FLYER"
                   color={uiAccent}
                   compact
                 >
-                  <FlyerUpload value={flyerUrl} onChange={setFlyerUrl} disabled={loading} />
+                  {/* Horizontal layout on tablet, centered on mobile */}
+                  <div className="md:flex md:items-start md:gap-6">
+                    <div className="md:flex-shrink-0">
+                      <FlyerUpload value={flyerUrl} onChange={setFlyerUrl} disabled={loading} />
+                    </div>
+                    <div className="hidden md:block flex-1 pt-2">
+                      <p className="text-sm text-white/60 font-mono mb-3">
+                        Upload your event flyer to attract more guests.
+                      </p>
+                      <ul className="space-y-2 text-xs text-white/40 font-mono">
+                        <li className="flex items-center gap-2">
+                          <span className="w-1 h-1 bg-white/30 rounded-full" />
+                          Recommended size: 1080x1440px
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="w-1 h-1 bg-white/30 rounded-full" />
+                          Portrait orientation (3:4 ratio)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="w-1 h-1 bg-white/30 rounded-full" />
+                          Max file size: 4MB
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </SectionCard>
               </div>
 
-              {/* Event Type Selector */}
-              <div role="group" aria-label="Event type" className="grid grid-cols-2 gap-3">
+              {/* Event Type Selector - Better tablet sizing */}
+              <div role="group" aria-label="Event type" className="grid grid-cols-2 gap-3 md:gap-4">
                 <button
                   type="button"
                   aria-pressed={!isRsvpOnly}
                   onClick={() => setIsRsvpOnly(false)}
-                  className={`p-4 border transition-all text-left ${
+                  className={`p-4 md:p-5 border transition-all text-left ${
                     !isRsvpOnly
                       ? "border-primary/50 bg-primary/5"
                       : "border-white/10 hover:border-white/20"
                   }`}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <svg className={`w-5 h-5 ${!isRsvpOnly ? "text-primary" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-5 h-5 md:w-6 md:h-6 ${!isRsvpOnly ? "text-primary" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                     </svg>
-                    <span className={`font-mono text-sm font-bold ${!isRsvpOnly ? "text-white" : "text-white/60"}`}>
+                    <span className={`font-mono text-sm md:text-base font-bold ${!isRsvpOnly ? "text-white" : "text-white/60"}`}>
                       TICKETED
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/40 font-mono">
+                  <p className="text-[10px] md:text-xs text-white/40 font-mono leading-relaxed">
                     Sell tickets with multiple tiers and pricing
                   </p>
                 </button>
@@ -452,21 +477,21 @@ function NewEventForm() {
                   type="button"
                   aria-pressed={isRsvpOnly}
                   onClick={() => setIsRsvpOnly(true)}
-                  className={`p-4 border transition-all text-left ${
+                  className={`p-4 md:p-5 border transition-all text-left ${
                     isRsvpOnly
                       ? "border-[#00ff88]/50 bg-[#00ff88]/5"
                       : "border-white/10 hover:border-white/20"
                   }`}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <svg className={`w-5 h-5 ${isRsvpOnly ? "text-[#00ff88]" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-5 h-5 md:w-6 md:h-6 ${isRsvpOnly ? "text-[#00ff88]" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className={`font-mono text-sm font-bold ${isRsvpOnly ? "text-white" : "text-white/60"}`}>
+                    <span className={`font-mono text-sm md:text-base font-bold ${isRsvpOnly ? "text-white" : "text-white/60"}`}>
                       RSVP ONLY
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/40 font-mono">
+                  <p className="text-[10px] md:text-xs text-white/40 font-mono leading-relaxed">
                     Free event with guest list management
                   </p>
                 </button>
@@ -479,19 +504,20 @@ function NewEventForm() {
                   title="RSVP SETTINGS"
                   color="#00ff88"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-4 md:space-y-5">
                     <div>
-                      <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                      <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                         CAPACITY (leave empty for unlimited)
                       </label>
                       <Input
                         type="number"
+                        name="rsvpCapacity"
                         min="1"
                         aria-label="RSVP capacity (leave empty for unlimited)"
                         value={rsvpCapacity}
                         onChange={(e) => setRsvpCapacity(e.target.value)}
                         placeholder="e.g., 100"
-                        className="h-12 bg-black border-white/10 font-mono placeholder:text-white/20 focus:border-white/30 focus:ring-0"
+                        className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base placeholder:text-white/20 focus:border-white/30 focus:ring-0"
                       />
                     </div>
 
@@ -502,17 +528,17 @@ function NewEventForm() {
                       aria-pressed={rsvpAllowPlusOnes}
                       onClick={() => setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
                       onKeyDown={(e) => e.key === "Enter" && setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
-                      className={`w-full flex items-center justify-between p-4 border transition-all cursor-pointer ${
+                      className={`w-full flex items-center justify-between p-4 md:p-5 border transition-all cursor-pointer ${
                         rsvpAllowPlusOnes
                           ? "border-[#00ff88]/50 bg-[#00ff88]/5"
                           : "border-white/10 hover:border-white/20"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Users className={`w-4 h-4 ${rsvpAllowPlusOnes ? "text-[#00ff88]" : "text-white/30"}`} />
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <Users className={`w-4 h-4 md:w-5 md:h-5 ${rsvpAllowPlusOnes ? "text-[#00ff88]" : "text-white/30"}`} />
                         <div className="text-left">
-                          <p className="font-mono text-sm">Allow +1s</p>
-                          <p className="text-[10px] text-white/40 font-mono">
+                          <p className="font-mono text-sm md:text-base">Allow +1s</p>
+                          <p className="text-[10px] md:text-xs text-white/40 font-mono">
                             Let guests bring additional people
                           </p>
                         </div>
@@ -524,11 +550,11 @@ function NewEventForm() {
 
                     {rsvpAllowPlusOnes && (
                       <div>
-                        <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                        <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                           MAX +1s PER GUEST
                         </label>
                         <Select value={rsvpMaxPlusOnes} onValueChange={setRsvpMaxPlusOnes}>
-                          <SelectTrigger aria-label="Maximum plus-ones per guest" className="h-12 bg-black border-white/10 font-mono">
+                          <SelectTrigger aria-label="Maximum plus-ones per guest" className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-black border-white/10">
@@ -551,9 +577,9 @@ function NewEventForm() {
                 title="EVENT DETAILS"
                 color={errors.title && touched.title ? "#ef4444" : uiAccent}
               >
-                <div className="space-y-4">
+                <div className="space-y-4 md:space-y-5">
                   <div data-field="title">
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       TITLE *
                     </label>
                     <Input
@@ -568,20 +594,20 @@ function NewEventForm() {
                         clearError("title")
                       }}
                       onBlur={() => markTouched("title")}
-                      className={`h-12 md:h-14 bg-black font-mono text-lg placeholder:text-white/20 focus:ring-0 ${
+                      className={`h-12 md:h-16 bg-black font-mono text-lg md:text-xl placeholder:text-white/20 focus:ring-0 ${
                         errors.title && touched.title
                           ? "border-red-500 focus:border-red-500"
                           : "border-white/10 focus:border-white/30"
                       }`}
                     />
                     {errors.title && touched.title && (
-                      <p id="title-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.title}</p>
+                      <p id="title-error" role="alert" className="text-red-400 text-xs md:text-sm font-mono mt-1.5">{errors.title}</p>
                     )}
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-[10px] font-mono text-white/40 tracking-widest">
+                      <label className="text-[10px] md:text-xs font-mono text-white/40 tracking-widest">
                         DESCRIPTION
                       </label>
                       {isAftieEnabled && description.length >= 50 && (
@@ -589,12 +615,12 @@ function NewEventForm() {
                           type="button"
                           onClick={summarizeDescription}
                           disabled={isSummarizing}
-                          className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-primary hover:bg-primary/5 border border-white/10 hover:border-primary/30 transition-all disabled:opacity-50"
+                          className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs font-mono text-white/40 hover:text-primary hover:bg-primary/5 border border-white/10 hover:border-primary/30 transition-all disabled:opacity-50"
                         >
                           {isSummarizing ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" />
                           ) : (
-                            <Sparkles className="w-3 h-3" />
+                            <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
                           )}
                           <span>SUMMARIZE</span>
                         </button>
@@ -607,7 +633,7 @@ function NewEventForm() {
                       rows={3}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="bg-black border-white/10 font-mono placeholder:text-white/20 focus:border-white/30 focus:ring-0 resize-none"
+                      className="bg-black border-white/10 font-mono text-sm md:text-base placeholder:text-white/20 focus:border-white/30 focus:ring-0 resize-none md:min-h-[120px]"
                     />
                   </div>
                 </div>
@@ -620,36 +646,37 @@ function NewEventForm() {
                 color={errors.startsAt && touched.startsAt ? "#ef4444" : "#00d4ff"}
               >
                 {/* Quick Date Shortcuts */}
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-5">
                   <button
                     type="button"
                     onClick={setTonightShortcut}
-                    className={`flex items-center gap-2 px-3 py-2 border text-xs font-mono transition-all ${
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 border text-xs md:text-sm font-mono transition-all ${
                       startsAt && startsAt === formatDateForInput(getTonight())
                         ? "border-[#00d4ff]/50 bg-[#00d4ff]/10 text-[#00d4ff]"
                         : "border-white/10 hover:border-[#00d4ff]/30 hover:bg-[#00d4ff]/5 text-white/60 hover:text-white"
                     }`}
                   >
-                    <Zap className="w-3 h-3" />
+                    <Zap className="w-3 h-3 md:w-4 md:h-4" />
                     Tonight
                   </button>
                   <button
                     type="button"
                     onClick={setTomorrowShortcut}
-                    className={`flex items-center gap-2 px-3 py-2 border text-xs font-mono transition-all ${
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 border text-xs md:text-sm font-mono transition-all ${
                       startsAt && startsAt === formatDateForInput(getTomorrowNight())
                         ? "border-[#00d4ff]/50 bg-[#00d4ff]/10 text-[#00d4ff]"
                         : "border-white/10 hover:border-[#00d4ff]/30 hover:bg-[#00d4ff]/5 text-white/60 hover:text-white"
                     }`}
                   >
-                    <Calendar className="w-3 h-3" />
+                    <Calendar className="w-3 h-3 md:w-4 md:h-4" />
                     Tomorrow night ({getTomorrowDateStr()}{getTomorrowOrdinal()})
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div data-field="startsAt">
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                {/* Date/time grid - stays single column on small screens, 2 cols on md+ */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                  <div data-field="startsAt" className="min-w-0">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       STARTS *
                     </label>
                     <Input
@@ -664,18 +691,18 @@ function NewEventForm() {
                         clearError("startsAt")
                       }}
                       onBlur={() => markTouched("startsAt")}
-                      className={`h-12 bg-black font-mono focus:ring-0 ${
+                      className={`h-12 md:h-14 w-full bg-black font-mono text-sm md:text-base focus:ring-0 ${
                         errors.startsAt && touched.startsAt
                           ? "border-red-500 focus:border-red-500"
                           : "border-white/10 focus:border-white/30"
                       }`}
                     />
                     {errors.startsAt && touched.startsAt && (
-                      <p id="startsAt-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.startsAt}</p>
+                      <p id="startsAt-error" role="alert" className="text-red-400 text-xs md:text-sm font-mono mt-1.5">{errors.startsAt}</p>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                  <div className="min-w-0">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       ENDS
                     </label>
                     {/* End Time Mode Toggle */}
@@ -684,7 +711,7 @@ function NewEventForm() {
                         type="button"
                         aria-pressed={endTimeMode === "late"}
                         onClick={() => setEndTimeMode("late")}
-                        className={`flex-1 h-8 text-[10px] font-mono tracking-wider transition-all ${
+                        className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all ${
                           endTimeMode === "late"
                             ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
                             : "border border-white/10 text-white/40 hover:border-white/20"
@@ -696,7 +723,7 @@ function NewEventForm() {
                         type="button"
                         aria-pressed={endTimeMode === "custom"}
                         onClick={() => setEndTimeMode("custom")}
-                        className={`flex-1 h-8 text-[10px] font-mono tracking-wider transition-all ${
+                        className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all ${
                           endTimeMode === "custom"
                             ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
                             : "border border-white/10 text-white/40 hover:border-white/20"
@@ -712,23 +739,24 @@ function NewEventForm() {
                         aria-label="Event end date and time"
                         value={endsAt}
                         onChange={(e) => setEndsAt(e.target.value)}
-                        className="h-12 bg-black border-white/10 font-mono focus:border-white/30 focus:ring-0"
+                        className="h-12 md:h-14 w-full bg-black border-white/10 font-mono text-sm md:text-base focus:border-white/30 focus:ring-0"
                       />
                     ) : (
-                      <div className="h-12 bg-black border border-white/10 flex items-center px-4">
-                        <span className="font-mono text-white/40 text-sm">Until late...</span>
+                      <div className="h-12 md:h-14 w-full bg-black border border-white/10 flex items-center px-4">
+                        <span className="font-mono text-white/40 text-sm md:text-base">Until late...</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                {/* Timezone and Age - always 2 columns */}
+                <div className="grid grid-cols-2 gap-3 md:gap-4 mt-4">
+                  <div className="min-w-0">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       TIMEZONE
                     </label>
                     <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger aria-label="Timezone" className="h-12 bg-black border-white/10 font-mono">
+                      <SelectTrigger aria-label="Timezone" className="h-12 md:h-14 w-full bg-black border-white/10 font-mono text-sm md:text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-black border-white/10">
@@ -739,12 +767,12 @@ function NewEventForm() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                  <div className="min-w-0">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       AGE
                     </label>
                     <Select value={ageRestriction} onValueChange={setAgeRestriction}>
-                      <SelectTrigger aria-label="Age restriction" className="h-12 bg-black border-white/10 font-mono">
+                      <SelectTrigger aria-label="Age restriction" className="h-12 md:h-14 w-full bg-black border-white/10 font-mono text-sm md:text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-black border-white/10">
@@ -756,12 +784,12 @@ function NewEventForm() {
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                <div className="mt-4 md:mt-5">
+                  <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                     EVENT EXPIRATION
                   </label>
                   <Select value={expiresAfter} onValueChange={setExpiresAfter}>
-                    <SelectTrigger aria-label="Event expiration" className="h-12 bg-black border-white/10 font-mono">
+                    <SelectTrigger aria-label="Event expiration" className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-black border-white/10">
@@ -773,7 +801,7 @@ function NewEventForm() {
                       <SelectItem value="never">Never (manual only)</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-[10px] text-white/30 font-mono mt-2">
+                  <p className="text-[10px] md:text-xs text-white/30 font-mono mt-2">
                     Event page will be hidden after this time
                   </p>
                 </div>
@@ -793,9 +821,9 @@ function NewEventForm() {
                 title="VENUE"
                 color={errors.venueName || errors.venueAddress || errors.city ? "#ef4444" : "#00ff88"}
               >
-                <div className="space-y-4">
+                <div className="space-y-4 md:space-y-5">
                   <div data-field="venueName">
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       VENUE NAME *
                     </label>
                     <Input
@@ -806,19 +834,19 @@ function NewEventForm() {
                       placeholder="e.g., The Warehouse"
                       onChange={() => clearError("venueName")}
                       onBlur={() => markTouched("venueName")}
-                      className={`h-12 bg-black font-mono placeholder:text-white/20 focus:ring-0 ${
+                      className={`h-12 md:h-14 bg-black font-mono text-sm md:text-base placeholder:text-white/20 focus:ring-0 ${
                         errors.venueName && touched.venueName
                           ? "border-red-500 focus:border-red-500"
                           : "border-white/10 focus:border-white/30"
                       }`}
                     />
                     {errors.venueName && touched.venueName && (
-                      <p id="venueName-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.venueName}</p>
+                      <p id="venueName-error" role="alert" className="text-red-400 text-xs md:text-sm font-mono mt-1.5">{errors.venueName}</p>
                     )}
                   </div>
 
                   <div data-field="venueAddress">
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                       ADDRESS *
                     </label>
                     <Input
@@ -829,20 +857,20 @@ function NewEventForm() {
                       placeholder="e.g., 123 Industrial Ave"
                       onChange={() => clearError("venueAddress")}
                       onBlur={() => markTouched("venueAddress")}
-                      className={`h-12 bg-black font-mono placeholder:text-white/20 focus:ring-0 ${
+                      className={`h-12 md:h-14 bg-black font-mono text-sm md:text-base placeholder:text-white/20 focus:ring-0 ${
                         errors.venueAddress && touched.venueAddress
                           ? "border-red-500 focus:border-red-500"
                           : "border-white/10 focus:border-white/30"
                       }`}
                     />
                     {errors.venueAddress && touched.venueAddress && (
-                      <p id="venueAddress-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.venueAddress}</p>
+                      <p id="venueAddress-error" role="alert" className="text-red-400 text-xs md:text-sm font-mono mt-1.5">{errors.venueAddress}</p>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div data-field="city">
-                      <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                      <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                         CITY *
                       </label>
                       <Select
@@ -857,7 +885,7 @@ function NewEventForm() {
                           aria-label="City"
                           aria-required="true"
                           aria-describedby={errors.city && touched.city ? "city-error" : undefined}
-                          className={`h-12 bg-black font-mono ${
+                          className={`h-12 md:h-14 bg-black font-mono text-sm md:text-base ${
                           errors.city && touched.city
                             ? "border-red-500"
                             : "border-white/10"
@@ -871,18 +899,18 @@ function NewEventForm() {
                         </SelectContent>
                       </Select>
                       {errors.city && touched.city && (
-                        <p id="city-error" role="alert" className="text-red-400 text-xs font-mono mt-1.5">{errors.city}</p>
+                        <p id="city-error" role="alert" className="text-red-400 text-xs md:text-sm font-mono mt-1.5">{errors.city}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-2">
+                      <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-2">
                         STATE
                       </label>
                       <Input
                         name="state"
                         aria-label="State"
                         placeholder="e.g., NY"
-                        className="h-12 bg-black border-white/10 font-mono placeholder:text-white/20 focus:border-white/30 focus:ring-0"
+                        className="h-12 md:h-14 bg-black border-white/10 font-mono text-sm md:text-base placeholder:text-white/20 focus:border-white/30 focus:ring-0"
                       />
                     </div>
                   </div>
@@ -895,17 +923,17 @@ function NewEventForm() {
                     aria-pressed={isAddressHidden}
                     onClick={() => setIsAddressHidden(!isAddressHidden)}
                     onKeyDown={(e) => e.key === "Enter" && setIsAddressHidden(!isAddressHidden)}
-                    className={`w-full flex items-center justify-between p-4 border transition-all cursor-pointer ${
+                    className={`w-full flex items-center justify-between p-4 md:p-5 border transition-all cursor-pointer ${
                       isAddressHidden
                         ? "border-[#ff6b00]/50 bg-[#ff6b00]/5"
                         : "border-white/10 hover:border-white/20"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <Lock className={`w-4 h-4 ${isAddressHidden ? "text-[#ff6b00]" : "text-white/30"}`} />
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <Lock className={`w-4 h-4 md:w-5 md:h-5 ${isAddressHidden ? "text-[#ff6b00]" : "text-white/30"}`} />
                       <div className="text-left">
-                        <p className="font-mono text-sm">Secret Location</p>
-                        <p className="text-[10px] text-white/40 font-mono">
+                        <p className="font-mono text-sm md:text-base">Secret Location</p>
+                        <p className="text-[10px] md:text-xs text-white/40 font-mono">
                           Address revealed after purchase
                         </p>
                       </div>
@@ -1023,12 +1051,12 @@ function NewEventForm() {
                 isOpen={showStyle}
                 onToggle={() => setShowStyle(!showStyle)}
               >
-                <div className="space-y-4">
+                <div className="space-y-4 md:space-y-5">
                   <div>
-                    <label className="block text-[10px] font-mono text-white/40 tracking-widest mb-3">
+                    <label className="block text-[10px] md:text-xs font-mono text-white/40 tracking-widest mb-3 md:mb-4">
                       ACCENT COLOR
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 md:gap-3">
                       {ACCENT_COLORS.map((color) => (
                         <button
                           key={color.value}
@@ -1036,7 +1064,7 @@ function NewEventForm() {
                           onClick={() => setEventAccentColor(color.value)}
                           aria-label={`Select ${color.name} accent color`}
                           aria-pressed={eventAccentColor === color.value}
-                          className={`w-10 h-10 md:w-12 md:h-12 transition-all ${
+                          className={`w-10 h-10 md:w-14 md:h-14 transition-all ${
                             eventAccentColor === color.value
                               ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
                               : "hover:scale-105"
@@ -1045,7 +1073,7 @@ function NewEventForm() {
                           title={color.name}
                         />
                       ))}
-                      <div className="relative w-10 h-10 md:w-12 md:h-12 border border-white/20 overflow-hidden">
+                      <div className="relative w-10 h-10 md:w-14 md:h-14 border border-white/20 overflow-hidden">
                         <input
                           type="color"
                           value={eventAccentColor}
@@ -1054,7 +1082,7 @@ function NewEventForm() {
                           className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Plus className="w-4 h-4 text-white/40" />
+                          <Plus className="w-4 h-4 md:w-5 md:h-5 text-white/40" />
                         </div>
                       </div>
                     </div>
@@ -1062,14 +1090,14 @@ function NewEventForm() {
                 </div>
               </ExpandableSection>
 
-              {/* Submit - Mobile */}
-              <div className="lg:hidden pt-4 pb-8">
+              {/* Submit - Mobile & Tablet (visible below xl) */}
+              <div className="xl:hidden pt-4 md:pt-6 pb-8">
                 <SubmitButton loading={loading} accentColor={uiAccent} isSeries={recurrence.enabled} />
               </div>
             </div>
 
-            {/* Sidebar - Desktop Only */}
-            <div className="hidden lg:block order-1 lg:order-2">
+            {/* Sidebar - Desktop Only (xl+) */}
+            <div className="hidden xl:block order-1 xl:order-2">
               <div className="sticky top-8 space-y-4">
                 {/* Flyer Upload */}
                 <div className="border border-white/10 bg-white/[0.02]">
@@ -1160,13 +1188,13 @@ function SectionCard({
   return (
     <div className="border border-white/10 bg-white/[0.02]">
       <div
-        className="px-4 py-3 border-b border-white/10 flex items-center gap-3"
+        className="px-4 md:px-5 py-3 md:py-4 border-b border-white/10 flex items-center gap-3"
         style={{ borderLeftWidth: "3px", borderLeftColor: color }}
       >
-        <span style={{ color }}>{icon}</span>
-        <span className="text-[10px] font-mono text-white/60 tracking-widest">{title}</span>
+        <span className="[&>svg]:w-4 [&>svg]:h-4 md:[&>svg]:w-5 md:[&>svg]:h-5" style={{ color }}>{icon}</span>
+        <span className="text-[10px] md:text-xs font-mono text-white/60 tracking-widest">{title}</span>
       </div>
-      <div className={compact ? "p-4" : "p-4 md:p-5"}>{children}</div>
+      <div className={compact ? "p-4 md:p-5" : "p-4 md:p-6 lg:p-5"}>{children}</div>
     </div>
   )
 }
@@ -1197,33 +1225,33 @@ function ExpandableSection({
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-label={`${title}: ${subtitle}${isOpen ? " (expanded)" : " (collapsed)"}`}
-        className="w-full px-4 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-all"
+        className="w-full px-4 md:px-5 py-4 md:py-5 flex items-center justify-between hover:bg-white/[0.02] transition-all"
         style={{ borderLeftWidth: "3px", borderLeftColor: isOpen ? color : "transparent" }}
       >
         <div className="flex items-center gap-3">
-          <span className={isOpen ? "" : "text-white/30"} style={{ color: isOpen ? color : undefined }}>
+          <span className={`[&>svg]:w-4 [&>svg]:h-4 md:[&>svg]:w-5 md:[&>svg]:h-5 ${isOpen ? "" : "text-white/30"}`} style={{ color: isOpen ? color : undefined }}>
             {icon}
           </span>
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-white/60 tracking-widest">{title}</span>
+              <span className="text-[10px] md:text-xs font-mono text-white/60 tracking-widest">{title}</span>
               {badge && (
                 <span
-                  className="text-[9px] font-mono px-1.5 py-0.5"
+                  className="text-[9px] md:text-[10px] font-mono px-1.5 py-0.5"
                   style={{ backgroundColor: `${color}20`, color }}
                 >
                   {badge}
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-white/30 font-mono">{subtitle}</p>
+            <p className="text-[10px] md:text-xs text-white/30 font-mono">{subtitle}</p>
           </div>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-white/30 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 md:w-5 md:h-5 text-white/30 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      {isOpen && <div className="px-4 pb-4 pt-2 border-t border-white/10">{children}</div>}
+      {isOpen && <div className="px-4 md:px-5 pb-4 md:pb-5 pt-2 md:pt-3 border-t border-white/10">{children}</div>}
     </div>
   )
 }
@@ -1233,17 +1261,17 @@ function SubmitButton({ loading, accentColor, isSeries }: { loading: boolean; ac
     <button
       type="submit"
       disabled={loading}
-      className="w-full h-14 font-mono font-bold text-sm tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+      className="w-full h-14 md:h-16 font-mono font-bold text-sm md:text-base tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 md:gap-3"
       style={{ backgroundColor: accentColor, color: "#000" }}
     >
       {loading ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
           {isSeries ? "CREATING SERIES..." : "CREATING..."}
         </>
       ) : (
         <>
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
           {isSeries ? "CREATE SERIES" : "CREATE EVENT"}
         </>
       )}

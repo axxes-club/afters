@@ -11,7 +11,7 @@ test.describe('New User Onboarding', () => {
     await authenticateAs(newTestUser, { skipOnboarding: false });
 
     // Navigate to dashboard - should redirect to onboarding
-    await page.goto('/d');
+    await page.goto('/b');
 
     // Wait for either dashboard or onboarding
     await page.waitForURL(/\/(d|onboarding)/, { timeout: 15000 });
@@ -35,11 +35,11 @@ test.describe('New User Onboarding', () => {
       await onboardingPage.submitProfile();
 
       // Should redirect to dashboard
-      await expect(page).toHaveURL(/\/d/, { timeout: 15000 });
+      await expect(page).toHaveURL(/\/b/, { timeout: 15000 });
     }
 
     // Verify we're on the dashboard
-    await expect(page).toHaveURL(/\/d/);
+    await expect(page).toHaveURL(/\/b/);
   });
 
   test('should show error for invalid slug format', async ({

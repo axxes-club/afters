@@ -2,7 +2,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 /**
- * Page object for the dashboard (/d)
+ * Page object for the dashboard (/b)
  */
 export class DashboardPage extends BasePage {
   // Navigation
@@ -33,7 +33,7 @@ export class DashboardPage extends BasePage {
    * Navigate to dashboard
    */
   async goto() {
-    await this.navigateTo('/d');
+    await this.navigateTo('/b');
   }
 
   /**
@@ -41,21 +41,21 @@ export class DashboardPage extends BasePage {
    */
   async goToCreateEvent() {
     await this.createEventButton.click();
-    await expect(this.page).toHaveURL(/\/d\/events\/new/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/b\/events\/new/, { timeout: 10000 });
   }
 
   /**
    * Navigate to a specific event by ID
    */
   async goToEvent(eventId: string) {
-    await this.navigateTo(`/d/events/${eventId}`);
+    await this.navigateTo(`/b/events/${eventId}`);
   }
 
   /**
    * Check if user is on the dashboard
    */
   async expectOnDashboard() {
-    await expect(this.page).toHaveURL(/\/d/);
+    await expect(this.page).toHaveURL(/\/b/);
   }
 
   /**

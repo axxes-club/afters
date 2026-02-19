@@ -17,7 +17,7 @@ import {
   Info,
   Palette,
 } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
+// Clerk account management is now in Settings > Security
 import {
   AftieProvider,
   AftieChat,
@@ -33,8 +33,9 @@ import { APP_VERSION_DISPLAY } from "@/lib/constants";
 const baseNavItems = [
   { href: "/b", label: "OVERVIEW", icon: LayoutDashboard, exact: true },
   { href: "/b/events", label: "EVENTS", icon: Calendar, exact: false },
-  { href: "/b/settings", label: "SETTINGS", icon: Settings, exact: false },
 ];
+
+const settingsNavItemMain = { href: "/b/settings", label: "SETTINGS", icon: Settings, exact: false };
 
 const settingsNavItems = [
   { href: "/b/settings", label: "PROFILE", icon: User, exact: true },
@@ -100,9 +101,11 @@ export default function DashboardLayout({
   const isInSettings = pathname.startsWith("/b/settings");
 
   // Build nav items based on context and permissions
+  // Order: Overview, Events, Scanner (if has events), Settings, Admin (if superadmin)
   const mainNavItems = [
     ...baseNavItems,
     ...(hasEvents ? [scannerNavItem] : []),
+    settingsNavItemMain,
     ...(isSuperAdmin ? [superadminNavItem] : []),
   ];
 
@@ -189,58 +192,44 @@ export default function DashboardLayout({
             })}
           </nav>
 
-          {/* Date/Time & Status - Hidden when compact */}
-          {!sidebarCompact && (
-            <div className="px-3 py-4 border-t border-white/5 space-y-3">
-              <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
-                <span>
-                  {new Date()
-                    .toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })
-                    .toUpperCase()}
-                </span>
-                <span className="text-white/10">|</span>
-                <span>
-                  {new Date().toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+          {/* Status Footer */}
+          <div className={`${sidebarCompact ? "p-2" : "px-3 py-4"} border-t border-white/5`}>
+            {sidebarCompact ? (
+              /* Compact: just show online indicator */
+              <div className="flex items-center justify-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Online" />
               </div>
-              <div className="flex items-center justify-between">
+            ) : (
+              /* Full: date, status, version, feedback */
+              <div className="space-y-3">
                 <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span>ONLINE</span>
-                  <span className="text-white/20">(v{APP_VERSION_DISPLAY})</span>
+                  <span>
+                    {new Date()
+                      .toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })
+                      .toUpperCase()}
+                  </span>
+                  <span className="text-white/10">|</span>
+                  <span>
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </div>
-                <FeedbackButton />
-              </div>
-            </div>
-          )}
-
-          {/* User */}
-          <div className={`${sidebarCompact ? "p-2" : "p-3"} border-t border-white/5`}>
-            <div className={`flex items-center ${sidebarCompact ? "justify-center" : "gap-3"}`} suppressHydrationWarning>
-              <div className="flex-shrink-0">
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8",
-                    },
-                  }}
-                />
-              </div>
-              {!sidebarCompact && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-mono text-white/30 truncate">
-                    OPERATOR
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    <span>ONLINE</span>
+                    <span className="text-white/20">(v{APP_VERSION_DISPLAY})</span>
+                  </div>
+                  <FeedbackButton />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </aside>
 
