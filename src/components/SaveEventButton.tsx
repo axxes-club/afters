@@ -67,8 +67,8 @@ export function SaveEventButton({
         className={cn(
           "flex items-center gap-2 px-4 py-2 rounded-md border transition-colors",
           isSaved 
-            ? "bg-[#ff1493]/10 border-[#ff1493] text-[#ff1493]" 
-            : "border-white/10 hover:border-[#ff1493]/50 text-white/60 hover:text-white",
+            ? "bg-primary/10 border-primary text-primary" 
+            : "border-white/10 hover:border-primary/50 text-white/60 hover:text-white",
           className
         )}
       >
@@ -89,8 +89,8 @@ export function SaveEventButton({
       onClick={handleToggleSave}
       disabled={isLoading}
       className={cn(
-        "p-2 rounded-full transition-all bg-black/50 backdrop-blur-md border border-white/10 hover:border-[#ff1493]/50",
-        isSaved ? "text-[#ff1493]" : "text-white/60 hover:text-white",
+        "p-2 rounded-full transition-all bg-black/50 backdrop-blur-md border border-white/10 hover:border-primary/50",
+        isSaved ? "text-primary" : "text-white/60 hover:text-white",
         className
       )}
       title={isSaved ? "Remove from watch list" : "Save to watch list"}

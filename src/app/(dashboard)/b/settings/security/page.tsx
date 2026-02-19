@@ -235,7 +235,7 @@ export default function SecurityPage() {
           <span className="text-[10px] font-mono text-white/40 tracking-widest">API KEYS</span>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <button className="flex items-center gap-1.5 px-2 py-1 bg-[#ff1493] text-black text-[10px] font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all">
+              <button className="flex items-center gap-1.5 px-2 py-1 bg-primary text-black text-[10px] font-mono font-bold tracking-wider hover:bg-primary/90 transition-all">
                 <Plus className="w-3 h-3" />
                 NEW
               </button>
@@ -287,7 +287,7 @@ export default function SecurityPage() {
                             onClick={() => toggleScope(scope.value)}
                             className={`px-2 py-1 text-xs font-mono border transition-all ${
                               selectedScopes.includes(scope.value)
-                                ? "border-[#ff1493] bg-[#ff1493]/10 text-[#ff1493]"
+                                ? "border-primary bg-primary/10 text-primary"
                                 : "border-white/10 text-white/50 hover:border-white/20"
                             }`}
                           >
@@ -299,7 +299,7 @@ export default function SecurityPage() {
                   </div>
                   <DialogFooter className="gap-2">
                     <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={createApiKey} disabled={creating} className="bg-[#ff1493] hover:bg-[#ff1493]/80 text-black">
+                    <Button onClick={createApiKey} disabled={creating} className="bg-primary hover:bg-primary/80 text-black">
                       {creating ? "Creating..." : "Create"}
                     </Button>
                   </DialogFooter>
@@ -380,7 +380,7 @@ export default function SecurityPage() {
           className="border-t border-white/5 p-3 flex items-center justify-between hover:bg-white/[0.02] transition-all group"
         >
           <span className="text-xs font-mono text-white/40 group-hover:text-white transition-colors">API Documentation</span>
-          <ArrowRight className="w-3 h-3 text-white/20 group-hover:text-[#ff1493] transition-colors" />
+          <ArrowRight className="w-3 h-3 text-white/20 group-hover:text-primary transition-colors" />
         </Link>
       </div>
 
@@ -393,7 +393,7 @@ export default function SecurityPage() {
         <div className="p-4 space-y-2">
           {SECURITY_TIPS.map((tip, i) => (
             <div key={i} className="flex items-center gap-2">
-              <Check className="w-3.5 h-3.5 text-[#ff1493]" />
+              <Check className="w-3.5 h-3.5 text-primary" />
               <span className="text-sm text-white/60">{tip}</span>
             </div>
           ))}

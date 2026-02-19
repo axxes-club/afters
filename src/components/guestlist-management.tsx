@@ -168,7 +168,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
           </button>
           <button
             onClick={() => setShowAddDialog(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff1493] text-black text-[10px] font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-black text-[10px] font-mono font-bold tracking-wider hover:bg-primary/90 transition-all"
           >
             <Plus className="w-3 h-3" />
             ADD GUEST
@@ -201,7 +201,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
               placeholder="Search guestlist..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-white/[0.02] border border-white/10 text-sm font-mono text-white placeholder:text-white/20 focus:border-[#ff1493]/50 focus:outline-none transition-colors"
+              className="w-full pl-9 pr-3 py-2 bg-white/[0.02] border border-white/10 text-sm font-mono text-white placeholder:text-white/20 focus:border-primary/50 focus:outline-none transition-colors"
             />
           </div>
         </div>
@@ -210,7 +210,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
       {/* List */}
       {loading ? (
         <div className="p-8 text-center">
-          <div className="w-5 h-5 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin mx-auto" />
+          <div className="w-5 h-5 border-2 border-primary/30 border-t-primary animate-spin mx-auto" />
         </div>
       ) : entries.length === 0 ? (
         <div className="p-12 text-center">
@@ -260,7 +260,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
               </div>
               <div className="text-center">
                 {entry.plusOnes > 0 ? (
-                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 bg-[#ff1493]/10 text-[#ff1493] text-[10px] font-mono font-bold">
+                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] font-mono font-bold">
                     +{entry.plusOnes}
                   </span>
                 ) : (
@@ -298,7 +298,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
         <DialogContent className="border-white/10 bg-black">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <Users className="h-4 w-4 text-[#ff1493]" />
+              <Users className="h-4 w-4 text-primary" />
               Add to Guestlist
             </DialogTitle>
             <DialogDescription className="text-xs text-white/40">
@@ -315,7 +315,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
                 name="name"
                 placeholder="John Smith"
                 required
-                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -328,7 +328,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
                   name="phone"
                   type="tel"
                   placeholder="+1 555-123-4567"
-                  className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                  className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
                 />
               </div>
               <div className="space-y-1.5">
@@ -342,7 +342,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
                   min="0"
                   max="10"
                   defaultValue="0"
-                  className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                  className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
                 />
               </div>
             </div>
@@ -355,7 +355,7 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
                 name="email"
                 type="email"
                 placeholder="john@example.com"
-                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
               />
             </div>
             <div className="space-y-1.5">
@@ -366,13 +366,13 @@ export function GuestlistManagement({ eventId }: { eventId: string }) {
                 id="notes"
                 name="notes"
                 placeholder="VIP, Artist +1, etc."
-                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
               />
             </div>
             <button
               type="submit"
               disabled={addLoading}
-              className="w-full py-2.5 bg-[#ff1493] text-black font-mono font-bold hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
+              className="w-full py-2.5 bg-primary text-black font-mono font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
             >
               {addLoading ? "Adding..." : "Add to Guestlist"}
             </button>

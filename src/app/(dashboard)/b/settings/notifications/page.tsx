@@ -198,14 +198,14 @@ export default function NotificationsPage() {
           </div>
         </div>
       ) : !pushEnabled ? (
-        <div className="relative overflow-hidden border border-[#ff1493]/30 bg-gradient-to-br from-[#ff1493]/10 via-[#ff1493]/5 to-transparent">
+        <div className="relative overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
           {/* Glow effect */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#ff1493]/20 rounded-full blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 rounded-full blur-3xl" />
           
           <div className="relative p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-start gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-[#ff1493]/20 flex items-center justify-center flex-shrink-0 ring-1 ring-[#ff1493]/30">
-                <Zap className="w-8 h-8 text-[#ff1493]" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0 ring-1 ring-primary/30">
+                <Zap className="w-8 h-8 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="font-mono text-lg font-bold tracking-tight">Enable Push Notifications</p>
@@ -221,7 +221,7 @@ export default function NotificationsPage() {
                   <button
                     onClick={handlePushToggle}
                     disabled={pushLoading}
-                    className="mt-5 px-6 py-3 bg-[#ff1493] text-black text-sm font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50 flex items-center gap-2"
+                    className="mt-5 px-6 py-3 bg-primary text-black text-sm font-mono font-bold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center gap-2"
                   >
                     <Smartphone className="w-4 h-4" />
                     {pushLoading ? "ENABLING..." : "ENABLE PUSH"}
@@ -301,7 +301,7 @@ export default function NotificationsPage() {
                         onClick={() => savePreference(emailKey, !emailEnabled)}
                         disabled={saving}
                         className={`relative w-9 h-5 rounded-full transition-colors ${
-                          emailEnabled ? "bg-[#ff1493]" : "bg-white/10 group-hover:bg-white/15"
+                          emailEnabled ? "bg-primary" : "bg-white/10 group-hover:bg-white/15"
                         }`}
                         aria-label={`Toggle email ${type.title.toLowerCase()}`}
                       >
@@ -322,7 +322,7 @@ export default function NotificationsPage() {
                           onClick={() => savePreference(pushKey, !pushPrefEnabled)}
                           disabled={saving}
                           className={`relative w-9 h-5 rounded-full transition-colors ${
-                            pushPrefEnabled ? "bg-[#ff1493]" : "bg-white/10 group-hover:bg-white/15"
+                            pushPrefEnabled ? "bg-primary" : "bg-white/10 group-hover:bg-white/15"
                           }`}
                           aria-label={`Toggle push ${type.title.toLowerCase()}`}
                         >

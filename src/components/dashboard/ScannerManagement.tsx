@@ -197,7 +197,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
     return (
       <div className="border border-white/10 bg-white/[0.02]">
         <div className="p-8 text-center">
-          <div className="w-5 h-5 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin mx-auto" />
+          <div className="w-5 h-5 border-2 border-primary/30 border-t-primary animate-spin mx-auto" />
         </div>
       </div>
     )
@@ -221,7 +221,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
           </button>
           <button
             onClick={() => setShowDialog(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff1493] text-black text-[10px] font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-black text-[10px] font-mono font-bold tracking-wider hover:bg-primary/90 transition-all"
           >
             <Plus className="w-3 h-3" />
             ADD SCANNER
@@ -261,7 +261,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                 <div className="flex items-center gap-4 mt-1">
                   <button
                     onClick={() => copyCode(scanner.code)}
-                    className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-[#ff1493] transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-primary transition-colors"
                   >
                     <code className="bg-white/5 px-2 py-0.5 border border-white/10 text-[11px]">
                       {scanner.code}
@@ -292,7 +292,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                     <button
                       onClick={() => resendCredentials(scanner)}
                       disabled={resendingId === scanner.id}
-                      className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-mono text-white/40 hover:text-[#ff1493] hover:bg-white/5 transition-all disabled:opacity-50"
+                      className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-mono text-white/40 hover:text-primary hover:bg-white/5 transition-all disabled:opacity-50"
                       title="Resend credentials"
                     >
                       <RotateCw className={`w-2.5 h-2.5 ${resendingId === scanner.id ? 'animate-spin' : ''}`} />
@@ -306,14 +306,14 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                   onClick={() => toggleActive(scanner.id, scanner.isActive)}
                   className={`relative w-9 h-5 transition-all ${
                     scanner.isActive
-                      ? "bg-[#ff1493]/20 border border-[#ff1493]/50"
+                      ? "bg-primary/20 border border-primary/50"
                       : "bg-white/5 border border-white/10"
                   }`}
                 >
                   <div
                     className={`absolute top-0.5 w-3.5 h-3.5 transition-all ${
                       scanner.isActive
-                        ? "left-[18px] bg-[#ff1493]"
+                        ? "left-[18px] bg-primary"
                         : "left-0.5 bg-white/30"
                     }`}
                   />
@@ -335,7 +335,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
         <DialogContent className="border-white/10 bg-black">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <QrCode className="h-4 w-4 text-[#ff1493]" />
+              <QrCode className="h-4 w-4 text-primary" />
               Create Scanner
             </DialogTitle>
             <DialogDescription className="text-xs text-white/40">
@@ -352,7 +352,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                 placeholder="e.g., John Smith"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
               />
             </div>
             <div className="space-y-1.5">
@@ -365,7 +365,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                 placeholder="e.g., john@example.com"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
               />
               <p className="text-[10px] text-white/30 font-mono">
                 Scanner credentials will be sent to this email
@@ -377,7 +377,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
                   id="send-email"
                   checked={sendEmailOnCreate}
                   onCheckedChange={(checked: boolean | "indeterminate") => setSendEmailOnCreate(checked === true)}
-                  className="border-white/20 data-[state=checked]:bg-[#ff1493] data-[state=checked]:border-[#ff1493]"
+                  className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
                 <Label htmlFor="send-email" className="text-xs font-mono text-white/50 cursor-pointer">
                   Send scanner link and code via email
@@ -388,7 +388,7 @@ export function ScannerManagement({ eventId }: { eventId: string }) {
               onClick={createScanner}
               disabled={creating}
               onKeyDown={(e) => e.key === "Enter" && createScanner()}
-              className="w-full py-2.5 bg-[#ff1493] text-black font-mono font-bold hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
+              className="w-full py-2.5 bg-primary text-black font-mono font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
             >
               {creating ? "Creating..." : "Create Scanner"}
             </button>

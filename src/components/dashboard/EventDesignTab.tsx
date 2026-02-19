@@ -1290,8 +1290,8 @@ export function EventDesignTab({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 border border-[#ff1493]/30 bg-[#ff1493]/5 flex items-center justify-center">
-              <Layout className="w-4 h-4 text-[#ff1493]" />
+            <div className="w-8 h-8 border border-primary/30 bg-primary/5 flex items-center justify-center">
+              <Layout className="w-4 h-4 text-primary" />
             </div>
             <div>
               <h3 className="font-mono font-bold text-sm tracking-wide">PAGE TEMPLATE</h3>
@@ -1348,7 +1348,7 @@ export function EventDesignTab({
                     className={`
                       relative border-2 transition-all duration-300 cursor-pointer group
                       ${isSelected
-                        ? "border-[#ff1493] bg-[#ff1493]/5"
+                        ? "border-primary bg-primary/5"
                         : isActive && isMobile
                           ? "border-white/30 bg-white/[0.02]"
                           : "border-white/10 bg-white/[0.01] sm:hover:border-white/30"
@@ -1357,7 +1357,7 @@ export function EventDesignTab({
                   >
                     {/* Selection indicator */}
                     {isSelected && (
-                      <div className="absolute -top-px -right-px w-8 h-8 bg-[#ff1493] flex items-center justify-center z-10">
+                      <div className="absolute -top-px -right-px w-8 h-8 bg-primary flex items-center justify-center z-10">
                         <Check className="w-4 h-4 text-black" />
                       </div>
                     )}
@@ -1383,7 +1383,7 @@ export function EventDesignTab({
                       <div className="flex items-center justify-between mb-0.5">
                         <h4 className="font-mono font-bold text-xs tracking-wide">{template.name}</h4>
                         {isSelected && (
-                          <span className="text-[8px] font-mono px-1.5 py-0.5 bg-[#ff1493] text-black">
+                          <span className="text-[8px] font-mono px-1.5 py-0.5 bg-primary text-black">
                             ACTIVE
                           </span>
                         )}
@@ -1412,7 +1412,7 @@ export function EventDesignTab({
               className={`
                 h-1 transition-all duration-300
                 ${activeIndex === index
-                  ? "w-6 bg-[#ff1493]"
+                  ? "w-6 bg-primary"
                   : "w-2 bg-white/20 hover:bg-white/40"
                 }
               `}
@@ -1478,7 +1478,7 @@ export function EventDesignTab({
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-3 bg-[#ff1493] text-black font-mono font-bold text-sm tracking-wider hover:bg-[#ff1493]/90 disabled:opacity-50 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-primary text-black font-mono font-bold text-sm tracking-wider hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center gap-2"
         >
           {saving ? (
             <>

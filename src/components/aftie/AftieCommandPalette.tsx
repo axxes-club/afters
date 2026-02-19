@@ -64,7 +64,7 @@ export function AftieCommandPalette() {
         <div className="bg-black border border-white/10 shadow-2xl">
           <form onSubmit={handleFormSubmit}>
             <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <input
@@ -78,7 +78,7 @@ export function AftieCommandPalette() {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="h-8 w-8 flex items-center justify-center bg-[#ff1493] hover:bg-[#ff1493]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="h-8 w-8 flex items-center justify-center bg-primary hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
                   <Loader2 className="w-3 h-3 animate-spin" />

@@ -222,7 +222,7 @@ export function ArtistProfileForm({ profile }: Props) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-[#ff1493]" />
+              <Palette className="h-5 w-5 text-primary" />
               <CardTitle>Customization</CardTitle>
             </div>
             <CardDescription>Personalize how your profile looks</CardDescription>
@@ -294,7 +294,7 @@ export function ArtistProfileForm({ profile }: Props) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-[#ff1493]" />
+              <Globe className="h-5 w-5 text-primary" />
               <CardTitle>Social & Music Platforms</CardTitle>
             </div>
             <CardDescription>Connect your profiles across the web</CardDescription>
@@ -399,7 +399,7 @@ export function ArtistProfileForm({ profile }: Props) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-[#ff1493]" />
+              <Building2 className="h-5 w-5 text-primary" />
               <CardTitle>Professional</CardTitle>
             </div>
             <CardDescription>Business and booking information</CardDescription>

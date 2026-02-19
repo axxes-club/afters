@@ -41,7 +41,7 @@ function formatCurrency(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`
 }
 
-function MiniChart({ data, color = "bg-[#ff1493]" }: { data: number[]; color?: string }) {
+function MiniChart({ data, color = "bg-primary" }: { data: number[]; color?: string }) {
   const max = Math.max(...data, 1)
 
   return (
@@ -85,7 +85,7 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="w-6 h-6 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary animate-spin" />
       </div>
     )
   }
@@ -120,7 +120,7 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
               onClick={() => setTimeRange(option.value)}
               className={`px-3 py-1.5 text-xs font-mono tracking-wider transition-all ${
                 timeRange === option.value
-                  ? "bg-[#ff1493] text-black"
+                  ? "bg-primary text-black"
                   : "text-white/50 hover:text-white"
               }`}
             >
@@ -199,14 +199,14 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
                     <div className="flex justify-between text-sm font-mono">
                       <span className="text-white/80">{tier.name}</span>
                       <span className="text-white/40">
-                        <span className="text-[#ff1493]">{tier.sold}</span>
+                        <span className="text-primary">{tier.sold}</span>
                         <span className="text-white/20 mx-1">/</span>
                         {tier.sold + tier.available}
                       </span>
                     </div>
                     <div className="h-1.5 bg-white/5">
                       <div
-                        className="h-full bg-[#ff1493] transition-all"
+                        className="h-full bg-primary transition-all"
                         style={{ width: `${tier.percentSold}%` }}
                       />
                     </div>
@@ -242,7 +242,7 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
                             }
                           })()}
                         </span>
-                        <span className="text-[#ff1493] flex-shrink-0">{ref.count}</span>
+                        <span className="text-primary flex-shrink-0">{ref.count}</span>
                       </div>
                       <div className="h-1 bg-white/5">
                         <div
@@ -292,7 +292,7 @@ export default function EventAnalyticsPage({ params }: { params: Promise<{ event
                       </td>
                       <td className="text-right py-3 px-4 text-white/80">{day.count}</td>
                       <td className="text-right py-3 px-4 text-white/80">{orderDay?.count || 0}</td>
-                      <td className="text-right py-3 px-4 text-[#ff1493]">
+                      <td className="text-right py-3 px-4 text-primary">
                         {orderDay ? formatCurrency(orderDay.revenue) : "$0.00"}
                       </td>
                     </tr>
@@ -327,19 +327,19 @@ function StatCard({
   return (
     <div
       className={`border p-4 ${
-        highlight ? "border-[#ff1493]/50 bg-[#ff1493]/5" : "border-white/10 bg-white/[0.02]"
+        highlight ? "border-primary/50 bg-primary/5" : "border-white/10 bg-white/[0.02]"
       }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className={`${highlight ? "text-[#ff1493]" : "text-white/30"}`}>{icon}</span>
+        <span className={`${highlight ? "text-primary" : "text-white/30"}`}>{icon}</span>
         <span className="text-[10px] font-mono text-white/30 tracking-widest">{label}</span>
       </div>
-      <p className={`text-xl font-mono font-bold ${highlight ? "text-[#ff1493]" : ""}`}>{value}</p>
+      <p className={`text-xl font-mono font-bold ${highlight ? "text-primary" : ""}`}>{value}</p>
       {subtext && <p className="text-[10px] font-mono text-white/40 mt-1">{subtext}</p>}
       {progress !== undefined && (
         <div className="mt-3 h-1.5 bg-white/5">
           <div
-            className={`h-full ${highlight ? "bg-[#ff1493]" : "bg-white/20"}`}
+            className={`h-full ${highlight ? "bg-primary" : "bg-white/20"}`}
             style={{ width: `${Math.min(100, progress)}%` }}
           />
         </div>

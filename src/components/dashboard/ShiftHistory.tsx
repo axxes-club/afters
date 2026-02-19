@@ -47,7 +47,7 @@ export function ShiftHistory({ eventId }: { eventId: string }) {
     return (
       <div className="border border-white/10 bg-white/[0.02]">
         <div className="p-8 text-center">
-          <div className="w-5 h-5 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin mx-auto" />
+          <div className="w-5 h-5 border-2 border-primary/30 border-t-primary animate-spin mx-auto" />
         </div>
       </div>
     )
@@ -86,7 +86,7 @@ export function ShiftHistory({ eventId }: { eventId: string }) {
                   {formatDuration(shift.punchedInAt, shift.punchedOutAt)}
                 </span>
               ) : (
-                <span className="text-[9px] font-mono text-[#ff1493] tracking-wider px-2 py-0.5 border border-[#ff1493]/30 bg-[#ff1493]/5">
+                <span className="text-[9px] font-mono text-primary tracking-wider px-2 py-0.5 border border-primary/30 bg-primary/5">
                   ACTIVE · {formatDuration(shift.punchedInAt, null)}
                 </span>
               )}

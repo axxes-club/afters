@@ -156,7 +156,7 @@ export function Turnstile({ onVerify, onError, onExpire, className }: TurnstileP
           <button
             type="button"
             onClick={handleRetry}
-            className="text-[#ff1493] text-xs font-mono hover:underline"
+            className="text-primary text-xs font-mono hover:underline"
           >
             Try again
           </button>

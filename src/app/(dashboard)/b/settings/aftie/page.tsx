@@ -174,20 +174,20 @@ export default function AftieSettingsPage() {
       {/* Hero Section */}
       {status?.isSetup ? (
         /* Active State */
-        <div className="border border-[#ff1493]/30 bg-gradient-to-br from-[#ff1493]/10 via-[#ff1493]/5 to-transparent relative overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#ff1493]/20 rounded-full blur-3xl" />
+        <div className="border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
           
           <div className="relative p-6 sm:p-8">
             <div className="flex items-start gap-4 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-[#ff1493]/20 flex items-center justify-center ring-1 ring-[#ff1493]/30">
-                <Bot className="w-7 h-7 text-[#ff1493]" />
+              <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center ring-1 ring-primary/30">
+                <Bot className="w-7 h-7 text-primary" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h2 className="font-mono font-bold text-lg">Aftie is Active</h2>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#ff1493]/20 rounded-full">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#ff1493] animate-pulse" />
-                    <span className="text-[10px] font-mono text-[#ff1493]">ONLINE</span>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/20 rounded-full">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="text-[10px] font-mono text-primary">ONLINE</span>
                   </div>
                 </div>
                 <p className="text-sm text-white/50">
@@ -200,7 +200,7 @@ export default function AftieSettingsPage() {
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="p-3 bg-black/30 border border-white/5 rounded">
                 <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">API KEY</p>
-                <code className="text-xs font-mono text-[#ff1493] truncate block">{status.keyName}</code>
+                <code className="text-xs font-mono text-primary truncate block">{status.keyName}</code>
               </div>
               <div className="p-3 bg-black/30 border border-white/5 rounded">
                 <p className="text-[10px] font-mono text-white/30 tracking-widest mb-1">ACTIVATED</p>
@@ -240,7 +240,7 @@ export default function AftieSettingsPage() {
       ) : (
         /* Inactive State - Activation CTA */
         <div className="border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#ff1493]/10 rounded-full blur-3xl" />
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
           
           <div className="relative p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-start gap-6">
@@ -256,7 +256,7 @@ export default function AftieSettingsPage() {
                 <Button 
                   onClick={enableAftie} 
                   disabled={enabling}
-                  className="bg-[#ff1493] hover:bg-[#ff1493]/90 text-black font-mono text-sm tracking-wider gap-2 h-11 px-6"
+                  className="bg-primary hover:bg-primary/90 text-black font-mono text-sm tracking-wider gap-2 h-11 px-6"
                 >
                   {enabling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   {enabling ? "Activating..." : "Activate Aftie"}
@@ -291,7 +291,7 @@ export default function AftieSettingsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-mono font-medium">{cap.label}</p>
-                    {status?.isSetup && <Check className="w-3.5 h-3.5 text-[#ff1493]" />}
+                    {status?.isSetup && <Check className="w-3.5 h-3.5 text-primary" />}
                   </div>
                   <p className="text-xs text-white/40 mt-0.5">{cap.desc}</p>
                 </div>

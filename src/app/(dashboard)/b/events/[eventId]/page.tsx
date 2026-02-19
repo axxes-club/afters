@@ -522,7 +522,7 @@ function EventDashboardContent({
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="w-6 h-6 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary animate-spin" />
       </div>
     );
   }
@@ -550,7 +550,7 @@ function EventDashboardContent({
               setTempFlyerUrl(event.flyerUrl);
               setShowFlyerDialog(true);
             }}
-            className="relative w-14 h-[70px] sm:w-16 sm:h-20 border border-white/10 bg-white/5 flex-shrink-0 overflow-hidden group hover:border-[#ff1493]/50 transition-colors"
+            className="relative w-14 h-[70px] sm:w-16 sm:h-20 border border-white/10 bg-white/5 flex-shrink-0 overflow-hidden group hover:border-primary/50 transition-colors"
           >
             {event.flyerUrl ? (
               <>
@@ -566,7 +566,7 @@ function EventDashboardContent({
               </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <ImageIcon className="w-5 h-5 text-white/20 group-hover:text-[#ff1493] transition-colors" />
+                <ImageIcon className="w-5 h-5 text-white/20 group-hover:text-primary transition-colors" />
               </div>
             )}
           </button>
@@ -578,7 +578,7 @@ function EventDashboardContent({
               <span
                 className={`text-[10px] font-mono px-2 py-0.5 flex-shrink-0 ${
                   event.isPublished
-                    ? "bg-[#ff1493]/10 text-[#ff1493]"
+                    ? "bg-primary/10 text-primary"
                     : "bg-yellow-500/10 text-yellow-500"
                 }`}
               >
@@ -708,7 +708,7 @@ function EventDashboardContent({
             />
             <div
               onClick={copyEventUrl}
-              className="border border-white/10 bg-white/[0.02] p-4 cursor-pointer hover:border-[#ff1493]/30 transition-all"
+              className="border border-white/10 bg-white/[0.02] p-4 cursor-pointer hover:border-primary/30 transition-all"
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-white/30">
@@ -718,7 +718,7 @@ function EventDashboardContent({
                   {copied ? "COPIED" : "COPY URL"}
                 </span>
               </div>
-              <p className="text-sm font-mono text-[#ff1493] truncate">/e/{event.slug}</p>
+              <p className="text-sm font-mono text-primary truncate">/e/{event.slug}</p>
             </div>
           </div>
 
@@ -735,9 +735,9 @@ function EventDashboardContent({
             </Link>
             <button
               onClick={copyEventUrl}
-              className="border border-white/10 p-3 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-[#ff1493]/50 hover:bg-white/[0.02] transition-all group"
+              className="border border-white/10 p-3 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-primary/50 hover:bg-white/[0.02] transition-all group"
             >
-              <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-white/30 group-hover:text-[#ff1493] transition-colors" />
+              <Copy className="w-4 h-4 sm:w-5 sm:h-5 text-white/30 group-hover:text-primary transition-colors" />
               <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-white/50 group-hover:text-white transition-colors">
                 COPY LINK
               </span>
@@ -753,7 +753,7 @@ function EventDashboardContent({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {event.isPublished ? (
-                    <Eye className="w-5 h-5 text-[#ff1493]" />
+                    <Eye className="w-5 h-5 text-primary" />
                   ) : (
                     <EyeOff className="w-5 h-5 text-white/40" />
                   )}
@@ -790,12 +790,12 @@ function EventDashboardContent({
               <div className="mt-4 p-3 bg-white/5 border border-white/10 overflow-hidden">
                 <p className="text-[10px] font-mono text-white/40 tracking-wider mb-1">EVENT URL</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs sm:text-sm font-mono text-[#ff1493] truncate min-w-0">
+                  <code className="flex-1 text-xs sm:text-sm font-mono text-primary truncate min-w-0">
                     /e/{event.slug}
                   </code>
                   <button
                     onClick={copyEventUrl}
-                    className="p-1.5 border border-white/10 hover:border-[#ff1493]/30 transition-all flex-shrink-0"
+                    className="p-1.5 border border-white/10 hover:border-primary/30 transition-all flex-shrink-0"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
@@ -855,12 +855,12 @@ function EventDashboardContent({
                       <div className="flex items-center gap-4">
                         <div className="text-right">
                           <p className="text-sm font-mono">
-                            <span className="text-[#ff1493]">{tier.quantitySold}</span>
+                            <span className="text-primary">{tier.quantitySold}</span>
                             <span className="text-white/30">/{tier.quantity}</span>
                           </p>
                           <div className="w-16 h-1 bg-white/5 mt-1">
                             <div
-                              className="h-full bg-[#ff1493]"
+                              className="h-full bg-primary"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -889,8 +889,8 @@ function EventDashboardContent({
             <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
               <span className="text-[10px] font-mono text-white/40 tracking-widest">CHECK-IN STATUS</span>
               <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 bg-[#ff1493] rounded-full animate-pulse" />
-                <span className="text-[10px] font-mono text-[#ff1493]">
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                <span className="text-[10px] font-mono text-primary">
                   {doorStats?.total ? Math.round((doorStats.checkedIn / doorStats.total) * 100) : 0}%
                 </span>
               </div>
@@ -899,7 +899,7 @@ function EventDashboardContent({
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-3xl font-mono font-bold">
-                    <span className="text-[#ff1493]">{doorStats?.checkedIn ?? 0}</span>
+                    <span className="text-primary">{doorStats?.checkedIn ?? 0}</span>
                     <span className="text-white/20 mx-1">/</span>
                     <span className="text-white/60">{doorStats?.total ?? totalSold}</span>
                   </p>
@@ -914,7 +914,7 @@ function EventDashboardContent({
               </div>
               <div className="h-2 bg-white/5">
                 <div
-                  className="h-full bg-[#ff1493] transition-all"
+                  className="h-full bg-primary transition-all"
                   style={{
                     width: `${doorStats?.total ? (doorStats.checkedIn / doorStats.total) * 100 : 0}%`,
                   }}
@@ -984,12 +984,12 @@ function EventDashboardContent({
           <div className="border border-white/10 bg-white/[0.02]">
             <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-[#ff1493]" />
+                <MapPin className="w-3.5 h-3.5 text-primary" />
                 <span className="text-[10px] font-mono text-white/40 tracking-widest">VENUE DETAILS</span>
               </div>
               <button
                 onClick={() => setShowEditDialog(true)}
-                className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-[#ff1493] transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-primary transition-colors"
               >
                 <Pencil className="w-3 h-3" />
                 EDIT
@@ -1087,15 +1087,15 @@ function EventDashboardContent({
                   disabled={eventTypeLoading || (event.ticketTiers.length === 0 && !event.isRsvpOnly)}
                   className={`p-4 border transition-all text-left ${
                     !event.isRsvpOnly
-                      ? "border-[#ff1493] bg-[#ff1493]/10"
+                      ? "border-primary bg-primary/10"
                       : "border-white/10 hover:border-white/20"
                   } ${eventTypeLoading ? "opacity-50 cursor-wait" : ""} ${
                     event.ticketTiers.length === 0 && event.isRsvpOnly ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <Ticket className={`w-5 h-5 ${!event.isRsvpOnly ? "text-[#ff1493]" : "text-white/40"}`} />
-                    <span className={`font-mono font-bold text-sm ${!event.isRsvpOnly ? "text-[#ff1493]" : "text-white/60"}`}>
+                    <Ticket className={`w-5 h-5 ${!event.isRsvpOnly ? "text-primary" : "text-white/40"}`} />
+                    <span className={`font-mono font-bold text-sm ${!event.isRsvpOnly ? "text-primary" : "text-white/60"}`}>
                       TICKETED EVENT
                     </span>
                   </div>
@@ -1104,7 +1104,7 @@ function EventDashboardContent({
                   </p>
                   {!event.isRsvpOnly && (
                     <div className="mt-2">
-                      <span className="text-[8px] font-mono text-[#ff1493] px-1.5 py-0.5 border border-[#ff1493]/30">ACTIVE</span>
+                      <span className="text-[8px] font-mono text-primary px-1.5 py-0.5 border border-primary/30">ACTIVE</span>
                     </div>
                   )}
                 </button>
@@ -1240,7 +1240,7 @@ function EventDashboardContent({
               <button
                 onClick={updateFlyer}
                 disabled={flyerLoading}
-                className="px-4 py-2 bg-[#ff1493] text-black text-sm font-mono font-bold hover:bg-[#ff1493]/90 transition-all"
+                className="px-4 py-2 bg-primary text-black text-sm font-mono font-bold hover:bg-primary/90 transition-all"
               >
                 {flyerLoading ? "Saving..." : "Save"}
               </button>
@@ -1254,7 +1254,7 @@ function EventDashboardContent({
         <DialogContent className="border-white/10 bg-black">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <Ticket className="h-4 w-4 text-[#ff1493]" />
+              <Ticket className="h-4 w-4 text-primary" />
               Add Ticket Tier
             </DialogTitle>
             <DialogDescription className="text-xs text-white/40">
@@ -1271,7 +1271,7 @@ function EventDashboardContent({
                 name="name"
                 placeholder="General Admission"
                 required
-                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
               />
             </div>
             <div className="space-y-1.5">
@@ -1282,7 +1282,7 @@ function EventDashboardContent({
                 id="description"
                 name="description"
                 placeholder="Access to main floor"
-                className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -1300,7 +1300,7 @@ function EventDashboardContent({
                   disabled
                   className="bg-white/[0.02] border-white/10 font-mono opacity-50 cursor-not-allowed"
                 />
-                <p className="text-[10px] font-mono text-[#ff1493]/60">Free during beta</p>
+                <p className="text-[10px] font-mono text-primary/60">Free during beta</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="quantity" className="text-xs font-mono text-white/50">
@@ -1313,13 +1313,13 @@ function EventDashboardContent({
                   min="1"
                   placeholder="100"
                   required
-                  className="bg-white/[0.02] border-white/10 font-mono focus:border-[#ff1493]"
+                  className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
                 />
               </div>
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 bg-[#ff1493] text-black font-mono font-bold hover:bg-[#ff1493]/90 transition-all"
+              className="w-full py-2.5 bg-primary text-black font-mono font-bold hover:bg-primary/90 transition-all"
               disabled={tierLoading}
             >
               {tierLoading ? "Creating..." : "Create Tier"}
@@ -1333,7 +1333,7 @@ function EventDashboardContent({
         <DialogContent className="border-white/10 bg-black">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#ff1493]" />
+              <Sparkles className="h-4 w-4 text-primary" />
               Publish Event
             </DialogTitle>
             <DialogDescription className="text-xs text-white/40">
@@ -1371,7 +1371,7 @@ function EventDashboardContent({
             <button
               onClick={publishEvent}
               disabled={publishing}
-              className="px-4 py-2 bg-[#ff1493] text-black text-sm font-mono font-bold hover:bg-[#ff1493]/90 transition-all flex items-center gap-2"
+              className="px-4 py-2 bg-primary text-black text-sm font-mono font-bold hover:bg-primary/90 transition-all flex items-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
               {publishing ? "Publishing..." : "Publish"}
@@ -1385,7 +1385,7 @@ function EventDashboardContent({
         <DialogContent className="border-white/10 bg-black max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <Pencil className="h-4 w-4 text-[#ff1493]" />
+              <Pencil className="h-4 w-4 text-primary" />
               Edit Event
             </DialogTitle>
             <DialogDescription className="text-xs text-white/40">
@@ -1403,7 +1403,7 @@ function EventDashboardContent({
                   name="title"
                   defaultValue={event?.title}
                   required
-                  className="mt-1 bg-white/[0.02] border-white/10 focus:border-[#ff1493] font-mono"
+                  className="mt-1 bg-white/[0.02] border-white/10 focus:border-primary font-mono"
                 />
               </div>
               <div>
@@ -1415,7 +1415,7 @@ function EventDashboardContent({
                   name="description"
                   defaultValue={event?.description || ""}
                   rows={3}
-                  className="mt-1 w-full px-3 py-2 bg-white/[0.02] border border-white/10 focus:border-[#ff1493] focus:outline-none font-mono text-sm resize-none"
+                  className="mt-1 w-full px-3 py-2 bg-white/[0.02] border border-white/10 focus:border-primary focus:outline-none font-mono text-sm resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -1428,7 +1428,7 @@ function EventDashboardContent({
                     name="venueName"
                     defaultValue={event?.venueName}
                     required
-                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-[#ff1493] font-mono"
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-primary font-mono"
                   />
                 </div>
                 <div>
@@ -1440,7 +1440,7 @@ function EventDashboardContent({
                     name="venueAddress"
                     defaultValue={event?.venueAddress}
                     required
-                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-[#ff1493] font-mono"
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-primary font-mono"
                   />
                 </div>
               </div>
@@ -1454,7 +1454,7 @@ function EventDashboardContent({
                     name="city"
                     defaultValue={event?.city}
                     required
-                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-[#ff1493] font-mono"
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-primary font-mono"
                   />
                 </div>
                 <div>
@@ -1465,7 +1465,7 @@ function EventDashboardContent({
                     id="edit-state"
                     name="state"
                     defaultValue={event?.state || ""}
-                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-[#ff1493] font-mono"
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-primary font-mono"
                   />
                 </div>
               </div>
@@ -1484,7 +1484,7 @@ function EventDashboardContent({
                         : ""
                     }
                     required
-                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-[#ff1493] font-mono"
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-primary font-mono"
                   />
                 </div>
                 <div>
@@ -1500,7 +1500,7 @@ function EventDashboardContent({
                         ? new Date(event.endsAt).toISOString().slice(0, 16)
                         : ""
                     }
-                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-[#ff1493] font-mono"
+                    className="mt-1 bg-white/[0.02] border-white/10 focus:border-primary font-mono"
                   />
                 </div>
               </div>
@@ -1517,7 +1517,7 @@ function EventDashboardContent({
               <button
                 type="submit"
                 disabled={editLoading}
-                className="px-4 py-2 bg-[#ff1493] text-black text-sm font-mono font-bold hover:bg-[#ff1493]/90 transition-all"
+                className="px-4 py-2 bg-primary text-black text-sm font-mono font-bold hover:bg-primary/90 transition-all"
               >
                 {editLoading ? "Saving..." : "Save Changes"}
               </button>
@@ -1545,18 +1545,18 @@ function StatCard({
   return (
     <div
       className={`border p-4 ${
-        highlight ? "border-[#ff1493]/50 bg-[#ff1493]/5" : "border-white/10 bg-white/[0.02]"
+        highlight ? "border-primary/50 bg-primary/5" : "border-white/10 bg-white/[0.02]"
       }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className={`${highlight ? "text-[#ff1493]" : "text-white/30"}`}>{icon}</span>
+        <span className={`${highlight ? "text-primary" : "text-white/30"}`}>{icon}</span>
         <span className="text-[10px] font-mono text-white/30 tracking-widest">{label}</span>
       </div>
-      <p className={`text-xl font-mono font-bold ${highlight ? "text-[#ff1493]" : ""}`}>{value}</p>
+      <p className={`text-xl font-mono font-bold ${highlight ? "text-primary" : ""}`}>{value}</p>
       {progress !== undefined && (
         <div className="mt-2 h-1 bg-white/5">
           <div
-            className={`h-full ${highlight ? "bg-[#ff1493]" : "bg-white/20"}`}
+            className={`h-full ${highlight ? "bg-primary" : "bg-white/20"}`}
             style={{ width: `${Math.min(100, progress)}%` }}
           />
         </div>
@@ -1573,7 +1573,7 @@ export default function EventDashboardPage({
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#ff1493]/30 border-t-[#ff1493] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     }>
       <EventDashboardContent params={params} />

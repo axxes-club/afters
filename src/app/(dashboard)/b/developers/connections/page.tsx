@@ -131,13 +131,13 @@ export default function ConnectionsPage() {
                         {connection.app.logoUrl ? (
                           <Image src={connection.app.logoUrl} alt="" width={24} height={24} className="w-6 h-6 rounded" />
                         ) : (
-                          <Box className="w-4 h-4 text-[#ff1493]" />
+                          <Box className="w-4 h-4 text-primary" />
                         )}
                       </div>
                       <div>
                         <span className="font-mono text-sm text-white flex items-center gap-1.5">
                           {connection.app.name}
-                          {connection.app.isVerified && <Shield className="w-3.5 h-3.5 text-[#ff1493]" />}
+                          {connection.app.isVerified && <Shield className="w-3.5 h-3.5 text-primary" />}
                         </span>
                         {connection.app.description && (
                           <p className="text-[10px] text-white/30">{connection.app.description}</p>

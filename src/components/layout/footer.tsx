@@ -17,7 +17,7 @@ export function Footer() {
               <span className="text-lg font-bold font-mono tracking-tight text-white/80 group-hover:text-white transition-colors">
                 AFTERS
               </span>
-              <span className="text-[#ff1493] text-lg font-bold">.</span>
+              <span className="text-primary text-lg font-bold">.</span>
             </Link>
             <p className="text-[10px] text-white/25 font-mono max-w-[220px] text-center md:text-left tracking-wide">
               Nightlife ticketing with the lowest fees
@@ -28,13 +28,13 @@ export function Footer() {
           <div className="flex items-center gap-8">
             <Link
               href="/b"
-              className="text-[11px] text-white/30 hover:text-[#ff1493] transition-colors font-mono tracking-wider uppercase"
+              className="text-[11px] text-white/30 hover:text-primary transition-colors font-mono tracking-wider uppercase"
             >
               Dashboard
             </Link>
             <Link
               href="/status"
-              className="text-[11px] text-white/30 hover:text-[#ff1493] transition-colors font-mono tracking-wider uppercase"
+              className="text-[11px] text-white/30 hover:text-primary transition-colors font-mono tracking-wider uppercase"
             >
               Status
             </Link>

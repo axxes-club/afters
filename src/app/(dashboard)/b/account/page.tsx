@@ -97,8 +97,8 @@ export default async function AccountPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[#ff1493]/10">
-                  <Code2 className="h-5 w-5 text-[#ff1493]" />
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Code2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold">Developer Tools</h2>

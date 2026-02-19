@@ -99,7 +99,7 @@ export default async function EventsPage() {
         {profile && (
           <Link 
             href="/b/events/new"
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-black text-xs font-mono font-bold tracking-wider hover:bg-primary/90 transition-all"
           >
             <Plus className="w-4 h-4" />
             NEW EVENT
@@ -198,7 +198,7 @@ export default async function EventsPage() {
           {upcoming.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-1.5 h-1.5 bg-[#ff1493] rounded-full animate-pulse" />
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
                 <h2 className="text-xs font-mono text-white/40 tracking-widest">MY EVENTS • UPCOMING</h2>
               </div>
               
@@ -239,7 +239,7 @@ export default async function EventsPage() {
           {profile && (
             <Link 
               href="/b/events/new"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-black text-xs font-mono font-bold tracking-wider hover:bg-primary/90 transition-all"
             >
               <Plus className="w-4 h-4" />
               CREATE FIRST EVENT
@@ -309,7 +309,7 @@ function AttendingEventRow({
         {/* Type Badge */}
         <div className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-mono tracking-wider ${
           type === "ticket" 
-            ? "bg-[#ff1493]/10 text-[#ff1493] border border-[#ff1493]/20" 
+            ? "bg-primary/10 text-primary border border-primary/20" 
             : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
         }`}>
           {type === "ticket" ? (
@@ -346,7 +346,7 @@ function EventCard({ event }: { event: EventWithTiers }) {
   return (
     <Link 
       href={`/d/events/${event.id}`}
-      className="group border border-white/10 bg-white/[0.02] hover:border-[#ff1493]/30 transition-all overflow-hidden"
+      className="group border border-white/10 bg-white/[0.02] hover:border-primary/30 transition-all overflow-hidden"
     >
       {/* Flyer */}
       <div className="aspect-[16/9] relative bg-white/5">
@@ -367,7 +367,7 @@ function EventCard({ event }: { event: EventWithTiers }) {
         <div className="absolute top-3 right-3">
           <span className={`text-[10px] font-mono px-2 py-1 ${
             event.isPublished 
-              ? 'bg-[#ff1493] text-black' 
+              ? 'bg-primary text-black' 
               : 'bg-yellow-500 text-black'
           }`}>
             {event.isPublished ? 'LIVE' : 'DRAFT'}
@@ -389,7 +389,7 @@ function EventCard({ event }: { event: EventWithTiers }) {
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="font-mono font-bold truncate group-hover:text-[#ff1493] transition-colors">
+        <h3 className="font-mono font-bold truncate group-hover:text-primary transition-colors">
           {event.title}
         </h3>
         <p className="text-xs text-white/40 font-mono mt-1 flex items-center gap-1.5">
@@ -401,11 +401,11 @@ function EventCard({ event }: { event: EventWithTiers }) {
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="text-white/40">{soldCount}/{totalCount} sold</span>
-            <span className="text-[#ff1493]">{formatCents(revenue)}</span>
+            <span className="text-primary">{formatCents(revenue)}</span>
           </div>
           <div className="h-1 bg-white/5">
             <div 
-              className="h-full bg-[#ff1493] transition-all" 
+              className="h-full bg-primary transition-all" 
               style={{ width: `${Math.min(100, percentSold)}%` }} 
             />
           </div>

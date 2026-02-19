@@ -23,12 +23,12 @@ export default function BillingPage() {
       </div>
 
       {/* Current Plan */}
-      <div className="border border-[#ff1493]/30 bg-white/[0.02]">
+      <div className="border border-primary/30 bg-white/[0.02]">
         <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
           <span className="text-[10px] font-mono text-white/40 tracking-widest">CURRENT PLAN</span>
           <div className="flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3 text-[#ff1493]" />
-            <span className="text-[10px] font-mono text-[#ff1493]">BETA</span>
+            <Sparkles className="w-3 h-3 text-primary" />
+            <span className="text-[10px] font-mono text-primary">BETA</span>
           </div>
         </div>
         <div className="p-6">
@@ -41,7 +41,7 @@ export default function BillingPage() {
           <div className="grid sm:grid-cols-2 gap-2">
             {BETA_FEATURES.map((feature, i) => (
               <div key={i} className="flex items-center gap-2 py-1.5">
-                <Check className="w-3.5 h-3.5 text-[#ff1493]" />
+                <Check className="w-3.5 h-3.5 text-primary" />
                 <span className="text-sm text-white/60">{feature}</span>
               </div>
             ))}

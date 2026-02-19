@@ -273,7 +273,7 @@ export default function DevelopersPage() {
                             onClick={() => toggleScope(scope.value)}
                             className={`text-left p-2 rounded border transition-all ${
                               selectedScopes.includes(scope.value)
-                                ? "border-[#ff1493] bg-[#ff1493]/10"
+                                ? "border-primary bg-primary/10"
                                 : "border-white/10 hover:border-white/20"
                             }`}
                           >
@@ -398,8 +398,8 @@ export default function DevelopersPage() {
           <Link href="/b/developers/apps">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
-                <div className="p-2 rounded-lg bg-[#ff1493]/10">
-                  <Box className="w-6 h-6 text-[#ff1493]" />
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Box className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">OAuth Apps</h3>
@@ -439,8 +439,8 @@ export default function DevelopersPage() {
           <Link href="/developers">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
-                <div className="p-2 rounded-lg bg-[#ff1493]/10">
-                  <BookOpen className="w-6 h-6 text-[#ff1493]" />
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <BookOpen className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">API Documentation</h3>

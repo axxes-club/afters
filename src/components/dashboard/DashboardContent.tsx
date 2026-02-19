@@ -87,12 +87,12 @@ export function DashboardContent({
 
       {/* Stripe Connect Status */}
       {!stripeChargesEnabled && (
-        <Card className="border-[#ff1493]/30 bg-[#ff1493]/5">
+        <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#ff1493]/10 rounded-full">
-                  <DollarSign className="h-5 w-5 text-[#ff1493]" />
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <p className="font-medium text-sm">{t('completePayoutSetup')}</p>

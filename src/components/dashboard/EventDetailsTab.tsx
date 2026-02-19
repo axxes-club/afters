@@ -247,7 +247,7 @@ export function EventDetailsTab({
       {/* About Section */}
       <div>
         <SectionHeader
-          icon={<FileText className="w-5 h-5 text-[#ff1493]" />}
+          icon={<FileText className="w-5 h-5 text-primary" />}
           title="ABOUT"
           subtitle="Event description and details"
           sectionKey="about"
@@ -260,7 +260,7 @@ export function EventDetailsTab({
               onChange={(e) => setAbout(e.target.value)}
               placeholder="Tell attendees about your event. What makes it special? What can they expect?"
               rows={6}
-              className="bg-black border-white/10 font-mono text-sm placeholder:text-white/20 focus:border-[#ff1493]/30 focus:ring-0 resize-none"
+              className="bg-black border-white/10 font-mono text-sm placeholder:text-white/20 focus:border-primary/30 focus:ring-0 resize-none"
             />
             <p className="text-[10px] text-white/30 font-mono">
               {about.length} characters
@@ -522,7 +522,7 @@ export function EventDetailsTab({
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-3 bg-[#ff1493] text-black font-mono font-bold text-sm tracking-wider hover:bg-[#ff1493]/90 disabled:opacity-50 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-primary text-black font-mono font-bold text-sm tracking-wider hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center gap-2"
         >
           {saving ? (
             <>

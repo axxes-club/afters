@@ -432,12 +432,12 @@ function NewEventForm() {
                   onClick={() => setIsRsvpOnly(false)}
                   className={`p-4 border transition-all text-left ${
                     !isRsvpOnly
-                      ? "border-[#ff1493]/50 bg-[#ff1493]/5"
+                      ? "border-primary/50 bg-primary/5"
                       : "border-white/10 hover:border-white/20"
                   }`}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <svg className={`w-5 h-5 ${!isRsvpOnly ? "text-[#ff1493]" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-5 h-5 ${!isRsvpOnly ? "text-primary" : "text-white/30"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                     </svg>
                     <span className={`font-mono text-sm font-bold ${!isRsvpOnly ? "text-white" : "text-white/60"}`}>
@@ -589,7 +589,7 @@ function NewEventForm() {
                           type="button"
                           onClick={summarizeDescription}
                           disabled={isSummarizing}
-                          className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-[#ff1493] hover:bg-[#ff1493]/5 border border-white/10 hover:border-[#ff1493]/30 transition-all disabled:opacity-50"
+                          className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-white/40 hover:text-primary hover:bg-primary/5 border border-white/10 hover:border-primary/30 transition-all disabled:opacity-50"
                         >
                           {isSummarizing ? (
                             <Loader2 className="w-3 h-3 animate-spin" />

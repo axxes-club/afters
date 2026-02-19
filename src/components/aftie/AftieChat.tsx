@@ -108,7 +108,7 @@ export function AftieChat() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/80 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/50 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -128,14 +128,14 @@ export function AftieChat() {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-white/40 text-sm mt-4">
-            <Sparkles className="w-8 h-8 mx-auto mb-3 text-[#ff1493]/50" />
+            <Sparkles className="w-8 h-8 mx-auto mb-3 text-primary/50" />
             <p className="font-mono">Hey, I&apos;m Aftie</p>
             <p className="text-xs mt-1 mb-6">Your AI event assistant</p>
 
             {/* Context indicator */}
             {pageContext.page === "event-details" && pageContext.eventTitle && (
-              <div className="mb-4 px-3 py-2 bg-[#ff1493]/10 border border-[#ff1493]/20 text-left rounded">
-                <p className="text-[10px] font-mono text-[#ff1493]/60 mb-1">VIEWING EVENT</p>
+              <div className="mb-4 px-3 py-2 bg-primary/10 border border-primary/20 text-left rounded">
+                <p className="text-[10px] font-mono text-primary/60 mb-1">VIEWING EVENT</p>
                 <p className="text-xs font-mono text-white truncate">{pageContext.eventTitle}</p>
               </div>
             )}
@@ -150,9 +150,9 @@ export function AftieChat() {
                     setInput(example.prompt)
                     sendMessage(example.prompt)
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-white/5 border border-white/10 hover:border-[#ff1493]/30 hover:bg-white/[0.08] transition-all text-left group rounded"
+                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-white/5 border border-white/10 hover:border-primary/30 hover:bg-white/[0.08] transition-all text-left group rounded"
                 >
-                  <MessageSquare className="w-3.5 h-3.5 text-white/30 group-hover:text-[#ff1493] transition-colors flex-shrink-0" />
+                  <MessageSquare className="w-3.5 h-3.5 text-white/30 group-hover:text-primary transition-colors flex-shrink-0" />
                   <span className="text-xs font-mono text-white/60 group-hover:text-white transition-colors truncate">
                     {example.prompt}
                   </span>
@@ -181,7 +181,7 @@ export function AftieChat() {
                 <div
                   className={`max-w-[85%] px-3 py-2 text-sm rounded ${
                     message.role === "user"
-                      ? "bg-[#ff1493]/20 text-white"
+                      ? "bg-primary/20 text-white"
                       : "bg-white/5 text-white/90"
                   }`}
                 >
@@ -202,7 +202,7 @@ export function AftieChat() {
                         <Link
                           href={parsed.dashboardUrl}
                           onClick={closeChat}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#ff1493]/20 hover:bg-[#ff1493]/30 text-[#ff1493] text-xs font-mono rounded transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary text-xs font-mono rounded transition-colors"
                         >
                           <ExternalLink className="w-3 h-3" />
                           Open in Dashboard
@@ -230,7 +230,7 @@ export function AftieChat() {
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-white/5 px-3 py-2 rounded flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-[#ff1493]" />
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
               <span className="text-xs text-white/40">Thinking...</span>
             </div>
           </div>
@@ -259,12 +259,12 @@ export function AftieChat() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Aftie..."
             disabled={isLoading}
-            className="flex-1 h-10 px-3 bg-white/5 border border-white/10 text-white font-mono text-sm placeholder:text-white/30 focus:border-[#ff1493]/50 focus:outline-none rounded disabled:opacity-50"
+            className="flex-1 h-10 px-3 bg-white/5 border border-white/10 text-white font-mono text-sm placeholder:text-white/30 focus:border-primary/50 focus:outline-none rounded disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="h-10 w-10 flex items-center justify-center bg-[#ff1493] hover:bg-[#ff1493]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+            className="h-10 w-10 flex items-center justify-center bg-primary hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

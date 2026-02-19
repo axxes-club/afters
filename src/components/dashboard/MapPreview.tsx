@@ -81,7 +81,7 @@ export function MapPreview({
             <p className="text-xs font-mono text-white/40 text-center mb-3">Unable to load map</p>
             <button
               onClick={handleOpenMaps}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono text-[#ff1493] border border-[#ff1493]/30 hover:bg-[#ff1493]/10 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
             >
               <ExternalLink className="w-3 h-3" />
               Open in Maps
@@ -124,7 +124,7 @@ export function MapPreview({
             </button>
             <button
               onClick={handleOpenMaps}
-              className="p-1.5 bg-[#ff1493]/80 hover:bg-[#ff1493] transition-colors"
+              className="p-1.5 bg-primary/80 hover:bg-primary transition-colors"
               title="Open in Maps"
             >
               <ExternalLink className="w-3.5 h-3.5 text-white" />
@@ -151,7 +151,7 @@ export function MapPreview({
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleOpenMaps}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono bg-[#ff1493] hover:bg-[#ff1493]/80 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono bg-primary hover:bg-primary/80 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
                   Open in Maps

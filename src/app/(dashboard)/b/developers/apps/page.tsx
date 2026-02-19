@@ -200,7 +200,7 @@ export default function OAuthAppsPage() {
         </div>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <button className="flex items-center gap-1.5 px-3 py-2 bg-[#ff1493] text-black text-xs font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all">
+            <button className="flex items-center gap-1.5 px-3 py-2 bg-primary text-black text-xs font-mono font-bold tracking-wider hover:bg-primary/90 transition-all">
               <Plus className="w-3.5 h-3.5" />
               NEW APP
             </button>
@@ -230,7 +230,7 @@ export default function OAuthAppsPage() {
               <div className="space-y-2">
                 <Label className="text-xs font-mono text-white/40">REDIRECT URIS (one per line)</Label>
                 <textarea
-                  className="w-full px-3 py-2 bg-black border border-white/10 rounded-md font-mono text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#ff1493]"
+                  className="w-full px-3 py-2 bg-black border border-white/10 rounded-md font-mono text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-primary"
                   rows={3}
                   placeholder={"https://myapp.com/callback\nhttp://localhost:3000/callback"}
                   value={redirectUris}
@@ -256,7 +256,7 @@ export default function OAuthAppsPage() {
                       onClick={() => toggleScope(scope.value)}
                       className={`px-2 py-1 text-xs font-mono border transition-all ${
                         selectedScopes.includes(scope.value)
-                          ? "border-[#ff1493] bg-[#ff1493]/10 text-[#ff1493]"
+                          ? "border-primary bg-primary/10 text-primary"
                           : "border-white/10 text-white/50 hover:border-white/20"
                       }`}
                     >
@@ -271,7 +271,7 @@ export default function OAuthAppsPage() {
               <Button
                 onClick={handleCreate}
                 disabled={creating || !appName.trim() || !redirectUris.trim()}
-                className="bg-[#ff1493] hover:bg-[#ff1493]/80 text-black"
+                className="bg-primary hover:bg-primary/80 text-black"
               >
                 {creating ? "Creating..." : "Create App"}
               </Button>
@@ -345,9 +345,9 @@ export default function OAuthAppsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <Box className="w-4 h-4 text-[#ff1493]" />
+                      <Box className="w-4 h-4 text-primary" />
                       <span className="font-mono text-sm text-white">{app.name}</span>
-                      {app.isVerified && <Shield className="w-3.5 h-3.5 text-[#ff1493]" />}
+                      {app.isVerified && <Shield className="w-3.5 h-3.5 text-primary" />}
                     </div>
                     
                     <div className="flex items-center gap-3 text-[10px] text-white/30 mb-2">

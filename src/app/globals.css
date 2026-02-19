@@ -117,37 +117,37 @@
   --card-foreground: #ffffff;
   --popover: #0a0a0a;
   --popover-foreground: #ffffff;
-  /* Hot pink as primary */
-  --primary: #ff1493;
+  /* Primary color - derives from accent-color */
+  --primary: var(--accent-color);
   --primary-foreground: #000000;
   --secondary: #1a1a1a;
   --secondary-foreground: #ffffff;
   --muted: #1a1a1a;
   --muted-foreground: #888888;
-  --accent: #ff1493;
+  --accent: var(--accent-color);
   --accent-foreground: #000000;
   --destructive: #ff4444;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.1);
-  --ring: #ff1493;
-  /* Hot pink accent color */
-  --pink: #ff1493;
+  --ring: var(--accent-color);
+  /* Pink color - also derives from accent */
+  --pink: var(--accent-color);
   --pink-foreground: #000000;
-  /* Charts */
-  --chart-1: #ff1493;
-  --chart-2: #ff69b4;
-  --chart-3: #ff85c1;
-  --chart-4: #ffc6fe;
+  /* Charts - first one uses accent, rest are derived lighter tones */
+  --chart-1: var(--accent-color);
+  --chart-2: color-mix(in srgb, var(--accent-color) 70%, white);
+  --chart-3: color-mix(in srgb, var(--accent-color) 50%, white);
+  --chart-4: color-mix(in srgb, var(--accent-color) 30%, white);
   --chart-5: #ffffff;
   /* Sidebar */
   --sidebar: #0a0a0a;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #ff1493;
+  --sidebar-primary: var(--accent-color);
   --sidebar-primary-foreground: #000000;
   --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #ff1493;
+  --sidebar-ring: var(--accent-color);
 }
 
 /* Light mode option */
@@ -158,28 +158,28 @@
   --card-foreground: #000000;
   --popover: #ffffff;
   --popover-foreground: #000000;
-  --primary: #ff1493;
+  --primary: var(--accent-color);
   --primary-foreground: #ffffff;
   --secondary: #f0f0f0;
   --secondary-foreground: #000000;
   --muted: #f0f0f0;
   --muted-foreground: #666666;
-  --accent: #ff1493;
+  --accent: var(--accent-color);
   --accent-foreground: #ffffff;
   --destructive: #ff4444;
   --border: rgba(0, 0, 0, 0.1);
   --input: rgba(0, 0, 0, 0.1);
-  --ring: #ff1493;
-  --pink: #ff1493;
+  --ring: var(--accent-color);
+  --pink: var(--accent-color);
   --pink-foreground: #ffffff;
   --sidebar: #f5f5f5;
   --sidebar-foreground: #000000;
-  --sidebar-primary: #ff1493;
+  --sidebar-primary: var(--accent-color);
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #e0e0e0;
   --sidebar-accent-foreground: #000000;
   --sidebar-border: rgba(0, 0, 0, 0.1);
-  --sidebar-ring: #ff1493;
+  --sidebar-ring: var(--accent-color);
 }
 
 @layer base {
@@ -225,21 +225,21 @@
   animation: music-pulse 0.8s ease-in-out infinite;
 }
 
-/* Glow effects */
+/* Glow effects - uses accent color */
 .glow-pink {
-  box-shadow: 0 0 20px rgba(255, 20, 147, 0.3),
-              0 0 40px rgba(255, 20, 147, 0.2),
-              0 0 60px rgba(255, 20, 147, 0.1);
+  box-shadow: 0 0 20px rgba(var(--accent-color-rgb), 0.3),
+              0 0 40px rgba(var(--accent-color-rgb), 0.2),
+              0 0 60px rgba(var(--accent-color-rgb), 0.1);
 }
 
 .text-glow-pink {
-  text-shadow: 0 0 10px rgba(255, 20, 147, 0.5),
-               0 0 20px rgba(255, 20, 147, 0.3);
+  text-shadow: 0 0 10px rgba(var(--accent-color-rgb), 0.5),
+               0 0 20px rgba(var(--accent-color-rgb), 0.3);
 }
 
-/* Gradient text */
+/* Gradient text - uses accent color */
 .text-gradient {
-  background: linear-gradient(135deg, #ff1493 0%, #ff69b4 50%, #ffc6fe 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 70%, white) 50%, color-mix(in srgb, var(--accent-color) 30%, white) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -247,7 +247,7 @@
 
 /* Hover effects */
 .hover-glow:hover {
-  box-shadow: 0 0 30px rgba(255, 20, 147, 0.4);
+  box-shadow: 0 0 30px rgba(var(--accent-color-rgb), 0.4);
   transition: box-shadow 0.3s ease;
 }
 
@@ -450,11 +450,11 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Input focus glow */
+/* Input focus glow - uses accent color */
 .input-glow:focus {
-  box-shadow: 0 0 0 2px rgba(255, 20, 147, 0.3),
-              0 0 20px rgba(255, 20, 147, 0.2);
-  border-color: #ff1493;
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.3),
+              0 0 20px rgba(var(--accent-color-rgb), 0.2);
+  border-color: var(--accent-color);
 }
 
 /* Button glow on hover */
@@ -467,9 +467,9 @@
   transform: translateY(-1px);
 }
 
-/* Progress bar with gradient */
+/* Progress bar with gradient - uses accent color */
 .progress-gradient {
-  background: linear-gradient(90deg, #ff1493 0%, #ff69b4 100%);
+  background: linear-gradient(90deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 70%, white) 100%);
 }
 
 /* Number counter animation */
@@ -558,15 +558,15 @@
   animation: glitch 0.3s ease-in-out;
 }
 
-/* Animated gradient border */
+/* Animated gradient border - uses accent color */
 @keyframes borderGlow {
   0%, 100% {
-    border-color: rgba(255, 20, 147, 0.3);
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.1);
+    border-color: rgba(var(--accent-color-rgb), 0.3);
+    box-shadow: 0 0 20px rgba(var(--accent-color-rgb), 0.1);
   }
   50% {
-    border-color: rgba(255, 20, 147, 0.6);
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.2);
+    border-color: rgba(var(--accent-color-rgb), 0.6);
+    box-shadow: 0 0 30px rgba(var(--accent-color-rgb), 0.2);
   }
 }
 

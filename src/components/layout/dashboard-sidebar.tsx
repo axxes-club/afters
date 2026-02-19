@@ -207,12 +207,12 @@ export function DashboardSidebar({
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-lg text-[10px] transition-colors min-w-[3.5rem]",
                   isActive
-                    ? "text-[#ff1493]"
+                    ? "text-primary"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <item.icon
-                  className={cn("h-5 w-5", isActive && "text-[#ff1493]")}
+                  className={cn("h-5 w-5", isActive && "text-primary")}
                 />
                 <span className="truncate max-w-[3.5rem]">
                   {title.split(" ")[0]}

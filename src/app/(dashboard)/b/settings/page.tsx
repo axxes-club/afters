@@ -154,7 +154,7 @@ export default function SettingsProfilePage() {
         <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
           <span className="text-[10px] font-mono text-white/40 tracking-widest">ACCOUNT</span>
           {user.role === "SUPERADMIN" && (
-            <span className="text-[10px] font-mono px-2 py-0.5 bg-[#ff1493]/10 text-[#ff1493]">
+            <span className="text-[10px] font-mono px-2 py-0.5 bg-primary/10 text-primary">
               <Shield className="w-3 h-3 inline mr-1" />
               ADMIN
             </span>
@@ -203,7 +203,7 @@ export default function SettingsProfilePage() {
             {!editing ? (
               <button
                 onClick={() => setEditing(true)}
-                className="text-[10px] font-mono text-[#ff1493] hover:underline flex items-center gap-1"
+                className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1"
               >
                 <Pencil className="w-3 h-3" />
                 EDIT
@@ -220,7 +220,7 @@ export default function SettingsProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="text-[10px] font-mono text-[#ff1493] hover:underline flex items-center gap-1"
+                  className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1"
                 >
                   {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                   SAVE
@@ -322,7 +322,7 @@ export default function SettingsProfilePage() {
                     <button
                       type="button"
                       onClick={generateSlug}
-                      className="text-[10px] font-mono text-[#ff1493] hover:underline"
+                      className="text-[10px] font-mono text-primary hover:underline"
                     >
                       Generate from name
                     </button>
@@ -374,7 +374,7 @@ export default function SettingsProfilePage() {
               {/* Social Links */}
               <div className="pt-4 border-t border-white/10">
                 <div className="flex items-center gap-2 mb-4">
-                  <Globe className="w-4 h-4 text-[#ff1493]" />
+                  <Globe className="w-4 h-4 text-primary" />
                   <span className="text-xs font-mono text-white/40 tracking-widest">SOCIAL LINKS</span>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">

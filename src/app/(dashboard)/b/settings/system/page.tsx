@@ -66,7 +66,7 @@ export default function SettingsSystemPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 bg-white/[0.02] border border-white/5">
               <div className="flex items-center gap-2 mb-2">
-                <Package className="w-4 h-4 text-[#ff1493]" />
+                <Package className="w-4 h-4 text-primary" />
                 <p className="text-[10px] font-mono text-white/30 tracking-widest">VERSION</p>
               </div>
               <p className="text-lg font-mono font-bold">{APP_VERSION}</p>
@@ -105,7 +105,7 @@ export default function SettingsSystemPage() {
           {changelogSections.map((section, index) => (
             <div key={section.version} className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <span className={`font-mono font-bold ${index === 0 ? "text-[#ff1493]" : "text-white/80"}`}>
+                <span className={`font-mono font-bold ${index === 0 ? "text-primary" : "text-white/80"}`}>
                   {section.version}
                 </span>
                 {section.date && (
@@ -114,7 +114,7 @@ export default function SettingsSystemPage() {
                   </span>
                 )}
                 {index === 0 && (
-                  <span className="text-[10px] font-mono text-[#ff1493] px-2 py-0.5 bg-[#ff1493]/10">
+                  <span className="text-[10px] font-mono text-primary px-2 py-0.5 bg-primary/10">
                     CURRENT
                   </span>
                 )}

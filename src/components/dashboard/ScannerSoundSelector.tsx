@@ -177,7 +177,7 @@ export function ScannerSoundSelector({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 bg-[#ff1493] text-black text-[10px] font-mono font-bold tracking-wider hover:bg-[#ff1493]/90 transition-all disabled:opacity-50"
+            className="px-3 py-1.5 bg-primary text-black text-[10px] font-mono font-bold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50"
           >
             {saving ? "SAVING..." : "SAVE"}
           </button>

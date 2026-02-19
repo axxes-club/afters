@@ -23,7 +23,7 @@ export function AftieConsentDialog() {
         <div className="w-full max-w-md bg-black border border-white/10 rounded-lg shadow-2xl p-6 mx-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -45,7 +45,7 @@ export function AftieConsentDialog() {
             </p>
             <a
               href="/b"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff1493] hover:bg-[#ff1493]/80 text-white font-mono text-sm rounded transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white font-mono text-sm rounded transition-colors"
             >
               Complete Profile
             </a>
@@ -61,7 +61,7 @@ export function AftieConsentDialog() {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#ff1493] to-[#ff1493]/50 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -90,21 +90,21 @@ export function AftieConsentDialog() {
             <p className="text-xs font-mono text-white/40 tracking-wider">WHAT AFTIE CAN DO</p>
             <div className="grid gap-2">
               <div className="flex items-start gap-3 p-3 bg-white/5 rounded border border-white/10">
-                <Calendar className="w-5 h-5 text-[#ff1493] flex-shrink-0 mt-0.5" />
+                <Calendar className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Create & Manage Events</p>
                   <p className="text-xs text-white/50">Create events, update details, publish and unpublish</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-white/5 rounded border border-white/10">
-                <BarChart3 className="w-5 h-5 text-[#ff1493] flex-shrink-0 mt-0.5" />
+                <BarChart3 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">View Analytics</p>
                   <p className="text-xs text-white/50">Check ticket sales, check-ins, and revenue</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-white/5 rounded border border-white/10">
-                <Zap className="w-5 h-5 text-[#ff1493] flex-shrink-0 mt-0.5" />
+                <Zap className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Write Content</p>
                   <p className="text-xs text-white/50">Help write event descriptions, titles, and more</p>
@@ -137,7 +137,7 @@ export function AftieConsentDialog() {
           <button
             onClick={approveAftie}
             disabled={isApproving}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ff1493] hover:bg-[#ff1493]/80 disabled:opacity-50 text-white font-mono text-sm rounded transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/80 disabled:opacity-50 text-white font-mono text-sm rounded transition-all"
           >
             {isApproving ? (
               <>

@@ -60,7 +60,7 @@ export function LanguageSwitcher() {
               <span className="text-lg">{localeFlags[locale]}</span>
               <span>{localeNames[locale]}</span>
             </span>
-            {currentLocale === locale && <Check className="h-4 w-4 text-[#ff1493]" />}
+            {currentLocale === locale && <Check className="h-4 w-4 text-primary" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

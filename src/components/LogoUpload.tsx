@@ -111,7 +111,7 @@ export function LogoUpload({ value, onChange, disabled }: LogoUploadProps) {
           {...getRootProps()}
           className={`
             relative flex items-center gap-4 p-4 border-2 border-dashed cursor-pointer transition-colors
-            ${isDragActive ? "border-[#ff1493] bg-[#ff1493]/10" : "border-white/20 hover:border-white/40"}
+            ${isDragActive ? "border-primary bg-primary/10" : "border-white/20 hover:border-white/40"}
             ${disabled ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >

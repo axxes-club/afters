@@ -51,7 +51,7 @@ export function Header() {
         style={{ top: isGhosting ? `${GHOST_BANNER_HEIGHT}px` : "0" }}
       >
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link href="/" className="text-2xl font-headline text-[#ff1493]">
+          <Link href="/" className="text-2xl font-headline text-primary">
             .
           </Link>
 
@@ -74,7 +74,7 @@ export function Header() {
               {isSuperAdmin && (
                 <Link
                   href="/superadmin"
-                  className="text-xs tracking-wider text-[#ff1493] hover:text-[#ff69b4] transition-colors flex items-center gap-1"
+                  className="text-xs tracking-wider text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
                 >
                   <ShieldCheck className="h-3 w-3" />
                   Admin
@@ -93,7 +93,7 @@ export function Header() {
               </Link>
               <Link
                 href="/sign-up"
-                className="hidden md:block text-xs px-4 py-2 bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase tracking-wider"
+                className="hidden md:block text-xs px-4 py-2 bg-primary text-black font-medium hover:bg-primary/80 transition-colors uppercase tracking-wider"
               >
                 Sign Up
               </Link>
@@ -106,8 +106,7 @@ export function Header() {
                   className="flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/20 transition-colors"
                 >
                   <div
-                    className="w-6 h-6 flex items-center justify-center text-xs font-bold"
-                    style={{ backgroundColor: '#ff149320', color: '#ff1493' }}
+                    className="w-6 h-6 flex items-center justify-center text-xs font-bold bg-primary/20 text-primary"
                   >
                     {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
                   </div>
@@ -143,7 +142,7 @@ export function Header() {
           />
           <div className="absolute right-0 top-0 bottom-0 w-72 bg-black border-l border-white/5 font-mono">
             <div className="flex items-center justify-between h-14 px-4 border-b border-white/5">
-              <span className="text-2xl font-headline text-[#ff1493]">.</span>
+              <span className="text-2xl font-headline text-primary">.</span>
               <button
                 onClick={closeMenu}
                 className="p-2 text-white/50 hover:text-white transition-colors"
@@ -182,7 +181,7 @@ export function Header() {
                   <Link
                     href="/superadmin"
                     onClick={closeMenu}
-                    className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-[#ff1493] hover:bg-[#ff1493]/10 transition-colors uppercase"
+                    className="flex items-center gap-3 h-11 px-3 text-xs tracking-wider text-primary hover:bg-primary/10 transition-colors uppercase"
                   >
                     <ShieldCheck className="h-4 w-4" />
                     Superadmin
@@ -214,7 +213,7 @@ export function Header() {
                   <Link
                     href="/sign-up"
                     onClick={closeMenu}
-                    className="flex items-center justify-center h-11 text-xs tracking-wider bg-[#ff1493] text-black font-medium hover:bg-[#ff69b4] transition-colors uppercase"
+                    className="flex items-center justify-center h-11 text-xs tracking-wider bg-primary text-black font-medium hover:bg-primary/80 transition-colors uppercase"
                   >
                     Sign Up
                   </Link>

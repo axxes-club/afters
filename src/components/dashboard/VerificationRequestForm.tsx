@@ -195,8 +195,8 @@ export function VerificationRequestForm() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#ff1493]/10 rounded-full">
-              <ShieldCheck className="h-6 w-6 text-[#ff1493]" />
+            <div className="p-2 bg-primary/10 rounded-full">
+              <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
             <div>
               <CardTitle className="text-lg">Get Verified</CardTitle>
@@ -209,15 +209,15 @@ export function VerificationRequestForm() {
         <CardContent className="space-y-4">
           <div className="grid gap-3 text-sm text-muted-foreground">
             <div className="flex items-start gap-2">
-              <BadgeCheck className="h-4 w-4 mt-0.5 text-[#ff1493]" />
+              <BadgeCheck className="h-4 w-4 mt-0.5 text-primary" />
               <span>Display a verified badge on your profile</span>
             </div>
             <div className="flex items-start gap-2">
-              <BadgeCheck className="h-4 w-4 mt-0.5 text-[#ff1493]" />
+              <BadgeCheck className="h-4 w-4 mt-0.5 text-primary" />
               <span>Build trust with fans and event organizers</span>
             </div>
             <div className="flex items-start gap-2">
-              <BadgeCheck className="h-4 w-4 mt-0.5 text-[#ff1493]" />
+              <BadgeCheck className="h-4 w-4 mt-0.5 text-primary" />
               <span>Priority placement in search results</span>
             </div>
           </div>
@@ -235,7 +235,7 @@ export function VerificationRequestForm() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-[#ff1493]" />
+          <ShieldCheck className="h-5 w-5 text-primary" />
           Request Verification
         </CardTitle>
         <CardDescription>

@@ -149,7 +149,7 @@ export function FeedbackButton() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-[#ff1493] transition-colors"
+        className="flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-primary transition-colors"
         title="Send Feedback"
       >
         <MessageSquarePlus className="w-3 h-3" />
@@ -160,7 +160,7 @@ export function FeedbackButton() {
         <DialogContent className="border-white/10 bg-black max-w-md">
           <DialogHeader>
             <DialogTitle className="font-mono flex items-center gap-2">
-              <MessageSquarePlus className="w-4 h-4 text-[#ff1493]" />
+              <MessageSquarePlus className="w-4 h-4 text-primary" />
               Send Feedback
             </DialogTitle>
           </DialogHeader>
@@ -174,7 +174,7 @@ export function FeedbackButton() {
                   onClick={() => setType(t)}
                   className={`flex-1 py-2 text-xs font-mono tracking-wider transition-all border ${
                     type === t
-                      ? "border-[#ff1493] bg-[#ff1493]/10 text-[#ff1493]"
+                      ? "border-primary bg-primary/10 text-primary"
                       : "border-white/10 text-white/40 hover:border-white/20"
                   }`}
                 >
@@ -199,7 +199,7 @@ export function FeedbackButton() {
                     : "Share your thoughts..."
                 }
                 rows={4}
-                className="bg-black border-white/10 font-mono text-sm placeholder:text-white/20 focus:border-[#ff1493]/30 focus:ring-0 resize-none"
+                className="bg-black border-white/10 font-mono text-sm placeholder:text-white/20 focus:border-primary/30 focus:ring-0 resize-none"
               />
             </div>
 
@@ -263,7 +263,7 @@ export function FeedbackButton() {
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !message.trim()}
-              className="w-full py-3 bg-[#ff1493] text-black font-mono font-bold text-sm tracking-wider hover:bg-[#ff1493]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 bg-primary text-black font-mono font-bold text-sm tracking-wider hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

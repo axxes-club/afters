@@ -95,7 +95,7 @@ export function ScanActivityLog({ eventId }: { eventId: string }) {
     return (
       <div className="border border-white/10 bg-white/[0.02]">
         <div className="p-8 text-center">
-          <div className="w-5 h-5 border-2 border-[#ff1493]/30 border-t-[#ff1493] animate-spin mx-auto" />
+          <div className="w-5 h-5 border-2 border-primary/30 border-t-primary animate-spin mx-auto" />
         </div>
       </div>
     )

@@ -96,7 +96,7 @@ export function ArtistAutocomplete({
         onFocus={() => setShowSuggestions(true)}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full h-10 px-3 bg-black border border-white/10 text-white font-mono text-sm focus:border-[#ff1493]/50 focus:outline-none disabled:opacity-50"
+        className="w-full h-10 px-3 bg-black border border-white/10 text-white font-mono text-sm focus:border-primary/50 focus:outline-none disabled:opacity-50"
       />
 
       {/* Suggestions dropdown */}
@@ -189,7 +189,7 @@ export function RecentArtists({ onSelect, excludeNames = [] }: RecentArtistsProp
             type="button"
             aria-label={`Add ${artist.name} to lineup`}
             onClick={() => onSelect(artist)}
-            className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 hover:border-[#ff1493]/50 hover:bg-[#ff1493]/5 transition-all text-xs"
+            className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all text-xs"
           >
             <Plus className="w-3 h-3 text-white/40" />
             <span>{artist.name}</span>
