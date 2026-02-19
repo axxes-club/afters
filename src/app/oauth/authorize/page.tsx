@@ -66,19 +66,34 @@ export default function OAuthAuthorizePage() {
       }
       
       try {
-        const response = await fetch(`/api/oauth/authorize/validate?${new URLSearchParams({
+        const validateUrl = `/api/oauth/authorize/validate?${new URLSearchParams({
           client_id: clientId,
           redirect_uri: redirectUri,
           scope: scope || '',
-        })}`)
+        })}`
         
-        const data = await response.json()
+        console.log('[OAuth] Validating request:', validateUrl)
+        const response = await fetch(validateUrl)
+        
+        let data
+        try {
+          data = await response.json()
+        } catch (parseError) {
+          console.error('[OAuth] Failed to parse response:', parseError)
+          setError('Server returned invalid response')
+          setLoading(false)
+          return
+        }
+        
+        console.log('[OAuth] Response:', { status: response.status, ok: response.ok, data })
         
         if (!response.ok) {
           if (data.loginUrl) {
+            console.log('[OAuth] Redirecting to login:', data.loginUrl)
             window.location.href = data.loginUrl
             return
           }
+          console.error('[OAuth] Validation failed:', data.error)
           setError(data.error || 'Invalid authorization request')
           setLoading(false)
           return
@@ -87,8 +102,9 @@ export default function OAuthAuthorizePage() {
         setApp(data.app)
         setScopes(data.scopes)
         setLoading(false)
-      } catch {
-        setError('Failed to validate authorization request')
+      } catch (fetchError) {
+        console.error('[OAuth] Fetch error:', fetchError)
+        setError('Failed to validate authorization request. Please try again.')
         setLoading(false)
       }
     }
@@ -147,9 +163,30 @@ export default function OAuthAuthorizePage() {
           </div>
           <h1 className="text-lg font-mono font-bold text-white mb-2">AUTHORIZATION ERROR</h1>
           <p className="text-white/40 text-sm font-mono mb-6">{error}</p>
-          <Button variant="outline" onClick={() => router.push('/b')}>
-            Go to Dashboard
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+              className="w-full"
+            >
+              Try Again
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => router.push('/b')}
+              className="w-full text-white/40"
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+          {/* Debug info for development */}
+          {clientId && (
+            <div className="mt-6 pt-4 border-t border-white/10 text-left">
+              <p className="text-[10px] font-mono text-white/20 mb-2">DEBUG INFO:</p>
+              <p className="text-[10px] font-mono text-white/20 break-all">Client: {clientId}</p>
+              <p className="text-[10px] font-mono text-white/20 break-all">Redirect: {redirectUri}</p>
+            </div>
+          )}
         </div>
       </div>
     )
