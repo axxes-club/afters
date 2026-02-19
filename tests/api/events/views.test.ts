@@ -25,7 +25,7 @@ function setHeaders(ip = "1.2.3.4", ua = "TestAgent/1.0", referer?: string) {
     "user-agent": ua,
     referer: referer ?? null,
   }
-  vi.mocked(headers).mockReturnValue({ get: (k: string) => map[k] ?? null } as ReturnType<typeof headers>)
+  vi.mocked(headers).mockResolvedValue({ get: (k: string) => map[k] ?? null } as Awaited<ReturnType<typeof headers>>)
 }
 
 function makeRequest(body?: object) {
@@ -60,7 +60,6 @@ describe("View tracking API", () => {
     mockPrisma.event.findFirst.mockResolvedValue(null)
 
     const res = await POST(makeRequest(), params)
-    const data = await res.json()
 
     expect(res.status).toBe(404)
     expect(mockPrisma.eventView.create).not.toHaveBeenCalled()
@@ -164,13 +163,13 @@ describe("View tracking API", () => {
   })
 
   it("falls back to x-real-ip when x-forwarded-for is absent", async () => {
-    vi.mocked(headers).mockReturnValue({
+    vi.mocked(headers).mockResolvedValue({
       get: (k: string) => {
         if (k === "x-real-ip") return "5.5.5.5"
         if (k === "user-agent") return "TestAgent/1.0"
         return null
       },
-    } as ReturnType<typeof headers>)
+    } as Awaited<ReturnType<typeof headers>>)
 
     const res = await POST(makeRequest(), params)
     expect(res.status).toBe(200)
