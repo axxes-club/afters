@@ -165,21 +165,27 @@ export default function DashboardLayout({
           {sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
-              className={`h-16 flex items-center justify-between ${sidebarCompact ? "px-2" : "px-4"} border-b border-white/5`}
+              className={`h-16 flex items-center ${sidebarCompact ? "justify-center px-2" : "justify-between px-4"} border-b border-white/5`}
             >
               {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
-                <Link href="/b" className="flex items-center justify-center">
+                <Link
+                  href="/b"
+                  className={`flex items-center justify-center ${sidebarCompact ? "w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors overflow-hidden" : ""}`}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                   <img
                     src={sidebarCustomLogoUrl}
                     alt="Logo"
-                    className={`object-contain ${sidebarCompact ? "max-h-8 max-w-[48px]" : "max-h-10 max-w-[140px]"}`}
+                    className={`object-contain ${sidebarCompact ? "max-h-7 max-w-[36px]" : "max-h-10 max-w-[140px]"}`}
                   />
                 </Link>
               ) : (
-                <Link href="/b" className={`font-headline tracking-wide ${sidebarCompact ? "text-xl" : "text-2xl"}`}>
+                <Link
+                  href="/b"
+                  className={`font-headline tracking-wide ${sidebarCompact ? "text-lg flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" : "text-2xl"}`}
+                >
                   {sidebarCompact ? (
-                    <span style={{ color: accentColor }}>.</span>
+                    <span style={{ color: accentColor }} className="font-bold">A</span>
                   ) : (
                     <>AFTERS<span style={{ color: accentColor }}>.</span></>
                   )}
@@ -199,15 +205,15 @@ export default function DashboardLayout({
           )}
 
           {/* Primary Navigation */}
-          <nav className={`py-3 ${sidebarCompact ? "px-1" : "px-2"} space-y-1 border-b border-white/5`}>
+          <nav className={`py-3 ${sidebarCompact ? "px-2" : "px-2"} space-y-1 border-b border-white/5`}>
             {/* Back button when in settings */}
             {isInSettings && (
               <Link
                 href="/b"
-                className={`flex items-center ${sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white hover:bg-white/5 mb-2 border-b border-white/5 pb-3`}
+                className={`flex items-center ${sidebarCompact ? "justify-center w-10 h-10 mx-auto rounded-lg bg-white/5 hover:bg-white/10" : "gap-3 px-3"} py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white mb-2 ${!sidebarCompact && "border-b border-white/5 pb-3"}`}
                 title={sidebarCompact ? "Back to Base" : undefined}
               >
-                <ArrowLeft className="w-4 h-4 flex-shrink-0" />
+                <ArrowLeft className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`} />
                 {!sidebarCompact && <span>BASE</span>}
               </Link>
             )}
@@ -229,17 +235,19 @@ export default function DashboardLayout({
                   key={item.href}
                   href={item.href}
                   className={`
-                  flex items-center ${sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all
-                  ${
-                    isActive
-                      ? "text-black"
-                      : "text-white/50 hover:text-white hover:bg-white/5"
-                  }
-                `}
+                    flex items-center ${sidebarCompact ? "justify-center w-10 h-10 mx-auto rounded-lg" : "gap-3 px-3 rounded"} py-2.5 text-xs font-mono tracking-wider transition-all
+                    ${
+                      isActive
+                        ? "text-black"
+                        : sidebarCompact
+                          ? "text-white/50 hover:text-white bg-white/5 hover:bg-white/10"
+                          : "text-white/50 hover:text-white hover:bg-white/5"
+                    }
+                  `}
                   style={isActive ? { backgroundColor: accentColor } : undefined}
                   title={sidebarCompact ? item.label : undefined}
                 >
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  <item.icon className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`} />
                   {!sidebarCompact && <span>{item.label}</span>}
                 </Link>
               );
@@ -265,7 +273,7 @@ export default function DashboardLayout({
 
           {/* Bottom Nav (Overview + Scanner) - Only show when not in settings */}
           {!isInSettings && (
-            <nav className={`py-2 ${sidebarCompact ? "px-1" : "px-2"} space-y-1 border-t border-white/5`}>
+            <nav className={`py-3 ${sidebarCompact ? "px-2" : "px-2"} space-y-1 border-t border-white/5`}>
               {desktopBottomNav.map((item) => {
                 const isActive = item.exact
                   ? pathname === item.href
@@ -276,17 +284,19 @@ export default function DashboardLayout({
                     key={item.href}
                     href={item.href}
                     className={`
-                      flex items-center ${sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all
+                      flex items-center ${sidebarCompact ? "justify-center w-10 h-10 mx-auto rounded-lg" : "gap-3 px-3 rounded"} py-2.5 text-xs font-mono tracking-wider transition-all
                       ${
                         isActive
                           ? "text-black"
-                          : "text-white/50 hover:text-white hover:bg-white/5"
+                          : sidebarCompact
+                            ? "text-white/50 hover:text-white bg-white/5 hover:bg-white/10"
+                            : "text-white/50 hover:text-white hover:bg-white/5"
                       }
                     `}
                     style={isActive ? { backgroundColor: accentColor } : undefined}
                     title={sidebarCompact ? item.label : undefined}
                   >
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    <item.icon className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`} />
                     {!sidebarCompact && <span>{item.label}</span>}
                   </Link>
                 );
@@ -298,11 +308,13 @@ export default function DashboardLayout({
           {isInSettings && <div className="flex-1" />}
 
           {/* Status Footer */}
-          <div className={`${sidebarCompact ? "p-2" : "px-3 py-4"} border-t border-white/5`}>
+          <div className={`${sidebarCompact ? "py-3" : "px-3 py-4"} border-t border-white/5`}>
             {sidebarCompact ? (
-              /* Compact: just show online indicator */
+              /* Compact: show online indicator in a subtle container */
               <div className="flex items-center justify-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Online" />
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center" title="Online">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                </div>
               </div>
             ) : (
               /* Full: date, status, version, feedback */

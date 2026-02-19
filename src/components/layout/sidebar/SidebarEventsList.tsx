@@ -64,11 +64,11 @@ export function SidebarEventsList({
     return (
       <div className="space-y-2 px-2">
         {compact ? (
-          <div className="flex flex-col gap-2 items-center">
+          <div className="flex flex-col gap-2 items-center py-2">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-10 h-12 rounded bg-white/5 animate-pulse"
+                className="w-10 h-12 rounded-lg bg-white/5 animate-pulse"
               />
             ))}
           </div>
@@ -97,10 +97,10 @@ export function SidebarEventsList({
         <div className="flex justify-center py-2">
           <Link
             href="/b/events/new"
-            className="w-10 h-10 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-dashed border-white/10 hover:border-white/20"
             title="Create Event"
           >
-            <Plus className="w-4 h-4 text-white/50" />
+            <Plus className="w-5 h-5 text-white/40" />
           </Link>
         </div>
       );
@@ -126,10 +126,10 @@ export function SidebarEventsList({
         ))}
         <Link
           href="/b/events"
-          className="w-10 h-10 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 transition-colors mt-1"
+          className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors mt-1"
           title="View All Events"
         >
-          <Calendar className="w-4 h-4 text-white/50" />
+          <Calendar className="w-5 h-5 text-white/40" />
         </Link>
       </div>
     );

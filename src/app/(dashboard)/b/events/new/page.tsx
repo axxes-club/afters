@@ -655,29 +655,45 @@ function NewEventForm() {
                 color={errors.startsAt && touched.startsAt ? "#ef4444" : "#00d4ff"}
               >
                 {/* Quick Date Shortcuts */}
-                <div className="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-5">
+                <div role="group" aria-label="Quick date selection" className="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-5">
                   <button
                     type="button"
+                    tabIndex={0}
                     onClick={setTonightShortcut}
-                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 border text-xs md:text-sm font-mono transition-all ${
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        setTonightShortcut()
+                      }
+                    }}
+                    aria-pressed={startsAt === formatDateForInput(getTonight())}
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 border text-xs md:text-sm font-mono transition-all focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:ring-offset-1 focus:ring-offset-black ${
                       startsAt && startsAt === formatDateForInput(getTonight())
                         ? "border-[#00d4ff]/50 bg-[#00d4ff]/10 text-[#00d4ff]"
                         : "border-white/10 hover:border-[#00d4ff]/30 hover:bg-[#00d4ff]/5 text-white/60 hover:text-white"
                     }`}
                   >
-                    <Zap className="w-3 h-3 md:w-4 md:h-4" />
+                    <Zap className="w-3 h-3 md:w-4 md:h-4" aria-hidden="true" />
                     Tonight
                   </button>
                   <button
                     type="button"
+                    tabIndex={0}
                     onClick={setTomorrowShortcut}
-                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 border text-xs md:text-sm font-mono transition-all ${
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        setTomorrowShortcut()
+                      }
+                    }}
+                    aria-pressed={startsAt === formatDateForInput(getTomorrowNight())}
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 border text-xs md:text-sm font-mono transition-all focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:ring-offset-1 focus:ring-offset-black ${
                       startsAt && startsAt === formatDateForInput(getTomorrowNight())
                         ? "border-[#00d4ff]/50 bg-[#00d4ff]/10 text-[#00d4ff]"
                         : "border-white/10 hover:border-[#00d4ff]/30 hover:bg-[#00d4ff]/5 text-white/60 hover:text-white"
                     }`}
                   >
-                    <Calendar className="w-3 h-3 md:w-4 md:h-4" />
+                    <Calendar className="w-3 h-3 md:w-4 md:h-4" aria-hidden="true" />
                     Tomorrow night ({getTomorrowDateStr()}{getTomorrowOrdinal()})
                   </button>
                 </div>
@@ -718,8 +734,15 @@ function NewEventForm() {
                     <div role="group" aria-label="End time mode" className="flex gap-2 mb-2">
                       <button
                         type="button"
+                        tabIndex={0}
                         aria-pressed={endTimeMode === "late"}
                         onClick={() => setEndTimeMode("late")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            setEndTimeMode("late")
+                          }
+                        }}
                         className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:ring-offset-1 focus:ring-offset-black ${
                           endTimeMode === "late"
                             ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
@@ -730,8 +753,15 @@ function NewEventForm() {
                       </button>
                       <button
                         type="button"
+                        tabIndex={0}
                         aria-pressed={endTimeMode === "custom"}
                         onClick={() => setEndTimeMode("custom")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            setEndTimeMode("custom")
+                          }
+                        }}
                         className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:ring-offset-1 focus:ring-offset-black ${
                           endTimeMode === "custom"
                             ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
@@ -1255,14 +1285,21 @@ function ExpandableSection({
     <div className={`border transition-all ${isOpen ? "border-white/20" : "border-white/10"}`}>
       <button
         type="button"
+        tabIndex={0}
         onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            onToggle()
+          }
+        }}
         aria-expanded={isOpen}
         aria-controls={`expandable-${title.toLowerCase().replace(/\s+/g, '-')}`}
         className="w-full px-4 md:px-5 py-4 md:py-5 flex items-center justify-between hover:bg-white/[0.02] transition-all focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
         style={{ borderLeftWidth: "3px", borderLeftColor: isOpen ? color : "transparent" }}
       >
         <div className="flex items-center gap-3">
-          <span className={`[&>svg]:w-4 [&>svg]:h-4 md:[&>svg]:w-5 md:[&>svg]:h-5 ${isOpen ? "" : "text-white/30"}`} style={{ color: isOpen ? color : undefined }}>
+          <span className={`[&>svg]:w-4 [&>svg]:h-4 md:[&>svg]:w-5 md:[&>svg]:h-5 ${isOpen ? "" : "text-white/30"}`} style={{ color: isOpen ? color : undefined }} aria-hidden="true">
             {icon}
           </span>
           <div className="text-left">
@@ -1282,6 +1319,7 @@ function ExpandableSection({
         </div>
         <ChevronDown
           className={`w-4 h-4 md:w-5 md:h-5 text-white/30 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          aria-hidden="true"
         />
       </button>
       {isOpen && (
