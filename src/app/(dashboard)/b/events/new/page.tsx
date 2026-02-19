@@ -1257,8 +1257,8 @@ function ExpandableSection({
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        aria-label={`${title}: ${subtitle}${isOpen ? " (expanded)" : " (collapsed)"}`}
-        className="w-full px-4 md:px-5 py-4 md:py-5 flex items-center justify-between hover:bg-white/[0.02] transition-all"
+        aria-controls={`expandable-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        className="w-full px-4 md:px-5 py-4 md:py-5 flex items-center justify-between hover:bg-white/[0.02] transition-all focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
         style={{ borderLeftWidth: "3px", borderLeftColor: isOpen ? color : "transparent" }}
       >
         <div className="flex items-center gap-3">
@@ -1284,7 +1284,14 @@ function ExpandableSection({
           className={`w-4 h-4 md:w-5 md:h-5 text-white/30 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      {isOpen && <div className="px-4 md:px-5 pb-4 md:pb-5 pt-2 md:pt-3 border-t border-white/10">{children}</div>}
+      {isOpen && (
+        <div
+          id={`expandable-${title.toLowerCase().replace(/\s+/g, '-')}`}
+          className="px-4 md:px-5 pb-4 md:pb-5 pt-2 md:pt-3 border-t border-white/10"
+        >
+          {children}
+        </div>
+      )}
     </div>
   )
 }
