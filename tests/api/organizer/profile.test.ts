@@ -229,6 +229,138 @@ describe("Organizer Profile API", () => {
       expect(response.status).toBe(400);
       expect(data.error).toContain("already taken");
     });
+
+    it("should create user from Clerk if not in database", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockCurrentUser.mockResolvedValue({
+        id: "user-123",
+        emailAddresses: [{ id: "email-1", emailAddress: "test@example.com" }],
+        primaryEmailAddressId: "email-1",
+        firstName: "Test",
+        lastName: "User",
+        imageUrl: "https://example.com/avatar.jpg",
+      } as any);
+
+      mockPrisma.organizerProfile.findUnique
+        .mockResolvedValueOnce(null) // No existing profile
+        .mockResolvedValueOnce(null); // Slug not taken
+      mockPrisma.user.findUnique.mockResolvedValue(null); // User not in DB
+      mockPrisma.user.create.mockResolvedValue({
+        id: "user-123",
+        email: "test@example.com",
+      } as any);
+      mockPrisma.organizerProfile.create.mockResolvedValue({
+        id: "profile-123",
+        userId: "user-123",
+        displayName: "Test",
+        slug: "test",
+      } as any);
+      mockPrisma.user.update.mockResolvedValue({} as any);
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "test",
+          }),
+        },
+      );
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(mockPrisma.user.create).toHaveBeenCalled();
+      expect(data.slug).toBe("test");
+    });
+
+    it("should return 404 if Clerk user not found", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockCurrentUser.mockResolvedValue(null);
+
+      mockPrisma.organizerProfile.findUnique
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "test",
+          }),
+        },
+      );
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toContain("Unable to fetch user data");
+    });
+
+    it("should return 400 if Clerk user has no primary email", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockCurrentUser.mockResolvedValue({
+        id: "user-123",
+        emailAddresses: [{ id: "email-1", emailAddress: "test@example.com" }],
+        primaryEmailAddressId: "different-email-id", // No matching email
+        firstName: "Test",
+        lastName: "User",
+      } as any);
+
+      mockPrisma.organizerProfile.findUnique
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "test",
+          }),
+        },
+      );
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain("No email address found");
+    });
+
+    it("should handle database errors gracefully", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockPrisma.organizerProfile.findUnique.mockRejectedValue(new Error("DB error"));
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "test",
+          }),
+        },
+      );
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe("Failed to create profile");
+    });
   });
 
   describe("PUT /api/organizer/profile", () => {
@@ -269,6 +401,28 @@ describe("Organizer Profile API", () => {
       expect(mockPrisma.organizerProfile.update).toHaveBeenCalled();
     });
 
+    it("should return 401 if not authenticated", async () => {
+      mockAuth.mockResolvedValue({ userId: null });
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "test",
+          }),
+        },
+      );
+
+      const response = await PUT(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
     it("should return 404 if profile does not exist", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.organizerProfile.findUnique.mockResolvedValue(null);
@@ -290,6 +444,61 @@ describe("Organizer Profile API", () => {
 
       expect(response.status).toBe(404);
       expect(data.error).toContain("not found");
+    });
+
+    it("should return 400 if new slug is already taken", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockPrisma.organizerProfile.findUnique
+        .mockResolvedValueOnce({
+          id: "profile-123",
+          userId: "user-123",
+          slug: "original-slug",
+        } as any)
+        .mockResolvedValueOnce({
+          id: "other-profile",
+          slug: "new-slug",
+        } as any);
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "new-slug",
+          }),
+        },
+      );
+
+      const response = await PUT(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain("already taken");
+    });
+
+    it("should handle database errors gracefully", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockPrisma.organizerProfile.findUnique.mockRejectedValue(new Error("DB error"));
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/organizer/profile",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: "Test",
+            slug: "test",
+          }),
+        },
+      );
+
+      const response = await PUT(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe("Failed to update profile");
     });
   });
 
@@ -433,6 +642,16 @@ describe("Organizer Profile API", () => {
       expect(data._count.followers).toBe(10);
     });
 
+    it("should return 401 if not authenticated", async () => {
+      mockAuth.mockResolvedValue({ userId: null });
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
     it("should return 404 if profile does not exist", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.organizerProfile.findUnique.mockResolvedValue(null);
@@ -442,6 +661,40 @@ describe("Organizer Profile API", () => {
 
       expect(response.status).toBe(404);
       expect(data.error).toContain("not found");
+    });
+
+    it("should handle database errors gracefully", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockPrisma.organizerProfile.findUnique.mockRejectedValue(new Error("DB error"));
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe("Failed to fetch profile");
+    });
+  });
+
+  describe("DELETE /api/organizer/profile (additional)", () => {
+    it("should return 401 if not authenticated", async () => {
+      mockAuth.mockResolvedValue({ userId: null });
+
+      const response = await DELETE();
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
+    it("should handle database errors gracefully", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockPrisma.organizerProfile.findUnique.mockRejectedValue(new Error("DB error"));
+
+      const response = await DELETE();
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe("Failed to delete profile");
     });
   });
 });

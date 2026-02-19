@@ -1,5 +1,22 @@
 name: E2E Tests
 
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║ REQUIRED SECRETS - Add these in GitHub repo Settings > Secrets > Actions:   ║
+# ║                                                                              ║
+# ║ Required:                                                                    ║
+# ║   DATABASE_URL          - Neon PostgreSQL connection string                  ║
+# ║   CLERK_SECRET_KEY_TEST - Clerk secret key for test environment              ║
+# ║   CLERK_PUBLISHABLE_KEY_TEST - Clerk publishable key for test environment   ║
+# ║                                                                              ║
+# ║ Optional (for full functionality):                                           ║
+# ║   CLERK_TESTING_TOKEN   - Clerk testing token for auth bypass                ║
+# ║   NEON_API_KEY          - Neon API key for branch management                 ║
+# ║   NEON_PROJECT_ID       - Neon project ID                                    ║
+# ║   E2E_AUTH_BYPASS_TOKEN - Token for E2E auth bypass                          ║
+# ║   STRIPE_SECRET_KEY_TEST - Stripe test mode secret key                       ║
+# ║   STRIPE_PUBLISHABLE_KEY_TEST - Stripe test mode publishable key             ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
 on:
   # Run on PRs to main
   pull_request:
@@ -43,13 +60,47 @@ jobs:
     steps:
       - name: Check if required secrets are configured
         id: check
+        env:
+          HAS_DATABASE_URL: ${{ secrets.DATABASE_URL != '' }}
+          HAS_CLERK_SECRET: ${{ secrets.CLERK_SECRET_KEY_TEST != '' }}
+          HAS_CLERK_PUBLISHABLE: ${{ secrets.CLERK_PUBLISHABLE_KEY_TEST != '' }}
         run: |
-          if [ -n "${{ secrets.DATABASE_URL }}" ] && [ -n "${{ secrets.CLERK_SECRET_KEY_TEST }}" ]; then
+          echo "### 🔐 Secret Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          MISSING=""
+
+          if [ "$HAS_DATABASE_URL" != "true" ]; then
+            echo "❌ DATABASE_URL - Not configured" >> $GITHUB_STEP_SUMMARY
+            MISSING="${MISSING}DATABASE_URL "
+          else
+            echo "✅ DATABASE_URL - Configured" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "$HAS_CLERK_SECRET" != "true" ]; then
+            echo "❌ CLERK_SECRET_KEY_TEST - Not configured" >> $GITHUB_STEP_SUMMARY
+            MISSING="${MISSING}CLERK_SECRET_KEY_TEST "
+          else
+            echo "✅ CLERK_SECRET_KEY_TEST - Configured" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "$HAS_CLERK_PUBLISHABLE" != "true" ]; then
+            echo "❌ CLERK_PUBLISHABLE_KEY_TEST - Not configured" >> $GITHUB_STEP_SUMMARY
+            MISSING="${MISSING}CLERK_PUBLISHABLE_KEY_TEST "
+          else
+            echo "✅ CLERK_PUBLISHABLE_KEY_TEST - Configured" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -z "$MISSING" ]; then
             echo "available=true" >> $GITHUB_OUTPUT
-            echo "✅ Required secrets are configured"
+            echo "✅ All required secrets are configured" >> $GITHUB_STEP_SUMMARY
           else
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "::warning::Required secrets not configured - E2E tests will be skipped"
+            echo "::error::Missing required secrets: $MISSING"
+            echo "⚠️ **E2E tests will be skipped.** Add missing secrets in:" >> $GITHUB_STEP_SUMMARY
+            echo "Settings → Secrets and variables → Actions → New repository secret" >> $GITHUB_STEP_SUMMARY
           fi
 
   # ─── E2E Tests ───
@@ -172,31 +223,44 @@ jobs:
 
   # ─── Skip Notice ───
   skip-notice:
-    name: E2E Tests (Skipped)
+    name: E2E Tests (Skipped - Missing Secrets)
     runs-on: ubuntu-latest
     needs: check-secrets
     if: needs.check-secrets.outputs.secrets-available != 'true'
     steps:
       - name: Notice
         run: |
-          echo "### ⚠️ E2E Tests Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚠️ E2E Tests Skipped - Missing Secrets" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Required secrets not configured. Please add:" >> $GITHUB_STEP_SUMMARY
-          echo "- \`DATABASE_URL\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`CLERK_SECRET_KEY_TEST\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`CLERK_PUBLISHABLE_KEY_TEST\`" >> $GITHUB_STEP_SUMMARY
+          echo "To enable E2E tests, add the following secrets:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Optional secrets for full functionality:" >> $GITHUB_STEP_SUMMARY
-          echo "- \`CLERK_TESTING_TOKEN\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`NEON_API_KEY\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`NEON_PROJECT_ID\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Go to:** Repository Settings → Secrets and variables → Actions → New repository secret" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Required Secrets:" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| \`DATABASE_URL\` | Neon PostgreSQL connection string |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`CLERK_SECRET_KEY_TEST\` | Clerk secret key (test environment) |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`CLERK_PUBLISHABLE_KEY_TEST\` | Clerk publishable key (test environment) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Optional Secrets:" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| \`CLERK_TESTING_TOKEN\` | Clerk testing token for auth bypass |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`E2E_AUTH_BYPASS_TOKEN\` | Custom E2E auth bypass token |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`NEON_API_KEY\` | Neon API key for branch management |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`NEON_PROJECT_ID\` | Neon project ID |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`STRIPE_SECRET_KEY_TEST\` | Stripe test mode secret key |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`STRIPE_PUBLISHABLE_KEY_TEST\` | Stripe test mode publishable key |" >> $GITHUB_STEP_SUMMARY
+
+          echo "::error::E2E tests skipped due to missing secrets. See job summary for setup instructions."
 
   # ─── Merge Results ───
   e2e-results:
     name: E2E Results
     runs-on: ubuntu-latest
     needs: [check-secrets, e2e]
-    if: always() && needs.check-secrets.outputs.secrets-available == 'true'
+    if: always() && needs.e2e.result != 'skipped'
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4

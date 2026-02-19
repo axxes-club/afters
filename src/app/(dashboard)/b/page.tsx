@@ -178,7 +178,7 @@ export default async function OverviewPage() {
           </div>
 
           <Link
-            href={`/b/events/${nextEvent.id}`}
+            href={`/b/event-editor/${nextEvent.id}/overview`}
             className="relative flex flex-col sm:flex-row p-4 sm:p-6 gap-4 sm:gap-6 hover:bg-white/[0.02] transition-all"
           >
             {/* Flyer Thumbnail */}
@@ -304,7 +304,7 @@ export default async function OverviewPage() {
               return (
                 <Link
                   key={event.id}
-                  href={`/b/events/${event.id}`}
+                  href={`/b/event-editor/${event.id}/overview`}
                   className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-white/[0.02] transition-all group ${isPast ? "opacity-50" : ""}`}
                 >
                   {/* Date Block */}

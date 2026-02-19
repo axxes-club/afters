@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Info,
   Palette,
+  Plus,
 } from "lucide-react";
 // Clerk account management is now in Settings > Security
 import {
@@ -29,10 +30,11 @@ import {
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { useUIPreferences } from "@/components/providers";
 import { APP_VERSION_DISPLAY } from "@/lib/constants";
+import { SidebarEventsList, useResizableSidebar } from "@/components/layout/sidebar";
 
-const baseNavItems = [
+// Primary navigation (always visible at top)
+const primaryNavItems = [
   { href: "/b", label: "OVERVIEW", icon: LayoutDashboard, exact: true },
-  { href: "/b/events", label: "EVENTS", icon: Calendar, exact: false },
 ];
 
 const settingsNavItemMain = { href: "/b/settings", label: "SETTINGS", icon: Settings, exact: false };
@@ -60,6 +62,12 @@ const superadminNavItem = {
   icon: Shield,
   exact: false,
 };
+
+// Mobile nav items (includes Events since sidebar events list isn't visible)
+const mobileNavItems = [
+  { href: "/b", label: "OVERVIEW", icon: LayoutDashboard, exact: true },
+  { href: "/b/events", label: "EVENTS", icon: Calendar, exact: false },
+];
 
 export default function DashboardLayout({
   children,
@@ -111,35 +119,53 @@ export default function DashboardLayout({
   const sidebarLogoMode = preferences.sidebarLogoMode;
   const sidebarCustomLogoUrl = preferences.sidebarCustomLogoUrl;
   
-  // Sidebar width based on compact mode
-  const sidebarWidth = sidebarCompact ? "w-16" : "w-56";
-  const mainMargin = sidebarCompact ? "md:ml-16" : "md:ml-56";
+  // Resizable sidebar
+  const {
+    width: sidebarWidthPx,
+    isResizing,
+    handleMouseDown,
+    handleDoubleClick,
+  } = useResizableSidebar(sidebarCompact);
 
   // Check if we're in settings section
   const isInSettings = pathname.startsWith("/b/settings");
 
-  // Build nav items based on context and permissions
-  // Order: Overview, Events, Scanner (if has events), Settings, Admin (if superadmin)
-  const mainNavItems = [
-    ...baseNavItems,
+  // Desktop: Top nav (Overview/BASE) - above events
+  const desktopTopNav = [
+    ...primaryNavItems, // Overview/BASE
+  ];
+
+  // Desktop: Bottom nav (Scanner, Settings, Admin) - below events list
+  const desktopBottomNav = [
     ...(hasEvents ? [scannerNavItem] : []),
     settingsNavItemMain,
     ...(isSuperAdmin ? [superadminNavItem] : []),
   ];
 
-  // Use settings nav when in settings, otherwise main nav
-  const navItems = isInSettings ? settingsNavItems : mainNavItems;
+  // Mobile: Full nav including Events (since sidebar list isn't visible on mobile)
+  const mobileMainNav = [
+    ...mobileNavItems,
+    ...(hasEvents ? [scannerNavItem] : []),
+    settingsNavItemMain,
+    ...(isSuperAdmin ? [superadminNavItem] : []),
+  ];
+
+  // Mobile nav items
+  const mobileNavItemsFinal = isInSettings ? settingsNavItems : mobileMainNav;
 
   return (
     <AftieProvider>
       <div className="min-h-screen bg-black text-white flex overflow-x-hidden">
         {/* Desktop Sidebar - Hidden on mobile */}
-        <aside className={`hidden md:flex ${sidebarWidth} border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50 transition-all duration-200`}>
-          {/* Logo */}
+        <aside
+          className={`hidden md:flex border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50 ${isResizing ? "" : "transition-all duration-200"}`}
+          style={{ width: sidebarWidthPx }}
+        >
+          {/* Logo with Quick Create */}
           {sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
-              className={`h-16 flex items-center justify-center ${sidebarCompact ? "px-2" : "px-4"} border-b border-white/5`}
+              className={`h-16 flex items-center justify-between ${sidebarCompact ? "px-2" : "px-4"} border-b border-white/5`}
             >
               {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
                 <Link href="/b" className="flex items-center justify-center">
@@ -147,7 +173,7 @@ export default function DashboardLayout({
                   <img
                     src={sidebarCustomLogoUrl}
                     alt="Logo"
-                    className={`object-contain ${sidebarCompact ? "max-h-8 max-w-[48px]" : "max-h-10 max-w-[180px]"}`}
+                    className={`object-contain ${sidebarCompact ? "max-h-8 max-w-[48px]" : "max-h-10 max-w-[140px]"}`}
                   />
                 </Link>
               ) : (
@@ -159,11 +185,21 @@ export default function DashboardLayout({
                   )}
                 </Link>
               )}
+              {/* Quick Create Button */}
+              {!sidebarCompact && !isInSettings && (
+                <Link
+                  href="/b/events/new"
+                  className="w-7 h-7 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 transition-colors"
+                  title="Create Event"
+                >
+                  <Plus className="w-4 h-4 text-white/50" />
+                </Link>
+              )}
             </div>
           )}
 
-          {/* Navigation */}
-          <nav className={`flex-1 py-4 ${sidebarCompact ? "px-1" : "px-2"} space-y-1`}>
+          {/* Primary Navigation */}
+          <nav className={`py-3 ${sidebarCompact ? "px-1" : "px-2"} space-y-1 border-b border-white/5`}>
             {/* Back button when in settings */}
             {isInSettings && (
               <Link
@@ -175,7 +211,7 @@ export default function DashboardLayout({
                 {!sidebarCompact && <span>BASE</span>}
               </Link>
             )}
-            
+
             {/* Section label when in settings */}
             {isInSettings && !sidebarCompact && (
               <div className="px-3 py-2 text-[10px] font-mono text-white/30 tracking-widest">
@@ -183,7 +219,7 @@ export default function DashboardLayout({
               </div>
             )}
 
-            {navItems.map((item) => {
+            {(isInSettings ? settingsNavItems : desktopTopNav).map((item) => {
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname.startsWith(item.href);
@@ -209,6 +245,57 @@ export default function DashboardLayout({
               );
             })}
           </nav>
+
+          {/* Events List Section - Only show when not in settings */}
+          {!isInSettings && (
+            <div className="flex-1 overflow-hidden flex flex-col py-3">
+              {!sidebarCompact && (
+                <div className="px-4 pb-2 text-[10px] font-mono text-white/30 tracking-widest">
+                  EVENTS
+                </div>
+              )}
+              <div className="flex-1 overflow-y-auto">
+                <SidebarEventsList
+                  accentColor={accentColor}
+                  compact={sidebarCompact}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Nav (Overview + Scanner) - Only show when not in settings */}
+          {!isInSettings && (
+            <nav className={`py-2 ${sidebarCompact ? "px-1" : "px-2"} space-y-1 border-t border-white/5`}>
+              {desktopBottomNav.map((item) => {
+                const isActive = item.exact
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`
+                      flex items-center ${sidebarCompact ? "justify-center" : "gap-3"} px-3 py-2.5 text-xs font-mono tracking-wider transition-all
+                      ${
+                        isActive
+                          ? "text-black"
+                          : "text-white/50 hover:text-white hover:bg-white/5"
+                      }
+                    `}
+                    style={isActive ? { backgroundColor: accentColor } : undefined}
+                    title={sidebarCompact ? item.label : undefined}
+                  >
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    {!sidebarCompact && <span>{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
+
+          {/* Spacer to push footer to bottom when in settings */}
+          {isInSettings && <div className="flex-1" />}
 
           {/* Status Footer */}
           <div className={`${sidebarCompact ? "p-2" : "px-3 py-4"} border-t border-white/5`}>
@@ -249,6 +336,26 @@ export default function DashboardLayout({
               </div>
             )}
           </div>
+
+          {/* Resize Handle */}
+          {!sidebarCompact && (
+            <div
+              className="absolute top-0 -right-2 w-5 h-full cursor-col-resize group z-50 flex items-center justify-end pr-1"
+              onMouseDown={handleMouseDown}
+              onDoubleClick={handleDoubleClick}
+              title="Drag to resize, double-click to reset"
+            >
+              {/* Visible drag indicator */}
+              <div
+                className={`w-1 rounded-full transition-all ${
+                  isResizing
+                    ? "h-24"
+                    : "h-12 bg-white/20 group-hover:bg-white/40 group-hover:h-16"
+                }`}
+                style={isResizing ? { backgroundColor: accentColor } : undefined}
+              />
+            </div>
+          )}
         </aside>
 
         {/* Mobile Bottom Toolbar */}
@@ -264,7 +371,7 @@ export default function DashboardLayout({
                 <span className="text-[10px] font-mono tracking-wider">BASE</span>
               </Link>
             )}
-            {navItems.slice(0, isInSettings ? 4 : undefined).map((item) => {
+            {mobileNavItemsFinal.slice(0, isInSettings ? 4 : undefined).map((item) => {
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname.startsWith(item.href);
@@ -287,7 +394,17 @@ export default function DashboardLayout({
         </nav>
 
         {/* Main Content */}
-        <main className={`flex-1 ${mainMargin} transition-all duration-200`}>
+        <main
+          className={`flex-1 ml-0 ${isResizing ? "" : "transition-all duration-200"}`}
+          style={{ ["--sidebar-width" as string]: `${sidebarWidthPx}px` }}
+        >
+          <style jsx>{`
+            @media (min-width: 768px) {
+              main {
+                margin-left: var(--sidebar-width) !important;
+              }
+            }
+          `}</style>
           {/* Mobile Header */}
           <header className="md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
             {/* Back button */}

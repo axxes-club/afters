@@ -310,6 +310,59 @@ describe("Scanner Check-in API", () => {
       expect(data.ticket.isTestTicket).toBe(true)
     })
 
+    it("should handle demo tickets with embedded data", async () => {
+      mockGetScannerSession.mockResolvedValue(mockSession)
+      mockPrisma.eventScanner.findUnique.mockResolvedValue({
+        id: "scanner-123",
+        isActive: true,
+      })
+
+      // Create demo ticket with embedded JSON data
+      const embedData = { n: "TK-VIP001", t: "VIP Access" }
+      const encodedData = btoa(JSON.stringify(embedData))
+      const demoTicketId = `demo-123456-${encodedData}`
+
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId: demoTicketId }),
+      })
+
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.valid).toBe(true)
+      expect(data.ticket.ticketNumber).toBe("TK-VIP001")
+      expect(data.ticket.tierName).toBe("VIP Access")
+    })
+
+    it("should handle demo tickets with invalid embedded data gracefully", async () => {
+      mockGetScannerSession.mockResolvedValue(mockSession)
+      mockPrisma.eventScanner.findUnique.mockResolvedValue({
+        id: "scanner-123",
+        isActive: true,
+      })
+
+      // Create demo ticket with invalid embedded data
+      const demoTicketId = "demo-123456-invalidbase64data"
+
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId: demoTicketId }),
+      })
+
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.valid).toBe(true)
+      // Should fall back to default values
+      expect(data.ticket.ticketNumber).toBeDefined()
+      expect(data.ticket.tierName).toBe("General Admission")
+    })
+
     it("should show test ticket warning on check-in", async () => {
       mockGetScannerSession.mockResolvedValue(mockSession)
       mockPrisma.eventScanner.findUnique.mockResolvedValue({
@@ -431,6 +484,28 @@ describe("Scanner Check-in API", () => {
       const data = await response.json()
 
       expect(data.ticket.holderName).toBe("John Doe")
+    })
+
+    it("should handle database errors gracefully", async () => {
+      mockGetScannerSession.mockResolvedValue(mockSession)
+      mockPrisma.eventScanner.findUnique.mockResolvedValue({
+        id: "scanner-123",
+        isActive: true,
+      })
+      mockPrisma.ticket.findUnique.mockRejectedValue(new Error("DB error"))
+
+      const request = new NextRequest("http://localhost:3000/api/scan/check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId: "ticket-123" }),
+      })
+
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(data.valid).toBe(false)
+      expect(data.error).toBe("Check-in failed")
     })
   })
 })
