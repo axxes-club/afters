@@ -38,7 +38,8 @@ vi.mock("resend", () => ({
   },
 }))
 
-import { POST, rsvpRateLimitMap } from "@/app/api/events/[eventId]/rsvp/route"
+import { POST } from "@/app/api/events/[eventId]/rsvp/route"
+import { rsvpRateLimitMap } from "@/lib/rate-limit"
 
 describe("RSVP API", () => {
   beforeEach(() => {

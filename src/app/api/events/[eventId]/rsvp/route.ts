@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { Resend } from "resend"
 import { verifyTurnstileToken } from "@/components/Turnstile"
 import { escapeHtml, safeColor } from "@/lib/security"
+import { checkRsvpRateLimit } from "@/lib/rate-limit"
 
 // Lazy initialization to avoid build-time errors when RESEND_API_KEY is not set
 let resend: Resend | null = null
@@ -11,26 +12,6 @@ function getResendClient(): Resend {
     resend = new Resend(process.env.RESEND_API_KEY || '')
   }
   return resend
-}
-
-// In-memory rate limiting for RSVP endpoint (per IP)
-export const rsvpRateLimitMap = new Map<string, { count: number; resetAt: number }>()
-
-function checkRsvpRateLimit(ip: string, maxAttempts = 10, windowMs = 60000): boolean {
-  const now = Date.now()
-  const record = rsvpRateLimitMap.get(ip)
-
-  if (!record || now > record.resetAt) {
-    rsvpRateLimitMap.set(ip, { count: 1, resetAt: now + windowMs })
-    return true
-  }
-
-  if (record.count >= maxAttempts) {
-    return false
-  }
-
-  record.count++
-  return true
 }
 
 export async function POST(
