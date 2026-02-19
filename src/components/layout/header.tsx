@@ -23,23 +23,28 @@ export function Header() {
   const { user } = useUser();
 
   useEffect(() => {
-    fetch("/api/user/role")
-      .then((res) => res.json())
-      .then((data) => {
+    const controller = new AbortController();
+    const loadRole = async () => {
+      try {
+        const res = await fetch("/api/user/role", { signal: controller.signal });
+        const data = await res.json();
         if (data.role === "SUPERADMIN") {
           setIsSuperAdmin(true);
         }
-      })
-      .catch(() => {});
-
-    fetch("/api/admin/ghost")
-      .then((res) => res.json())
-      .then((data) => {
+      } catch {}
+    };
+    const loadGhostStatus = async () => {
+      try {
+        const res = await fetch("/api/admin/ghost", { signal: controller.signal });
+        const data = await res.json();
         if (data.ghosting) {
           setIsGhosting(true);
         }
-      })
-      .catch(() => {});
+      } catch {}
+    };
+    loadRole();
+    loadGhostStatus();
+    return () => controller.abort();
   }, []);
 
   const closeMenu = () => setOpen(false);

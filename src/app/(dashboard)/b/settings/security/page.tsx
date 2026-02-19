@@ -28,6 +28,7 @@ import {
 import { Shield, Key, Smartphone, ExternalLink, Check, Plus, Copy, Trash2, Clock, ArrowRight, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { UserButton } from "@clerk/nextjs"
 
 interface ApiKey {
   id: string
@@ -170,6 +171,29 @@ export default function SecurityPage() {
       <div>
         <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">SECURITY</h1>
         <p className="text-white/40 text-sm font-mono mt-1">Authentication & access</p>
+      </div>
+
+      {/* Account */}
+      <div className="border border-white/10 bg-white/[0.02]">
+        <div className="px-4 py-2 border-b border-white/10">
+          <span className="text-[10px] font-mono text-white/40 tracking-widest">ACCOUNT</span>
+        </div>
+        <div className="p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "w-10 h-10",
+                },
+              }}
+            />
+            <div>
+              <p className="text-sm font-mono">Manage Account</p>
+              <p className="text-xs text-white/40">Profile, email, password & 2FA</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono text-white/30 px-2 py-1 bg-white/5">CLICK AVATAR</span>
+        </div>
       </div>
 
       {/* Auth Status */}

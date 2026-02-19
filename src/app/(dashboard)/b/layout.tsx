@@ -71,20 +71,38 @@ export default function DashboardLayout({
   const [hasEvents, setHasEvents] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
-  // Check if user has events to show/hide scanner
   useEffect(() => {
-    fetch("/api/organizer/events/count")
-      .then((res) => res.json())
-      .then((data) => setHasEvents(data.count > 0))
-      .catch(() => setHasEvents(false));
+    const controller = new AbortController();
+    const loadEventCount = async () => {
+      try {
+        const res = await fetch("/api/organizer/events/count", { signal: controller.signal });
+        const data = await res.json();
+        setHasEvents(data.count > 0);
+      } catch {
+        if (!controller.signal.aborted) {
+          setHasEvents(false);
+        }
+      }
+    };
+    loadEventCount();
+    return () => controller.abort();
   }, []);
 
-  // Check if user is superadmin
   useEffect(() => {
-    fetch("/api/user/role")
-      .then((res) => res.json())
-      .then((data) => setIsSuperAdmin(data.role === "SUPERADMIN"))
-      .catch(() => setIsSuperAdmin(false));
+    const controller = new AbortController();
+    const loadRole = async () => {
+      try {
+        const res = await fetch("/api/user/role", { signal: controller.signal });
+        const data = await res.json();
+        setIsSuperAdmin(data.role === "SUPERADMIN");
+      } catch {
+        if (!controller.signal.aborted) {
+          setIsSuperAdmin(false);
+        }
+      }
+    };
+    loadRole();
+    return () => controller.abort();
   }, []);
 
   // Get preferences from context (site-wide provider handles CSS variables)

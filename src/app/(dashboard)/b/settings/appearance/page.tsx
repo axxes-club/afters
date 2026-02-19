@@ -64,9 +64,11 @@ export default function AppearanceSettingsPage() {
   })
 
   useEffect(() => {
-    fetch("/api/user/preferences")
-      .then((res) => res.json())
-      .then((data) => {
+    const controller = new AbortController()
+    const loadPreferences = async () => {
+      try {
+        const res = await fetch("/api/user/preferences", { signal: controller.signal })
+        const data = await res.json()
         if (data.organizerProfile) {
           setPreferences({
             sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
@@ -77,11 +79,15 @@ export default function AppearanceSettingsPage() {
           })
         }
         setLoading(false)
-      })
-      .catch(() => {
-        toast.error("Failed to load preferences")
-        setLoading(false)
-      })
+      } catch {
+        if (!controller.signal.aborted) {
+          toast.error("Failed to load preferences")
+          setLoading(false)
+        }
+      }
+    }
+    loadPreferences()
+    return () => controller.abort()
   }, [])
 
   const handleSave = async () => {

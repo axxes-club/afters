@@ -143,7 +143,7 @@ export default function OAuthAppsPage() {
           <Key className="w-8 h-8 mx-auto mb-4 text-white/20" />
           <p className="text-white/40 font-mono">No OAuth apps registered</p>
           <p className="text-white/20 text-sm font-mono mt-2">
-            Click &quot;Add Members Portal&quot; to create the first app
+            Click &ldquo;Add Members Portal&rdquo; to create the first app
           </p>
         </div>
       ) : (

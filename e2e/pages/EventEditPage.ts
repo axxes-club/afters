@@ -2,7 +2,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 /**
- * Page object for event editing (/d/events/[eventId])
+ * Page object for event editing (/b/events/[eventId])
  *
  * This page has multiple tabs: Overview, Tickets, Door, Design, Details, Venue, Settings
  */
@@ -79,7 +79,7 @@ export class EventEditPage extends BasePage {
    * Navigate to a specific event
    */
   async goto(eventId: string) {
-    await this.navigateTo(`/d/events/${eventId}`);
+    await this.navigateTo(`/b/events/${eventId}`);
   }
 
   /**

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { Resend } from "resend"
 import { verifyTurnstileToken } from "@/components/Turnstile"
 import { escapeHtml, safeColor } from "@/lib/security"
+import { checkRsvpRateLimit } from "@/lib/rate-limit"
 
 // Lazy initialization to avoid build-time errors when RESEND_API_KEY is not set
 let resend: Resend | null = null
@@ -19,17 +20,32 @@ export async function POST(
 ) {
   try {
     const { eventId } = await params
+
+    // Rate limit by IP
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown"
+    if (!checkRsvpRateLimit(ip)) {
+      return NextResponse.json(
+        { message: "Too many requests. Please try again later." },
+        { status: 429 }
+      )
+    }
+
     const { name, email, phone, plusOnes, message, turnstileToken } = await req.json()
 
-    // Verify human
-    if (turnstileToken) {
-      const isHuman = await verifyTurnstileToken(turnstileToken)
-      if (!isHuman) {
-        return NextResponse.json(
-          { message: "Verification failed. Please try again." },
-          { status: 400 }
-        )
-      }
+    // Require and verify Turnstile token
+    if (!turnstileToken) {
+      return NextResponse.json(
+        { message: "Verification required. Please complete the challenge." },
+        { status: 400 }
+      )
+    }
+
+    const isHuman = await verifyTurnstileToken(turnstileToken)
+    if (!isHuman) {
+      return NextResponse.json(
+        { message: "Verification failed. Please try again." },
+        { status: 400 }
+      )
     }
 
     // Validate required fields

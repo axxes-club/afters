@@ -17,8 +17,7 @@ export default async function OrderConfirmationPage({
   params: Promise<{ orderId: string }>
   searchParams: Promise<{ payment_intent?: string; redirect_status?: string }>
 }) {
-  const { orderId } = await params
-  const { redirect_status } = await searchParams
+  const [{ orderId }, { redirect_status }] = await Promise.all([params, searchParams])
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },

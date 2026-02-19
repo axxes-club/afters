@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { Users, UserPlus, Hash, Info } from "lucide-react"
 
@@ -20,10 +20,6 @@ export function EventRsvpSettings({ eventId, initialSettings }: EventRsvpSetting
   const [settings, setSettings] = useState<RsvpSettings>(initialSettings)
   const [saving, setSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
-
-  useEffect(() => {
-    setSettings(initialSettings)
-  }, [initialSettings])
 
   const updateSetting = <K extends keyof RsvpSettings>(key: K, value: RsvpSettings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))

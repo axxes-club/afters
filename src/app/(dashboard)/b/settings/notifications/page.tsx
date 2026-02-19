@@ -73,19 +73,25 @@ export default function NotificationsPage() {
   } = usePushNotifications()
 
   useEffect(() => {
+    const controller = new AbortController()
     async function fetchPreferences() {
       try {
-        const res = await fetch("/api/user/notifications")
+        const res = await fetch("/api/user/notifications", { signal: controller.signal })
         if (!res.ok) throw new Error("Failed to fetch preferences")
         const data = await res.json()
         setPreferences(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load preferences")
+        if (!controller.signal.aborted) {
+          setError(err instanceof Error ? err.message : "Failed to load preferences")
+        }
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
     fetchPreferences()
+    return () => controller.abort()
   }, [])
 
   const savePreference = useCallback(async (key: keyof NotificationPreferences, value: boolean) => {
