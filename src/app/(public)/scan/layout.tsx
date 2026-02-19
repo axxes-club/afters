@@ -22,7 +22,7 @@ const navItems = [
 ]
 
 interface UIPreferences {
-  sidebarLogoMode: "afters" | "custom" | "hidden"
+  sidebarLogoMode: "afters" | "afters3x" | "custom" | "hidden"
   sidebarCustomLogoUrl: string | null
   uiAccentColor: string | null
 }
@@ -34,7 +34,7 @@ export default function ScanLayout({
 }) {
   const pathname = usePathname()
   const [uiPrefs, setUIPrefs] = useState<UIPreferences>({
-    sidebarLogoMode: "afters",
+    sidebarLogoMode: "afters3x",
     sidebarCustomLogoUrl: null,
     uiAccentColor: null,
   })
@@ -47,7 +47,7 @@ export default function ScanLayout({
         const data = await res.json()
         if (data.organizerProfile) {
           setUIPrefs({
-            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
+            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters3x",
             sidebarCustomLogoUrl: data.organizerProfile.sidebarCustomLogoUrl || null,
             uiAccentColor: data.organizerProfile.uiAccentColor || null,
           })

@@ -10,7 +10,7 @@ import { useUIPreferences } from "@/components/providers"
 import { LogoUpload } from "@/components/LogoUpload"
 
 interface LocalUIPreferences {
-  sidebarLogoMode: "afters" | "custom" | "hidden"
+  sidebarLogoMode: "afters" | "afters3x" | "custom" | "hidden"
   sidebarCustomLogoUrl: string | null
   sidebarCompact: boolean
   uiAccentColor: string | null
@@ -56,7 +56,7 @@ export default function AppearanceSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [logoInputMode, setLogoInputMode] = useState<"upload" | "url">("upload")
   const [preferences, setPreferences] = useState<LocalUIPreferences>({
-    sidebarLogoMode: "afters",
+    sidebarLogoMode: "afters3x",
     sidebarCustomLogoUrl: null,
     sidebarCompact: false,
     uiAccentColor: null,
@@ -71,7 +71,7 @@ export default function AppearanceSettingsPage() {
         const data = await res.json()
         if (data.organizerProfile) {
           setPreferences({
-            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
+            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters3x",
             sidebarCustomLogoUrl: data.organizerProfile.sidebarCustomLogoUrl || null,
             sidebarCompact: data.organizerProfile.sidebarCompact || false,
             uiAccentColor: data.organizerProfile.uiAccentColor || null,
@@ -153,6 +153,24 @@ export default function AppearanceSettingsPage() {
                 <p className="text-xs text-white/40">Show the default AFTERS. branding</p>
               </div>
               <span className="font-headline text-lg">
+                AFTERS<span style={{ color: currentAccent }}>.</span>
+              </span>
+            </label>
+
+            <label className="flex items-center gap-3 p-4 border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+              <input
+                type="radio"
+                name="logoMode"
+                checked={preferences.sidebarLogoMode === "afters3x"}
+                onChange={() => setPreferences({ ...preferences, sidebarLogoMode: "afters3x" })}
+                className="w-4 h-4"
+                style={{ accentColor: currentAccent }}
+              />
+              <div className="flex-1">
+                <p className="font-mono text-sm">Afters 3X Logo</p>
+                <p className="text-xs text-white/40">Show a larger AFTERS. branding</p>
+              </div>
+              <span className="font-headline text-2xl">
                 AFTERS<span style={{ color: currentAccent }}>.</span>
               </span>
             </label>

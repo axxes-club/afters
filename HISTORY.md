@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.18 (2026-02-19)
+
+- Add "Afters 3X Logo" option for larger sidebar branding
+- Make Afters 3X Logo the default for all users
+- New appearance setting to choose between standard and 3X logo sizes
+- Desktop sidebar: text-4xl when 3X selected, text-2xl otherwise
+- Mobile header: text-2xl when 3X selected, text-xl otherwise
+
 ## 0.2.17 (2026-02-19)
 
 - Fix collapsed sidebar styling (logo, nav items, event thumbnails) (PR #56)

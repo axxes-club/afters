@@ -30,23 +30,53 @@ import {
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { useUIPreferences } from "@/components/providers";
 import { APP_VERSION_DISPLAY } from "@/lib/constants";
-import { SidebarEventsList, useResizableSidebar } from "@/components/layout/sidebar";
+import {
+  SidebarEventsList,
+  useResizableSidebar,
+} from "@/components/layout/sidebar";
 
 // Primary navigation (always visible at top)
 const primaryNavItems = [
   { href: "/b", label: "OVERVIEW", icon: LayoutDashboard, exact: true },
 ];
 
-const settingsNavItemMain = { href: "/b/settings", label: "SETTINGS", icon: Settings, exact: false };
+const settingsNavItemMain = {
+  href: "/b/settings",
+  label: "SETTINGS",
+  icon: Settings,
+  exact: false,
+};
 
 const settingsNavItems = [
   { href: "/b/settings", label: "PROFILE", icon: User, exact: true },
-  { href: "/b/settings/appearance", label: "APPEARANCE", icon: Palette, exact: false },
+  {
+    href: "/b/settings/appearance",
+    label: "APPEARANCE",
+    icon: Palette,
+    exact: false,
+  },
   ...(process.env.NODE_ENV !== "production"
-    ? [{ href: "/b/settings/aftie", label: "AFTIE AI", icon: Sparkles, exact: false }]
+    ? [
+        {
+          href: "/b/settings/aftie",
+          label: "AFTIE AI",
+          icon: Sparkles,
+          exact: false,
+        },
+      ]
     : []),
-  { href: "/b/settings/notifications", label: "NOTIFICATIONS", icon: Bell, exact: false },
-  { href: "/b/settings/security", label: "SECURITY", icon: Shield, exact: false },
+  {
+    href: "/b/settings/notifications",
+    label: "NOTIFICATIONS",
+    icon: Bell,
+    exact: false,
+  },
+  {
+    href: "/b/settings/security",
+    label: "SECURITY",
+    icon: Shield,
+    exact: false,
+  },
   { href: "/b/settings/system", label: "SYSTEM", icon: Info, exact: false },
 ];
 
@@ -83,7 +113,9 @@ export default function DashboardLayout({
     const controller = new AbortController();
     const loadEventCount = async () => {
       try {
-        const res = await fetch("/api/organizer/events/count", { signal: controller.signal });
+        const res = await fetch("/api/organizer/events/count", {
+          signal: controller.signal,
+        });
         const data = await res.json();
         setHasEvents(data.count > 0);
       } catch {
@@ -100,7 +132,9 @@ export default function DashboardLayout({
     const controller = new AbortController();
     const loadRole = async () => {
       try {
-        const res = await fetch("/api/user/role", { signal: controller.signal });
+        const res = await fetch("/api/user/role", {
+          signal: controller.signal,
+        });
         const data = await res.json();
         setIsSuperAdmin(data.role === "SUPERADMIN");
       } catch {
@@ -118,7 +152,7 @@ export default function DashboardLayout({
   const sidebarCompact = preferences.sidebarCompact;
   const sidebarLogoMode = preferences.sidebarLogoMode;
   const sidebarCustomLogoUrl = preferences.sidebarCustomLogoUrl;
-  
+
   // Resizable sidebar
   const {
     width: sidebarWidthPx,
@@ -165,7 +199,7 @@ export default function DashboardLayout({
           {sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
-              className={`h-16 flex items-center ${sidebarCompact ? "justify-center px-2" : "justify-between px-4"} border-b border-white/5`}
+              className={`h-16 flex items-center ${sidebarCompact ? "justify-center px-2" : "justify-between px-4"} border-b border-white/5 ${sidebarLogoMode === "afters3x" ? "extra-large-logo" : ""}`}
             >
               {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
                 <Link
@@ -182,12 +216,16 @@ export default function DashboardLayout({
               ) : (
                 <Link
                   href="/b"
-                  className={`font-headline tracking-wide ${sidebarCompact ? "text-lg flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" : "text-2xl"}`}
+                  className={`font-headline tracking-wide ${sidebarCompact ? "text-lg flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors" : sidebarLogoMode === "afters3x" ? "text-4xl" : "text-2xl"}`}
                 >
                   {sidebarCompact ? (
-                    <span style={{ color: accentColor }} className="font-bold">A</span>
+                    <span style={{ color: accentColor }} className="font-bold">
+                      A
+                    </span>
                   ) : (
-                    <>AFTERS<span style={{ color: accentColor }}>.</span></>
+                    <>
+                      AFTERS<span style={{ color: accentColor }}>.</span>
+                    </>
                   )}
                 </Link>
               )}
@@ -205,7 +243,9 @@ export default function DashboardLayout({
           )}
 
           {/* Primary Navigation */}
-          <nav className={`py-3 ${sidebarCompact ? "px-2" : "px-2"} space-y-1 border-b border-white/5`}>
+          <nav
+            className={`py-3 ${sidebarCompact ? "px-2" : "px-2"} space-y-1 border-b border-white/5`}
+          >
             {/* Back button when in settings */}
             {isInSettings && (
               <Link
@@ -213,7 +253,9 @@ export default function DashboardLayout({
                 className={`flex items-center ${sidebarCompact ? "justify-center w-10 h-10 mx-auto rounded-lg bg-white/5 hover:bg-white/10" : "gap-3 px-3"} py-2.5 text-xs font-mono tracking-wider transition-all text-white/50 hover:text-white mb-2 ${!sidebarCompact && "border-b border-white/5 pb-3"}`}
                 title={sidebarCompact ? "Back to Base" : undefined}
               >
-                <ArrowLeft className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`} />
+                <ArrowLeft
+                  className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`}
+                />
                 {!sidebarCompact && <span>BASE</span>}
               </Link>
             )}
@@ -244,10 +286,14 @@ export default function DashboardLayout({
                           : "text-white/50 hover:text-white hover:bg-white/5"
                     }
                   `}
-                  style={isActive ? { backgroundColor: accentColor } : undefined}
+                  style={
+                    isActive ? { backgroundColor: accentColor } : undefined
+                  }
                   title={sidebarCompact ? item.label : undefined}
                 >
-                  <item.icon className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`} />
+                  <item.icon
+                    className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`}
+                  />
                   {!sidebarCompact && <span>{item.label}</span>}
                 </Link>
               );
@@ -273,7 +319,9 @@ export default function DashboardLayout({
 
           {/* Bottom Nav (Overview + Scanner) - Only show when not in settings */}
           {!isInSettings && (
-            <nav className={`py-3 ${sidebarCompact ? "px-2" : "px-2"} space-y-1 border-t border-white/5`}>
+            <nav
+              className={`py-3 ${sidebarCompact ? "px-2" : "px-2"} space-y-1 border-t border-white/5`}
+            >
               {desktopBottomNav.map((item) => {
                 const isActive = item.exact
                   ? pathname === item.href
@@ -293,10 +341,14 @@ export default function DashboardLayout({
                             : "text-white/50 hover:text-white hover:bg-white/5"
                       }
                     `}
-                    style={isActive ? { backgroundColor: accentColor } : undefined}
+                    style={
+                      isActive ? { backgroundColor: accentColor } : undefined
+                    }
                     title={sidebarCompact ? item.label : undefined}
                   >
-                    <item.icon className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`} />
+                    <item.icon
+                      className={`${sidebarCompact ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0`}
+                    />
                     {!sidebarCompact && <span>{item.label}</span>}
                   </Link>
                 );
@@ -308,11 +360,16 @@ export default function DashboardLayout({
           {isInSettings && <div className="flex-1" />}
 
           {/* Status Footer */}
-          <div className={`${sidebarCompact ? "py-3" : "px-3 py-4"} border-t border-white/5`}>
+          <div
+            className={`${sidebarCompact ? "py-3" : "px-3 py-4"} border-t border-white/5`}
+          >
             {sidebarCompact ? (
               /* Compact: show online indicator in a subtle container */
               <div className="flex items-center justify-center">
-                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center" title="Online">
+                <div
+                  className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center"
+                  title="Online"
+                >
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 </div>
               </div>
@@ -341,7 +398,9 @@ export default function DashboardLayout({
                   <div className="flex items-center gap-2 text-[10px] font-mono text-white/30">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                     <span>ONLINE</span>
-                    <span className="text-white/20">(v{APP_VERSION_DISPLAY})</span>
+                    <span className="text-white/20">
+                      (v{APP_VERSION_DISPLAY})
+                    </span>
                   </div>
                   <FeedbackButton />
                 </div>
@@ -364,7 +423,9 @@ export default function DashboardLayout({
                     ? "h-24"
                     : "h-12 bg-white/20 group-hover:bg-white/40 group-hover:h-16"
                 }`}
-                style={isResizing ? { backgroundColor: accentColor } : undefined}
+                style={
+                  isResizing ? { backgroundColor: accentColor } : undefined
+                }
               />
             </div>
           )}
@@ -380,28 +441,34 @@ export default function DashboardLayout({
                 className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all text-white/40"
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span className="text-[10px] font-mono tracking-wider">BASE</span>
+                <span className="text-[10px] font-mono tracking-wider">
+                  BASE
+                </span>
               </Link>
             )}
-            {mobileNavItemsFinal.slice(0, isInSettings ? 4 : undefined).map((item) => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
+            {mobileNavItemsFinal
+              .slice(0, isInSettings ? 4 : undefined)
+              .map((item) => {
+                const isActive = item.exact
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all"
-                  style={{ color: isActive ? accentColor : "rgba(255,255,255,0.4)" }}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="text-[10px] font-mono tracking-wider">
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all"
+                    style={{
+                      color: isActive ? accentColor : "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="text-[10px] font-mono tracking-wider">
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
           </div>
         </nav>
 
@@ -418,7 +485,9 @@ export default function DashboardLayout({
             }
           `}</style>
           {/* Mobile Header */}
-          <header className="md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40">
+          <header
+            className={`md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40 ${sidebarLogoMode === "afters3x" ? "extra-large-logo" : ""}`}
+          >
             {/* Back button */}
             {pathname !== "/b" && (
               <Link
@@ -426,14 +495,15 @@ export default function DashboardLayout({
                   // Settings subpage -> settings root
                   isInSettings && pathname !== "/b/settings"
                     ? "/b/settings"
-                    // Settings root -> dashboard
-                    : isInSettings
-                    ? "/b"
-                    // Events subpage -> events list
-                    : pathname.startsWith("/b/events/") && pathname !== "/b/events"
-                    ? "/b/events"
-                    // Default -> dashboard
-                    : "/b"
+                    : // Settings root -> dashboard
+                      isInSettings
+                      ? "/b"
+                      : // Events subpage -> events list
+                        pathname.startsWith("/b/events/") &&
+                          pathname !== "/b/events"
+                        ? "/b/events"
+                        : // Default -> dashboard
+                          "/b"
                 }
                 className="flex items-center justify-center w-8 h-8 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all"
               >
@@ -450,20 +520,29 @@ export default function DashboardLayout({
                   className="max-h-8 max-w-[120px] object-contain"
                 />
                 {isInSettings && (
-                  <span className="text-xs font-mono text-white/40">/ SETTINGS</span>
+                  <span className="text-xs font-mono text-white/40">
+                    / SETTINGS
+                  </span>
                 )}
               </Link>
             ) : sidebarLogoMode !== "hidden" ? (
-              <Link href="/b" className="flex items-center gap-2 font-headline text-xl tracking-wide">
+              <Link
+                href="/b"
+                className={`flex items-center gap-2 font-headline tracking-wide ${sidebarLogoMode === "afters3x" ? "text-2xl" : "text-xl"}`}
+              >
                 AFTERS<span style={{ color: accentColor }}>.</span>
                 {isInSettings && (
-                  <span className="text-xs font-mono text-white/40 ml-1">/ SETTINGS</span>
+                  <span className="text-xs font-mono text-white/40 ml-1">
+                    / SETTINGS
+                  </span>
                 )}
               </Link>
             ) : (
               <Link href="/b" className="flex items-center gap-2">
                 {isInSettings && (
-                  <span className="text-xs font-mono text-white/40">SETTINGS</span>
+                  <span className="text-xs font-mono text-white/40">
+                    SETTINGS
+                  </span>
                 )}
               </Link>
             )}
