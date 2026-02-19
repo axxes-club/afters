@@ -531,8 +531,13 @@ function NewEventForm() {
                       aria-label="Allow guests to bring plus ones"
                       aria-pressed={rsvpAllowPlusOnes}
                       onClick={() => setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
-                      onKeyDown={(e) => e.key === "Enter" && setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)}
-                      className={`w-full flex items-center justify-between p-4 md:p-5 border transition-all cursor-pointer ${
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          setRsvpAllowPlusOnes(!rsvpAllowPlusOnes)
+                        }
+                      }}
+                      className={`w-full flex items-center justify-between p-4 md:p-5 border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#00ff88]/50 ${
                         rsvpAllowPlusOnes
                           ? "border-[#00ff88]/50 bg-[#00ff88]/5"
                           : "border-white/10 hover:border-white/20"
@@ -715,7 +720,7 @@ function NewEventForm() {
                         type="button"
                         aria-pressed={endTimeMode === "late"}
                         onClick={() => setEndTimeMode("late")}
-                        className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all ${
+                        className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:ring-offset-1 focus:ring-offset-black ${
                           endTimeMode === "late"
                             ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
                             : "border border-white/10 text-white/40 hover:border-white/20"
@@ -727,7 +732,7 @@ function NewEventForm() {
                         type="button"
                         aria-pressed={endTimeMode === "custom"}
                         onClick={() => setEndTimeMode("custom")}
-                        className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all ${
+                        className={`flex-1 h-8 md:h-10 text-[10px] md:text-xs font-mono tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:ring-offset-1 focus:ring-offset-black ${
                           endTimeMode === "custom"
                             ? "bg-[#00d4ff]/10 border border-[#00d4ff]/50 text-[#00d4ff]"
                             : "border border-white/10 text-white/40 hover:border-white/20"
@@ -945,8 +950,13 @@ function NewEventForm() {
                     aria-label="Hide event location until ticket purchase"
                     aria-pressed={isAddressHidden}
                     onClick={() => setIsAddressHidden(!isAddressHidden)}
-                    onKeyDown={(e) => e.key === "Enter" && setIsAddressHidden(!isAddressHidden)}
-                    className={`w-full flex items-center justify-between p-4 md:p-5 border transition-all cursor-pointer ${
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        setIsAddressHidden(!isAddressHidden)
+                      }
+                    }}
+                    className={`w-full flex items-center justify-between p-4 md:p-5 border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#ff6b00]/50 ${
                       isAddressHidden
                         ? "border-[#ff6b00]/50 bg-[#ff6b00]/5"
                         : "border-white/10 hover:border-white/20"
