@@ -14,7 +14,7 @@ export default defineConfig({
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "test-clerk-publishable",
     },
     include: ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    exclude: ["node_modules", ".next", ".vercel", "e2e/**"],
+    exclude: ["**/node_modules/**", ".next", ".vercel", "e2e/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

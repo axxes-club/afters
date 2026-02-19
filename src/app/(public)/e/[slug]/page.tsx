@@ -7,6 +7,7 @@ import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket
 import { ViewTracker } from "@/components/ViewTracker"
 import { SeriesBadge } from "@/components/events/SeriesBadge"
 import { getSessionUser } from "@/lib/auth-utils"
+import { safeHref } from "@/lib/security"
 import EditDesignOverlay from "@/components/public/EventPageClient"
 import EventInfoSections from "@/components/public/EventInfoSections"
 import type { Metadata } from "next"
@@ -918,8 +919,8 @@ export default async function EventPage({
                         {artist.showtime}
                       </div>
                     )}
-                    {artist.socialUrl && (
-                      <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white">
+                    {safeHref(artist.socialUrl) && (
+                      <a href={safeHref(artist.socialUrl)!} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white">
                         <Instagram className="w-5 h-5" />
                       </a>
                     )}
@@ -1657,9 +1658,9 @@ export default async function EventPage({
                             {artist.showtime}
                           </span>
                         )}
-                        {artist.socialUrl && (
+                        {safeHref(artist.socialUrl) && (
                           <a
-                            href={artist.socialUrl}
+                            href={safeHref(artist.socialUrl)!}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -1784,10 +1785,10 @@ export default async function EventPage({
               )}
 
               {/* Organizer social */}
-              {event.organizer.instagramUrl && (
+              {safeHref(event.organizer.instagramUrl) && (
                 <div className="mt-8 pt-8 border-t border-white/10">
                   <a
-                    href={event.organizer.instagramUrl}
+                    href={safeHref(event.organizer.instagramUrl)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-300 group"
@@ -2116,9 +2117,9 @@ export default async function EventPage({
                           <div className="font-medium">{event.organizer.displayName}</div>
                         </div>
                       </div>
-                      {event.organizer.instagramUrl && (
+                      {safeHref(event.organizer.instagramUrl) && (
                         <a
-                          href={event.organizer.instagramUrl}
+                          href={safeHref(event.organizer.instagramUrl)!}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="mt-4 flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm"
@@ -2402,8 +2403,8 @@ export default async function EventPage({
                           </div>
                           {artist.role && <p className="text-sm text-white/40 truncate">{artist.role}</p>}
                         </div>
-                        {artist.socialUrl && (
-                          <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="text-white/20 hover:text-white transition-colors">
+                        {safeHref(artist.socialUrl) && (
+                          <a href={safeHref(artist.socialUrl)!} target="_blank" rel="noopener noreferrer" className="text-white/20 hover:text-white transition-colors">
                             <Instagram className="w-5 h-5" />
                           </a>
                         )}
@@ -3063,8 +3064,8 @@ export default async function EventPage({
                               {artist.showtime}
                             </span>
                           )}
-                          {artist.socialUrl && (
-                            <a href={artist.socialUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-white/20 hover:text-white transition-colors">
+                          {safeHref(artist.socialUrl) && (
+                            <a href={safeHref(artist.socialUrl)!} target="_blank" rel="noopener noreferrer" className="ml-auto text-white/20 hover:text-white transition-colors">
                               <Instagram className="w-5 h-5" />
                             </a>
                           )}
