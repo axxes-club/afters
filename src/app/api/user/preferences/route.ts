@@ -57,7 +57,7 @@ export async function PUT(req: Request) {
     } = body
 
     // Validate sidebarLogoMode
-    if (sidebarLogoMode && !["afters", "custom", "hidden"].includes(sidebarLogoMode)) {
+    if (sidebarLogoMode && !["afters", "afters3x", "custom", "hidden"].includes(sidebarLogoMode)) {
       return NextResponse.json(
         { error: "Invalid sidebar logo mode" },
         { status: 400 }
@@ -88,7 +88,7 @@ export async function PUT(req: Request) {
     const updated = await prisma.organizerProfile.update({
       where: { userId },
       data: {
-        sidebarLogoMode: sidebarLogoMode || "afters",
+        sidebarLogoMode: sidebarLogoMode || "afters3x",
         sidebarCustomLogoUrl: sidebarCustomLogoUrl || null,
         sidebarCompact: sidebarCompact || false,
         uiAccentColor: uiAccentColor || null,

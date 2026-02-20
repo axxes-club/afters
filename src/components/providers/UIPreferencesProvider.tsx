@@ -7,7 +7,7 @@ export interface UIPreferences {
   accentColor: string;
   fontSize: "small" | "normal" | "large";
   sidebarCompact: boolean;
-  sidebarLogoMode: "afters" | "custom" | "hidden";
+  sidebarLogoMode: "afters" | "afters3x" | "custom" | "hidden";
   sidebarCustomLogoUrl: string | null;
 }
 
@@ -15,7 +15,7 @@ const DEFAULT_PREFERENCES: UIPreferences = {
   accentColor: "#ff1493",
   fontSize: "normal",
   sidebarCompact: false,
-  sidebarLogoMode: "afters",
+  sidebarLogoMode: "afters3x",
   sidebarCustomLogoUrl: null,
 };
 

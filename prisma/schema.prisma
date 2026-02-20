@@ -302,7 +302,7 @@ model OrganizerProfile {
   aftieImageApiKey         String?  // User's API key for image generation (TODO: encrypt at rest)
 
   // UI Customization Preferences
-  sidebarLogoMode          String   @default("afters") // 'afters' | 'custom' | 'hidden'
+  sidebarLogoMode          String   @default("afters3x") // 'afters' | 'afters3x' | 'custom' | 'hidden'
   sidebarCustomLogoUrl     String?  // URL for custom logo when sidebarLogoMode = 'custom'
   sidebarCompact           Boolean  @default(false) // Compact sidebar mode
   uiAccentColor            String?  // Custom accent color for dashboard UI

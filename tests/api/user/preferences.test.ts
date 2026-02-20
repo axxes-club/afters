@@ -244,7 +244,7 @@ describe("User Preferences API", () => {
         uiFontSize: "normal",
       });
 
-      for (const mode of ["afters", "custom", "hidden"]) {
+      for (const mode of ["afters", "afters3x", "custom", "hidden"]) {
         const request = new NextRequest(
           "http://localhost:3000/api/user/preferences",
           {
