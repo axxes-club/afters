@@ -33,18 +33,6 @@ const SCOPE_INFO: Record<string, ScopeInfo> = {
   'webhooks': { name: 'Webhooks', description: 'Manage webhooks' },
 }
 
-export default function OAuthAuthorizePage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    }>
-      <OAuthAuthorizeContent />
-    </Suspense>
-  )
-}
-
 function OAuthAuthorizeContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -85,39 +73,24 @@ function OAuthAuthorizeContent() {
           scope: scope || '',
         })}`
         
-        console.log('[OAuth] Validating request:', validateUrl)
         const response = await fetch(validateUrl, { signal: controller.signal })
-        
-        let data
-        try {
-          data = await response.json()
-        } catch (parseError) {
-          console.error('[OAuth] Failed to parse response:', parseError)
-          setError('Server returned invalid response')
-          setLoading(false)
-          return
-        }
-        
-        console.log('[OAuth] Response:', { status: response.status, ok: response.ok, data })
+        const data = await response.json()
         
         if (!response.ok) {
           if (data.loginUrl) {
-            console.log('[OAuth] Redirecting to login:', data.loginUrl)
             window.location.href = data.loginUrl
             return
           }
-          console.error('[OAuth] Validation failed:', data.error)
           setError(data.error || 'Invalid authorization request')
           setLoading(false)
           return
         }
         
         setApp(data.app)
-        setScopes(data.scopes)
+        setScopes(data.scopes || [])
         setLoading(false)
-      } catch (fetchError) {
+      } catch {
         if (!controller.signal.aborted) {
-          console.error('[OAuth] Fetch error:', fetchError)
           setError('Failed to validate authorization request. Please try again.')
           setLoading(false)
         }
@@ -195,14 +168,6 @@ function OAuthAuthorizeContent() {
               Go to Dashboard
             </Button>
           </div>
-          {/* Debug info for development */}
-          {clientId && (
-            <div className="mt-6 pt-4 border-t border-white/10 text-left">
-              <p className="text-[10px] font-mono text-white/20 mb-2">DEBUG INFO:</p>
-              <p className="text-[10px] font-mono text-white/20 break-all">Client: {clientId}</p>
-              <p className="text-[10px] font-mono text-white/20 break-all">Redirect: {redirectUri}</p>
-            </div>
-          )}
         </div>
       </div>
     )
@@ -248,11 +213,11 @@ function OAuthAuthorizeContent() {
           {/* Scopes */}
           <div className="space-y-2 mb-6">
             <p className="text-[10px] font-mono text-white/40 tracking-widest mb-3">PERMISSIONS</p>
-            {scopes.map((scope) => {
-              const info = SCOPE_INFO[scope]
+            {scopes && scopes.length > 0 && scopes.map((scopeName) => {
+              const info = SCOPE_INFO[scopeName]
               if (!info) return null
               return (
-                <div key={scope} className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5">
+                <div key={scopeName} className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5">
                   <Check className="w-4 h-4 text-[#ff1493] flex-shrink-0" />
                   <div>
                     <p className="text-sm font-mono text-white">{info.name}</p>
@@ -307,5 +272,17 @@ function OAuthAuthorizeContent() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OAuthAuthorizePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    }>
+      <OAuthAuthorizeContent />
+    </Suspense>
   )
 }
