@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Calendar,
   LayoutDashboard,
@@ -17,6 +17,7 @@ import {
   Info,
   Palette,
   Plus,
+  MoreHorizontal,
 } from "lucide-react";
 // Clerk account management is now in Settings > Security
 import {
@@ -161,6 +162,31 @@ export default function DashboardLayout({
     handleDoubleClick,
   } = useResizableSidebar(sidebarCompact);
 
+  // More menu state for mobile nav overflow
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close more menu on outside click
+  useEffect(() => {
+    if (!moreMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(e.target as Node)
+      ) {
+        setMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [moreMenuOpen]);
+
+  // Close more menu on route change
+  const closeMoreMenu = useCallback(() => setMoreMenuOpen(false), []);
+  useEffect(() => {
+    closeMoreMenu();
+  }, [pathname, closeMoreMenu]);
+
   // Check if we're in settings section
   const isInSettings = pathname.startsWith("/b/settings");
 
@@ -176,16 +202,21 @@ export default function DashboardLayout({
     ...(isSuperAdmin ? [superadminNavItem] : []),
   ];
 
-  // Mobile: Full nav including Events (since sidebar list isn't visible on mobile)
-  const mobileMainNav = [
+  // Mobile: Primary nav items (always visible in bottom bar)
+  const mobilePrimaryNav = [
     ...mobileNavItems,
     ...(hasEvents ? [scannerNavItem] : []),
+  ];
+
+  // Mobile: Overflow items (hidden behind "More" menu)
+  const mobileOverflowNav = [
     settingsNavItemMain,
     ...(isSuperAdmin ? [superadminNavItem] : []),
   ];
 
-  // Mobile nav items
-  const mobileNavItemsFinal = isInSettings ? settingsNavItems : mobileMainNav;
+  // Mobile settings: primary items (first 3) and overflow (rest)
+  const mobileSettingsPrimary = settingsNavItems.slice(0, 3);
+  const mobileSettingsOverflow = settingsNavItems.slice(3);
 
   return (
     <AftieProvider>
@@ -438,7 +469,7 @@ export default function DashboardLayout({
             {isInSettings && (
               <Link
                 href="/b"
-                className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all text-white/40"
+                className="flex flex-col items-center justify-center gap-1 px-3 py-2 transition-all text-white/40"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span className="text-[10px] font-mono tracking-wider">
@@ -446,9 +477,9 @@ export default function DashboardLayout({
                 </span>
               </Link>
             )}
-            {mobileNavItemsFinal
-              .slice(0, isInSettings ? 4 : undefined)
-              .map((item) => {
+            {/* Primary nav items */}
+            {(isInSettings ? mobileSettingsPrimary : mobilePrimaryNav).map(
+              (item) => {
                 const isActive = item.exact
                   ? pathname === item.href
                   : pathname.startsWith(item.href);
@@ -457,7 +488,7 @@ export default function DashboardLayout({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex flex-col items-center justify-center gap-1 px-4 py-2 transition-all"
+                    className="flex flex-col items-center justify-center gap-1 px-3 py-2 transition-all"
                     style={{
                       color: isActive ? accentColor : "rgba(255,255,255,0.4)",
                     }}
@@ -468,7 +499,70 @@ export default function DashboardLayout({
                     </span>
                   </Link>
                 );
-              })}
+              },
+            )}
+            {/* More menu for overflow items */}
+            {(isInSettings ? mobileSettingsOverflow : mobileOverflowNav)
+              .length > 0 && (
+              <div className="relative" ref={moreMenuRef}>
+                <button
+                  onClick={() => setMoreMenuOpen((prev) => !prev)}
+                  className="flex flex-col items-center justify-center gap-1 px-3 py-2 transition-all"
+                  style={{
+                    color:
+                      moreMenuOpen ||
+                      (isInSettings
+                        ? mobileSettingsOverflow
+                        : mobileOverflowNav
+                      ).some((item) =>
+                        item.exact
+                          ? pathname === item.href
+                          : pathname.startsWith(item.href),
+                      )
+                        ? accentColor
+                        : "rgba(255,255,255,0.4)",
+                  }}
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                  <span className="text-[10px] font-mono tracking-wider">
+                    MORE
+                  </span>
+                </button>
+                {/* Popup menu */}
+                {moreMenuOpen && (
+                  <div className="absolute bottom-full right-0 mb-2 min-w-[160px] bg-black/95 backdrop-blur-lg border border-white/10 rounded-lg overflow-hidden shadow-xl">
+                    {(isInSettings
+                      ? mobileSettingsOverflow
+                      : mobileOverflowNav
+                    ).map((item) => {
+                      const isActive = item.exact
+                        ? pathname === item.href
+                        : pathname.startsWith(item.href);
+
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMoreMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 text-xs font-mono tracking-wider transition-all"
+                          style={{
+                            color: isActive
+                              ? accentColor
+                              : "rgba(255,255,255,0.6)",
+                            backgroundColor: isActive
+                              ? "rgba(255,255,255,0.05)"
+                              : undefined,
+                          }}
+                        >
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </nav>
 
