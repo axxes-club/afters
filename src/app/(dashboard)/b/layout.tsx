@@ -528,11 +528,12 @@ export default function DashboardLayout({
                       (isInSettings
                         ? mobileSettingsOverflow
                         : mobileOverflowNav
-                      ).some((item) =>
-                        item.href && (item.exact
+                      ).some((item) => {
+                        if (!('href' in item)) return false;
+                        return item.exact
                           ? pathname === item.href
-                          : pathname.startsWith(item.href))
-                      )
+                          : pathname.startsWith(item.href)
+                      })
                         ? accentColor
                         : "rgba(255,255,255,0.4)",
                   }}
@@ -549,9 +550,8 @@ export default function DashboardLayout({
                       ? mobileSettingsOverflow
                       : mobileOverflowNav
                     ).map((item) => {
-                      const isActive = item.href ? (item.exact ? pathname === item.href : pathname.startsWith(item.href)) : false;
 
-                      if (item.onClick) {
+                      if ('onClick' in item) {
                         return (
                           <button
                             key={item.id || item.label}
@@ -566,6 +566,8 @@ export default function DashboardLayout({
                           </button>
                         )
                       }
+                      
+                      const isActive = item.href ? (item.exact ? pathname === item.href : pathname.startsWith(item.href)) : false;
                       
                       return (
                         <Link
