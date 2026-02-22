@@ -88,15 +88,14 @@ export default async function EventsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-mono font-bold tracking-tight">EVENTS</h1>
-          <p className="text-white/40 text-sm font-mono mt-1">
-            {upcoming.length} upcoming • {past.length} past
-            {hasAttendingEvents && ` • ${attendingTickets.length + attendingRsvps.length} attending`}
-          </p>
-        </div>
-        {profile && (
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <h1 className="text-2xl font-mono font-bold tracking-tight">EVENTS</h1>
+                    <p className="text-white/40 text-sm font-mono mt-1 break-words">
+                      {upcoming.length} upcoming • {past.length} past
+                      {hasAttendingEvents && ` • ${attendingTickets.length + attendingRsvps.length} attending`}
+                    </p>
+                  </div>        {profile && (
           <Link 
             href="/b/events/new"
             className="flex items-center gap-2 px-4 py-2.5 bg-primary text-black text-xs font-mono font-bold tracking-wider hover:bg-primary/90 transition-all"
@@ -300,7 +299,7 @@ function AttendingEventRow({
         <p className="font-mono font-medium truncate">{event.title}</p>
         <p className="text-xs text-white/40 font-mono flex items-center gap-1">
           <MapPin className="w-3 h-3" />
-          {event.venueName}
+          <span className="truncate">{event.venueName}</span>
         </p>
       </div>
 
@@ -392,7 +391,7 @@ function EventCard({ event }: { event: EventWithTiers }) {
         <h3 className="font-mono font-bold truncate group-hover:text-primary transition-colors">
           {event.title}
         </h3>
-        <p className="text-xs text-white/40 font-mono mt-1 flex items-center gap-1.5">
+        <p className="text-xs text-white/40 font-mono mt-1 flex items-center gap-1.5 truncate">
           <MapPin className="w-3 h-3" />
           {event.venueName}
         </p>
@@ -437,7 +436,7 @@ function PastEventRow({ event }: { event: EventWithTiers }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="font-mono font-medium truncate">{event.title}</p>
-        <p className="text-xs text-white/40 font-mono">{event.venueName}</p>
+        <p className="text-xs text-white/40 font-mono truncate">{event.venueName}</p>
       </div>
 
       {/* Stats */}
