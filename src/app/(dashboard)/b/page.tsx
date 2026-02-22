@@ -81,7 +81,7 @@ export default async function OverviewPage() {
       sum + e.ticketTiers.reduce((s, t) => s + t.quantitySold * t.price, 0),
     0,
   );
-
+  
   const totalCapacity = activeProfile.events.reduce(
     (sum, e) => sum + e.ticketTiers.reduce((s, t) => s + t.quantity, 0),
     0,
@@ -91,23 +91,23 @@ export default async function OverviewPage() {
   const nextEvent = upcomingEvents[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Command Center Header */}
-      <div className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent">
+      <div className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent rounded-lg">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none" />
-        <div className="relative p-6 sm:p-8">
+        <div className="relative p-4 sm:p-6">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-3 mb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                   <span className="text-[10px] font-mono text-primary tracking-widest">COMMAND CENTER</span>
                 </div>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-headline tracking-wide mb-1">
+              <h1 className="text-2xl sm:text-3xl font-headline tracking-wide mb-1 break-words">
                 {activeProfile.displayName || "Operator"}
               </h1>
-              <p className="text-sm text-white/40 font-mono">
+              <p className="text-sm text-white/40 font-mono break-words">
                 {liveEvents.length} live • {draftEvents.length} drafts • {totalTicketsSold} tickets moved
               </p>
             </div>
@@ -153,10 +153,7 @@ export default async function OverviewPage() {
       {/* Next Event - Hero Card */}
       {nextEvent ? (
         <div className="relative overflow-hidden border border-white/10 bg-white/[0.02] group">
-          {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent pointer-events-none" />
-          
-          {/* Status bar */}
           <div className="relative px-4 py-2 border-b border-white/10 flex items-center justify-between bg-black/20">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
@@ -176,12 +173,10 @@ export default async function OverviewPage() {
               )}
             </div>
           </div>
-
           <Link
             href={`/b/event-editor/${nextEvent.id}/overview`}
-            className="relative flex flex-col sm:flex-row p-4 sm:p-6 gap-4 sm:gap-6 hover:bg-white/[0.02] transition-all"
+            className="relative flex flex-col sm:flex-row p-3 sm:p-6 gap-4 sm:gap-6 hover:bg-white/[0.02] transition-all"
           >
-            {/* Flyer Thumbnail */}
             {nextEvent.flyerUrl && (
               <div className="relative w-full sm:w-24 h-40 sm:h-32 flex-shrink-0 overflow-hidden border border-white/10">
                 <Image
@@ -192,13 +187,10 @@ export default async function OverviewPage() {
                 />
               </div>
             )}
-
-            {/* Event Details */}
             <div className="flex-1 min-w-0">
               <h2 className="text-xl sm:text-2xl font-headline tracking-wide truncate group-hover:text-primary transition-colors">
                 {nextEvent.title}
               </h2>
-              
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-white/40">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 flex-shrink-0" />
@@ -217,8 +209,6 @@ export default async function OverviewPage() {
                   <span className="truncate">{nextEvent.venueName}</span>
                 </span>
               </div>
-
-              {/* Ticket Progress */}
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-mono text-white/40">CAPACITY</span>
@@ -247,8 +237,6 @@ export default async function OverviewPage() {
                 </div>
               </div>
             </div>
-
-            {/* Revenue Badge */}
             <div className="hidden sm:flex flex-col items-end justify-center">
               <p className="text-2xl font-mono font-bold text-primary">
                 {formatCents(nextEvent.ticketTiers.reduce((s, t) => s + t.quantitySold * t.price, 0))}
@@ -258,9 +246,8 @@ export default async function OverviewPage() {
           </Link>
         </div>
       ) : (
-        /* Empty State */
-        <div className="border border-dashed border-white/10 bg-white/[0.01] p-12 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 border border-white/10 mb-4">
+        <div className="border border-dashed border-white/10 bg-white/[0.01] p-6 sm:p-12 text-center rounded-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 border border-white/10 mb-4 rounded-lg">
             <Calendar className="w-8 h-8 text-white/20" />
           </div>
           <h3 className="font-mono font-bold text-lg mb-2">No upcoming events</h3>
@@ -269,7 +256,7 @@ export default async function OverviewPage() {
           </p>
           <Link
             href="/b/events/new"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-black font-mono font-bold text-sm tracking-wider hover:bg-primary/90 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-black font-mono font-bold text-sm tracking-wider transition-all"
           >
             <Plus className="w-4 h-4" />
             CREATE EVENT
@@ -307,8 +294,7 @@ export default async function OverviewPage() {
                   href={`/b/event-editor/${event.id}/overview`}
                   className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-white/[0.02] transition-all group ${isPast ? "opacity-50" : ""}`}
                 >
-                  {/* Date Block */}
-                  <div className="w-12 h-14 bg-white/5 flex flex-col items-center justify-center flex-shrink-0 border border-white/5">
+                  <div className="w-12 h-14 bg-white/5 flex flex-col items-center justify-center flex-shrink-0 border border-white/5 rounded-md">
                     <span className="text-[9px] font-mono text-white/40 tracking-wider">
                       {new Date(event.startsAt).toLocaleDateString("en-US", { month: "short" }).toUpperCase()}
                     </span>
@@ -317,7 +303,6 @@ export default async function OverviewPage() {
                     </span>
                   </div>
 
-                  {/* Event Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-mono font-medium truncate text-sm sm:text-base group-hover:text-primary transition-colors">
@@ -329,15 +314,13 @@ export default async function OverviewPage() {
                     </p>
                   </div>
 
-                  {/* Stats */}
                   <div className="hidden sm:flex items-center gap-6 flex-shrink-0">
-                    {/* Capacity Bar */}
                     <div className="w-24">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[10px] font-mono text-white/30">{soldCount}/{totalCount}</span>
                         <span className="text-[10px] font-mono text-white/30">{percentage}%</span>
                       </div>
-                      <div className="h-1 bg-white/5">
+                      <div className="h-1 bg-white/5 rounded-full">
                         <div
                           className="h-full bg-primary/60"
                           style={{ width: `${percentage}%` }}
@@ -345,16 +328,14 @@ export default async function OverviewPage() {
                       </div>
                     </div>
 
-                    {/* Revenue */}
                     <div className="w-20 text-right">
                       <p className="text-sm font-mono text-white/60">{formatCents(revenue)}</p>
                     </div>
                   </div>
 
-                  {/* Status Badge */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span
-                      className={`text-[10px] font-mono px-2 py-1 ${
+                      className={`text-[10px] font-mono px-2 py-1 rounded-sm ${
                         isPast
                           ? "bg-white/5 text-white/30"
                           : event.isPublished
@@ -377,18 +358,18 @@ export default async function OverviewPage() {
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <Link
           href="/b/events/new"
-          className="border border-primary/30 bg-primary/5 p-4 sm:p-6 flex flex-col items-center gap-2 sm:gap-3 hover:border-primary/60 hover:bg-primary/10 transition-all group"
+          className="border border-primary/30 bg-primary/5 p-4 sm:p-6 flex flex-col items-center justify-center gap-2 sm:gap-3 hover:border-primary/60 hover:bg-primary/10 transition-all group rounded-lg"
         >
-          <div className="w-10 h-10 sm:w-12 sm:h-12 border border-primary/30 flex items-center justify-center group-hover:border-primary transition-colors">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 border border-primary/30 flex items-center justify-center group-hover:border-primary transition-colors rounded-md">
             <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           </div>
           <span className="text-xs sm:text-sm font-mono tracking-wider text-primary">NEW EVENT</span>
         </Link>
         <Link
           href="/b/events"
-          className="border border-white/10 p-4 sm:p-6 flex flex-col items-center gap-2 sm:gap-3 hover:border-white/20 hover:bg-white/[0.02] transition-all group"
+          className="border border-white/10 p-4 sm:p-6 flex flex-col items-center justify-center gap-2 sm:gap-3 hover:border-white/20 hover:bg-white/[0.02] transition-all group rounded-lg"
         >
-          <div className="w-10 h-10 sm:w-12 sm:h-12 border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-colors">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-colors rounded-md">
             <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-white/40 group-hover:text-white/60 transition-colors" />
           </div>
           <span className="text-xs sm:text-sm font-mono tracking-wider text-white/50 group-hover:text-white/70 transition-colors">ALL EVENTS</span>
@@ -415,7 +396,7 @@ function StatCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden border p-4 ${
+      className={`relative overflow-hidden border p-3 sm:p-4 ${
         accent
           ? "border-primary/30 bg-gradient-to-br from-primary/10 to-transparent"
           : "border-white/10 bg-white/[0.02]"
@@ -426,11 +407,11 @@ function StatCard({
           <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
         </div>
       )}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <span className={accent ? "text-primary" : "text-white/30"}>{icon}</span>
-        <span className="text-[9px] sm:text-[10px] font-mono text-white/30 tracking-widest">{label}</span>
+        <span className="text-[9px] font-mono text-white/30 tracking-widest">{label}</span>
       </div>
-      <p className={`text-2xl sm:text-3xl font-mono font-bold ${accent ? "text-primary" : ""}`}>
+      <p className={`text-lg sm:text-3xl font-mono font-bold ${accent ? "text-primary" : ""}`}>
         {value}
       </p>
       {subValue && (

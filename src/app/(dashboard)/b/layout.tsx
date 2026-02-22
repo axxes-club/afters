@@ -100,6 +100,8 @@ const mobileNavItems = [
   { href: "/b/events", label: "EVENTS", icon: Calendar, exact: false },
 ];
 
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+
 export default function DashboardLayout({
   children,
 }: {
@@ -109,6 +111,7 @@ export default function DashboardLayout({
   const { preferences } = useUIPreferences();
   const [hasEvents, setHasEvents] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -569,7 +572,7 @@ export default function DashboardLayout({
         {/* Main Content */}
         <main
           className={`flex-1 ml-0 ${isResizing ? "" : "transition-all duration-200"}`}
-          style={{ ["--sidebar-width" as string]: `${sidebarWidthPx}px` }}
+          style={isDesktop ? { ["--sidebar-width" as string]: `${sidebarWidthPx}px` } : undefined}
         >
           <style jsx>{`
             @media (min-width: 768px) {
@@ -643,7 +646,7 @@ export default function DashboardLayout({
           </header>
 
           {/* Page Content */}
-          <div className="p-4 md:p-6 pb-24 md:pb-6 overflow-x-hidden">
+          <div className="py-4 md:p-6 pb-24 md:pb-6 overflow-x-hidden max-w-screen">
             {children}
           </div>
         </main>
