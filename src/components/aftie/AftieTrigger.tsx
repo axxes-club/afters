@@ -15,7 +15,7 @@ export function AftieTrigger() {
   return (
     <button
       onClick={toggleChat}
-      className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-200 z-50"
+      className="hidden md:flex fixed bottom-4 right-4 md:bottom-6 md:right-6 w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-200 z-50"
       aria-label="Open Aftie AI Assistant"
     >
       <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />

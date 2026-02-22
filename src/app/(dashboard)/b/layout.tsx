@@ -102,6 +102,8 @@ const mobileNavItems = [
 
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 
+import { useAftie } from "@/components/aftie";
+
 export default function DashboardLayout({
   children,
 }: {
@@ -112,6 +114,7 @@ export default function DashboardLayout({
   const [hasEvents, setHasEvents] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const isDesktop = useIsDesktop();
+  const { openChat } = useAftie();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -211,10 +214,18 @@ export default function DashboardLayout({
     ...(hasEvents ? [scannerNavItem] : []),
   ];
 
+  const aftieNavItem = {
+    id: "aftie-chat",
+    label: "AFTIE AI",
+    icon: Sparkles,
+    onClick: openChat,
+  };
+
   // Mobile: Overflow items (hidden behind "More" menu)
   const mobileOverflowNav = [
     settingsNavItemMain,
     ...(isSuperAdmin ? [superadminNavItem] : []),
+    ...(process.env.NODE_ENV !== 'production' ? [aftieNavItem] : [])
   ];
 
   // Mobile settings: primary items (first 3) and overflow (rest)
@@ -518,9 +529,9 @@ export default function DashboardLayout({
                         ? mobileSettingsOverflow
                         : mobileOverflowNav
                       ).some((item) =>
-                        item.exact
+                        item.href && (item.exact
                           ? pathname === item.href
-                          : pathname.startsWith(item.href),
+                          : pathname.startsWith(item.href))
                       )
                         ? accentColor
                         : "rgba(255,255,255,0.4)",
@@ -538,10 +549,24 @@ export default function DashboardLayout({
                       ? mobileSettingsOverflow
                       : mobileOverflowNav
                     ).map((item) => {
-                      const isActive = item.exact
-                        ? pathname === item.href
-                        : pathname.startsWith(item.href);
+                      const isActive = item.href ? (item.exact ? pathname === item.href : pathname.startsWith(item.href)) : false;
 
+                      if (item.onClick) {
+                        return (
+                          <button
+                            key={item.id || item.label}
+                            onClick={() => {
+                              item.onClick();
+                              setMoreMenuOpen(false);
+                            }}
+                            className="flex items-center gap-3 px-4 py-3 text-xs font-mono tracking-wider transition-all w-full text-left text-white/60 hover:bg-white/5"
+                          >
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.label}</span>
+                          </button>
+                        )
+                      }
+                      
                       return (
                         <Link
                           key={item.href}
@@ -572,15 +597,8 @@ export default function DashboardLayout({
         {/* Main Content */}
         <main
           className={`flex-1 ml-0 ${isResizing ? "" : "transition-all duration-200"}`}
-          style={isDesktop ? { ["--sidebar-width" as string]: `${sidebarWidthPx}px` } : undefined}
+          style={isDesktop ? { marginLeft: `${sidebarWidthPx}px` } : undefined}
         >
-          <style jsx>{`
-            @media (min-width: 768px) {
-              main {
-                margin-left: var(--sidebar-width) !important;
-              }
-            }
-          `}</style>
           {/* Mobile Header */}
           <header
             className={`md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40 ${sidebarLogoMode === "afters3x" ? "extra-large-logo" : ""}`}
