@@ -46,7 +46,7 @@ const COMMUNITY_APPS: CommunityApp[] = [
       "API key management",
       "OAuth authentication"
     ],
-    installCommand: "pnpm install -g after-cli",
+    installCommand: "npm install -g afters",
     githubUrl: "https://github.com/aftersapp/after-cli",
     status: "available",
     maintainedBy: "afters"
@@ -173,9 +173,9 @@ export default function CommunityAppsPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex items-center gap-2 px-3 py-2 bg-black/50 border border-white/10 flex-1">
                 <Terminal className="w-4 h-4 text-white/40" />
-                <code className="text-sm font-mono flex-1">pnpm install -g after-cli</code>
+                <code className="text-sm font-mono flex-1">npm install -g afters</code>
                 <button 
-                  onClick={() => copyCommand("pnpm install -g after-cli")}
+                  onClick={() => copyCommand("npm install -g afters")}
                   className="text-white/40 hover:text-white transition-colors"
                 >
                   {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
