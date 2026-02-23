@@ -75,5 +75,8 @@ next-env.d.ts
 .sidecar/
 
 # Added by pubsafe
-CLAUDE.md
+**/CLAUDE.md
+**/AGENT.md
+**/AGENTS.md
+**/agent.md
 .agents
