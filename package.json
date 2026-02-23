@@ -1,6 +1,6 @@
 {
   "name": "afters",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,7 +17,13 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:codegen": "playwright codegen http://localhost:3000",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "docker:dev": "docker compose up",
+    "docker:dev:mcp": "docker compose --profile mcp up",
+    "docker:build": "docker build -t afters:latest .",
+    "docker:test": "docker compose -f docker-compose.yml -f docker-compose.test.yml up playwright",
+    "docker:down": "docker compose down",
+    "docker:clean": "docker compose down -v"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.24",

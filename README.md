@@ -48,6 +48,52 @@ AI ASSISTANT       natural language event creation · analytics · flyer generat
 
 ## quick start
 
+### option 1: docker (recommended)
+
+```bash
+# clone
+git clone https://github.com/axxes-club/afters.git
+cd afters
+
+# configure
+cp docker/.env.docker.example docker/.env.docker
+# edit docker/.env.docker with your keys
+
+# run
+docker compose up
+```
+
+open [localhost:3000](http://localhost:3000)
+
+<details>
+<summary>docker commands</summary>
+
+```bash
+# start development
+docker compose up
+
+# start with MCP server
+docker compose --profile mcp up
+
+# run commands inside container
+docker compose exec app pnpm prisma studio
+docker compose exec app pnpm test
+
+# run e2e tests
+docker compose -f docker-compose.yml -f docker-compose.test.yml up playwright
+
+# stop and clean up
+docker compose down -v  # -v removes volumes (fresh start)
+
+# production build
+docker build -t afters:latest .
+docker run -p 3000:3000 --env-file .env afters:latest
+```
+
+</details>
+
+### option 2: local development
+
 ```bash
 # clone
 git clone https://github.com/axxes-club/afters.git
