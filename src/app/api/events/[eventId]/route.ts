@@ -569,7 +569,11 @@ async function sendRescheduleNotifications(
 
   // Collect unique emails
   const emailSet = new Set<string>()
-  tickets.forEach((t) => emailSet.add(t.order.email))
+  tickets.forEach((t) => {
+    if (t.order?.email) {
+      emailSet.add(t.order.email)
+    }
+  })
   rsvps.forEach((r) => emailSet.add(r.email))
 
   const emails = Array.from(emailSet)

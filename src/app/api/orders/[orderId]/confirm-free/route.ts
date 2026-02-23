@@ -118,14 +118,14 @@ export async function POST(
             ? `${updatedOrder.user.firstName} ${updatedOrder.user.lastName}`
             : undefined)
 
-        const venueAddress = `${updatedOrder.event.venueAddress}, ${updatedOrder.event.city}${updatedOrder.event.state ? `, ${updatedOrder.event.state}` : ''}`
+        const venueAddress = `${updatedOrder.event?.venueAddress ?? ''}, ${updatedOrder.event?.city ?? ''}${updatedOrder.event?.state ? `, ${updatedOrder.event.state}` : ''}`
 
         createdTickets.push({
           ticketNumber: ticket.ticketNumber,
           ticketId: ticket.id,
-          tierName: item.ticketTier.name,
-          eventTitle: updatedOrder.event.title,
-          eventDate: new Date(updatedOrder.event.startsAt).toLocaleDateString('en-US', {
+          tierName: item.ticketTier?.name ?? 'General Admission',
+          eventTitle: updatedOrder.event?.title ?? 'Event',
+          eventDate: new Date(updatedOrder.event?.startsAt ?? Date.now()).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -133,7 +133,7 @@ export async function POST(
             hour: 'numeric',
             minute: '2-digit',
           }),
-          venueName: updatedOrder.event.venueName,
+          venueName: updatedOrder.event?.venueName ?? 'TBD',
           venueAddress,
           holderName,
           isTestTicket: false,
@@ -153,16 +153,16 @@ export async function POST(
 
     // Generate PDF and send email in background using waitUntil
     // This allows us to return a response immediately while the email sends
-    const venueAddress = `${updatedOrder.event.venueAddress}, ${updatedOrder.event.city}${updatedOrder.event.state ? `, ${updatedOrder.event.state}` : ''}`
-    
+    const venueAddress = `${updatedOrder.event?.venueAddress ?? ''}, ${updatedOrder.event?.city ?? ''}${updatedOrder.event?.state ? `, ${updatedOrder.event.state}` : ''}`
+
     waitUntil(
       (async () => {
         try {
           const pdfBuffer = await generateTicketPDF(createdTickets)
 
           const emailHtml = generateTicketEmailHtml({
-            eventTitle: updatedOrder.event.title,
-            eventDate: new Date(updatedOrder.event.startsAt).toLocaleDateString('en-US', {
+            eventTitle: updatedOrder.event?.title ?? 'Event',
+            eventDate: new Date(updatedOrder.event?.startsAt ?? Date.now()).toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -170,7 +170,7 @@ export async function POST(
               hour: 'numeric',
               minute: '2-digit',
             }),
-            venueName: updatedOrder.event.venueName,
+            venueName: updatedOrder.event?.venueName ?? 'TBD',
             venueAddress,
             ticketCount: createdTickets.length,
             orderNumber: updatedOrder.orderNumber,
@@ -178,7 +178,7 @@ export async function POST(
 
           await sendEmail({
             to: updatedOrder.email,
-            subject: `Your Tickets for ${updatedOrder.event.title}`,
+            subject: `Your Tickets for ${updatedOrder.event?.title ?? 'Event'}`,
             html: emailHtml,
             attachments: [{
               filename: `tickets-${updatedOrder.orderNumber}.pdf`,
@@ -191,11 +191,11 @@ export async function POST(
 
           // Notify organizer of the RSVP (push + email)
           const organizer = await prisma.organizerProfile.findFirst({
-            where: { userId: updatedOrder.event.organizerId },
+            where: { userId: updatedOrder.event?.organizerId },
             include: { user: true },
           })
 
-          if (organizer?.user) {
+          if (organizer?.user && updatedOrder.event) {
             // Send push notification to organizer (amount is 0 for free)
             await notifyTicketSale(
               organizer.userId,
