@@ -1,0 +1,50 @@
+# Docker Compose for E2E Testing with Playwright
+# Usage: docker compose -f docker-compose.yml -f docker-compose.test.yml up playwright
+
+services:
+  # ============================================
+  # Playwright E2E Tests
+  # ============================================
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    container_name: afters-playwright
+    restart: "no"
+    depends_on:
+      - app
+    environment:
+      - CI=true
+      - DATABASE_URL=postgresql://afters:afters@postgres:5432/afters_test
+      - PLAYWRIGHT_BASE_URL=http://app:3000
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - playwright_cache:/root/.cache
+    command: sh -c "pnpm install && pnpm test:e2e"
+    networks:
+      - afters-network
+
+  # ============================================
+  # Test Database (separate from dev database)
+  # ============================================
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: afters-postgres-test
+    restart: "no"
+    environment:
+      POSTGRES_USER: afters
+      POSTGRES_PASSWORD: afters
+      POSTGRES_DB: afters_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - afters-network
+
+volumes:
+  playwright_cache:
+    driver: local
+
+networks:
+  afters-network:
+    external: true

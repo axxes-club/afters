@@ -187,8 +187,12 @@ export default function DashboardLayout({
   // Close more menu on route change
   const closeMoreMenu = useCallback(() => setMoreMenuOpen(false), []);
   useEffect(() => {
-    closeMoreMenu();
-  }, [pathname, closeMoreMenu]);
+    // Only close the menu if it's currently open to avoid unnecessary state updates
+    if (moreMenuOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Close menu on route change is a valid sync pattern
+      closeMoreMenu();
+    }
+  }, [pathname, closeMoreMenu, moreMenuOpen]);
 
   // Check if we're in settings section
   const isInSettings = pathname.startsWith("/b/settings");
