@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.19 (2026-02-22)
+
+- Add Docker containerization support for development and production
+  - Production Dockerfile with multi-stage build for optimized images
+  - Development Dockerfile.dev with hot-reload support
+  - docker-compose.yml with PostgreSQL, App, and optional MCP server
+  - docker-compose.test.yml for E2E testing with Playwright
+  - Docker convenience scripts in package.json (docker:dev, docker:build, etc.)
+- Add API documentation pages (/api-docs, /developers/api-access-info)
+- Fix SSR/localStorage hydration mismatch in useResizableSidebar hook
+- Fix useEffect optimization in dashboard layout (only close menu when open)
+- Fix Clerk auth race condition when webhook hasn't fired yet
+- Add standalone output for Docker production builds in next.config.ts
+- Update README with Docker quick start as recommended option
+
 ## 0.2.18 (2026-02-19)
 
 - Add "Afters 3X Logo" option for larger sidebar branding

@@ -1,0 +1,94 @@
+# Docker Compose for Afters Development Environment
+# Usage: docker compose up
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: afters-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: afters
+      POSTGRES_PASSWORD: afters
+      POSTGRES_DB: afters
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U afters -d afters"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Next.js Application
+  # ============================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: afters-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://afters:afters@postgres:5432/afters
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for hot-reload
+      - ./src:/app/src:delegated
+      - ./public:/app/public:delegated
+      - ./prisma:/app/prisma:delegated
+      - ./messages:/app/messages:delegated
+      - ./package.json:/app/package.json:ro
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
+      # Persist node_modules to avoid reinstalling
+      - node_modules:/app/node_modules
+      # Persist .next for faster rebuilds
+      - next_cache:/app/.next
+    env_file:
+      - ./docker/.env.docker
+    command: sh -c "pnpm prisma migrate deploy && pnpm dev:lan"
+
+  # ============================================
+  # MCP Server (Optional - use --profile mcp)
+  # ============================================
+  mcp:
+    build:
+      context: ./packages/mcp-server
+      dockerfile: Dockerfile
+    container_name: afters-mcp
+    restart: unless-stopped
+    profiles:
+      - mcp
+    depends_on:
+      - app
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://afters:afters@postgres:5432/afters
+    env_file:
+      - ./docker/.env.docker
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  node_modules:
+    driver: local
+  next_cache:
+    driver: local
+
+# ============================================
+# Networks (optional, for isolation)
+# ============================================
+networks:
+  default:
+    name: afters-network

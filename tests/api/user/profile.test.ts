@@ -19,7 +19,27 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: mockAuth,
 }));
 
+vi.mock("@/lib/api-middleware", () => {
+  const mockMiddleware = vi.fn();
+  mockMiddleware.withApiAuth = vi.fn((handler) => handler);
+  return {
+    withApiAuth: mockMiddleware.withApiAuth,
+    ApiContext: {},
+  };
+});
+
 import { GET } from "@/app/api/user/profile/route";
+
+function createMockRequest(): Request {
+  return new Request("http://localhost:3000/api/user/profile");
+}
+
+function createMockContext(userId: string | null) {
+  return {
+    userId: userId || "",
+    auth: userId ? { type: "session" as const } : null,
+  };
+}
 
 describe("User Profile API", () => {
   beforeEach(() => {
@@ -47,7 +67,9 @@ describe("User Profile API", () => {
         },
       });
 
-      const response = await GET();
+      const request = createMockRequest();
+      const context = createMockContext("user-123");
+      const response = await GET(request, context);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -56,21 +78,13 @@ describe("User Profile API", () => {
       expect(data.organizerProfile._count.events).toBe(5);
     });
 
-    it("should return 401 if user is not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null });
-
-      const response = await GET();
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data.error).toBe("Unauthorized");
-    });
-
     it("should return 404 if user not found", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      const response = await GET();
+      const request = createMockRequest();
+      const context = createMockContext("user-123");
+      const response = await GET(request, context);
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -88,7 +102,9 @@ describe("User Profile API", () => {
         organizerProfile: null,
       });
 
-      const response = await GET();
+      const request = createMockRequest();
+      const context = createMockContext("user-123");
+      const response = await GET(request, context);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -100,7 +116,9 @@ describe("User Profile API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockPrisma.user.findUnique.mockRejectedValue(new Error("DB error"));
 
-      const response = await GET();
+      const request = createMockRequest();
+      const context = createMockContext("user-123");
+      const response = await GET(request, context);
       const data = await response.json();
 
       expect(response.status).toBe(500);

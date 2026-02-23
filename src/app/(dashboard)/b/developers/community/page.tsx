@@ -3,15 +3,14 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { 
-  Terminal, 
-  ExternalLink, 
-  Check, 
-  Github, 
+import {
+  Terminal,
+  ExternalLink,
+  Check,
+  Github,
   Sparkles,
   ChevronRight,
   Copy,
-  Clock
 } from "lucide-react"
 import { toast } from "sonner"
 
