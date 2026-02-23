@@ -127,7 +127,7 @@ export async function generateMetadata({
 
     const description = event.description
       ? event.description.slice(0, 160)
-      : `${event.title} at ${event.venueName}, ${event.city} on ${eventDate}. Hosted by ${event.organizer.displayName}.`
+      : `${event.title} at ${event.venueName}, ${event.city} on ${eventDate}. Hosted by ${event.organizer?.displayName ?? 'Unknown Organizer'}.`
 
     return {
       title: event.title,
@@ -367,11 +367,11 @@ export default async function EventPage({
 
   // Check if current user is the event owner
   const currentUser = await getSessionUser()
-  const isOwner = currentUser?.organizerProfile?.id === event.organizer.id
+  const isOwner = currentUser?.organizerProfile?.id === event.organizer?.id
 
   type TierType = typeof event.ticketTiers[number]
 
-  const availableTiers = event.organizer.stripeChargesEnabled
+  const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
     : event.ticketTiers.filter((tier: TierType) => tier.price === 0)
 
@@ -756,12 +756,12 @@ export default async function EventPage({
         <div className="relative z-10 min-h-screen flex flex-col items-center px-6 py-12">
           {/* Organizer */}
           <div className="flex items-center gap-3 mb-8">
-            {event.organizer.logoUrl && (
+            {event.organizer?.logoUrl && (
               <div className="relative w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor: `${accentColor}50` }}>
-                <Image src={event.organizer.logoUrl} alt={event.organizer.displayName} fill className="object-cover" />
+                <Image src={event.organizer.logoUrl} alt={event.organizer?.displayName ?? 'Organizer'} fill className="object-cover" />
               </div>
             )}
-            <span className="text-sm text-white/40">{event.organizer.displayName}</span>
+            <span className="text-sm text-white/40">{event.organizer?.displayName ?? 'Unknown Organizer'}</span>
           </div>
 
           {/* Flyer with glow */}
@@ -1585,11 +1585,11 @@ export default async function EventPage({
             <div className="relative p-6 lg:p-12 lg:pt-12">
               {/* Organizer badge */}
               <div className="flex items-center gap-3 mb-8">
-                {event.organizer.logoUrl ? (
+                {event.organizer?.logoUrl ? (
                   <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/20">
                     <Image
                       src={event.organizer.logoUrl}
-                      alt={event.organizer.displayName}
+                      alt={event.organizer?.displayName ?? 'Organizer'}
                       fill
                       className="object-cover"
                     />
@@ -1599,11 +1599,11 @@ export default async function EventPage({
                     className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
                     style={{ backgroundColor: `${accentColor}30`, color: accentColor }}
                   >
-                    {event.organizer.displayName.charAt(0)}
+                    {event.organizer?.displayName?.charAt(0) ?? 'U'}
                   </div>
                 )}
                 <div>
-                  <div className="text-sm font-medium">{event.organizer.displayName}</div>
+                  <div className="text-sm font-medium">{event.organizer?.displayName ?? 'Unknown Organizer'}</div>
                   <div className="text-xs text-white/40">Event Organizer</div>
                 </div>
               </div>
