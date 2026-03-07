@@ -57,7 +57,7 @@ export default function AppearanceSettingsPage() {
   const [logoInputMode, setLogoInputMode] = useState<"upload" | "url">("upload")
   const hasHydrated = useRef(false)
   const [preferences, setPreferences] = useState<LocalUIPreferences>({
-    sidebarLogoMode: "afters3x",
+    sidebarLogoMode: "afters",
     sidebarCustomLogoUrl: null,
     sidebarCompact: false,
     uiAccentColor: null,
@@ -72,7 +72,7 @@ export default function AppearanceSettingsPage() {
         const data = await res.json()
         if (data.organizerProfile) {
           setPreferences({
-            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters3x",
+            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
             sidebarCustomLogoUrl: data.organizerProfile.sidebarCustomLogoUrl || null,
             sidebarCompact: data.organizerProfile.sidebarCompact || false,
             uiAccentColor: data.organizerProfile.uiAccentColor || null,

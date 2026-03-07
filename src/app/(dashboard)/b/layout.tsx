@@ -109,7 +109,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { preferences, updatePreferences } = useUIPreferences();
+  const { preferences, updatePreferences, isLoading } = useUIPreferences();
   const [hasEvents, setHasEvents] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const isDesktop = useIsDesktop();
@@ -235,7 +235,7 @@ export default function DashboardLayout({
           style={{ width: sidebarWidthPx }}
         >
           {/* Logo with Quick Create */}
-          {sidebarLogoMode !== "hidden" && (
+          {!isLoading && sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
               className={`flex border-b border-white/5 ${sidebarCompact ? "h-auto flex-col items-center gap-2 py-3 px-2" : "h-16 flex-row items-center justify-between px-4"} ${sidebarLogoMode === "afters3x" && !sidebarCompact ? "extra-large-logo" : ""}`}
@@ -634,7 +634,7 @@ export default function DashboardLayout({
               </Link>
             )}
             {/* Left-aligned logo + settings indicator */}
-            {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
+            {!isLoading && sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
               <Link href="/b" className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                 <img
@@ -648,7 +648,7 @@ export default function DashboardLayout({
                   </span>
                 )}
               </Link>
-            ) : sidebarLogoMode !== "hidden" ? (
+            ) : !isLoading && sidebarLogoMode !== "hidden" ? (
               <Link
                 href="/b"
                 className={`flex items-center gap-2 font-headline tracking-wide ${sidebarLogoMode === "afters3x" ? "text-2xl" : "text-xl"}`}
@@ -660,6 +660,8 @@ export default function DashboardLayout({
                   </span>
                 )}
               </Link>
+            ) : isLoading ? (
+              <div className="h-6 w-24 bg-white/10 animate-pulse rounded" />
             ) : (
               <Link href="/b" className="flex items-center gap-2">
                 {isInSettings && (
