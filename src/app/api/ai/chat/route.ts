@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     // Build context-aware system prompt addition
     let contextInfo = ""
     if (context?.page === "event-details" && context?.eventId) {
+      const editingLocation = context.editingField === "location"
       contextInfo = `\n\nCURRENT CONTEXT:
 - Page: Event details dashboard
 - Event ID: "${context.eventId}"
@@ -42,10 +43,14 @@ export async function POST(req: Request) {
 ${context.editingField ? `- Currently Editing: ${context.editingField} field` : ""}
 ${context.eventDetails ? `- Event Details:
   - Venue: ${context.eventDetails.venueName || "Not set"}
+  - Address: ${context.eventDetails.venueAddress || "Not set"}
   - City: ${context.eventDetails.city || "Not set"}
+  - State: ${context.eventDetails.state || "Not set"}
   - Date: ${context.eventDetails.startsAt || "Not set"}
   - Lineup: ${context.eventDetails.lineup?.map((a: { name: string }) => a.name).join(", ") || "Not set"}
   - Genre/Vibe: ${context.eventDetails.genre || context.eventDetails.vibe || "Not specified"}` : ""}
+${editingLocation ? `
+VENUE TAB: The user is on the event's Venue tab. They can ask you to change the venue name, address, city, or state. Use the updateEvent tool with eventId "${context.eventId}" and the venue fields (venueName, venueAddress, city, state) to apply changes. After updating, confirm what changed and include the dashboard link: /d/events/${context.eventId}` : ""}
 
 Use this context for any questions about "this event", ticket sales, or content writing requests.`
     } else if (context?.page === "events") {

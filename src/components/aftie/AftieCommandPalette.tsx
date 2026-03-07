@@ -14,8 +14,11 @@ export function AftieCommandPalette() {
     sendMessage,
     isLoading,
     isBetaEnabled,
+    setupStatus,
     isHydrated,
   } = useAftie()
+
+  const aftieAvailable = isBetaEnabled || setupStatus?.isSetup
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -39,8 +42,8 @@ export function AftieCommandPalette() {
     }
   }, [isCommandPaletteOpen])
 
-  // Don't render until hydrated to avoid hydration mismatch
-  if (!isHydrated || !isBetaEnabled || !isCommandPaletteOpen) return null
+  // Don't render until hydrated; show when Aftie is available (beta or activated from settings)
+  if (!isHydrated || !aftieAvailable || !isCommandPaletteOpen) return null
 
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -135,15 +138,16 @@ export function AftieCommandPalette() {
 
 // Keyboard listener component to be added to the provider
 export function AftieKeyboardListener() {
-  const { openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, isHydrated } = useAftie()
+  const { openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, setupStatus, isHydrated } = useAftie()
 
   useEffect(() => {
     // Only set up listener after hydration
     if (!isHydrated) return
 
     function handleKeyDown(e: KeyboardEvent) {
-      // Only handle Cmd+K if beta is enabled
-      if (isBetaEnabled && (e.metaKey || e.ctrlKey) && e.key === "k" && !isCommandPaletteOpen && !isOpen) {
+      // Handle Cmd+K when Aftie is enabled (beta flag or activated from settings)
+      const aftieAvailable = isBetaEnabled || setupStatus?.isSetup
+      if (aftieAvailable && (e.metaKey || e.ctrlKey) && e.key === "k" && !isCommandPaletteOpen && !isOpen) {
         e.preventDefault()
         openCommandPalette()
       }
@@ -151,7 +155,7 @@ export function AftieKeyboardListener() {
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, isHydrated])
+  }, [openCommandPalette, isCommandPaletteOpen, isOpen, isBetaEnabled, setupStatus?.isSetup, isHydrated])
 
   return null
 }

@@ -28,7 +28,9 @@ export interface AftiePageContext {
   editingField?: "description" | "title" | "venue" | "lineup" | "tickets" | "design" | "location" | "media" | null
   eventDetails?: {
     venueName?: string
+    venueAddress?: string
     city?: string
+    state?: string
     startsAt?: string
     lineup?: Array<{ name: string; role?: string }>
     genre?: string
@@ -74,6 +76,7 @@ interface AftieContextType {
   approveAftie: () => Promise<void>
   isApproving: boolean
   setupStatus: AftieSetupStatus | null
+  refreshSetupStatus: () => Promise<void>
   revokeAftie: () => Promise<void>
 }
 
@@ -105,6 +108,7 @@ const defaultAftieContext: AftieContextType = {
   approveAftie: async () => {},
   isApproving: false,
   setupStatus: null,
+  refreshSetupStatus: async () => {},
   revokeAftie: async () => {},
 }
 
@@ -163,29 +167,24 @@ export function AftieProvider({ children }: AftieProviderProps) {
     }
   }, [])
 
-  // Check Aftie setup status on mount
-  useEffect(() => {
-    const controller = new AbortController()
-    async function checkSetup() {
-      try {
-        const res = await fetch("/api/aftie/setup", { signal: controller.signal })
-        if (res.ok) {
-          const data = await res.json()
-          setSetupStatus(data)
-        }
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          console.error("Failed to check Aftie setup:", error)
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setSetupChecked(true)
-        }
+  // Check Aftie setup status on mount and expose refresh for settings page
+  const refreshSetupStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/aftie/setup")
+      if (res.ok) {
+        const data = await res.json()
+        setSetupStatus(data)
       }
+    } catch (error) {
+      console.error("Failed to check Aftie setup:", error)
+    } finally {
+      setSetupChecked(true)
     }
-    checkSetup()
-    return () => controller.abort()
   }, [])
+
+  useEffect(() => {
+    refreshSetupStatus()
+  }, [refreshSetupStatus])
 
   // Approve Aftie - create the API key
   const approveAftie = useCallback(async () => {
@@ -433,6 +432,7 @@ export function AftieProvider({ children }: AftieProviderProps) {
         approveAftie,
         isApproving,
         setupStatus,
+        refreshSetupStatus,
         revokeAftie,
       }}
     >

@@ -3,7 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { formatCents } from "@/lib/stripe"
-import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink, AlertCircle } from "lucide-react"
+import { CalendarDays, MapPin, Clock, Users, Lock, Instagram, ArrowRight, Ticket, ExternalLink, AlertCircle, Sparkles } from "lucide-react"
 import { ViewTracker } from "@/components/ViewTracker"
 import { SeriesBadge } from "@/components/events/SeriesBadge"
 import { getSessionUser } from "@/lib/auth-utils"
@@ -247,6 +247,7 @@ export default async function EventPage({
         where: { isVisible: true },
         orderBy: { sortOrder: "asc" },
       },
+      vibezEnabled: true,
     },
   })
   
@@ -332,6 +333,7 @@ export default async function EventPage({
               where: { isVisible: true },
               orderBy: { sortOrder: "asc" },
             },
+            vibezEnabled: true,
           },
         })
         if (event) break
@@ -397,6 +399,7 @@ export default async function EventPage({
   const ctaText = isRsvpEvent ? 'RSVP' : 'GET TICKETS'
   const ctaTextLower = isRsvpEvent ? 'RSVP' : 'Reserve'
   const hasAvailability = isRsvpEvent ? rsvpAvailable : totalAvailable > 0
+  const showVibezLink = event.vibezEnabled && new Date(event.startsAt) <= new Date()
 
   const lineup = (event.lineup as LineupArtist[] | null) || []
 
@@ -1763,6 +1766,16 @@ export default async function EventPage({
                       </Link>
                     )}
                   </>
+                )}
+
+                {showVibezLink && (
+                  <Link
+                    href={`/e/${event.slug}/vibez`}
+                    className="mt-4 flex items-center justify-center gap-2 py-3 rounded-xl border border-white/20 text-sm font-mono text-white/70 hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4" style={{ color: accentColor }} />
+                    VIBEZ feed
+                  </Link>
                 )}
               </div>
 

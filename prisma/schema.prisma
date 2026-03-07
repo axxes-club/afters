@@ -46,6 +46,7 @@ model User {
   oauthAuthCodes          OAuthAuthorizationCode[]
   oauthAccessTokens       OAuthAccessToken[]
   oauthConnections        OAuthConnection[]
+  vibezPosts              VibezPost[]
 
   @@index([isFlagged])
 }
@@ -419,6 +420,9 @@ model Event {
   // Event expiration settings
   expiresAfter         String           @default("6h") // 'on_end', '6h', '12h', '24h', '48h', '1w', 'never'
 
+  // VIBEZ (BETA): social feed for attendees during the event
+  vibezEnabled         Boolean          @default(false)
+
   // Reschedule tracking fields
   previousStartsAt     DateTime?        // Previous start date (set when rescheduled)
   previousEndsAt       DateTime?        // Previous end date (set when rescheduled)
@@ -438,6 +442,7 @@ model Event {
   rsvps                Rsvp[]
   slugRedirects        EventSlugRedirect[]
   changeLogs           EventChangeLog[]
+  vibezPosts           VibezPost[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -578,6 +583,22 @@ model GuestlistEntry {
 
   @@index([eventId])
   @@index([phone])
+}
+
+// VIBEZ (BETA): attendee social feed posts during the event
+model VibezPost {
+  id          String   @id @default(cuid())
+  eventId     String
+  userId      String?  // Optional: null for guest checkout attendees who don't have account
+  authorName  String   // Display name (from user profile or guest name)
+  authorImageUrl String? // Avatar URL
+  imageUrl    String   // The posted image
+  createdAt   DateTime @default(now())
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([eventId, createdAt])
 }
 
 // RSVP entries for RSVP-only events
