@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Key, Plus, Copy, Check, Trash2, ExternalLink, Clock, BookOpen, Box, Link2 } from "lucide-react"
+import { Key, Plus, Copy, Check, Trash2, ExternalLink, Clock, BookOpen, Box, Link2, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -390,6 +390,29 @@ export default function DevelopersPage() {
             </div>
           )}
         </CardContent>
+      </Card>
+
+      {/* Community Apps - Featured */}
+      <Card className="border-primary/20 bg-primary/5 hover:border-primary/30 transition-colors">
+        <Link href="/b/developers/community">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold flex items-center gap-2">
+                  Community Apps
+                  <Badge className="bg-primary text-black text-[9px] px-1.5 py-0">NEW</Badge>
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Discover third-party integrations like After CLI - our official terminal interface.
+                </p>
+              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Link>
       </Card>
 
       {/* OAuth & Integrations */}

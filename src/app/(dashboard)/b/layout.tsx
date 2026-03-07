@@ -650,7 +650,7 @@ export default function DashboardLayout({
           </header>
 
           {/* Page Content */}
-          <div className="py-4 md:p-6 pb-24 md:pb-6 overflow-x-hidden max-w-screen">
+          <div className="px-4 py-4 md:p-6 pb-24 md:pb-6 overflow-x-hidden max-w-screen">
             {children}
           </div>
         </main>
