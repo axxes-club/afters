@@ -37,7 +37,7 @@ export default function TemplatePreview() {
       stripeChargesEnabled: !isRsvp,
       instagramUrl: 'https://instagram.com'
     },
-    flyerUrl: 'https://images.unsplash.com/photo-1572111504021-40dd143f21b7?q=80&w=800&auto=format&fit=crop',
+    flyerUrl: 'https://placehold.co/800x1200/222222/ffffff.png?text=UNDERGROUND+WAREHOUSE',
     ticketTiers: isRsvp ? [
       { id: '1', name: 'General RSVP', price: 0, quantity: 100, quantitySold: 45, description: 'Free entry before 11PM' }
     ] : [
