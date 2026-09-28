@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { createOrderAccessToken } from "@/lib/order-access"
 import { calculateFees } from "@/lib/stripe"
 
 export async function POST(req: Request) {
@@ -120,7 +121,7 @@ export async function POST(req: Request) {
       },
     })
 
-    return NextResponse.json(order)
+    return NextResponse.json({ ...order, accessToken: createOrderAccessToken(order.id) })
   } catch (error) {
     console.error("Error creating order:", error)
     return NextResponse.json(
