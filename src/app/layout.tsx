@@ -82,6 +82,35 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
+  const isDummyKey = !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === "YOUR_PUBLISHABLE_KEY" || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_test_Y2xlc");
+
+  const bodyContent = (
+    <html lang={locale}>
+      <head>
+        <link rel="preconnect" href="https://utfs.io" />
+        <link rel="dns-prefetch" href="https://clerk.afters.am" />
+        <link rel="dns-prefetch" href="https://api.stripe.com" />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <NextIntlClientProvider messages={messages}>
+          <UIPreferencesProvider>
+            <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+            <GhostBanner />
+            <RedirectHandler />
+            {children}
+            <Toaster />
+          </UIPreferencesProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+
+  if (isDummyKey) {
+    return bodyContent;
+  }
+
   return (
     <ClerkProvider
       appearance={{
@@ -143,26 +172,7 @@ export default async function RootLayout({
         },
       }}
     >
-      <html lang={locale}>
-        <head>
-          <link rel="preconnect" href="https://utfs.io" />
-          <link rel="dns-prefetch" href="https://clerk.afters.am" />
-          <link rel="dns-prefetch" href="https://api.stripe.com" />
-        </head>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <NextIntlClientProvider messages={messages}>
-            <UIPreferencesProvider>
-              <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-              <GhostBanner />
-              <RedirectHandler />
-              {children}
-              <Toaster />
-            </UIPreferencesProvider>
-          </NextIntlClientProvider>
-        </body>
-      </html>
+      {bodyContent}
     </ClerkProvider>
   );
 }
