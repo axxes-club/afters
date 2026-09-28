@@ -2,9 +2,11 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 // Routes that require authentication
+// Note: "/d(.*)" would also match /demo and /developers, so match /d exactly.
+// /orders is not listed: guest buyers reach it with a signed token (see src/lib/order-access.ts).
 const isProtectedRoute = createRouteMatcher([
-  "/d(.*)",
-  "/orders(.*)",
+  "/d",
+  "/d/(.*)",
   "/superadmin(.*)",
 ]);
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.21 (2026-09-28)
+
+- Fix guest buyers getting a 404 on their order confirmation page after checkout
+  - /orders was behind Clerk auth since launch; guests now reach it via a signed token from checkout
+  - Signed-in buyers can still view their own orders without a token
+- Fix /demo and /developers returning 404 (the /d dashboard matcher also matched any path starting with /d)
+
 ## 0.2.20 (2026-09-27)
 
 - Add Apple Wallet passes for tickets

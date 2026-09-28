@@ -38,7 +38,20 @@ interface Event {
   }
 }
 
-function CheckoutForm({ orderId, accentColor }: { orderId: string; accentColor: string }) {
+// Order page URL; the token lets guest buyers (no account) view their order
+function orderPath(orderId: string, accessToken: string | null) {
+  return `/orders/${orderId}${accessToken ? `?token=${encodeURIComponent(accessToken)}` : ""}`
+}
+
+function CheckoutForm({
+  orderId,
+  accessToken,
+  accentColor,
+}: {
+  orderId: string
+  accessToken: string | null
+  accentColor: string
+}) {
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
@@ -51,7 +64,7 @@ function CheckoutForm({ orderId, accentColor }: { orderId: string; accentColor: 
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/orders/${orderId}`,
+        return_url: `${window.location.origin}${orderPath(orderId, accessToken)}`,
       },
     })
 
@@ -101,6 +114,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const [orderAccessToken, setOrderAccessToken] = useState<string | null>(null)
   const [checkingOut, setCheckingOut] = useState(false)
 
   // Guest checkout fields
@@ -197,6 +211,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
 
       const order = await orderRes.json()
       setOrderId(order.id)
+      setOrderAccessToken(order.accessToken ?? null)
 
       // Free orders bypass Stripe entirely
       if (isFreeOrder) {
@@ -209,7 +224,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
           throw new Error(error.message)
         }
 
-        router.push(`/orders/${order.id}`)
+        router.push(orderPath(order.id, order.accessToken ?? null))
         return
       }
 
@@ -387,7 +402,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                       },
                     }}
                   >
-                    <CheckoutForm orderId={orderId!} accentColor={accentColor} />
+                    <CheckoutForm orderId={orderId!} accessToken={orderAccessToken} accentColor={accentColor} />
                   </Elements>
                 </div>
               ) : (

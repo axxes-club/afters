@@ -2,7 +2,9 @@ import { notFound } from "next/navigation"
 import { headers } from "next/headers"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
 import { getWalletPassPath, isAppleWalletConfigured } from "@/lib/apple-wallet"
+import { verifyOrderAccessToken } from "@/lib/order-access"
 import { CheckCircle, XCircle, Clock, CalendarDays, MapPin, Ticket, ArrowLeft, Mail, Wallet } from "lucide-react"
 
 function formatCents(cents: number) {
@@ -17,9 +19,9 @@ export default async function OrderConfirmationPage({
   searchParams,
 }: {
   params: Promise<{ orderId: string }>
-  searchParams: Promise<{ payment_intent?: string; redirect_status?: string }>
+  searchParams: Promise<{ payment_intent?: string; redirect_status?: string; token?: string }>
 }) {
-  const [{ orderId }, { redirect_status }, headerList] = await Promise.all([params, searchParams, headers()])
+  const [{ orderId }, { redirect_status, token }, headerList] = await Promise.all([params, searchParams, headers()])
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -57,6 +59,14 @@ export default async function OrderConfirmationPage({
 
   if (!order) {
     notFound()
+  }
+
+  // Guests need the signed token from checkout; signed-in buyers can view their own orders
+  if (!verifyOrderAccessToken(order.id, token)) {
+    const { userId } = await auth()
+    if (!userId || order.userId !== userId) {
+      notFound()
+    }
   }
 
   const accentColor = order.event.accentColor || '#ff1493'
