@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.20 (2026-09-27)
+
+- Add Apple Wallet passes for tickets
+  - "Add to Apple Wallet" button per ticket on the order confirmation page (hidden on Android)
+  - Wallet buttons in ticket confirmation emails (paid and free orders)
+  - Signed download links, so guest-checkout buyers can add passes without an account
+  - Passes show event, date/doors in the event's timezone, tier, venue; QR works with the door scanner
+  - Passes surface on the lock screen near the venue and expire after the event
+  - Certificates load from env vars (APPLE_* in .env.example); the feature stays hidden until they are set
+- Fix ticket email and PDF event times being shown in UTC instead of the event's timezone
+
 ## 0.2.19 (2026-02-22)
 
 - Add Docker containerization support for development and production
