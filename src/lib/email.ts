@@ -62,6 +62,7 @@ export function generateTicketEmailHtml(data: {
   venueAddress: string
   ticketCount: number
   orderNumber: string
+  walletPasses?: { ticketNumber: string; url: string }[]
 }) {
   // Escape all user-supplied content to prevent XSS/HTML injection
   const safeTitle = escapeHtml(data.eventTitle)
@@ -69,6 +70,24 @@ export function generateTicketEmailHtml(data: {
   const safeVenue = escapeHtml(data.venueName)
   const safeAddress = escapeHtml(data.venueAddress)
   const safeOrderNumber = escapeHtml(data.orderNumber)
+
+  const walletHtml = data.walletPasses?.length
+    ? `
+              <!-- Apple Wallet -->
+              <div style="margin-top: 30px;">
+                <p style="margin: 0 0 12px; color: #fff; font-size: 14px; font-weight: bold;">
+                  On iPhone? Add your tickets to Apple Wallet:
+                </p>
+                ${data.walletPasses
+                  .map(
+                    (pass) => `
+                <a href="${escapeHtml(pass.url)}" style="display: block; margin: 0 0 8px; padding: 12px 16px; background-color: #fff; color: #000; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; border-radius: 6px;">
+                  Add to Apple Wallet${data.walletPasses!.length > 1 ? ` &middot; ${escapeHtml(pass.ticketNumber)}` : ""}
+                </a>`
+                  )
+                  .join("")}
+              </div>`
+    : ""
 
   return `
 <!DOCTYPE html>
@@ -142,6 +161,7 @@ export function generateTicketEmailHtml(data: {
                   <li>That's it!</li>
                 </ol>
               </div>
+              ${walletHtml}
             </td>
           </tr>
           

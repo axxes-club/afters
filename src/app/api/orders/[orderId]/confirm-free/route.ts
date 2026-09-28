@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { formatInTimezone } from "@/lib/utils"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
+import { getWalletPassUrl, isAppleWalletConfigured } from "@/lib/apple-wallet"
 import { sendEmail, generateTicketEmailHtml, generateOrganizerSaleEmailHtml } from "@/lib/email"
 import { notifyTicketSale } from "@/lib/push"
 import { waitUntil } from "@vercel/functions"
@@ -125,7 +127,7 @@ export async function POST(
           ticketId: ticket.id,
           tierName: item.ticketTier?.name ?? 'General Admission',
           eventTitle: updatedOrder.event?.title ?? 'Event',
-          eventDate: new Date(updatedOrder.event?.startsAt ?? Date.now()).toLocaleDateString('en-US', {
+          eventDate: formatInTimezone(new Date(updatedOrder.event?.startsAt ?? Date.now()), updatedOrder.event?.timezone, {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -162,18 +164,22 @@ export async function POST(
 
           const emailHtml = generateTicketEmailHtml({
             eventTitle: updatedOrder.event?.title ?? 'Event',
-            eventDate: new Date(updatedOrder.event?.startsAt ?? Date.now()).toLocaleDateString('en-US', {
+            eventDate: formatInTimezone(new Date(updatedOrder.event?.startsAt ?? Date.now()), updatedOrder.event?.timezone, {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
               day: 'numeric',
               hour: 'numeric',
               minute: '2-digit',
+              timeZoneName: 'short',
             }),
             venueName: updatedOrder.event?.venueName ?? 'TBD',
             venueAddress,
             ticketCount: createdTickets.length,
             orderNumber: updatedOrder.orderNumber,
+            walletPasses: isAppleWalletConfigured()
+              ? createdTickets.map((t) => ({ ticketNumber: t.ticketNumber, url: getWalletPassUrl(t.ticketId) }))
+              : undefined,
           })
 
           await sendEmail({

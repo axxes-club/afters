@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation"
+import { headers } from "next/headers"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { CheckCircle, XCircle, Clock, CalendarDays, MapPin, Ticket, ArrowLeft, Mail } from "lucide-react"
+import { getWalletPassPath, isAppleWalletConfigured } from "@/lib/apple-wallet"
+import { CheckCircle, XCircle, Clock, CalendarDays, MapPin, Ticket, ArrowLeft, Mail, Wallet } from "lucide-react"
 
 function formatCents(cents: number) {
   return new Intl.NumberFormat("en-US", {
@@ -17,7 +19,7 @@ export default async function OrderConfirmationPage({
   params: Promise<{ orderId: string }>
   searchParams: Promise<{ payment_intent?: string; redirect_status?: string }>
 }) {
-  const [{ orderId }, { redirect_status }] = await Promise.all([params, searchParams])
+  const [{ orderId }, { redirect_status }, headerList] = await Promise.all([params, searchParams, headers()])
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -62,6 +64,9 @@ export default async function OrderConfirmationPage({
   const isFailed = redirect_status === "failed"
   const isFreeOrder = order.total === 0
   const buyerName = order.guestName || "there"
+  // .pkpass files are useless on Android, so only offer them elsewhere
+  const showAppleWallet =
+    isPaid && isAppleWalletConfigured() && !/android/i.test(headerList.get("user-agent") ?? "")
 
   return (
     <div className="min-h-screen bg-black text-white font-mono">
@@ -204,20 +209,28 @@ export default async function OrderConfirmationPage({
 
               <div className="p-4 space-y-2">
                 {order.tickets.map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    className="flex items-center justify-between p-3 border border-white/5"
-                  >
-                    <span className="text-sm tabular-nums">{ticket.ticketNumber}</span>
-                    <span
-                      className="text-[10px] uppercase tracking-wider px-2 py-0.5"
-                      style={{
-                        backgroundColor: ticket.status === "VALID" ? `${accentColor}20` : 'rgba(255,255,255,0.05)',
-                        color: ticket.status === "VALID" ? accentColor : 'rgba(255,255,255,0.3)'
-                      }}
-                    >
-                      {ticket.status}
-                    </span>
+                  <div key={ticket.id} className="p-3 border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm tabular-nums">{ticket.ticketNumber}</span>
+                      <span
+                        className="text-[10px] uppercase tracking-wider px-2 py-0.5"
+                        style={{
+                          backgroundColor: ticket.status === "VALID" ? `${accentColor}20` : 'rgba(255,255,255,0.05)',
+                          color: ticket.status === "VALID" ? accentColor : 'rgba(255,255,255,0.3)'
+                        }}
+                      >
+                        {ticket.status}
+                      </span>
+                    </div>
+                    {showAppleWallet && ticket.status === "VALID" && (
+                      <a
+                        href={getWalletPassPath(ticket.id)}
+                        className="mt-3 h-10 flex items-center justify-center gap-2 rounded-md bg-white text-black text-xs font-bold tracking-wide hover:bg-white/90 transition-colors"
+                      >
+                        <Wallet className="h-4 w-4" />
+                        Add to Apple Wallet
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
