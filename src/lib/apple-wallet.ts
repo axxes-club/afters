@@ -40,7 +40,8 @@ export function getAppleWalletConfig(): WalletConfig | null {
   const signerKey = decodePem(process.env.APPLE_WALLET_SIGNER_KEY)
   const wwdr = decodePem(process.env.APPLE_WALLET_WWDR)
 
-  if (!passTypeIdentifier || !teamIdentifier || !signerCert || !signerKey || !wwdr) {
+  // Without a link secret we can't sign download links, so treat wallet as unconfigured
+  if (!passTypeIdentifier || !teamIdentifier || !signerCert || !signerKey || !wwdr || !getLinkSecret()) {
     return null
   }
 
@@ -63,22 +64,22 @@ export function isAppleWalletConfigured(): boolean {
 // Most buyers check out as guests (no Clerk session), so wallet links in emails and on
 // the order page carry an HMAC of the ticket ID instead of relying on sign-in.
 
-function getLinkSecret(): string {
-  const secret = process.env.WALLET_LINK_SECRET || process.env.SCANNER_JWT_SECRET
-  if (!secret) {
-    throw new Error("WALLET_LINK_SECRET or SCANNER_JWT_SECRET environment variable is required")
-  }
-  return secret
+function getLinkSecret(): string | undefined {
+  return process.env.WALLET_LINK_SECRET || process.env.SCANNER_JWT_SECRET || undefined
 }
 
 export function createWalletToken(ticketId: string): string {
-  return createHmac("sha256", getLinkSecret())
+  const secret = getLinkSecret()
+  if (!secret) {
+    throw new Error("WALLET_LINK_SECRET or SCANNER_JWT_SECRET environment variable is required")
+  }
+  return createHmac("sha256", secret)
     .update(`apple-wallet:${ticketId}`)
     .digest("base64url")
 }
 
 export function verifyWalletToken(ticketId: string, token: string | null | undefined): boolean {
-  if (!token) return false
+  if (!token || !getLinkSecret()) return false
   const expected = Buffer.from(createWalletToken(ticketId))
   const actual = Buffer.from(token)
   return expected.length === actual.length && timingSafeEqual(expected, actual)

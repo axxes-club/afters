@@ -105,6 +105,20 @@ describe("getAppleWalletConfig", () => {
     setWalletEnv(true)
     expect(getAppleWalletConfig()).not.toBeNull()
   })
+
+  it("is null without a link secret, so pages never render unsignable links", () => {
+    setWalletEnv(true)
+    const saved = { w: process.env.WALLET_LINK_SECRET, s: process.env.SCANNER_JWT_SECRET }
+    delete process.env.WALLET_LINK_SECRET
+    delete process.env.SCANNER_JWT_SECRET
+    try {
+      expect(getAppleWalletConfig()).toBeNull()
+      expect(verifyWalletToken("ticket-123", "anything")).toBe(false)
+    } finally {
+      if (saved.w) process.env.WALLET_LINK_SECRET = saved.w
+      if (saved.s) process.env.SCANNER_JWT_SECRET = saved.s
+    }
+  })
 })
 
 describe("GET /api/tickets/[ticketId]/wallet", () => {
