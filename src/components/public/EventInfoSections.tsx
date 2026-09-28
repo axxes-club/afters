@@ -5,7 +5,7 @@ interface EventInfoSectionsProps {
   refundPolicy?: string | null
   faqs?: unknown // Accept any type since it comes from Prisma JsonValue
   className?: string
-  variant?: 'default' | 'brutalist' | 'neon' | 'minimal' | 'tilt' | 'lush'
+  variant?: 'default' | 'brutalist' | 'neon' | 'minimal' | 'tilt' | 'lush' | 'nice' | 'card' | 'vapor' | 'editorial'
   accentColor?: string
 }
 

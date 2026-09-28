@@ -535,8 +535,10 @@ export default async function EventPage({
       ctaText,
       ctaTextLower,
       lineup,
-      rsvpSpotsLeft: event.rsvpSpotsLeft,
-      rsvpAvailable: event.rsvpSpotsLeft === null || event.rsvpSpotsLeft > 0,
+      seriesOccurrences,
+      isOwner,
+      rsvpSpotsLeft: event.rsvpCapacity === null ? null : event.rsvpCapacity - event.rsvpCount,
+      rsvpAvailable: event.rsvpCapacity === null || event.rsvpCapacity - event.rsvpCount > 0,
       totalAvailable: availableTiers.reduce((sum, tier) => sum + (tier.quantity - tier.quantitySold), 0),
     };
 

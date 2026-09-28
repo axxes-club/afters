@@ -35,7 +35,7 @@ export interface EventData {
   city: string;
   state: string | null;
   isAddressHidden: boolean;
-  ageRestriction: string | null;
+  ageRestriction: number | null;
   lineup: any;
   isPublished: boolean;
   accentColor: string | null;

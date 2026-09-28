@@ -60,7 +60,7 @@ export default function TemplatePreview() {
   ]
 
   const props = {
-    event: mockEvent,
+    event: mockEvent as never,
     accentColor,
     backgroundColor,
     typographyClass: typography,
@@ -82,6 +82,8 @@ export default function TemplatePreview() {
     ctaText: isRsvp ? 'RSVP NOW' : 'GET TICKETS',
     ctaTextLower: isRsvp ? 'rsvp now' : 'get tickets',
     lineup: mockLineup,
+    seriesOccurrences: [],
+    isOwner: true,
     rsvpSpotsLeft: isRsvp ? 55 : null,
     rsvpAvailable: true,
     totalAvailable: isRsvp ? 55 : 190,
