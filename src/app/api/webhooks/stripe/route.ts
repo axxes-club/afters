@@ -3,7 +3,9 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
+import { formatInTimezone } from "@/lib/utils"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
+import { getWalletPassUrl, isAppleWalletConfigured } from "@/lib/apple-wallet"
 import { sendEmail, generateTicketEmailHtml, generateOrganizerSaleEmailHtml } from "@/lib/email"
 import { notifyTicketSale } from "@/lib/push"
 import { waitUntil } from "@vercel/functions"
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
               ticketId: ticket.id,
               tierName: item.ticketTier.name,
               eventTitle: order.event.title,
-              eventDate: new Date(order.event.startsAt).toLocaleDateString('en-US', {
+              eventDate: formatInTimezone(new Date(order.event.startsAt), order.event.timezone, {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -117,18 +119,22 @@ export async function POST(req: Request) {
               
               const emailHtml = generateTicketEmailHtml({
                 eventTitle: order.event.title,
-                eventDate: new Date(order.event.startsAt).toLocaleDateString('en-US', {
+                eventDate: formatInTimezone(new Date(order.event.startsAt), order.event.timezone, {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                   hour: 'numeric',
                   minute: '2-digit',
+                  timeZoneName: 'short',
                 }),
                 venueName: order.event.venueName,
                 venueAddress: `${order.event.venueAddress}, ${order.event.city}${order.event.state ? `, ${order.event.state}` : ''}`,
                 ticketCount: createdTickets.length,
                 orderNumber: order.orderNumber,
+                walletPasses: isAppleWalletConfigured()
+                  ? createdTickets.map((t) => ({ ticketNumber: t.ticketNumber, url: getWalletPassUrl(t.ticketId) }))
+                  : undefined,
               })
 
               await sendEmail({
