@@ -443,6 +443,7 @@ model Event {
   slugRedirects        EventSlugRedirect[]
   changeLogs           EventChangeLog[]
   vibezPosts           VibezPost[]
+  vibezBans            VibezBan[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -593,12 +594,49 @@ model VibezPost {
   authorName  String   // Display name (from user profile or guest name)
   authorImageUrl String? // Avatar URL
   imageUrl    String   // The posted image
+  /// A moderator removed this. The row stays so the storage URL can be purged.
+  removedAt   DateTime?
+  removedBy   String?  // Clerk user id of whoever removed it
+  removedReason String?
+  /// Open reports against this post, surfaced to moderators for triage.
+  reportCount Int      @default(0)
   createdAt   DateTime @default(now())
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reports     VibezReport[]
 
   @@index([eventId])
   @@index([eventId, createdAt])
+  @@index([eventId, removedAt])
+}
+
+/// Someone flagged a post. One row per person per post.
+model VibezReport {
+  id         String   @id @default(cuid())
+  postId     String
+  reporterId String   // Clerk user id
+  reason     String   @default("other")
+  note       String?
+  createdAt  DateTime @default(now())
+  post       VibezPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, reporterId])
+  @@index([postId])
+}
+
+/// Someone who may not post in an event's feed again. Scoped per event, so a
+/// ban at one event never follows them to the next.
+model VibezBan {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String   // Clerk user id
+  bannedBy  String   // Clerk user id of the moderator
+  reason    String?
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
 }
 
 // RSVP entries for RSVP-only events

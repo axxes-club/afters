@@ -3,13 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useUser } from "@clerk/nextjs";
 import { useAccentColor } from "@/hooks/useAccentColor";
 import { Sparkles, ExternalLink, Clock } from "lucide-react";
 import { VibezFeed } from "@/components/vibez/VibezFeed";
+import { VibezModeration } from "@/components/vibez/VibezModeration";
 import { useEventEditor } from "../layout";
 
 export default function VibezPage() {
   const { event, eventId, refetch } = useEventEditor();
+  const { user } = useUser();
+  const userId = user?.id ?? null;
   const [toggling, setToggling] = useState(false);
   const uiAccent = useAccentColor();
 
@@ -124,7 +128,13 @@ export default function VibezPage() {
           <h2 className="text-[10px] font-mono text-white/40 tracking-widest mb-3">
             LIVE FEED
           </h2>
-          <VibezFeed eventId={eventId} canPost={true} accentColor={event.accentColor ?? undefined} />
+          <VibezFeed
+            eventId={eventId}
+            canPost={true}
+            canModerate={true}
+            currentUserId={userId}
+            accentColor={event.accentColor ?? undefined}
+          />
         </div>
       ) : event.vibezEnabled && !eventStarted ? (
         <div className="border border-white/10 bg-white/[0.02] p-8 text-center">
@@ -134,6 +144,8 @@ export default function VibezPage() {
           </p>
         </div>
       ) : null}
+
+      {event.vibezEnabled && <VibezModeration eventId={eventId} />}
     </div>
   );
 }
