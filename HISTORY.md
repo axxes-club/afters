@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 (2026-09-28)
+
+- Merge `refactor/event-templates`: event pages now use modular templates
+  (Brutalist, Neon, Minimal, Tilt, Lush, Nice, Card, Vapor, Editorial) with a
+  /sandbox template previewer
+- Merge `appearance-live-updates`: live design/appearance updates for organizers,
+  new Vibez feed, resizable sidebar polish
+- Includes 0.2.21: guest order confirmation fix (signed tokens) and /demo,
+  /developers 404 fix
+
 ## 0.2.21 (2026-09-28)
 
 - Fix guest buyers getting a 404 on their order confirmation page after checkout
