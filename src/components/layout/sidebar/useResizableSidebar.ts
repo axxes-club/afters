@@ -7,29 +7,31 @@ const MIN_WIDTH = 200;
 const MAX_WIDTH = 400;
 const DEFAULT_WIDTH = 224; // w-56 = 14rem = 224px
 
-function getInitialWidth(): number {
-  if (typeof window === "undefined") return DEFAULT_WIDTH;
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    const parsed = parseInt(saved, 10);
-    if (!isNaN(parsed) && parsed >= MIN_WIDTH && parsed <= MAX_WIDTH) {
-      return parsed;
-    }
-  }
-  return DEFAULT_WIDTH;
-}
-
 export function useResizableSidebar(compact: boolean) {
-  const [width, setWidth] = useState(getInitialWidth);
+  // Always initialize with DEFAULT_WIDTH to ensure SSR/client consistency
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [mounted, setMounted] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
 
-  // Save width to localStorage when it changes
+  // Load saved width from localStorage after hydration (fixes SSR mismatch)
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (!isNaN(parsed) && parsed >= MIN_WIDTH && parsed <= MAX_WIDTH) {
+        setWidth(parsed);
+      }
+    }
+    setMounted(true);
+  }, []);
+
+  // Save width to localStorage when it changes (only after mount)
+  useEffect(() => {
+    if (!mounted) return;
     localStorage.setItem(STORAGE_KEY, String(width));
-  }, [width]);
+  }, [width, mounted]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {

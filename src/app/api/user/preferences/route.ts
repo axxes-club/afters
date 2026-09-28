@@ -88,7 +88,7 @@ export async function PUT(req: Request) {
     const updated = await prisma.organizerProfile.update({
       where: { userId },
       data: {
-        sidebarLogoMode: sidebarLogoMode || "afters3x",
+        sidebarLogoMode: sidebarLogoMode || "afters",
         sidebarCustomLogoUrl: sidebarCustomLogoUrl || null,
         sidebarCompact: sidebarCompact || false,
         uiAccentColor: uiAccentColor || null,

@@ -15,7 +15,7 @@ const DEFAULT_PREFERENCES: UIPreferences = {
   accentColor: "#ff1493",
   fontSize: "normal",
   sidebarCompact: false,
-  sidebarLogoMode: "afters3x",
+  sidebarLogoMode: "afters",
   sidebarCustomLogoUrl: null,
 };
 

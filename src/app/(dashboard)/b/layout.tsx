@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   ScanLine,
   ChevronLeft,
+  ChevronRight,
   Shield,
   Settings,
   User,
@@ -108,7 +109,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { preferences } = useUIPreferences();
+  const { preferences, updatePreferences, isLoading } = useUIPreferences();
   const [hasEvents, setHasEvents] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const isDesktop = useIsDesktop();
@@ -234,10 +235,10 @@ export default function DashboardLayout({
           style={{ width: sidebarWidthPx }}
         >
           {/* Logo with Quick Create */}
-          {sidebarLogoMode !== "hidden" && (
+          {!isLoading && sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
-              className={`h-16 flex items-center ${sidebarCompact ? "justify-center px-2" : "justify-between px-4"} border-b border-white/5 ${sidebarLogoMode === "afters3x" ? "extra-large-logo" : ""}`}
+              className={`flex border-b border-white/5 ${sidebarCompact ? "h-auto flex-col items-center gap-2 py-3 px-2" : "h-16 flex-row items-center justify-between px-4"} ${sidebarLogoMode === "afters3x" && !sidebarCompact ? "extra-large-logo" : ""}`}
             >
               {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
                 <Link
@@ -267,15 +268,37 @@ export default function DashboardLayout({
                   )}
                 </Link>
               )}
-              {/* Quick Create Button */}
-              {!sidebarCompact && !isInSettings && (
-                <Link
-                  href="/b/events/new"
-                  className="w-7 h-7 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 transition-colors"
-                  title="Create Event"
+              {/* Compact/expand toggle - below logo when collapsed, right of logo when expanded */}
+              {!isInSettings && (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={sidebarCompact}
+                  onClick={() => {
+                    const next = !sidebarCompact;
+                    updatePreferences({ sidebarCompact: next });
+                    fetch("/api/user/preferences", {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        sidebarLogoMode: preferences.sidebarLogoMode,
+                        sidebarCustomLogoUrl: preferences.sidebarCustomLogoUrl,
+                        sidebarCompact: next,
+                        uiAccentColor: preferences.accentColor,
+                        uiFontSize: preferences.fontSize,
+                      }),
+                    }).catch(() => {});
+                  }}
+                  className={`flex items-center justify-center rounded font-mono text-white/60 hover:text-white hover:bg-white/10 transition-colors ${sidebarCompact ? "w-10 h-10" : "w-7 h-7"}`}
+                  title={sidebarCompact ? "Expand sidebar" : "Compact sidebar"}
+                  style={sidebarCompact ? { color: accentColor } : undefined}
                 >
-                  <Plus className="w-4 h-4 text-white/50" />
-                </Link>
+                  {sidebarCompact ? (
+                    <ChevronRight className="w-5 h-5" aria-hidden />
+                  ) : (
+                    <ChevronLeft className="w-4 h-4" aria-hidden />
+                  )}
+                </button>
               )}
             </div>
           )}
@@ -305,7 +328,9 @@ export default function DashboardLayout({
               </div>
             )}
 
-            {(isInSettings ? settingsNavItems : desktopTopNav).map((item) => {
+            {
+            // 
+            (isInSettings ? settingsNavItems : desktopTopNav).map((item) => {
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname.startsWith(item.href);
@@ -573,18 +598,15 @@ export default function DashboardLayout({
           </div>
         </nav>
 
-        {/* Main Content */}
+        {/* Main Content - inline marginLeft so desktop has no gap beside sidebar */}
         <main
-          className={`flex-1 ml-0 ${isResizing ? "" : "transition-all duration-200"}`}
-          style={isDesktop ? { ["--sidebar-width" as string]: `${sidebarWidthPx}px` } : undefined}
+          className={`flex-1 ${isResizing ? "" : "transition-all duration-200"}`}
+          style={
+            isDesktop
+              ? { marginLeft: `${sidebarWidthPx}px`, ["--sidebar-width" as string]: `${sidebarWidthPx}px` }
+              : undefined
+          }
         >
-          <style jsx>{`
-            @media (min-width: 768px) {
-              main {
-                margin-left: var(--sidebar-width) !important;
-              }
-            }
-          `}</style>
           {/* Mobile Header */}
           <header
             className={`md:hidden h-14 border-b border-white/5 flex items-center gap-3 px-4 sticky top-0 bg-black/95 backdrop-blur-sm z-40 ${sidebarLogoMode === "afters3x" ? "extra-large-logo" : ""}`}
@@ -612,7 +634,7 @@ export default function DashboardLayout({
               </Link>
             )}
             {/* Left-aligned logo + settings indicator */}
-            {sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
+            {!isLoading && sidebarLogoMode === "custom" && sidebarCustomLogoUrl ? (
               <Link href="/b" className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
                 <img
@@ -626,7 +648,7 @@ export default function DashboardLayout({
                   </span>
                 )}
               </Link>
-            ) : sidebarLogoMode !== "hidden" ? (
+            ) : !isLoading && sidebarLogoMode !== "hidden" ? (
               <Link
                 href="/b"
                 className={`flex items-center gap-2 font-headline tracking-wide ${sidebarLogoMode === "afters3x" ? "text-2xl" : "text-xl"}`}
@@ -638,6 +660,8 @@ export default function DashboardLayout({
                   </span>
                 )}
               </Link>
+            ) : isLoading ? (
+              <div className="h-6 w-24 bg-white/10 animate-pulse rounded" />
             ) : (
               <Link href="/b" className="flex items-center gap-2">
                 {isInSettings && (
@@ -649,8 +673,8 @@ export default function DashboardLayout({
             )}
           </header>
 
-          {/* Page Content */}
-          <div className="px-4 py-4 md:p-6 pb-24 md:pb-6 overflow-x-hidden max-w-screen">
+          {/* Page Content - even horizontal gutter (consistent padding so no weird gap beside sidebar) */}
+          <div className="py-4 md:py-6 md:px-6 pb-24 md:pb-6 overflow-x-hidden max-w-screen min-w-0">
             {children}
           </div>
         </main>

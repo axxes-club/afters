@@ -65,6 +65,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "example.com", // For demo/seed data
       },
+      {
+        protocol: "https",
+        hostname: "posh.vip",
+      },
     ],
   },
   // Moved from experimental.serverComponentsExternalPackages (deprecated in Next.js 16)

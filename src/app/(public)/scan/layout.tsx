@@ -33,8 +33,9 @@ export default function ScanLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const [isLoading, setIsLoading] = useState(true)
   const [uiPrefs, setUIPrefs] = useState<UIPreferences>({
-    sidebarLogoMode: "afters3x",
+    sidebarLogoMode: "afters",
     sidebarCustomLogoUrl: null,
     uiAccentColor: null,
   })
@@ -47,12 +48,16 @@ export default function ScanLayout({
         const data = await res.json()
         if (data.organizerProfile) {
           setUIPrefs({
-            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters3x",
+            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
             sidebarCustomLogoUrl: data.organizerProfile.sidebarCustomLogoUrl || null,
             uiAccentColor: data.organizerProfile.uiAccentColor || null,
           })
         }
-      } catch {}
+      } catch {
+        // Use defaults on error
+      } finally {
+        setIsLoading(false)
+      }
     }
     loadPreferences()
     return () => controller.abort()
@@ -67,7 +72,7 @@ export default function ScanLayout({
       <SignedIn>
         <aside className="hidden md:flex w-56 border-r border-white/5 flex-col fixed h-full bg-black/90 backdrop-blur-sm z-50">
           {/* Logo */}
-          {uiPrefs.sidebarLogoMode !== "hidden" && (
+          {!isLoading && uiPrefs.sidebarLogoMode !== "hidden" && (
             <div
               id="nav-logo"
               className="h-16 flex items-center justify-center px-4 border-b border-white/5"
@@ -193,7 +198,7 @@ export default function ScanLayout({
             </Link>
           )}
           {/* Logo */}
-          {uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
+          {!isLoading && uiPrefs.sidebarLogoMode === "custom" && uiPrefs.sidebarCustomLogoUrl ? (
             <Link href="/b" className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element -- External user-provided URL */}
               <img
@@ -202,10 +207,12 @@ export default function ScanLayout({
                 className="max-h-8 max-w-[120px] object-contain"
               />
             </Link>
-          ) : uiPrefs.sidebarLogoMode !== "hidden" ? (
+          ) : !isLoading && uiPrefs.sidebarLogoMode !== "hidden" ? (
             <Link href="/b" className="flex items-center gap-2 font-headline text-xl tracking-wide">
               AFTERS<span style={{ color: accentColor }}>.</span>
             </Link>
+          ) : isLoading ? (
+            <div className="h-6 w-24 bg-white/10 animate-pulse rounded" />
           ) : null}
           <span className="text-xs font-mono text-white/40 ml-auto">SCANNER</span>
         </header>

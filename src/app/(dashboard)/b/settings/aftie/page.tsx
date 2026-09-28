@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { useAftie } from "@/components/aftie"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,10 +77,16 @@ const examplePrompts = [
 ]
 
 export default function AftieSettingsPage() {
+  const { openCommandPalette, setInput, refreshSetupStatus } = useAftie()
   const [status, setStatus] = useState<AftieSetupStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [enabling, setEnabling] = useState(false)
   const [disabling, setDisabling] = useState(false)
+
+  function openAftieWithPrompt(prompt: string) {
+    setInput(prompt)
+    openCommandPalette()
+  }
 
   useEffect(() => {
     fetchStatus()
@@ -113,6 +120,7 @@ export default function AftieSettingsPage() {
           keyName: data.keyName,
           createdAt: data.createdAt,
         })
+        await refreshSetupStatus()
         toast.success("Aftie activated! Press ⌘K to start chatting.")
       } else {
         const error = await res.json()
@@ -311,18 +319,21 @@ export default function AftieSettingsPage() {
 
         <div className="grid gap-2">
           {examplePrompts.map((prompt, i) => (
-            <div 
-              key={i} 
-              className={`px-4 py-3 border border-white/5 bg-white/[0.01] font-mono text-sm transition-all ${
-                status?.isSetup 
-                  ? "text-white/60 hover:bg-white/[0.03] hover:border-white/10 cursor-pointer" 
-                  : "text-white/30"
+            <button
+              key={i}
+              type="button"
+              onClick={() => status?.isSetup && openAftieWithPrompt(prompt)}
+              disabled={!status?.isSetup}
+              className={`w-full text-left px-4 py-3 border border-white/5 bg-white/[0.01] font-mono text-sm transition-all ${
+                status?.isSetup
+                  ? "text-white/60 hover:bg-white/[0.03] hover:border-white/10 cursor-pointer"
+                  : "text-white/30 cursor-default"
               }`}
             >
               <span className="text-white/30 mr-2">&quot;</span>
               {prompt}
               <span className="text-white/30 ml-1">&quot;</span>
-            </div>
+            </button>
           ))}
         </div>
       </div>

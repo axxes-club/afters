@@ -322,6 +322,7 @@ export async function PATCH(
       expiresAfter,
       isPublished,
       status,
+      vibezEnabled,
       // New flags for controlling behavior
       updateSlug, // If true and title changes, regenerate slug
       notifyAttendees, // If true and dates change, send notifications
@@ -461,6 +462,7 @@ export async function PATCH(
     if (expiresAfter !== undefined) updateData.expiresAfter = expiresAfter
     if (isPublished !== undefined) updateData.isPublished = isPublished
     if (status !== undefined) updateData.status = status
+    if (vibezEnabled !== undefined) updateData.vibezEnabled = vibezEnabled
 
     // Execute update in a transaction with slug redirect and change logs
     const result = await prisma.$transaction(async (tx) => {

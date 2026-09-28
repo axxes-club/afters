@@ -200,6 +200,7 @@
 /* extra large Logo variant - larger font size (outside layer for higher priority) */
 .extra-large-logo a {
     font-size: 4em !important;
+    transform: rotate(20deg);
 }
 
 /* Monospace headers for edgy vibe */

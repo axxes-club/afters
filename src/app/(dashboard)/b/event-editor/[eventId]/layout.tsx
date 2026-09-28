@@ -72,6 +72,7 @@ export interface Event {
   lineup: Array<{name: string; role: string; imageUrl: string; socialUrl: string; showtime?: string; showShowtime?: boolean}> | null;
   gallery: string[] | null;
   expiresAfter: string;
+  vibezEnabled: boolean;
 }
 
 interface EventEditorContextType {
@@ -109,7 +110,7 @@ export default function EventEditorLayout({
   const [publishing, setPublishing] = useState(false);
   const pathname = usePathname();
   const uiAccent = useAccentColor();
-  const { setPageContext } = useAftie();
+  const { setPageContext, lastAction, clearLastAction } = useAftie();
 
   // Extract eventId from params
   useEffect(() => {
@@ -188,7 +189,9 @@ export default function EventEditorLayout({
         editingField: editingFieldMap[currentTab] || null,
         eventDetails: {
           venueName: event.venueName,
+          venueAddress: event.venueAddress,
           city: event.city,
+          state: event.state ?? undefined,
           startsAt: new Date(event.startsAt).toLocaleDateString("en-US", {
             weekday: "long",
             month: "long",
@@ -205,6 +208,14 @@ export default function EventEditorLayout({
       setPageContext({ page: "dashboard" });
     };
   }, [event, pathname, setPageContext]);
+
+  // Refetch event when Aftie updates it (e.g. venue from chat)
+  useEffect(() => {
+    if (lastAction?.type === "updateEvent" && lastAction.eventId === eventId) {
+      fetchEvent();
+      clearLastAction();
+    }
+  }, [lastAction, eventId, fetchEvent, clearLastAction]);
 
   async function updateFlyer() {
     setFlyerLoading(true);
@@ -275,6 +286,7 @@ export default function EventEditorLayout({
     { id: "overview", label: "OVERVIEW" },
     ...(event && !event.isRsvpOnly ? [{ id: "tickets", label: "TICKETS" }] : []),
     { id: "door", label: "DOOR" },
+    { id: "vibez", label: "VIBEZ (BETA)" },
     { id: "details", label: "DETAILS" },
     { id: "design", label: "DESIGN" },
     { id: "venue", label: "VENUE" },

@@ -56,6 +56,13 @@ export const ourFileRouter = {
       console.log("Uploaded custom logo:", fileUrl)
       return { url: fileUrl }
     }),
+  // VIBEZ (BETA): attendee feed images - any logged-in user (attendee check in API)
+  vibezPost: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(authMiddleware)
+    .onUploadComplete(async ({ file }) => {
+      const fileUrl = file.url || file.ufsUrl
+      return { url: fileUrl }
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter

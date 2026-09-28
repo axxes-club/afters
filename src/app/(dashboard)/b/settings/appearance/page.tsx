@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Save, ImageIcon, Eye, EyeOff, Type, Link2, Upload } from "lucide-react"
+import { Loader2, ImageIcon, Eye, EyeOff, Type, Link2, Upload } from "lucide-react"
 import { toast } from "sonner"
 import { useUIPreferences } from "@/components/providers"
 import { LogoUpload } from "@/components/LogoUpload"
@@ -50,13 +49,15 @@ const ACCENT_COLORS = [
   { color: "#ff69b4", label: "Blush" },
 ]
 
+const SAVE_DEBOUNCE_MS = 400
+
 export default function AppearanceSettingsPage() {
   const { refreshPreferences } = useUIPreferences()
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [logoInputMode, setLogoInputMode] = useState<"upload" | "url">("upload")
+  const hasHydrated = useRef(false)
   const [preferences, setPreferences] = useState<LocalUIPreferences>({
-    sidebarLogoMode: "afters3x",
+    sidebarLogoMode: "afters",
     sidebarCustomLogoUrl: null,
     sidebarCompact: false,
     uiAccentColor: null,
@@ -71,7 +72,7 @@ export default function AppearanceSettingsPage() {
         const data = await res.json()
         if (data.organizerProfile) {
           setPreferences({
-            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters3x",
+            sidebarLogoMode: data.organizerProfile.sidebarLogoMode || "afters",
             sidebarCustomLogoUrl: data.organizerProfile.sidebarCustomLogoUrl || null,
             sidebarCompact: data.organizerProfile.sidebarCompact || false,
             uiAccentColor: data.organizerProfile.uiAccentColor || null,
@@ -79,6 +80,7 @@ export default function AppearanceSettingsPage() {
           })
         }
         setLoading(false)
+        hasHydrated.current = true
       } catch {
         if (!controller.signal.aborted) {
           toast.error("Failed to load preferences")
@@ -90,27 +92,31 @@ export default function AppearanceSettingsPage() {
     return () => controller.abort()
   }, [])
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      const res = await fetch("/api/user/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(preferences),
-      })
+  // Auto-save and refresh UI when preferences change (debounced)
+  useEffect(() => {
+    if (!hasHydrated.current) return
 
-      if (res.ok) {
-        toast.success("Preferences saved! Changes applied site-wide.")
-        await refreshPreferences()
-      } else {
-        const data = await res.json()
-        toast.error(data.error || "Failed to save")
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/user/preferences", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(preferences),
+        })
+
+        if (res.ok) {
+          await refreshPreferences()
+        } else {
+          const data = await res.json()
+          toast.error(data.error || "Failed to save")
+        }
+      } catch {
+        toast.error("Something went wrong")
       }
-    } catch {
-      toast.error("Something went wrong")
-    }
-    setSaving(false)
-  }
+    }, SAVE_DEBOUNCE_MS)
+
+    return () => clearTimeout(timeout)
+  }, [preferences, refreshPreferences])
 
   if (loading) {
     return (
@@ -415,17 +421,6 @@ export default function AppearanceSettingsPage() {
         </div>
       </div>
 
-      {/* Save Button */}
-      <Button 
-        onClick={handleSave} 
-        disabled={saving} 
-        className="w-full sm:w-auto text-black font-mono font-bold"
-        style={{ backgroundColor: currentAccent }}
-        size="lg"
-      >
-        {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-        Save Preferences
-      </Button>
     </div>
   )
 }
