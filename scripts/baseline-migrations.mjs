@@ -143,10 +143,12 @@ function main() {
   console.log("[baseline] Done. The Vibez migrations will now apply normally.");
 }
 
-// A non-zero exit here fails the Vercel build, which is the whole safety
-// property: if the canary check raises, or `migrate resolve` fails, nothing is
-// deployed and no migration is silently recorded.
-main().catch((err) => {
-  console.error("[baseline] Refusing to continue:", err?.message ?? err);
-  process.exit(1);
-});
+// main() is synchronous, so a throw propagates on its own and an uncaught
+// exception exits non-zero — which fails the Vercel build, and is the whole
+// safety property: if the canary check raises, or `migrate resolve` fails,
+// nothing is deployed and no migration is silently recorded.
+//
+// An earlier version wrote `main().catch(...)`, which cannot work on a
+// synchronous function: `main()` returns undefined, so `.catch` was undefined and
+// the build died with a TypeError *after* the baselining had already happened.
+main();
