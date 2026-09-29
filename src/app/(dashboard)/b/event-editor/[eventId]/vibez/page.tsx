@@ -128,13 +128,14 @@ export default function VibezPage() {
           <h2 className="text-[10px] font-mono text-white/40 tracking-widest mb-3">
             LIVE FEED
           </h2>
-          <VibezFeed
-            eventId={eventId}
-            canPost={true}
-            canModerate={true}
-            currentUserId={userId}
-            accentColor={event.accentColor ?? undefined}
-          />
+          {/*
+            No canPost / canModerate props any more. The feed asks the API what
+            this viewer may do, and the organizer preview is just another
+            moderator viewing the same feed — so it gets the same answer, from
+            the same place, instead of being told a different one by the page
+            that happens to render it.
+          */}
+          <VibezFeed eventId={eventId} accentColor={event.accentColor ?? undefined} />
         </div>
       ) : event.vibezEnabled && !eventStarted ? (
         <div className="border border-white/10 bg-white/[0.02] p-8 text-center">

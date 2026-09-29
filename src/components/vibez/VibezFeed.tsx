@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { useUploadThing } from "@/lib/uploadthing-client";
 import { Camera, Loader2, User, Flag, Trash2, RotateCcw } from "lucide-react";
+import { VibezCamera } from "./VibezCamera";
 
 export interface VibezPostType {
   id: string;
@@ -13,18 +13,19 @@ export interface VibezPostType {
   authorImageUrl: string | null;
   imageUrl: string;
   createdAt: string;
+  caption?: string | null;
+  /** Clerk id or `tkt_…` for a guest. The identity "mine" is decided on this. */
+  authorSubject?: string | null;
   removedAt?: string | null;
   removedBy?: string | null;
   removedReason?: string | null;
+  /** Set once the image itself is gone, so a restore cannot show a broken tile. */
+  filePurgedAt?: string | null;
   reportCount?: number;
 }
 
 interface VibezFeedProps {
   eventId: string;
-  canPost?: boolean;
-  canModerate?: boolean;
-  /** The signed-in person, so they can tell their own posts apart. */
-  currentUserId?: string | null;
   accentColor?: string | null;
 }
 
@@ -36,21 +37,22 @@ const REASONS = [
   { value: "other", label: "Other" },
 ] as const;
 
-export function VibezFeed({
-  eventId,
-  canPost = true,
-  canModerate = false,
-  currentUserId = null,
-  accentColor,
-}: VibezFeedProps) {
+export function VibezFeed({ eventId, accentColor }: VibezFeedProps) {
   const [posts, setPosts] = useState<VibezPostType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
   const [reason, setReason] = useState<string>("other");
-  const [isModerator, setModerator] = useState(canModerate);
+  // Both of these used to be props passed down from a page that guessed them
+  // from `isSignedIn`. That is how a signed-in non-attendee was shown an upload
+  // button that could only fail. The feed API now answers for this viewer and
+  // the client believes it.
+  const [isModerator, setModerator] = useState(false);
+  const [canPost, setCanPost] = useState(false);
+  const [subject, setSubject] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -60,6 +62,9 @@ export function VibezFeed({
         const data = await res.json();
         setPosts(data.posts ?? []);
         if (typeof data.canModerate === "boolean") setModerator(data.canModerate);
+        if (typeof data.canPost === "boolean") setCanPost(data.canPost);
+        if (typeof data.subject === "string") setSubject(data.subject);
+        if (typeof data.isGuest === "boolean") setIsGuest(data.isGuest);
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.message || "Could not load feed");
@@ -77,67 +82,12 @@ export function VibezFeed({
     return () => clearInterval(interval);
   }, [fetchPosts]);
 
-  const { startUpload } = useUploadThing("vibezPost", {
-    onClientUploadComplete: async (res) => {
-      const fileUrl = res?.[0]?.url || res?.[0]?.ufsUrl;
-      if (!fileUrl) {
-        setPosting(false);
-        return;
-      }
-      try {
-        const postRes = await fetch(`/api/events/${eventId}/vibez`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageUrl: fileUrl }),
-        });
-        const data = await postRes.json().catch(() => ({}));
-        if (postRes.ok) {
-          setPosts((prev) => [data.post, ...prev]);
-        } else {
-          setError(data.message || "Failed to post");
-        }
-      } catch {
-        setError("Failed to post");
-      } finally {
-        setPosting(false);
-      }
-    },
-    onUploadError: (e) => {
-      setError(e?.message || "Upload failed");
-      setPosting(false);
-    },
-  });
-
-  /**
-   * Ask the server whether we may upload, then upload carrying that ticket.
-   * The bytes only move after the server has said yes, so a non-attendee
-   * never spends our bandwidth finding out they cannot post.
+  /*
+   * The upload path that used to live here — the useUploadThing hook, the ticket
+   * fetch, the file input — is now VibezCamera. It contained no camera, which is
+   * the whole problem: a night-flash feed you can only post to by digging
+   * through the phone's file picker is not a photobooth.
    */
-  const beginUpload = async (files: File[]) => {
-    setPosting(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/events/${eventId}/vibez/upload-ticket`, {
-        method: "POST",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "You can't post to this feed");
-      }
-      const { ticket } = await res.json();
-      await startUpload(files, { eventId, ticket });
-    } catch (problem) {
-      setError(problem instanceof Error ? problem.message : "Upload failed");
-      setPosting(false);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    void beginUpload([file]);
-    e.target.value = "";
-  };
 
   /** Take a post down. The author can do this on their own; so can a moderator. */
   const remove = async (post: VibezPostType) => {
@@ -234,32 +184,41 @@ export function VibezFeed({
 
   return (
     <div className="space-y-4">
-      {canPost && (
+      {canPost ? (
         <div className="flex items-center gap-3 border border-white/10 bg-white/[0.02] p-3">
-          <label className="flex items-center gap-2 cursor-pointer flex-1 max-w-[200px]">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileSelect}
-              disabled={posting}
-            />
-            <span
-              className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-mono font-bold border transition-colors hover:opacity-90"
-              style={{ borderColor: accent, color: accent }}
-            >
-              {posting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Camera className="w-4 h-4" />
-              )}
-              {posting ? "Posting…" : "Add photo"}
-            </span>
-          </label>
+          <button
+            type="button"
+            onClick={() => setCameraOpen(true)}
+            className="flex items-center justify-center gap-2 border px-4 py-2 text-xs font-mono font-bold transition-colors hover:opacity-90"
+            style={{ borderColor: accent, color: accent }}
+          >
+            <Camera className="w-4 h-4" />
+            Take a photo
+          </button>
           {error && posts.length > 0 && (
             <p className="text-xs text-red-400/80 font-mono">{error}</p>
           )}
         </div>
+      ) : (
+        /* The server has already decided this. Showing a button to someone it
+           will refuse was the old behaviour, and it is worse than showing none:
+           they tap it, spend the effort, and get a rejection. */
+        <p className="border border-white/10 bg-white/[0.02] p-3 text-xs text-white/40 font-mono">
+          {isGuest
+            ? "Your ticket gives you access to this feed."
+            : "This feed is for people with a ticket to this event."}
+        </p>
+      )}
+
+      {cameraOpen && (
+        <VibezCamera
+          eventId={eventId}
+          accentColor={accentColor}
+          onPosted={() => {
+            setCameraOpen(false);
+            void fetchPosts();
+          }}
+        />
       )}
 
       {posts.length === 0 ? (
@@ -273,7 +232,7 @@ export function VibezFeed({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {posts.map((post) => {
             const removed = Boolean(post.removedAt);
-            const mine = Boolean(currentUserId) && post.userId === currentUserId;
+            const mine = Boolean(subject) && (post.authorSubject === subject || post.userId === subject);
             const mayRemove = !removed && (mine || isModerator);
             const mayReport =
               !removed && !mine && reportingId !== post.id && (post.reportCount ?? 0) === 0;
@@ -291,6 +250,13 @@ export function VibezFeed({
                       <p className="text-[10px] font-mono text-white/40">
                         Removed{post.removedReason === "author" ? " by its author" : ""}
                       </p>
+                    </div>
+                  ) : post.filePurgedAt ? (
+                    // Reachable only if a moderator restores a post whose file has
+                    // since been purged. The API now refuses that, but the tile
+                    // has to survive a row that got there some other way.
+                    <div className="flex h-full items-center justify-center px-2 text-center">
+                      <p className="text-[10px] font-mono text-white/40">No longer available</p>
                     </div>
                   ) : (
                     <Image
@@ -380,6 +346,12 @@ export function VibezFeed({
                     </button>
                   )}
                 </div>
+
+                {post.caption && (
+                  <p className="px-2 pb-2 text-[11px] leading-snug text-white/70">
+                    {post.caption}
+                  </p>
+                )}
 
                 {reportingId === post.id && (
                   <div className="border-t border-white/10 p-2 space-y-2">

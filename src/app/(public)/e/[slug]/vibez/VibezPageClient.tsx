@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 import { ArrowLeft } from "lucide-react";
 import { VibezFeed } from "@/components/vibez/VibezFeed";
+import { VibezJoin } from "./VibezJoin";
 
 interface VibezPageClientProps {
   eventId: string;
@@ -13,36 +13,24 @@ interface VibezPageClientProps {
   accentColor: string | null;
 }
 
+/**
+ * The public feed page.
+ *
+ * It no longer asks Clerk who you are, and it no longer fetches /api/me to
+ * guess. Both were answers to the wrong question: they could only ever say
+ * whether an account exists, never whether the person is at this event. VibezFeed
+ * asks the feed API, which is the only thing that actually knows.
+ */
 export function VibezPageClient({
   eventId,
   eventTitle,
   eventSlug,
   accentColor,
 }: VibezPageClientProps) {
-  const { isLoaded, isSignedIn } = useUser();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  // So someone can tell their own photos apart and remove their own without
-  // a round trip. Absent a client id, nobody can remove anything but a
-  // moderator's word — which is the safe way round.
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) {
-      setCurrentUserId(null);
-      return;
-    }
-    let cancelled = false;
-    fetch("/api/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!cancelled) setCurrentUserId(d?.userId ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) setCurrentUserId(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoaded, isSignedIn]);
+  // VibezJoin renders nothing once the viewer has access (a redeemed ticket, or
+  // an account that already holds one), so it can sit above the feed
+  // unconditionally and only appear for someone who is actually locked out.
+  const [, forceFeedRefresh] = useState(0);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -62,14 +50,14 @@ export function VibezPageClient({
       </header>
       <main className="max-w-2xl mx-auto p-4">
         <p className="text-xs text-white/40 font-mono mb-4">
-          Share your moments. Only attendees can see this feed. Photos you post
-          can be removed by an organizer.
+          Every room is a photobooth. Take a photo with the flash, and it lands
+          on the live feed. Your ticket gets you in — no account needed.
         </p>
+        <VibezJoin eventId={eventId} onJoined={() => forceFeedRefresh((n) => n + 1)} />
         <VibezFeed
+          key={`vibez-${forceFeedRefresh}`}
           eventId={eventId}
-          canPost={isSignedIn}
-          currentUserId={currentUserId}
-          accentColor={accentColor ?? undefined}
+          accentColor={accentColor}
         />
       </main>
     </div>

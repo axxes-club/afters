@@ -1,20 +1,20 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { canModerate, canPost, postBudget, vibezAccess } from "@/lib/vibez";
-import { deleteStoredFile } from "@/lib/vibez-storage";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import type { VibezAccess } from "@/lib/vibez"
+import {
+  canModerate,
+  canPost,
+  feedState,
+  postBudget,
+  resolveAccess,
+} from "@/lib/vibez-identity"
+// NOTE: no storage import here. This route used to delete the image on removal,
+// which is what made "restore" restore a row pointing at a deleted file. Removal
+// now only hides the post; the file is deleted by /api/cron/vibez-purge after a
+// grace period. See the DELETE handler below and VibezPost.filePurgedAt.
 
 /** A removed post is invisible to everyone except the people moderating. */
 const VISIBLE_ONLY = { removedAt: null } as const;
-
-const NOT_ENABLED = { message: "VIBEZ is not enabled for this event" };
-const NOT_STARTED = { message: "VIBEZ feed is only available after the event starts" };
-
-/** The email of whoever is signed in, for attendee lookups. */
-async function callerEmail(): Promise<string | null> {
-  const user = await currentUser();
-  return user?.emailAddresses?.[0]?.emailAddress ?? null;
-}
 
 /** Only accept images we host. Anything else is a hotlink to someone else's
  *  bandwidth, or a script pretending to be a photo. */
@@ -22,37 +22,39 @@ function isOurImage(url: string): boolean {
   return /^https:\/\/[^/]*ufs\.sh\//i.test(url) || /^https:\/\/utfs\.io\//i.test(url);
 }
 
+/** What the client needs to render the right controls, in one payload. */
+function viewerPayload(access: VibezAccess, subject: string | null, isGuest: boolean) {
+  return {
+    canModerate: canModerate(access),
+    canPost: canPost(access),
+    subject,
+    isGuest,
+  }
+}
+
 /**
  * GET /api/events/[eventId]/vibez
  * List vibez posts. Attendees (or organizer/staff) only, and only once the
  * event has started and the organizer has turned the feed on.
+ *
+ * A guest holding a redeemed ticket is an attendee. Previously the only way in
+ * was a Clerk session, so the people most likely to be standing in the room —
+ * the ones who bought a ticket as a guest and never signed up — were the ones
+ * the feed refused.
  */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth();
     const { eventId } = await params;
 
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { id: true, vibezEnabled: true, startsAt: true, organizerId: true },
-    });
-
-    if (!event) {
-      return NextResponse.json({ message: "Event not found" }, { status: 404 });
-    }
-    if (!event.vibezEnabled) {
-      return NextResponse.json(NOT_ENABLED, { status: 403 });
-    }
-    if (new Date(event.startsAt) > new Date()) {
-      return NextResponse.json(NOT_STARTED, { status: 403 });
+    const state = await feedState(eventId);
+    if (!state.ok) {
+      return NextResponse.json({ message: state.message }, { status: state.status });
     }
 
-    const access = userId
-      ? await vibezAccess(eventId, userId, await callerEmail())
-      : ("none" as const);
+    const { viewer, access } = await resolveAccess(eventId);
 
     if (access === "none" || access === "banned") {
       return NextResponse.json(
@@ -68,7 +70,10 @@ export async function GET(
       take: 100,
     });
 
-    return NextResponse.json({ posts, canModerate: canModerate(access) });
+    return NextResponse.json({
+      posts,
+      ...viewerPayload(access, viewer.subject, viewer.isGuest),
+    });
   } catch (error) {
     console.error("VIBEZ GET error:", error);
     return NextResponse.json({ message: "Failed to load feed" }, { status: 500 });
@@ -77,44 +82,25 @@ export async function GET(
 
 /**
  * POST /api/events/[eventId]/vibez
- * Create a vibez post. Attendees only, only after the event starts, and only
- * while the organizer has the feed on. Rate- and volume-capped so one person
- * (or one bot) cannot flood the event's storage.
+ * Create a vibez post. Attendees only — a signed-in attendee or a guest holding
+ * a redeemed ticket — only after the event starts, and only while the organizer
+ * has the feed on. Rate- and volume-capped so one person (or one bot) cannot
+ * flood the event's storage.
  */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth();
     const { eventId } = await params;
 
-    if (!userId) {
-      return NextResponse.json(
-        { message: "Sign in to post to the feed" },
-        { status: 401 }
-      );
+    const state = await feedState(eventId);
+    if (!state.ok) {
+      return NextResponse.json({ message: state.message }, { status: state.status });
     }
 
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { id: true, vibezEnabled: true, startsAt: true, organizerId: true },
-    });
+    const { viewer, access } = await resolveAccess(eventId);
 
-    if (!event) {
-      return NextResponse.json({ message: "Event not found" }, { status: 404 });
-    }
-    if (!event.vibezEnabled) {
-      return NextResponse.json(NOT_ENABLED, { status: 403 });
-    }
-    if (new Date(event.startsAt) > new Date()) {
-      return NextResponse.json(
-        { message: "You can only post once the event has started" },
-        { status: 403 }
-      );
-    }
-
-    const access = await vibezAccess(eventId, userId, await callerEmail());
     if (access === "banned") {
       return NextResponse.json(
         { message: "You can't post in this feed." },
@@ -122,13 +108,20 @@ export async function POST(
       );
     }
     if (!canPost(access)) {
+      // One message for both "sign in" and "you don't have a ticket", because
+      // telling a stranger precisely which of the two is wrong is a free oracle
+      // for finding out whether an email address is on the guestlist.
       return NextResponse.json(
-        { message: "Only attendees can post to the VIBEZ feed" },
+        {
+          message: viewer.subject
+            ? "Only attendees can post to the VIBEZ feed"
+            : "Show the QR code on your ticket to join this feed",
+        },
         { status: 403 }
       );
     }
 
-    const budget = await postBudget(eventId, userId);
+    const budget = await postBudget(eventId, viewer.userId ?? "", viewer.subject);
     if (!budget.allowed) {
       return NextResponse.json({ message: budget.reason }, { status: 429 });
     }
@@ -143,21 +136,43 @@ export async function POST(
       );
     }
 
-    // Who someone is comes from the database, never from the request body.
-    const dbUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { firstName: true, lastName: true, imageUrl: true },
-    });
-    const name =
-      [dbUser?.firstName, dbUser?.lastName].filter(Boolean).join(" ") || "Guest";
+    // A guest may say what to call themselves. Trimmed and capped, because this
+    // string is rendered on the feed and is not HTML-escaped by everyone who
+    // reads it later.
+    const caption =
+      typeof body.caption === "string" && body.caption.trim()
+        ? body.caption.trim().slice(0, 140)
+        : null;
+
+    // Who someone is comes from the session or the ticket, never the body.
+    // A guest's display name is the one thing they are allowed to choose, and
+    // only for this post.
+    let authorName: string;
+    let authorImageUrl: string | undefined;
+
+    if (viewer.userId) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: viewer.userId },
+        select: { firstName: true, lastName: true, imageUrl: true },
+      });
+      authorName = [dbUser?.firstName, dbUser?.lastName].filter(Boolean).join(" ");
+      authorImageUrl = dbUser?.imageUrl ?? undefined;
+    } else {
+      const claimed = typeof body.authorName === "string" ? body.authorName.trim() : "";
+      authorName = claimed.slice(0, 40);
+    }
+
+    if (!authorName) authorName = "Guest";
 
     const post = await prisma.vibezPost.create({
       data: {
         eventId,
-        userId,
-        authorName: name.slice(0, 200),
-        authorImageUrl: dbUser?.imageUrl ?? undefined,
+        userId: viewer.userId,
+        authorSubject: viewer.subject!,
+        authorName: authorName.slice(0, 200),
+        authorImageUrl,
         imageUrl,
+        caption,
       },
     });
 
@@ -171,18 +186,23 @@ export async function POST(
 /**
  * DELETE /api/events/[eventId]/vibez
  * Take a post down. An author can always remove their own; a moderator can
- * remove anyone's. The file is deleted from storage and the row kept, so a
- * removed post leaves the feed but stays countable and auditable.
+ * remove anyone's.
+ *
+ * The file is NOT deleted here. It used to be, and PATCH then let a moderator
+ * restore the row — which put a row pointing at a deleted file back in front of
+ * the room as a broken image. Removal now only hides the post; the file is
+ * deleted by the purge job once the removal is old enough that nobody is going
+ * to change their mind, and `filePurgedAt` records that it happened.
  */
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth();
     const { eventId } = await params;
 
-    if (!userId) {
+    const { viewer, access } = await resolveAccess(eventId);
+    if (!viewer.subject) {
       return NextResponse.json({ message: "Sign in first" }, { status: 401 });
     }
 
@@ -194,7 +214,14 @@ export async function DELETE(
 
     const post = await prisma.vibezPost.findUnique({
       where: { id: postId },
-      select: { id: true, eventId: true, userId: true, imageUrl: true, removedAt: true },
+      select: {
+        id: true,
+        eventId: true,
+        authorSubject: true,
+        userId: true,
+        imageUrl: true,
+        removedAt: true,
+      },
     });
 
     if (!post || post.eventId !== eventId) {
@@ -206,8 +233,9 @@ export async function DELETE(
       return NextResponse.json({ post: { id: post.id, removedAt: post.removedAt } });
     }
 
-    const access = await vibezAccess(eventId, userId, await callerEmail());
-    const isAuthor = post.userId === userId;
+    // Authorship is by subject, so a guest can take down their own photo without
+    // ever having had an account.
+    const isAuthor = post.authorSubject === viewer.subject || post.userId === viewer.subject;
 
     if (!isAuthor && !canModerate(access)) {
       return NextResponse.json({ message: "Not allowed" }, { status: 403 });
@@ -217,16 +245,11 @@ export async function DELETE(
       where: { id: post.id },
       data: {
         removedAt: new Date(),
-        removedBy: userId,
+        removedBy: viewer.userId,
         removedReason: isAuthor && !canModerate(access) ? "author" : "moderator",
       },
       select: { id: true, removedAt: true },
     });
-
-    // Best effort: the post is already out of the feed either way.
-    await deleteStoredFile(post.imageUrl).catch((e) =>
-      console.error("VIBEZ storage delete failed:", e)
-    );
 
     return NextResponse.json({ post: updated });
   } catch (error) {
@@ -237,19 +260,25 @@ export async function DELETE(
 
 /**
  * PATCH /api/events/[eventId]/vibez
- * Put a removed post back. Moderators only — an author who deleted their own
- * post does not get to un-delete it, because the file is gone from storage.
+ * Put a removed post back. Moderators only.
+ *
+ * If the file has already been purged the row cannot be shown as a working
+ * image, so this says so rather than silently restoring something that will
+ * render as a broken tile.
  */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth();
     const { eventId } = await params;
 
-    if (!userId) {
+    const { viewer, access } = await resolveAccess(eventId);
+    if (!viewer.subject) {
       return NextResponse.json({ message: "Sign in first" }, { status: 401 });
+    }
+    if (!canModerate(access)) {
+      return NextResponse.json({ message: "Not allowed" }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
@@ -258,20 +287,21 @@ export async function PATCH(
       return NextResponse.json({ message: "postId is required" }, { status: 400 });
     }
 
-    const access = await vibezAccess(eventId, userId, await callerEmail());
-    if (!canModerate(access)) {
-      return NextResponse.json({ message: "Not allowed" }, { status: 403 });
-    }
-
     const post = await prisma.vibezPost.findUnique({
       where: { id: postId },
-      select: { id: true, eventId: true, removedAt: true },
+      select: { id: true, eventId: true, removedAt: true, filePurgedAt: true },
     });
     if (!post || post.eventId !== eventId) {
       return NextResponse.json({ message: "Post not found" }, { status: 404 });
     }
     if (!post.removedAt) {
       return NextResponse.json({ message: "That post is already live" }, { status: 400 });
+    }
+    if (post.filePurgedAt) {
+      return NextResponse.json(
+        { message: "That photo is past the point where it can be restored" },
+        { status: 409 }
+      );
     }
 
     const restored = await prisma.vibezPost.update({

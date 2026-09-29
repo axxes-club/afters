@@ -9,10 +9,10 @@ const { mockEvent, mockStaff, mockTicket, mockRsvp, mockGuestlist, mockBan, mock
   vi.hoisted(() => ({
     mockEvent: { findUnique: vi.fn() },
     mockStaff: { findFirst: vi.fn() },
-    mockTicket: { findFirst: vi.fn() },
+    mockTicket: { findFirst: vi.fn(), findUnique: vi.fn() },
     mockRsvp: { findFirst: vi.fn() },
     mockGuestlist: { findFirst: vi.fn() },
-    mockBan: { findUnique: vi.fn(), upsert: vi.fn(), deleteMany: vi.fn(), findMany: vi.fn() },
+    mockBan: { findFirst: vi.fn(), findUnique: vi.fn(), upsert: vi.fn(), deleteMany: vi.fn(), findMany: vi.fn() },
     mockCount: vi.fn(),
   }))
 
@@ -36,6 +36,7 @@ import {
   uploadBudget,
   vibezAccess,
   VIBEZ_MAX_POSTS_PER_EVENT,
+  VIBEZ_MAX_POSTS_PER_EVENT_PER_HOUR,
   VIBEZ_POSTS_PER_HOUR,
 } from "@/lib/vibez"
 
@@ -48,8 +49,10 @@ function noAttendance() {
   mockEvent.findUnique.mockResolvedValue({ organizerId: "org-1" })
   mockStaff.findFirst.mockResolvedValue(null)
   mockTicket.findFirst.mockResolvedValue(null)
+  mockTicket.findUnique.mockResolvedValue(null)
   mockRsvp.findFirst.mockResolvedValue(null)
   mockGuestlist.findFirst.mockResolvedValue(null)
+  mockBan.findFirst.mockResolvedValue(null)
   mockBan.findUnique.mockResolvedValue(null)
 }
 
@@ -110,7 +113,7 @@ describe("vibez access", () => {
 
   it("keeps a banned attendee out of a feed they may otherwise attend", async () => {
     mockTicket.findFirst.mockResolvedValue({ id: "t1" })
-    mockBan.findUnique.mockResolvedValue({ id: "ban-1" })
+    mockBan.findFirst.mockResolvedValue({ id: "ban-1" })
     const access = await vibezAccess(EVENT, USER, null)
     expect(access).toBe("banned")
     // They can still *see* the event, but not post into the feed.
@@ -161,5 +164,99 @@ describe("vibez upload ceilings", () => {
   it("allows while under every ceiling", async () => {
     mockCount.mockResolvedValueOnce(1).mockResolvedValueOnce(3).mockResolvedValueOnce(10)
     expect(await postBudget(EVENT, USER)).toEqual({ allowed: true })
+  })
+})
+
+describe("vibez guest access", () => {
+  // The bug this pins: a guest who bought a ticket without an account was
+  // treated as signed out, so the feed refused the people most likely to be
+  // standing in the room. A redeemed ticket is now attendance.
+  beforeEach(() => {
+    vi.clearAllMocks()
+    noAttendance()
+  })
+
+  it("admits a guest holding a valid redeemed ticket", async () => {
+    mockTicket.findUnique.mockResolvedValue({
+      id: "tkt-1",
+      eventId: EVENT,
+      status: "VALID",
+    })
+    const access = await vibezAccess(EVENT, null, null, "tkt_tkt-1")
+    expect(access).toBe("attendee")
+    expect(canPost(access)).toBe(true)
+  })
+
+  it("revokes a guest whose ticket was cancelled or refunded after redeeming", async () => {
+    // The cookie still verifies — the signature is fine. The ticket is not, so
+    // the access check has to re-read it rather than trust the cookie.
+    for (const status of ["CANCELLED", "REFUNDED"]) {
+      mockTicket.findUnique.mockResolvedValue({ id: "tkt-1", eventId: EVENT, status })
+      expect(await vibezAccess(EVENT, null, null, "tkt_tkt-1")).toBe("none")
+    }
+  })
+
+  it("will not honour a guest ticket that belongs to another event", async () => {
+    mockTicket.findUnique.mockResolvedValue({
+      id: "tkt-1",
+      eventId: "some-other-event",
+      status: "VALID",
+    })
+    expect(await vibezAccess(EVENT, null, null, "tkt_tkt-1")).toBe("none")
+  })
+
+  it("keeps a banned guest out", async () => {
+    mockTicket.findUnique.mockResolvedValue({ id: "tkt-1", eventId: EVENT, status: "VALID" })
+    mockBan.findFirst.mockResolvedValue({ id: "ban-1" })
+    expect(await vibezAccess(EVENT, null, null, "tkt_tkt-1")).toBe("banned")
+  })
+
+  it("turns away a guest subject that points at no ticket at all", async () => {
+    mockTicket.findUnique.mockResolvedValue(null)
+    expect(await vibezAccess(EVENT, null, null, "tkt_made-up")).toBe("none")
+  })
+})
+
+describe("vibez hourly room ceiling", () => {
+  // Regression: the room's hourly post count was compared against the event's
+  // *lifetime* ceiling. A popular event therefore refused everyone for the rest
+  // of the night once it passed 500 posts in an hour, and never recovered.
+  beforeEach(() => {
+    // mockReset, not clearAllMocks: clearAllMocks does not drain the
+    // `mockResolvedValueOnce` queue, so an unused value from the previous test
+    // would become the next test's first answer and these would silently depend
+    // on the order they run in.
+    vi.resetAllMocks()
+    noAttendance()
+    mockCount.mockReset()
+    mockCount.mockResolvedValue(0)
+  })
+
+  it("throttles a busy room without closing the feed for the night", async () => {
+    mockCount
+      .mockResolvedValueOnce(0) // mine this hour
+      .mockResolvedValueOnce(VIBEZ_MAX_POSTS_PER_EVENT_PER_HOUR) // everyone this hour
+      .mockResolvedValueOnce(10) // live posts on the event, far from the cap
+    const result = await postBudget(EVENT, USER, USER)
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/busy/i)
+  })
+
+  it("keeps accepting while the room is busy but the event is nowhere near full", async () => {
+    mockCount
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(VIBEZ_MAX_POSTS_PER_EVENT_PER_HOUR - 1)
+      .mockResolvedValueOnce(10)
+    expect(await postBudget(EVENT, USER, USER)).toEqual({ allowed: true })
+  })
+
+  it("still refuses once the event has genuinely filled up", async () => {
+    mockCount
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(VIBEZ_MAX_POSTS_PER_EVENT)
+    const result = await postBudget(EVENT, USER, USER)
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toMatch(/full/i)
   })
 })

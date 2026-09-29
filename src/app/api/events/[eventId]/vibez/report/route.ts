@@ -1,7 +1,6 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { vibezAccess } from "@/lib/vibez";
+import { resolveAccess } from "@/lib/vibez-identity";
 
 /** The reasons a guest is offered. Anything else is filed as "other". */
 const REASONS = new Set(["spam", "abusive", "explicit", "private", "other"]);
@@ -11,16 +10,19 @@ const REASONS = new Set(["spam", "abusive", "explicit", "private", "other"]);
  * Flag a post. Anyone who can see the feed can flag, and one person can only
  * flag a given post once. A report does not remove anything on its own — it
  * puts the post in front of a moderator, who decides.
+ *
+ * Reports are keyed on the viewer's *subject*, so a guest can report too and
+ * cannot report the same photo twice under a different identity.
  */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth();
     const { eventId } = await params;
 
-    if (!userId) {
+    const { viewer, access } = await resolveAccess(eventId);
+    if (!viewer.subject) {
       return NextResponse.json({ message: "Sign in to report" }, { status: 401 });
     }
 
@@ -32,7 +34,7 @@ export async function POST(
 
     const post = await prisma.vibezPost.findUnique({
       where: { id: postId },
-      select: { id: true, eventId: true, removedAt: true, userId: true },
+      select: { id: true, eventId: true, removedAt: true, authorSubject: true },
     });
     if (!post || post.eventId !== eventId) {
       return NextResponse.json({ message: "Post not found" }, { status: 404 });
@@ -41,16 +43,13 @@ export async function POST(
       return NextResponse.json({ message: "That post was already removed" }, { status: 400 });
     }
     // You can report your own post to yourself; it just does nothing useful.
-    if (post.userId === userId) {
+    if (post.authorSubject === viewer.subject) {
       return NextResponse.json(
         { message: "That's your own post — you can remove it instead" },
         { status: 400 }
       );
     }
 
-    const user = await currentUser();
-    const email = user?.emailAddresses?.[0]?.emailAddress ?? null;
-    const access = await vibezAccess(eventId, userId, email);
     if (access === "none" || access === "banned") {
       return NextResponse.json(
         { message: "Only attendees can report" },
@@ -65,7 +64,7 @@ export async function POST(
     // The unique (postId, reporterId) index is the real guard: two taps at once
     // must not become two reports.
     const existing = await prisma.vibezReport.findUnique({
-      where: { postId_reporterId: { postId, reporterId: userId } },
+      where: { postId_reporterId: { postId, reporterId: viewer.subject } },
       select: { id: true },
     });
     if (existing) {
@@ -73,7 +72,7 @@ export async function POST(
     }
 
     const report = await prisma.vibezReport.create({
-      data: { postId, reporterId: userId, reason, note },
+      data: { postId, reporterId: viewer.subject, reason, note },
       select: { id: true, createdAt: true },
     });
 

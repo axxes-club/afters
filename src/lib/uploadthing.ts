@@ -1,9 +1,10 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next"
 import { z } from "zod"
 import { UploadThingError, UTApi } from "uploadthing/server"
-import { auth, currentUser } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 import { requireOrganizer } from "@/lib/auth-utils"
 import { canPost, uploadBudget, vibezAccess } from "@/lib/vibez"
+import { resolveViewer } from "@/lib/vibez-identity"
 import { verifyTicket } from "@/lib/vibez-ticket"
 
 const f = createUploadthing()
@@ -68,36 +69,45 @@ export const ourFileRouter = {
   // ticket is short-lived, single-event, and useless to anyone else.
   vibezPost: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .input(z.object({ eventId: z.string().min(1), ticket: z.string().min(1) }))
-    .middleware(async ({ req }) => {
-      const { userId } = await auth()
-      if (!userId) throw new UploadThingError("Unauthorized")
-
-      // The declared input arrives in the multipart body alongside the file.
-      const form = await req.formData().catch(() => null)
-      const eventId = form?.get("eventId")
-      const ticket = form?.get("ticket")
-      if (typeof eventId !== "string" || typeof ticket !== "string") {
+    .middleware(async ({ input }) => {
+      // The validated `input` is used, not `req.formData()`. Reading the
+      // multipart body here consumed the stream before UploadThing could hand
+      // the file to storage, and it also meant the values were unvalidated
+      // whatever shape they arrived in.
+      const { eventId, ticket } = input ?? ({} as { eventId?: string; ticket?: string })
+      if (!eventId || !ticket) {
         throw new UploadThingError("Missing upload ticket")
       }
-      if (!verifyTicket(ticket, userId, eventId)) {
+
+      // A guest holding a redeemed ticket is an attendee, so this no longer
+      // requires a Clerk session. resolveViewer is the same resolver the feed
+      // API uses, which is the point: one definition of "who is asking".
+      const viewer = await resolveViewer(eventId)
+      if (!viewer.subject) {
+        throw new UploadThingError("Unauthorized")
+      }
+
+      if (!verifyTicket(ticket, viewer.subject, eventId)) {
         throw new UploadThingError("Upload ticket is invalid or expired")
       }
 
-      const user = await currentUser()
-      const email = user?.emailAddresses?.[0]?.emailAddress ?? null
-
       // Re-checked here, not just at ticket time: a ban may have landed in
       // between, and this middleware is the last gate before the bytes land.
-      const access = await vibezAccess(eventId, userId, email)
+      const access = await vibezAccess(
+        eventId,
+        viewer.userId,
+        viewer.email,
+        viewer.isGuest ? viewer.subject : null
+      )
       if (access === "banned") throw new UploadThingError("Banned from this feed")
       if (!canPost(access)) {
         throw new UploadThingError("Only attendees can post to the VIBEZ feed")
       }
 
-      const budget = await uploadBudget(eventId, userId)
+      const budget = await uploadBudget(eventId, viewer.userId ?? "", viewer.subject)
       if (!budget.allowed) throw new UploadThingError(budget.reason ?? "Too many uploads")
 
-      return { userId, eventId }
+      return { subject: viewer.subject, eventId }
     })
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl

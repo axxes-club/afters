@@ -1,66 +1,59 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { canPost, uploadBudget, vibezAccess } from "@/lib/vibez";
+import { canPost, feedState, resolveAccess, uploadBudget } from "@/lib/vibez-identity";
 import { mintTicket } from "@/lib/vibez-ticket";
 
 /**
  * POST /api/events/[eventId]/vibez/upload-ticket
  * "May I upload here, right now?" Answered before any bytes move, so a
  * non-attendee never spends our bandwidth finding out they cannot post.
+ *
+ * The ticket is bound to a *subject*, not to a Clerk id, so a guest holding a
+ * redeemed ticket gets one too. The upload middleware re-checks that subject.
  */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth();
     const { eventId } = await params;
 
-    if (!userId) {
-      return NextResponse.json({ message: "Sign in to post" }, { status: 401 });
+    const state = await feedState(eventId);
+    if (!state.ok) {
+      return NextResponse.json({ message: state.message }, { status: state.status });
     }
 
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { id: true, vibezEnabled: true, startsAt: true },
-    });
-    if (!event) {
-      return NextResponse.json({ message: "Event not found" }, { status: 404 });
-    }
-    if (!event.vibezEnabled) {
-      return NextResponse.json(
-        { message: "VIBEZ is not enabled for this event" },
-        { status: 403 }
-      );
-    }
-    if (new Date(event.startsAt) > new Date()) {
-      return NextResponse.json(
-        { message: "You can only post once the event has started" },
-        { status: 403 }
-      );
-    }
-
-    const user = await currentUser();
-    const email = user?.emailAddresses?.[0]?.emailAddress ?? null;
-    const access = await vibezAccess(eventId, userId, email);
+    const { viewer, access } = await resolveAccess(eventId);
 
     if (access === "banned") {
       return NextResponse.json({ message: "You can't post in this feed." }, { status: 403 });
     }
-    if (!canPost(access)) {
+    if (!canPost(access) || !viewer.subject) {
       return NextResponse.json(
-        { message: "Only attendees can post to the VIBEZ feed" },
+        {
+          message: viewer.subject
+            ? "Only attendees can post to the VIBEZ feed"
+            : "Show the QR code on your ticket to join this feed",
+        },
         { status: 403 }
       );
     }
 
-    const budget = await uploadBudget(eventId, userId);
+    const budget = await uploadBudget(eventId, viewer.userId ?? "", viewer.subject);
     if (!budget.allowed) {
       return NextResponse.json({ message: budget.reason }, { status: 429 });
     }
 
-    return NextResponse.json({ ticket: mintTicket(userId, eventId), eventId });
+    // A missing VIBEZ_UPLOAD_SECRET mints nothing rather than minting something
+    // signed with a guessable constant. See src/lib/vibez-ticket.ts.
+    const ticket = mintTicket(viewer.subject, eventId);
+    if (!ticket) {
+      return NextResponse.json(
+        { message: "Uploads are not configured for this event" },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json({ ticket, eventId });
   } catch (error) {
     console.error("VIBEZ upload-ticket error:", error);
     return NextResponse.json({ message: "Could not start an upload" }, { status: 500 });

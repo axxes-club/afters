@@ -25,7 +25,19 @@ export function fileKeyFromUrl(url: string): string | null {
   }
 }
 
-export async function deleteStoredFile(url: string): Promise<boolean> {
+/**
+ * Delete a VIBEZ photo from storage, and say whether it actually went.
+ *
+ * Deliberately NOT called when a post is removed. It used to be, and the restore
+ * endpoint then put the row back with its file already gone — a broken image in
+ * the middle of the feed, which is worse than the thing the moderator was trying
+ * to undo. Removal hides the row; this runs later, from the purge job, once the
+ * removal is old enough to be treated as final.
+ *
+ * Returns false for a URL whose key cannot be parsed. A wrong guess at a file key
+ * would delete somebody else's photo, so an unrecognised URL is left alone.
+ */
+export async function purgeStoredFile(url: string): Promise<boolean> {
   const key = fileKeyFromUrl(url)
   if (!key) return false
   await utapi.deleteFiles(key)

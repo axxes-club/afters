@@ -586,18 +586,34 @@ model GuestlistEntry {
   @@index([phone])
 }
 
-// VIBEZ (BETA): attendee social feed posts during the event
+// VIBEZ: attendee social feed during the event.
+//
+// Most people at a night never made an account, so the feed must not require
+// one. `userId` is the account link and is often null; `authorSubject` is the
+// identity that is actually checked, and it is either a Clerk id or a guest
+// subject derived from a redeemed ticket. Everything that asks "is this mine?"
+// asks about authorSubject, never about userId.
 model VibezPost {
   id          String   @id @default(cuid())
   eventId     String
-  userId      String?  // Optional: null for guest checkout attendees who don't have account
-  authorName  String   // Display name (from user profile or guest name)
+  userId      String?  // Account link, when the author happens to have one
+  /// Clerk user id, or a guest subject (see src/lib/vibez-guest.ts). The one
+  /// identity used for authorship, self-removal and bans.
+  authorSubject String
+  authorName  String   // Display name (from user profile or the guest's own name)
   authorImageUrl String? // Avatar URL
   imageUrl    String   // The posted image
-  /// A moderator removed this. The row stays so the storage URL can be purged.
+  /// One line of text with the photo. Optional.
+  caption     String?
+  /// A moderator removed this. The row stays so the removal is auditable and
+  /// reversible; the file is purged later, once nobody is likely to want it back.
   removedAt   DateTime?
   removedBy   String?  // Clerk user id of whoever removed it
   removedReason String?
+  /// Set when the image has actually been deleted from storage. A post whose
+  /// file is gone can still be restored as a row, but not as a working image,
+  /// so the UI has to know the difference.
+  filePurgedAt DateTime?
   /// Open reports against this post, surfaced to moderators for triage.
   reportCount Int      @default(0)
   createdAt   DateTime @default(now())
@@ -608,13 +624,15 @@ model VibezPost {
   @@index([eventId])
   @@index([eventId, createdAt])
   @@index([eventId, removedAt])
+  @@index([authorSubject])
 }
 
 /// Someone flagged a post. One row per person per post.
 model VibezReport {
   id         String   @id @default(cuid())
   postId     String
-  reporterId String   // Clerk user id
+  /// Clerk id or guest subject, matching VibezPost.authorSubject.
+  reporterId String
   reason     String   @default("other")
   note       String?
   createdAt  DateTime @default(now())
@@ -629,7 +647,10 @@ model VibezReport {
 model VibezBan {
   id        String   @id @default(cuid())
   eventId   String
-  userId    String   // Clerk user id
+  userId    String   // Clerk user id of the banned person
+  /// The same identity VibezPost.authorSubject uses, so a guest can be barred
+  /// as well as an account holder.
+  subject   String
   bannedBy  String   // Clerk user id of the moderator
   reason    String?
   createdAt DateTime @default(now())
@@ -637,6 +658,7 @@ model VibezBan {
 
   @@unique([eventId, userId])
   @@index([eventId])
+  @@index([subject])
 }
 
 // RSVP entries for RSVP-only events
