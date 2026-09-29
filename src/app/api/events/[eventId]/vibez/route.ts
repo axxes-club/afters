@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import type { VibezAccess } from "@/lib/vibez"
+import { canView } from "@/lib/vibez"
+import { isVibezFilterId } from "@/lib/vibez-filters"
+import { publicSettings } from "@/lib/vibez-settings"
 import {
+  budgetLimits,
   canModerate,
   canPost,
   feedState,
@@ -54,24 +58,43 @@ export async function GET(
       return NextResponse.json({ message: state.message }, { status: state.status });
     }
 
-    const { viewer, access } = await resolveAccess(eventId);
+    const { viewer, access, settings } = await resolveAccess(eventId);
 
-    if (access === "none" || access === "banned") {
+    if (!canView(access)) {
       return NextResponse.json(
         { message: "Only attendees can view the VIBEZ feed" },
         { status: 403 }
       );
     }
 
-    // Moderators also see what they have pulled, so they can put it back.
+    const moderator = canModerate(access);
+
+    // Moderators also see what they have pulled, and what is waiting for review,
+    // so they can put a photo back or approve it. Everyone else sees only posts
+    // that are both approved and not removed — an 'approve' feed would otherwise
+    // show a guest's photo to the room the instant it was taken.
     const posts = await prisma.vibezPost.findMany({
-      where: { eventId, ...(canModerate(access) ? {} : VISIBLE_ONLY) },
+      where: {
+        eventId,
+        ...(moderator
+          ? {}
+          : { ...VISIBLE_ONLY, moderationStatus: "approved" }),
+      },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
 
+    // reactionSubjects is the list of identities that stopped one person
+    // inflating a count. It is an array of subjects, so it is stripped before the
+    // payload leaves the server — the client gets the number and a yes/no.
+    const sanitised = posts.map(({ reactionSubjects, ...post }) => ({
+      ...post,
+      iReacted: viewer.subject ? reactionSubjects.includes(viewer.subject) : false,
+    }));
+
     return NextResponse.json({
-      posts,
+      posts: sanitised,
+      settings: publicSettings(settings),
       ...viewerPayload(access, viewer.subject, viewer.isGuest),
     });
   } catch (error) {
@@ -99,7 +122,7 @@ export async function POST(
       return NextResponse.json({ message: state.message }, { status: state.status });
     }
 
-    const { viewer, access } = await resolveAccess(eventId);
+    const { viewer, access, settings } = await resolveAccess(eventId);
 
     if (access === "banned") {
       return NextResponse.json(
@@ -121,7 +144,12 @@ export async function POST(
       );
     }
 
-    const budget = await postBudget(eventId, viewer.userId ?? "", viewer.subject);
+    const budget = await postBudget(
+      eventId,
+      viewer.userId ?? "",
+      viewer.subject,
+      budgetLimits(settings)
+    );
     if (!budget.allowed) {
       return NextResponse.json({ message: budget.reason }, { status: 429 });
     }
@@ -164,6 +192,15 @@ export async function POST(
 
     if (!authorName) authorName = "Guest";
 
+    // Which filter produced these bytes. Only recorded when the organizer
+    // actually allows a choice — otherwise the client sending one is ignored and
+    // the post is filed under the event's own look, which is what actually
+    // happened to the pixels.
+    const filterId =
+      settings.allowFilterChoice && isVibezFilterId(body.filterId)
+        ? body.filterId
+        : settings.defaultFilterId;
+
     const post = await prisma.vibezPost.create({
       data: {
         eventId,
@@ -172,7 +209,16 @@ export async function POST(
         authorName: authorName.slice(0, 200),
         authorImageUrl,
         imageUrl,
-        caption,
+        caption: settings.allowCaptions ? caption : null,
+        filterId,
+        // The client claims whether it drew a watermark. It is only ever true when
+        // the organizer has one switched on, so trusting the flag cannot be used
+        // to claim a branded photo on an unbranded feed.
+        watermarkApplied: settings.watermarkEnabled && body.watermarkApplied === true,
+        // Which door the photo came through, for the scan stats.
+        spotId: viewer.spotId,
+        // 'approve' mode parks it out of the live feed until a moderator looks.
+        moderationStatus: settings.moderationMode === "approve" ? "pending" : "approved",
       },
     });
 

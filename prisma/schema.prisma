@@ -444,6 +444,8 @@ model Event {
   changeLogs           EventChangeLog[]
   vibezPosts           VibezPost[]
   vibezBans            VibezBan[]
+  vibezSettings        VibezSettings?
+  vibezSpots           VibezSpot[]
 
   @@unique([organizerId, slug])
   @@index([city, startsAt])
@@ -616,15 +618,40 @@ model VibezPost {
   filePurgedAt DateTime?
   /// Open reports against this post, surfaced to moderators for triage.
   reportCount Int      @default(0)
+  /// 🔥 taps, denormalised so the feed never counts rows to draw a number.
+  /// `reactionSubjects` is what actually stops one person inflating it, so it is
+  /// kept with the count rather than inferred from it.
+  reactions    Int      @default(0)
+  reactionSubjects String[] @default([])
+  /// How many times this photo has been saved to a guest's phone.
+  downloads    Int      @default(0)
+  /// The filter actually applied to the bytes, not the one that was requested.
+  /// A guest who picked a filter the organizer has since switched off still has
+  /// their photo recorded under the filter that produced it.
+  filterId     String?  // 'none' | 'nightflash' | 'noir' | ...
+  /// True when a watermark was burned into the image at capture time. Recorded
+  /// so a feed that changes its mind about watermarking can tell which photos
+  /// already carry one and which would need re-rendering.
+  watermarkApplied Boolean @default(false)
+  /// Which QR spot this guest scanned to get in ("Bar", "Dance floor"). Lets an
+  /// organizer see which corner of the room a feed is actually coming from.
+  spotId       String?
+  /// Held back from the live feed pending an organizer's approval. See
+  /// VibezSettings.moderationMode.
+  moderationStatus String  @default("approved") // 'approved' | 'pending'
   createdAt   DateTime @default(now())
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   reports     VibezReport[]
+  /// SetNull in the database: a photo outlives the sticker that let it in.
+  spot        VibezSpot? @relation(fields: [spotId], references: [id], onDelete: SetNull)
 
   @@index([eventId])
   @@index([eventId, createdAt])
   @@index([eventId, removedAt])
   @@index([authorSubject])
+  @@index([eventId, moderationStatus])
+  @@index([spotId])
 }
 
 /// Someone flagged a post. One row per person per post.
@@ -659,6 +686,116 @@ model VibezBan {
   @@unique([eventId, userId])
   @@index([eventId])
   @@index([subject])
+}
+
+/// Every knob an organizer can turn for their event's VIBEZ feed.
+///
+/// One row per event, created on demand. Keeping this separate from Event rather
+/// than adding thirty columns to it is what lets the feed ship settings the Event
+/// table has no opinion about (which filter, where the watermark sits) without a
+/// migration every time a product decision changes.
+///
+/// Every field here has a default that matches the behaviour that shipped
+/// originally, so an event that has never opened this screen behaves exactly as
+/// it did before — the settings are opt-in by virtue of the row not existing.
+model VibezSettings {
+  id      String @id @default(cuid())
+  eventId String @unique
+
+  // ── Access ────────────────────────────────────────────────────────────────
+  /// ticket: only someone holding a ticket/RSVP/guestlist entry for this event.
+  /// qr: only someone who scanned a code printed at the venue.
+  /// ticket_or_qr: either (the default — nobody is locked out of a photo booth).
+  /// link: anyone with the link, no proof of attendance at all.
+  accessMode         String  @default("ticket_or_qr") // ticket | qr | ticket_or_qr | link
+  /// Additional geofence on top of whatever accessMode already required. Off by
+  /// default because it costs a location permission prompt that most rooms will
+  /// lose people to.
+  requireGeofence    Boolean @default(false)
+  geoRadiusM         Int     @default(300)
+
+  // ── Camera ────────────────────────────────────────────────────────────────
+  /// The grade applied to every shot unless the guest picks another.
+  defaultFilterId    String  @default("nightflash")
+  /// Let guests switch filters. Off means every photo from this room is one look,
+  /// which is what a brand usually wants and what a photobooth is for.
+  allowFilterChoice  Boolean @default(true)
+  /// The night-flash date stamp in the corner. The signature of the look.
+  dateStamp          Boolean @default(true)
+  /// Offer a selfie mirror in the camera.
+  allowMirror        Boolean @default(true)
+
+  // ── Watermark ─────────────────────────────────────────────────────────────
+  /// An SVG or PNG laid over the photo before it is uploaded. This is the whole
+  /// point of owning both products: the feed is a shop window for the event.
+  watermarkEnabled   Boolean @default(false)
+  /// 'image' uses watermarkUrl (SVG preferred — it stays sharp at any size and
+  /// costs nothing to store). 'text' uses watermarkText, which needs no upload
+  /// at all and is the right answer for an event name.
+  watermarkType      String  @default("image") // image | text
+  watermarkUrl       String?
+  watermarkText      String?
+  /// One of the nine anchor points, plus 'tile' for a repeating pattern.
+  watermarkPosition  String  @default("bottom-right") // top-left … bottom-right | tile
+  /// Fraction of the photo's width the watermark occupies.
+  watermarkScale     Float   @default(0.22)
+  watermarkOpacity   Float   @default(0.85)
+
+  // ── Moderation ────────────────────────────────────────────────────────────
+  /// approve: every photo waits for a moderator. Useful for a ticketed VIP room,
+  /// hostile at a 200-person rave.
+  moderationMode     String  @default("auto") // auto | approve
+  /// Turn off the 🔥 and reporting UI entirely.
+  allowReactions     Boolean @default(true)
+  allowDownloads     Boolean @default(true)
+  allowCaptions      Boolean @default(true)
+
+  // ── Limits ────────────────────────────────────────────────────────────────
+  maxPerGuestPerHour Int     @default(10)
+  maxPhotosTotal     Int     @default(500)
+  /// The room-wide hourly throttle. A busy night slows down; it does not close.
+  maxPerHour         Int     @default(120)
+
+  // ── TV wall ───────────────────────────────────────────────────────────────
+  /// Put the feed on a screen in the room. The QR code people scan is this one.
+  wallEnabled        Boolean @default(false)
+  /// 'grid' is the mosaic of everything; 'single' is one photo at a time big.
+  wallLayout         String  @default("grid") // grid | single
+  /// How long one photo holds the screen in 'single' mode.
+  wallSlideMs        Int     @default(6000)
+  /// Show the join QR on the wall itself.
+  wallShowQr         Boolean @default(true)
+
+  /// True once the organizer has deliberately closed the feed by hand, as
+  /// opposed to it simply never having been opened. Lets the UI say "the
+  /// organizer closed this" instead of "the event hasn't started".
+  closedManually     Boolean @default(false)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  event              Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+/// A QR code printed somewhere in the room — "Bar", "Dance floor", "Booth".
+///
+/// This is the physical half of the access story: a link a guest could forward
+/// stops being a link when the thing they forward is a sticker on a wall.
+model VibezSpot {
+  id        String   @id @default(cuid())
+  eventId   String
+  /// What the organizer calls this spot. Shows up on the wall screen and in the
+  /// scan stats, so "the bar code got 40 scans" is answerable.
+  label     String
+  /// The unguessable part of the URL. Never shown in the UI, only in the QR.
+  token     String   @unique
+  scans     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  event     Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  posts     VibezPost[]
+
+  @@index([eventId])
 }
 
 // RSVP entries for RSVP-only events

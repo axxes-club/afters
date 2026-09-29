@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server"
 import { requireOrganizer } from "@/lib/auth-utils"
 import { canPost, uploadBudget, vibezAccess } from "@/lib/vibez"
 import { resolveViewer } from "@/lib/vibez-identity"
+import { getVibezSettings, type VibezAccessMode } from "@/lib/vibez-settings"
 import { verifyTicket } from "@/lib/vibez-ticket"
 
 const f = createUploadthing()
@@ -93,21 +94,31 @@ export const ourFileRouter = {
 
       // Re-checked here, not just at ticket time: a ban may have landed in
       // between, and this middleware is the last gate before the bytes land.
+      //
+      // The settings are read here as well as in the route, because this is the
+      // last gate before bytes land. Deciding access differently here from the
+      // route that minted the ticket is how an organizer's "tickets only" gets
+      // quietly ignored for uploads.
+      const settings = await getVibezSettings(eventId)
       const access = await vibezAccess(
         eventId,
         viewer.userId,
         viewer.email,
-        viewer.isGuest ? viewer.subject : null
+        viewer.isGuest ? viewer.subject : null,
+        viewer.spotIds,
+        settings.accessMode as VibezAccessMode
       )
       if (access === "banned") throw new UploadThingError("Banned from this feed")
       if (!canPost(access)) {
         throw new UploadThingError("Only attendees can post to the VIBEZ feed")
       }
 
-      const budget = await uploadBudget(eventId, viewer.userId ?? "", viewer.subject)
+      const budget = await uploadBudget(eventId, viewer.userId ?? "", viewer.subject, {
+        perGuestPerHour: settings.maxPerGuestPerHour,
+      })
       if (!budget.allowed) throw new UploadThingError(budget.reason ?? "Too many uploads")
 
-      return { subject: viewer.subject, eventId }
+      return { subject: viewer.subject, eventId, spotId: viewer.spotId }
     })
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl
