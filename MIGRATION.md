@@ -1,0 +1,57 @@
+# Why the database migration runs during the Vercel build
+
+`vercel.json` sets:
+
+```json
+"buildCommand": "prisma generate && prisma migrate deploy && next build --webpack"
+```
+
+That looks alarming and is deliberate. This is the reasoning, so the next person
+does not "fix" it.
+
+## The problem it solves
+
+The production `DATABASE_URL` exists in exactly two places: this Vercel project's
+environment, and the GitHub Actions secrets. Neither can hand it to a developer
+machine.
+
+- `vercel env pull` writes the literal string `[SENSITIVE]` in place of every
+  secret value. Confirmed, not assumed.
+- GitHub never returns secret *values* to any caller, at any permission level.
+
+So a migration **cannot be run from a laptop at all**. That is why an earlier
+note in this repository said the Vibez migration was "verified statically, never
+executed" — there was no way to execute it.
+
+The Vercel build is the one environment where the credential is both real and
+available, so the migration runs there.
+
+## Why this is safe to leave in a build command
+
+**It fails the build, not the deploy.** `prisma migrate deploy` applies each
+migration in its own transaction and exits non-zero on any error. The `&&` stops
+the chain, so a failed migration produces a red build and *no deployment*. The
+failure direction is the safe one: the database and the code stay consistent
+because the new code never ships.
+
+**It is idempotent.** Every statement in both Vibez migrations is guarded —
+`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, and a `DO` block that
+checks the table exists before altering it. Both migrations were rehearsed against
+a real Postgres, twice in a row, in both the empty-database shape and the
+`db push` shape production is actually in. Re-running is a no-op.
+
+**It removes an ordering hazard rather than creating one.** The Prisma client
+selects `VibezPost.authorSubject` on every feed query. If the code deployed
+before the migration, every feed request would fail on a missing column.
+Migrating inside the build makes the correct order automatic — it is no longer
+something a human has to remember.
+
+## When to move it back
+
+If a future migration is genuinely unsafe to run on every build — one that
+should be applied once, by hand, at a chosen moment — move it out of
+`buildCommand` and use the manual `Migrate` workflow in
+`.github/workflows/migrate.yml`, which still exists for exactly that case. It
+applies the migrations and then asserts the four columns the feed selects are
+present, so a missing column surfaces at migration time instead of as a runtime
+error on somebody's feed.
