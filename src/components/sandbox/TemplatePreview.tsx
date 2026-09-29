@@ -14,6 +14,12 @@ import EditorialTemplate from "@/components/public/templates/EditorialTemplate"
 const THEMES = ['brutalist', 'neon', 'minimal', 'tilt', 'lush', 'nice', 'card', 'vapor', 'editorial']
 const TYPOGRAPHIES = ['font-mono', 'font-headline', 'font-serif', 'font-sans']
 
+// Computed once at module scope, not during render. `Date.now()` in the render
+// body re-evaluated on every re-render, so the "7 days from now" date in the
+// preview drifted each time the controls were touched, and the server and
+// client could disagree on it.
+const PREVIEW_STARTS_AT = new Date(Date.now() + 86400000 * 7)
+
 export default function TemplatePreview() {
   const [theme, setTheme] = useState('neon')
   const [accentColor, setAccentColor] = useState('#ff1493')
@@ -26,7 +32,7 @@ export default function TemplatePreview() {
     id: 'test-event-123',
     title: 'Midnight Warehouse Experience',
     description: 'Join us for an unforgettable night featuring incredible music and atmosphere in an undisclosed warehouse location. Expect heavy bass, immersive visuals, and a community of true music lovers.',
-    startsAt: new Date(Date.now() + 86400000 * 7), // 7 days from now
+    startsAt: PREVIEW_STARTS_AT, // 7 days from now
     venueName: 'The Industrial Complex',
     venueAddress: '123 Underground Ave',
     city: 'Brooklyn',

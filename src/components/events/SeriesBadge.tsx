@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Repeat, ChevronRight } from "lucide-react"
 
-interface SeriesOccurrence {
+export interface SeriesOccurrence {
   id: string
   title: string
   slug: string

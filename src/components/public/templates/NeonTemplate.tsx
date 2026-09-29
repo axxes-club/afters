@@ -38,7 +38,7 @@ export default function NeonTemplate(props: EventTemplateProps) {
   // Get ticket tiers
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   return (
     <div className="min-h-screen relative overflow-hidden animate-in fade-in duration-1000" style={{ backgroundColor, color: textColor }}>
@@ -124,7 +124,7 @@ export default function NeonTemplate(props: EventTemplateProps) {
             <SeriesBadge
               seriesTitle={event.series.title}
               currentOccurrence={event.seriesOccurrence}
-              upcomingOccurrences={seriesOccurrences as any}
+              upcomingOccurrences={seriesOccurrences}
               accentColor={accentColor}
               variant="inline"
             />
@@ -248,7 +248,7 @@ export default function NeonTemplate(props: EventTemplateProps) {
             Tickets
           </h2>
           <div className="space-y-4">
-            {availableTiers.map((tier: any) => {
+            {availableTiers.map((tier) => {
               const available = tier.quantity - tier.quantitySold
               const soldOut = available <= 0
 

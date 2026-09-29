@@ -32,7 +32,7 @@ export default function VaporTemplate(props: EventTemplateProps) {
   // Get ticket tiers
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   return (
     <div className="min-h-screen overflow-hidden selection:bg-[#ff00ff]/30 selection:text-white" style={{ backgroundColor, color: textColor }}>
@@ -307,7 +307,7 @@ export default function VaporTemplate(props: EventTemplateProps) {
                     </div>
 
                     <div className="space-y-6">
-                      {availableTiers.map((tier: any) => {
+                      {availableTiers.map((tier) => {
                         const available = tier.quantity - tier.quantitySold
                         const soldOut = available <= 0
 

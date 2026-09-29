@@ -36,7 +36,7 @@ export default function MinimalTemplate(props: EventTemplateProps) {
   // Get ticket tiers
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   return (
     <div className="min-h-screen font-sans tracking-wide selection:bg-white/20" style={{ backgroundColor, color: textColor }}>
@@ -168,7 +168,7 @@ export default function MinimalTemplate(props: EventTemplateProps) {
                   <h2 className="text-xs text-white/30 uppercase tracking-[0.2em] mb-10 font-light">Tickets</h2>
 
                   <div className="space-y-6 mb-12">
-                    {availableTiers.map((tier: any) => {
+                    {availableTiers.map((tier) => {
                       const available = tier.quantity - tier.quantitySold
                       const soldOut = available <= 0
 

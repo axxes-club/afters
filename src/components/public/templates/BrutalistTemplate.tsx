@@ -1,4 +1,5 @@
 import React from "react"
+import type { CSSProperties } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Lock, ExternalLink } from "lucide-react"
@@ -120,7 +121,7 @@ export default function BrutalistTemplate(props: EventTemplateProps) {
                 <SeriesBadge
                   seriesTitle={event.series.title}
                   currentOccurrence={event.seriesOccurrence}
-                  upcomingOccurrences={seriesOccurrences as any}
+                  upcomingOccurrences={seriesOccurrences}
                   accentColor={accentColor}
                   variant="block"
                 />
@@ -203,11 +204,16 @@ export default function BrutalistTemplate(props: EventTemplateProps) {
               <Link
                 href={ctaUrl}
                 className="group block w-full p-8 text-center text-3xl font-black tracking-widest uppercase border-8 transition-all hover:-translate-y-1"
-                style={{
-                  borderColor: accentColor,
-                  color: accentColor,
-                  ['--accent' as any]: accentColor,
-                }}
+                style={
+                  {
+                    borderColor: accentColor,
+                    color: accentColor,
+                    // Custom property for the <style> block below. CSSProperties
+                    // is the typed way to set one; the old `as any` on the key
+                    // silenced the check on the whole object.
+                    "--accent": accentColor,
+                  } as CSSProperties
+                }
               >
                 <span className="transition-colors group-hover:text-black">
                   {ctaText} <span className="inline-block transition-transform group-hover:translate-x-2">→</span>

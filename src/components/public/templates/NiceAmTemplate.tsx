@@ -33,7 +33,7 @@ export default function NiceAmTemplate(props: EventTemplateProps) {
   // Get ticket tiers
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   // Dice.fm inspired layout
   return (
@@ -263,7 +263,7 @@ export default function NiceAmTemplate(props: EventTemplateProps) {
                   ) : (
                     <>
                       <div className="mb-8 space-y-4">
-                        {availableTiers.map((tier: any) => (
+                        {availableTiers.map((tier) => (
                           <div key={tier.id} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
                             <div className="flex items-start justify-between mb-2">
                               <div className="font-bold text-lg">{tier.name}</div>
