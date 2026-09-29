@@ -34,10 +34,10 @@ export default function CardTemplate(props: EventTemplateProps) {
 
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   const totalAvailable = availableTiers.reduce(
-    (sum: number, tier: any) => sum + (tier.quantity - tier.quantitySold),
+    (sum, tier) => sum + (tier.quantity - tier.quantitySold),
     0
   )
 
@@ -329,7 +329,7 @@ export default function CardTemplate(props: EventTemplateProps) {
             >
               <h3 className="text-sm font-bold tracking-[0.3em] text-white/40 uppercase mb-10">Ticket Options</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {availableTiers.map((tier: any) => {
+                {availableTiers.map((tier) => {
                   const available = tier.quantity - tier.quantitySold
                   const soldOut = available <= 0
 

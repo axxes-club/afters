@@ -33,7 +33,7 @@ export default function TiltTemplate(props: EventTemplateProps) {
   // Get ticket tiers
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   return (
     <div className="min-h-screen overflow-hidden" style={{ backgroundColor, color: textColor }}>
@@ -183,7 +183,7 @@ export default function TiltTemplate(props: EventTemplateProps) {
               TICKETS
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {availableTiers.map((tier: any, i) => {
+              {availableTiers.map((tier, i) => {
                 const available = tier.quantity - tier.quantitySold
                 const soldOut = available <= 0
 

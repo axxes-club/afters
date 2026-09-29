@@ -36,7 +36,7 @@ export default function EditorialTemplate(props: EventTemplateProps) {
   // Get ticket tiers
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   return (
     <div className="min-h-screen selection:bg-white/20 font-serif" style={{ backgroundColor, color: textColor }}>
@@ -247,7 +247,7 @@ export default function EditorialTemplate(props: EventTemplateProps) {
 
                   {/* Tiers */}
                   <div className="p-8 space-y-6">
-                    {availableTiers.map((tier: any) => {
+                    {availableTiers.map((tier) => {
                       const available = tier.quantity - tier.quantitySold
                       const soldOut = available <= 0
 
