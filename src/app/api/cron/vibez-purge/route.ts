@@ -26,7 +26,15 @@ export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  // Fail closed. The original guard was `if (cronSecret && ...)`, so an unset
+  // CRON_SECRET left the endpoint fully open to anyone on the internet, and this
+  // route deletes files. An unauthenticated purge is worse than no purge at all.
+  if (!cronSecret) {
+    console.error("VIBEZ purge: CRON_SECRET is not set; refusing to run.")
+    return NextResponse.json({ error: "Not configured" }, { status: 503 })
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
