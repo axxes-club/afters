@@ -1,0 +1,90 @@
+name: Migrate
+
+# Apply the Prisma migration history to the real database.
+#
+# Why this is a manual workflow and not part of the build: the production
+# DATABASE_URL is a secret that exists in exactly two places (GitHub Actions and
+# Vercel) and cannot be read from a developer machine — `vercel env pull`
+# deliberately writes "[SENSITIVE]" — so a migration cannot be run from a laptop
+# at all. This is the supported way to run one.
+#
+# Why it is needed rather than optional: VibezPost, and the columns the current
+# code selects from it, were created by `prisma db push` and never entered the
+# migration history. A fresh, staging or restored database is therefore missing
+# them, and every feed query fails against a missing column.
+#
+# Running it against an already-correct database is a no-op: every statement is
+# guarded and both backfills are idempotent.
+#
+# Run it BEFORE deploying code that depends on the new columns. The ordering is
+# not a formality — the Prisma client selects `authorSubject` on every VibezPost
+# query, so new code against an un-migrated database is broken.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type the target environment to confirm (production or preview)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Show which migrations are pending
+        run: npx prisma migrate status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Verify the columns the Vibez feed selects
+        # The failure this guards is silent from the outside: a missing column
+        # only shows up as a runtime error on a feed request, which is exactly
+        # the kind of thing nobody checks before shipping.
+        run: |
+          npx prisma db execute --stdin <<'SQL'
+          DO $$
+          DECLARE missing text;
+          BEGIN
+            SELECT string_agg(c, ', ') INTO missing FROM unnest(ARRAY[
+              'VibezPost.authorSubject',
+              'VibezPost.caption',
+              'VibezPost.filePurgedAt',
+              'VibezBan.subject'
+            ]) AS c
+            WHERE NOT EXISTS (
+              SELECT 1 FROM information_schema.columns col
+              WHERE col.table_schema = 'public'
+                AND col.table_name || '.' || col.column_name = c
+            );
+            IF missing IS NOT NULL THEN
+              RAISE EXCEPTION 'Vibez schema incomplete, missing: %', missing;
+            END IF;
+          END $$;
+          SQL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
