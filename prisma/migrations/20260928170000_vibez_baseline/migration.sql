@@ -84,17 +84,37 @@ UPDATE "VibezPost"
  WHERE "authorSubject" IS NULL
    AND "userId" IS NOT NULL;
 
-ALTER TABLE "VibezBan" ADD COLUMN IF NOT EXISTS "subject" TEXT;
-
-UPDATE "VibezBan"
-   SET "subject" = "userId"
- WHERE "subject" IS NULL;
-
 CREATE INDEX IF NOT EXISTS "VibezPost_authorSubject_idx" ON "VibezPost"("authorSubject");
-CREATE INDEX IF NOT EXISTS "VibezBan_subject_idx" ON "VibezBan"("subject");
 
--- Drives the purge cron: rows that were removed long enough ago and whose file
--- still has not been deleted.
-CREATE INDEX IF NOT EXISTS "VibezPost_filePurgedAt_idx"
-    ON "VibezPost"("removedAt")
- WHERE "removedAt" IS NOT NULL AND "filePurgedAt" IS NULL;
+-- VibezBan is NOT created by this migration: 20260928180000_vibez_moderation
+-- creates it, and it runs after this one. `ADD COLUMN IF NOT EXISTS` is guarded
+-- against the column already existing, but it is still an ALTER on a table that
+-- does not exist yet, so on a fresh database this failed with
+-- `relation "VibezBan" does not exist`.
+--
+-- The check below is for the shape production is actually in — the table was
+-- created by `db push` before the migration history existed — and simply does
+-- nothing when the table is absent, leaving the column and the index to that
+-- later migration.
+DO $$
+BEGIN
+    IF to_regclass('"VibezBan"') IS NOT NULL THEN
+        ALTER TABLE "VibezBan" ADD COLUMN IF NOT EXISTS "subject" TEXT;
+        UPDATE "VibezBan" SET "subject" = "userId" WHERE "subject" IS NULL;
+        CREATE INDEX IF NOT EXISTS "VibezBan_subject_idx" ON "VibezBan"("subject");
+    END IF;
+END $$;
+
+
+-- The purge cron's index deliberately does NOT live here.
+--
+-- It is on `removedAt`, which is created by 20260928180000_vibez_moderation, and
+-- this migration runs first. Creating it here therefore fails on a fresh
+-- database with `column "removedAt" does not exist` and takes the whole deploy
+-- with it — which is exactly what the rehearsal against a real Postgres found.
+-- Static inspection had missed it: the column exists in the schema, it just
+-- belongs to a migration that has not run yet at this point.
+--
+-- It is created at the end of 20260928180000_vibez_moderation instead, where
+-- the column it depends on actually exists.
+
