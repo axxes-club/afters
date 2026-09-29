@@ -19,6 +19,16 @@ name: Migrate
 # Run it BEFORE deploying code that depends on the new columns. The ordering is
 # not a formality — the Prisma client selects `authorSubject` on every VibezPost
 # query, so new code against an un-migrated database is broken.
+#
+# DATABASE_URL must be set as an Actions secret, on the repository and on the
+# `production` environment. It was not set at all until 2026-09-29, which is why
+# the first two runs of this workflow failed with "Connection url is empty"
+# while the database silently stayed un-migrated. A secret that does not exist
+# resolves to an empty string rather than erroring, so the failure looked like a
+# Prisma problem instead of a missing-secret one. `vercel env pull` cannot fix
+# this: it writes "[SENSITIVE]" in place of secret values. Vercel does expose
+# DATABASE_URL_UNPOOLED, which points at the same database, and that is what was
+# used to seed the secret.
 
 on:
   workflow_dispatch:
@@ -38,6 +48,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # The `confirm` input is required above but was never actually checked,
+      # so it asked a person to type the environment name and then ignored the
+      # answer. A migration against the wrong database is not something you can
+      # undo from here, so the typed value now has to match or the job stops
+      # before it can touch anything.
+      - name: Check the confirmation
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          if [ "$CONFIRM" != "production" ]; then
+            echo "::error::Refusing to run. Type 'production' exactly to migrate the production database, got '$CONFIRM'."
+            exit 1
+          fi
+          echo "Confirmed: migrating production."
 
       - uses: pnpm/action-setup@v4
         with:
