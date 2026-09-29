@@ -21,6 +21,7 @@ import VaporTemplate from "@/components/public/templates/VaporTemplate"
 import EditorialTemplate from "@/components/public/templates/EditorialTemplate"
 import type { Metadata } from "next"
 import type { CSSProperties } from "react"
+import type { EventData, FaqItem } from "@/components/public/templates/types"
 
 // Helper to check for slug redirects
 async function checkSlugRedirect(slug: string): Promise<string | null> {
@@ -513,7 +514,16 @@ export default async function EventPage({
 
 
     const templateProps = {
-      event,
+      // The three Json columns are narrowed here, once, at the boundary. Prisma
+      // types them `JsonValue`, which no template can use directly; asserting
+      // here keeps the casts in a single place instead of spreading `any`
+      // through every template that reads a lineup artist or a FAQ.
+      event: {
+        ...event,
+        lineup,
+        faqs: (event.faqs as FaqItem[] | null) ?? [],
+        ticketTiers: availableTiers,
+      } as EventData,
       accentColor,
       backgroundColor,
       typographyClass,

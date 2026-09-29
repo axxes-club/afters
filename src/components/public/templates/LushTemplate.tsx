@@ -34,7 +34,7 @@ export default function LushTemplate(props: EventTemplateProps) {
   // Get ticket tiers
   const availableTiers = event.organizer?.stripeChargesEnabled
     ? event.ticketTiers
-    : event.ticketTiers.filter((tier: any) => tier.price === 0)
+    : event.ticketTiers.filter((tier) => tier.price === 0)
 
   return (
     <div className="min-h-screen font-serif" style={{ backgroundColor, color: textColor }}>
@@ -265,7 +265,7 @@ export default function LushTemplate(props: EventTemplateProps) {
             ) : (
               <>
                 <div className="space-y-4">
-                  {availableTiers.map((tier: any) => (
+                  {availableTiers.map((tier) => (
                     <div
                       key={tier.id}
                       className="p-6 rounded-2xl backdrop-blur-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300 group"

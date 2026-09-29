@@ -10,6 +10,26 @@ export interface LineupArtist {
   showShowtime?: boolean;
 }
 
+// Ticket tier as stored by Prisma. Only the fields the templates read are
+// declared, but they are the real column names, so `tier.price` is checked
+// rather than trusted.
+export interface TicketTier {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  quantity: number;
+  quantitySold: number;
+}
+
+// FAQ entry. `Event.faqs` is a Prisma Json column holding
+// [{question, answer}], so it arrives untyped and is asserted to this at the
+// boundary rather than being `any` all the way through the render.
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 // Live design overrides
 export interface LiveDesign {
   accentColor?: string;
@@ -36,7 +56,7 @@ export interface EventData {
   state: string | null;
   isAddressHidden: boolean;
   ageRestriction: number | null;
-  lineup: any;
+  lineup: LineupArtist[];
   isPublished: boolean;
   accentColor: string | null;
   backgroundColor: string | null;
@@ -52,7 +72,7 @@ export interface EventData {
   rsvpCount: number;
   about: string | null;
   refundPolicy: string | null;
-  faqs: any;
+  faqs: FaqItem[];
   previousStartsAt: Date | null;
   previousEndsAt: Date | null;
   rescheduledAt: Date | null;
@@ -70,7 +90,7 @@ export interface EventData {
     id: string;
     title: string;
   } | null;
-  ticketTiers: any[];
+  ticketTiers: TicketTier[];
 }
 
 export interface SeriesOccurrence {
