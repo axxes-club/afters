@@ -44,7 +44,7 @@ const TABLES = ["Event", "Ticket", "Order", "User", "TicketTier"];
 const TYPES = ["EventStatus", "TicketStatus", "UserRole"];
 
 /**
- * Run a Prisma command and return its stdout, never throwing on a non-zero exit.
+ * Run a Prisma command.
  *
  * `prisma migrate status` exits 1 whenever migrations are pending — which is
  * precisely the state this script exists to fix — so its output has to be
@@ -53,14 +53,15 @@ const TYPES = ["EventStatus", "TicketStatus", "UserRole"];
  */
 function prisma(args, { allowFailure = false } = {}) {
   try {
-    return execFileSync("npx", ["prisma", ...args], {
+    return { ok: true, out: execFileSync("npx", ["prisma", ...args], {
       cwd: ROOT,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
-    });
+    }) };
   } catch (err) {
+    const out = `${err.stdout ?? ""}${err.stderr ?? ""}`;
     if (!allowFailure) throw err;
-    return `${err.stdout ?? ""}${err.stderr ?? ""}`;
+    return { ok: false, out };
   }
 }
 
@@ -100,9 +101,9 @@ function main() {
   }
 
   // Already baselined? Then every historical migration is recorded as applied and
-  // there is nothing to do. Cheaper to ask than to re-verify. `allowFailure`
-  // because `migrate status` exits non-zero precisely when this has work to do.
-  const status = prisma(["migrate", "status"], { allowFailure: true });
+  // there is nothing to do. `allowFailure` because `migrate status` exits
+  // non-zero precisely when this has work to do.
+  const { out: status } = prisma(["migrate", "status"], { allowFailure: true });
   if (HISTORICAL.every((m) => new RegExp(`${m}.*applied`).test(status))) {
     console.log("[baseline] History already recorded; nothing to do.");
     return;
@@ -137,8 +138,29 @@ function main() {
       console.warn(`[baseline] Skipping ${name}: no such migration.`);
       continue;
     }
-    prisma(["migrate", "resolve", "--applied", name]);
-    console.log(`[baseline] Recorded ${name}.`);
+    // P3008 means this migration is *already* recorded as applied. That is
+    // success, not failure: it is what the second and later builds see, once a
+    // previous build has already done the baselining. Treating it as an error
+    // made the build fail on a database that was in exactly the right state.
+    //
+    // Judged on the exit code rather than on the text, because matching /error/
+    // in the output also matched Prisma's own "0 migrations found" style
+    // messages and would have thrown on a successful run.
+    const { ok, out } = prisma(["migrate", "resolve", "--applied", name], {
+      allowFailure: true,
+    });
+    if (ok) {
+      console.log(`[baseline] Recorded ${name}.`);
+      continue;
+    }
+    if (out.includes("P3008")) {
+      console.log(`[baseline] ${name} was already recorded.`);
+      continue;
+    }
+    // Anything else is a real failure. Do not continue: a half-recorded history
+    // would leave `migrate deploy` applying migrations the table still lists as
+    // pending.
+    throw new Error(`Failed to record ${name}:\n${out}`);
   }
   console.log("[baseline] Done. The Vibez migrations will now apply normally.");
 }
