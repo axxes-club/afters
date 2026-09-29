@@ -65,6 +65,27 @@ a real Postgres, twice in a row, in both the empty-database shape and the
 selects `VibezPost.authorSubject` on every feed query. If the code deployed
 before the migration, every feed request would fail on a missing column.
 Migrating inside the build makes the correct order automatic — it is no longer
+## The purge cron
+
+`vercel.json` also schedules `/api/cron/vibez-purge` daily at 04:37.
+
+Daily rather than hourly, for two reasons and only one of them is a constraint.
+This project is on Vercel's Hobby plan, which allows only daily cron jobs — an
+hourly expression is rejected at deploy time with "Hobby accounts are limited to
+daily cron jobs". But hourly was also the wrong shape: the handler only purges
+posts removed more than `GRACE_HOURS` (24) ago, so an hourly run would find
+almost nothing to do on most passes. Once a day is the natural cadence for a
+24-hour grace period whichever plan you are on.
+
+The `37 4` offset is deliberate: it avoids the top of the hour, where every
+scheduled job on Vercel fires at once.
+
+Vercel Cron sends `Authorization: Bearer $CRON_SECRET` when the environment
+variable is named `CRON_SECRET`. The handler returns 503 if that variable is
+missing, because the original guard meant an unset secret left an endpoint that
+deletes files open to the whole internet.
+
+
 something a human has to remember.
 
 ## When to move it back
