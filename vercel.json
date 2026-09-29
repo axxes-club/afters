@@ -1,5 +1,5 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "prisma generate && prisma migrate deploy && next build --webpack"
+  "buildCommand": "prisma generate && node scripts/baseline-migrations.mjs && prisma migrate deploy && next build --webpack"
 }

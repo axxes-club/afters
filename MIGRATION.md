@@ -3,8 +3,29 @@
 `vercel.json` sets:
 
 ```json
-"buildCommand": "prisma generate && prisma migrate deploy && next build --webpack"
+"buildCommand": "prisma generate && node scripts/baseline-migrations.mjs && prisma migrate deploy && next build --webpack"
 ```
+
+Three steps, in this order, and the order is the point.
+
+## Step 0: `baseline-migrations.mjs`
+
+This app's schema was created with `prisma db push` and `db seed`, so
+`_prisma_migrations` was never populated. `migrate deploy` therefore tried to
+replay the entire history from January onto a database that already had all of
+it, and failed with `type "EventStatus" already exists`.
+
+That failure was correct — it failed the build and deployed nothing — but it
+meant no migration could ever be applied. This script records the five
+historical migrations as already applied, which is Prisma's supported "baseline
+an existing database" flow.
+
+It **verifies before recording**: the tables and enums the earliest migrations
+create must all be present, or the script raises and deploys nothing. Marking a
+migration applied on a database that never had it is the one genuinely dangerous
+thing here, so it cannot happen silently. The guard was tested in both directions
+— it refuses when an object is missing, and passes when all are present.
+
 
 That looks alarming and is deliberate. This is the reasoning, so the next person
 does not "fix" it.
