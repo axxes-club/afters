@@ -21,7 +21,11 @@ export default function VibezPage() {
 
   const eventStarted = new Date(event.startsAt) <= new Date();
   const feedAvailable = event.vibezEnabled && eventStarted;
-  const guestVibezUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/e/${event.slug}/vibez`;
+  // The short URL, not the canonical one. This is the string an organizer prints
+  // on the QR codes that go around the room, and "afters.am/vbz/friday" is
+  // something a guest can read off a sticker — the full /e/<slug>/vibez is not.
+  // It redirects to the canonical feed, so both work.
+  const guestVibezUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/vbz/${event.slug}`;
 
   async function toggleVibez(enabled: boolean) {
     setToggling(true);
