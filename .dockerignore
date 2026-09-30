@@ -1,57 +1,15 @@
-# Dependencies
 node_modules
-.pnpm-store
-
-# Build outputs
 .next
-out
-dist
-build
-
-# Test artifacts
-test-results
-playwright-report
-coverage
-
-# Environment files
-.env
-.env.*
-!.env.example
-!.env.test.example
-
-# Docker files (prevent recursive builds)
-docker-compose*.yml
-Dockerfile*
-
-# IDE and editor files
-.idea
-.vscode
-*.swp
-*.swo
-
-# Git
 .git
-.gitignore
-
-# Documentation
-docs
-*.md
-!README.md
-
-# Test data
-data/
-*.json.bak
-
-# Logs
+.vercel
+.netlify
+.mercelle
+.env
+.env.local
+.env.*.local
+.env.development
+.env.vercel*
+.db_url
+coverage
+e2e
 *.log
-npm-debug.log*
-pnpm-debug.log*
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Misc
-.mcp.json
-CLAUDE.md
-HISTORY.md
