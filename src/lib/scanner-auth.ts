@@ -1,5 +1,7 @@
 import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
+import { prisma } from "@/lib/prisma"
+import { hasPermission } from "@/lib/subscription"
 import { randomInt } from "crypto"
 
 export const SCANNER_SESSION_COOKIE = "afters-scanner-session"
@@ -51,7 +53,14 @@ export async function getScannerSession(): Promise<ScannerSession | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get(SCANNER_SESSION_COOKIE)?.value
   if (!token) return null
-  return verifyScannerToken(token)
+  const session = await verifyScannerToken(token)
+  if (!session) return null
+  if (session.scannerId.startsWith("organizer-")) {
+    const userId = session.scannerId.slice("organizer-".length)
+    const event = await prisma.event.findUnique({ where: { id: session.eventId }, select: { organizerId: true } })
+    if (!event || !await hasPermission(userId, event.organizerId, "tickets.scan")) return null
+  }
+  return session
 }
 
 export function getScannerCookieOptions() {

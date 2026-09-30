@@ -1,17 +1,18 @@
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
 
     if (!userId) {
       return NextResponse.json({ count: 0 })
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere(),
       select: { id: true },
     })
 

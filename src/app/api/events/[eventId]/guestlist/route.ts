@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils"
+import { organizerWhere } from "@/lib/organizer-context"
 import { prisma } from "@/lib/prisma"
 
 // GET - List all guestlist entries for an event
@@ -8,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -21,7 +22,7 @@ export async function GET(
     const event = await prisma.event.findFirst({
       where: {
         id: eventId,
-        organizer: { userId },
+        organizer: await organizerWhere("tickets.view"),
       },
     })
 
@@ -65,7 +66,7 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -82,7 +83,7 @@ export async function POST(
     const event = await prisma.event.findFirst({
       where: {
         id: eventId,
-        organizer: { userId },
+        organizer: await organizerWhere("owner"),
       },
     })
 
@@ -126,7 +127,7 @@ export async function DELETE(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -143,7 +144,7 @@ export async function DELETE(
     const event = await prisma.event.findFirst({
       where: {
         id: eventId,
-        organizer: { userId },
+        organizer: await organizerWhere("owner"),
       },
     })
 

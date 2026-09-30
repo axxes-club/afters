@@ -1,16 +1,17 @@
-import { auth } from "@clerk/nextjs/server";
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canUseStaff } from "@/lib/subscription";
 
 // GET - List staff members for the organizer
 export async function GET() {
-  const { userId } = await auth();
+  const userId = await getEffectiveUserId();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere("staff.manage"),
   });
 
   if (!profile) {
@@ -63,7 +64,7 @@ export async function GET() {
 
 // PATCH - Update a staff member's role
 export async function PATCH(req: NextRequest) {
-  const { userId } = await auth();
+  const userId = await getEffectiveUserId();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -71,7 +72,7 @@ export async function PATCH(req: NextRequest) {
   const { staffId, role, status } = body;
 
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere("staff.manage"),
   });
 
   if (!profile) {
@@ -117,7 +118,7 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE - Remove a staff member
 export async function DELETE(req: NextRequest) {
-  const { userId } = await auth();
+  const userId = await getEffectiveUserId();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -132,7 +133,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere("staff.manage"),
   });
 
   if (!profile) {

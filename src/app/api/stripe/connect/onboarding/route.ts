@@ -1,18 +1,19 @@
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
 export async function POST() {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
     let profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
       include: { user: { select: { email: true } } },
     })
 
@@ -48,7 +49,7 @@ export async function POST() {
       
       // Update profile with the new Stripe account ID
       profile = await prisma.organizerProfile.update({
-        where: { userId },
+        where: await organizerWhere("owner"),
         data: { stripeAccountId },
         include: { user: { select: { email: true } } },
       })

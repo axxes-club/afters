@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { getOrganizerContext, organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendEmail, generateEventRescheduledEmailHtml } from "@/lib/email"
@@ -48,14 +49,14 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     // Check if user is the organizer (can see unpublished events)
     let isOrganizer = false
     if (userId) {
       const profile = await prisma.organizerProfile.findUnique({
-        where: { userId },
+        where: await organizerWhere(),
       })
       if (profile) {
         const ownedEvent = await prisma.event.findFirst({
@@ -171,7 +172,7 @@ export async function PUT(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -179,7 +180,7 @@ export async function PUT(
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.edit"),
     })
 
     if (!profile) {
@@ -257,7 +258,7 @@ export async function PATCH(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -265,7 +266,7 @@ export async function PATCH(
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.edit"),
     })
 
     if (!profile) {
@@ -293,6 +294,9 @@ export async function PATCH(
     }
 
     const body = await req.json()
+    if ((body.isPublished !== undefined || body.status !== undefined) && !await getOrganizerContext("events.publish")) {
+      return NextResponse.json({ message: "Publication permission required" }, { status: 403 })
+    }
 
     // PATCH only updates provided fields - allowlist to prevent mass assignment
     const {
@@ -620,7 +624,7 @@ export async function DELETE(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -628,7 +632,7 @@ export async function DELETE(
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.delete"),
     })
 
     if (!profile) {

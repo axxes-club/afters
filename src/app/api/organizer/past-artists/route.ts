@@ -1,5 +1,6 @@
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/prisma"
 
 interface PastArtist {
@@ -14,13 +15,13 @@ interface PastArtist {
 // GET /api/organizer/past-artists - Get past artists for autocomplete
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.edit"),
       select: { pastArtists: true },
     })
 

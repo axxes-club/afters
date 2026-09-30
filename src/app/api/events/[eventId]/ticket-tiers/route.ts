@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
@@ -7,14 +8,14 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     // Check if user is the organizer (can see hidden tiers)
     let isOrganizer = false
     if (userId) {
       const profile = await prisma.organizerProfile.findUnique({
-        where: { userId },
+        where: await organizerWhere(),
       })
       if (profile) {
         const event = await prisma.event.findFirst({
@@ -66,7 +67,7 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -74,7 +75,7 @@ export async function POST(
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.edit"),
     })
 
     if (!profile) {
@@ -148,7 +149,7 @@ export async function PUT(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -156,7 +157,7 @@ export async function PUT(
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.edit"),
     })
 
     if (!profile) {
@@ -229,7 +230,7 @@ export async function DELETE(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
     const { searchParams } = new URL(req.url)
     const tierId = searchParams.get("tierId")
@@ -243,7 +244,7 @@ export async function DELETE(
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.edit"),
     })
 
     if (!profile) {

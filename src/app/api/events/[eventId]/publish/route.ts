@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
@@ -20,7 +21,7 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -28,7 +29,7 @@ export async function POST(
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("events.publish"),
       select: { id: true, pastArtists: true },
     })
 
@@ -108,7 +109,7 @@ export async function POST(
 
       // Save updated past artists
       await prisma.organizerProfile.update({
-        where: { userId },
+        where: { id: profile.id },
         data: { pastArtists: updatedPastArtists as unknown as Prisma.InputJsonValue },
       })
     }

@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateApiKey, API_SCOPES, type ApiScope } from "@/lib/api-keys"
@@ -18,7 +19,7 @@ const AFTIE_SCOPES = Object.keys(API_SCOPES) as ApiScope[]
 // GET /api/aftie/setup - Check if user has approved Aftie API access
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
@@ -26,7 +27,7 @@ export async function GET() {
 
     // Check if user has an organizer profile
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
     })
 
     if (!profile) {
@@ -72,7 +73,7 @@ export async function GET() {
 // POST /api/aftie/setup - Create Aftie API key (user consent)
 export async function POST() {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
@@ -80,7 +81,7 @@ export async function POST() {
 
     // Check if user has an organizer profile
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
     })
 
     if (!profile) {
@@ -151,7 +152,7 @@ export async function POST() {
 // DELETE /api/aftie/setup - Revoke Aftie API access
 export async function DELETE() {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })

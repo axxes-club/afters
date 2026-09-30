@@ -29,6 +29,7 @@ import {
   AftieKeyboardListener,
   AftieConsentDialog,
 } from "@/components/aftie";
+import { OrganizerSwitcher } from "@/components/layout/OrganizerSwitcher";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { useUIPreferences } from "@/components/providers";
 import { APP_VERSION_DISPLAY } from "@/lib/constants";
@@ -422,6 +423,8 @@ export default function DashboardLayout({
           {/* Spacer to push footer to bottom when in settings */}
           {isInSettings && <div className="flex-1" />}
 
+          <OrganizerSwitcher compact={sidebarCompact} />
+
           {/* Status Footer */}
           <div
             className={`${sidebarCompact ? "py-3" : "px-3 py-4"} border-t border-white/5`}
@@ -533,6 +536,7 @@ export default function DashboardLayout({
                 );
               },
             )}
+            <OrganizerSwitcher compact />
             {/* More menu for overflow items */}
             {(isInSettings ? mobileSettingsOverflow : mobileOverflowNav)
               .length > 0 && (

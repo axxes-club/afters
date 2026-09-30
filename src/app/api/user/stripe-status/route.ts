@@ -1,15 +1,16 @@
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { prisma } from "@/lib/prisma"
-import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
 export async function GET() {
-  const { userId } = await auth()
+  const userId = await getEffectiveUserId()
   if (!userId) {
     return NextResponse.json({ stripeChargesEnabled: false })
   }
 
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere("owner"),
     select: { stripeChargesEnabled: true }
   })
 

@@ -1,4 +1,6 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context"
+import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import type { Event, TicketTier, TicketStatus, RsvpStatus } from "@prisma/client"
@@ -20,7 +22,7 @@ import {
 import { formatCents } from "@/lib/stripe"
 
 export default async function EventsPage() {
-  const { userId } = await auth()
+  const userId = await getEffectiveUserId()
   if (!userId) redirect("/sign-in")
 
   const user = await currentUser()
@@ -28,7 +30,7 @@ export default async function EventsPage() {
 
   // Get organizer profile and their events
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere(),
     include: {
       events: {
         include: {
