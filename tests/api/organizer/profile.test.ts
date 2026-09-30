@@ -31,6 +31,10 @@ vi.mock("@clerk/nextjs/server", () => ({
   currentUser: mockCurrentUser,
 }));
 
+vi.mock("@/lib/organizer-context", () => ({
+  organizerWhere: async () => ({ userId: (await mockAuth()).userId }),
+}));
+
 import {
   POST,
   PUT,
@@ -582,7 +586,7 @@ describe("Organizer Profile API", () => {
       expect(response.status).toBe(200);
       expect(data.message).toContain("deleted successfully");
       expect(mockPrisma.organizerProfile.delete).toHaveBeenCalledWith({
-        where: { userId: "user-123" },
+        where: { id: "profile-123" },
       });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: "user-123" },
