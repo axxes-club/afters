@@ -17,7 +17,6 @@ import {
   ArrowLeft,
   Info,
   Palette,
-  Plus,
   MoreHorizontal,
 } from "lucide-react";
 // Clerk account management is now in Settings > Security
