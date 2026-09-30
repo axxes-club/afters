@@ -1,8 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUploadThing } from "@/lib/uploadthing-client";
-import { drawSource, nightFlash, toJpeg } from "@/lib/vibez-flash";
+import { drawSource, applyFilter, toJpeg, VIBEZ_FILTERS } from "@/lib/vibez-filters";
+import { applyWatermark } from "@/lib/vibez-watermark";
+
+/** What the camera needs to know about this event's look. Passed in from the
+ *  server rather than fetched here: by the time the camera is open the guest has
+ *  already passed the gate, and a second round trip would delay the shutter. */
+export type VibezCameraSettings = {
+  defaultFilterId: string;
+  allowFilterChoice: boolean;
+  dateStamp: boolean;
+  allowMirror: boolean;
+  watermarkEnabled: boolean;
+  watermarkType: "image" | "text";
+  watermarkUrl: string | null;
+  watermarkText: string | null;
+  watermarkPosition: string;
+  watermarkScale: number;
+  watermarkOpacity: number;
+  allowCaptions: boolean;
+};
 
 /**
  * The night-flash camera.
@@ -28,19 +47,52 @@ type Props = {
   eventId: string;
   onPosted: () => void;
   accentColor?: string | null;
+  /** This event's look settings. When omitted the camera falls back to the
+   *  house defaults, which is the pre-settings behaviour exactly. */
+  settings?: Partial<VibezCameraSettings>;
 };
 
 type Stage = "live" | "review" | "posting" | "posted";
 
 const NAME_KEY = "vz_name";
 
-export function VibezCamera({ eventId, onPosted, accentColor }: Props) {
+export function VibezCamera({ eventId, onPosted, accentColor, settings }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // The look, resolved once and memoised.
+  //
+  // Not just tidiness: `process` depends on it, and a fresh object literal on
+  // every render would make that callback change identity every render too. The
+  // callback is what the shutter runs, so without the memo the dependency churns
+  // on every keystroke in the caption field.
+  const look = useMemo<VibezCameraSettings>(
+    () => ({
+      // Defaults mirror VibezSettings' defaults rather than being invented here,
+      // so a camera mounted without settings looks identical to one mounted with
+      // a default settings row.
+      defaultFilterId: "nightflash",
+      allowFilterChoice: true,
+      dateStamp: true,
+      allowMirror: true,
+      watermarkEnabled: false,
+      watermarkType: "image",
+      watermarkUrl: null,
+      watermarkText: null,
+      watermarkPosition: "bottom-right",
+      watermarkScale: 0.22,
+      watermarkOpacity: 0.85,
+      allowCaptions: true,
+      ...settings,
+    }),
+    [settings]
+  );
+
   const [facing, setFacing] = useState<"environment" | "user">("environment");
-  const [flash, setFlash] = useState(true);
+  // `flash` used to mean "apply the night-flash grade". It is now the chosen
+  // filter id, and the shutter-white animation is driven by it not being "none".
+  const [filterId, setFilterId] = useState(look.defaultFilterId);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>("live");
   const [shot, setShot] = useState<{ url: string; blob: Blob } | null>(null);
@@ -102,21 +154,33 @@ export function VibezCamera({ eventId, onPosted, accentColor }: Props) {
     };
   }, [facing, stage, cameraUnsupported]);
 
+  // Compose: grade, then watermark, then encode. The order is deliberate — see
+  // the note on applyWatermark. The watermark is drawn here rather than on the
+  // server so the bytes that leave the phone already carry it.
   const process = useCallback(
     async (source: CanvasImageSource, w: number, h: number, mirror: boolean) => {
       const canvas = drawSource(source, w, h, mirror);
-      if (flash) nightFlash(canvas);
+      applyFilter(canvas, filterId, look.dateStamp);
+      await applyWatermark(canvas, {
+        enabled: look.watermarkEnabled,
+        type: look.watermarkType,
+        url: look.watermarkUrl,
+        text: look.watermarkText,
+        position: look.watermarkPosition as never,
+        scale: look.watermarkScale,
+        opacity: look.watermarkOpacity,
+      });
       const blob = await toJpeg(canvas);
       setShot({ url: URL.createObjectURL(blob), blob });
       setStage("review");
     },
-    [flash]
+    [filterId, look]
   );
 
   const snap = async () => {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
-    if (flash) {
+    if (filterId !== "none") {
       setFlashFx(true);
       setTimeout(() => setFlashFx(false), 260);
     }
@@ -152,6 +216,11 @@ export function VibezCamera({ eventId, onPosted, accentColor }: Props) {
             imageUrl: fileUrl,
             caption: caption.trim() || undefined,
             authorName: name.trim() || undefined,
+            // Recorded so the feed can show what a photo was shot with, and so an
+            // organizer can see which look their room is actually producing. The
+            // server re-checks it against the allowed filter list.
+            filterId,
+            watermarkApplied: look.watermarkEnabled,
           }),
         });
         const data = await postRes.json().catch(() => ({}));
@@ -252,17 +321,66 @@ export function VibezCamera({ eventId, onPosted, accentColor }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => setFlash(!flash)}
+          onClick={() => setFilterId((f) => (f === "nightflash" ? "none" : "nightflash"))}
           className="rounded-full px-3 py-1 text-xs font-mono"
           style={{
-            background: flash ? accent : "rgba(255,255,255,0.12)",
-            color: flash ? "#000" : "#fff",
+            background: filterId !== "none" ? accent : "rgba(255,255,255,0.12)",
+            color: filterId !== "none" ? "#000" : "#fff",
           }}
-          aria-pressed={flash}
+          aria-pressed={filterId !== "none"}
         >
-          FLASH {flash ? "ON" : "OFF"}
+          FLASH {filterId !== "none" ? "ON" : "OFF"}
         </button>
       </header>
+
+      {/* The filter rail.
+          Only rendered when the organizer has allowed a choice. With it off, the
+          event has one look and showing eight swatches would be a lie. */}
+      {look.allowFilterChoice && stage === "live" && (
+        <div
+          className="flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-hide"
+          role="radiogroup"
+          aria-label="Photo filter"
+        >
+          {VIBEZ_FILTERS.map((f) => {
+            const active = f.id === filterId;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                title={f.hint}
+                onClick={() => {
+                  setFilterId(f.id);
+                  navigator.vibrate?.(10);
+                }}
+                className={`flex flex-shrink-0 flex-col items-center gap-1 border px-2 py-1.5 transition-colors ${
+                  active ? "border-white/80" : "border-white/15"
+                }`}
+              >
+                <span
+                  className="block size-7 rounded-full border border-white/20"
+                  style={{ background: f.swatch[0] }}
+                  aria-hidden
+                >
+                  <span
+                    className="mx-auto mt-1.5 block size-1.5 rounded-full"
+                    style={{ background: f.swatch[1] }}
+                  />
+                </span>
+                <span
+                  className={`text-[9px] font-mono tracking-wide ${
+                    active ? "text-white" : "text-white/50"
+                  }`}
+                >
+                  {f.label.toUpperCase()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="relative flex-1 overflow-hidden bg-black">
         {stage === "live" ? (
@@ -346,14 +464,18 @@ export function VibezCamera({ eventId, onPosted, accentColor }: Props) {
                 className="w-1/3 rounded-full bg-white/10 px-4 py-2.5 text-sm outline-none placeholder:text-white/40"
                 aria-label="Your name"
               />
-              <input
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="Say something…"
-                maxLength={140}
-                className="flex-1 rounded-full bg-white/10 px-4 py-2.5 text-sm outline-none placeholder:text-white/40"
-                aria-label="Caption"
-              />
+              {/* Hidden rather than merely disabled when captions are off: an
+                  inert input still invites a tap that does nothing. */}
+              {look.allowCaptions && (
+                <input
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="Say something…"
+                  maxLength={140}
+                  className="flex-1 rounded-full bg-white/10 px-4 py-2.5 text-sm outline-none placeholder:text-white/40"
+                  aria-label="Caption"
+                />
+              )}
             </div>
             {error && (
               <p className="text-center text-sm text-[#ff8fb5]" role="alert">

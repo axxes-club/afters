@@ -1,4 +1,70 @@
 import { prisma } from "@/lib/prisma"
+import type { VibezAccessMode } from "@/lib/vibez-settings"
+
+/**
+ * Great-circle distance in metres.
+ *
+ * Ported from vibez.axxes.club/src/lib/vibez/geo.ts. Both apps geofence the
+ * same way, and two implementations of the haversine formula is how one product
+ * ends up letting people in at 250m and the other at 350m for the same venue.
+ */
+export function distanceM(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number }
+): number {
+  const R = 6_371_000
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
+
+/**
+ * How wrong a reported position might be.
+ *
+ * This is not paranoia about a malicious guest — a determined one would just
+ * spoof the value and there is nothing a browser API can do about that. It is
+ * about phones: urban GPS routinely errs by 30–50m, worse indoors and worse
+ * again in a basement, which is exactly where these events happen.
+ *
+ * So the check is "are they within the radius, plus a tolerance for the fact
+ * that we may be reading their position badly" rather than a strict radius that
+ * rejects people who are demonstrably in the room.
+ *
+ * The tolerance does not vary with latitude in any way that matters at this
+ * scale — a few tens of metres either side — so it is a constant rather than a
+ * parameter pretending to be a function of something.
+ */
+export function geofenceToleranceM(): number {
+  return 55
+}
+
+/**
+ * Is this position inside the fence?
+ *
+ * Returns a reason on failure so the guest gets an explanation they can act on
+ * ("you're too far away") rather than a bare refusal they will read as the app
+ * being broken.
+ */
+export function withinGeofence(
+  here: { lat: number; lng: number },
+  venue: { lat: number; lng: number; radiusM: number }
+): { ok: true } | { ok: false; reason: string; distanceM: number } {
+  const d = distanceM(here, venue)
+  const tolerance = geofenceToleranceM()
+  if (d <= venue.radiusM + tolerance) return { ok: true }
+  return {
+    ok: false,
+    distanceM: Math.round(d),
+    reason:
+      d > venue.radiusM + tolerance * 4
+        ? "That doesn't look like the venue — turn your location on and try again."
+        : "You're a little too far from the venue. Move closer and try again.",
+  }
+}
 
 /**
  * Who the feed answers to, and who may moderate it.
@@ -14,7 +80,20 @@ import { prisma } from "@/lib/prisma"
  * A ban is scoped to one event. It never follows someone to the next one.
  */
 
-export type VibezAccess = "none" | "attendee" | "staff" | "banned"
+export type VibezAccess = "none" | "public" | "attendee" | "staff" | "banned"
+
+/**
+ * Can see the feed but has no identity yet.
+ *
+ * This is the "scanned a QR sticker but has not entered a name" state. It can
+ * read, because the sticker was the credential, but it cannot post: authorship,
+ * self-removal and bans are all keyed on a subject, and an anonymous attendee
+ * can be neither moderated nor protected by removing their own photo.
+ */
+export function canView(access: VibezAccess): boolean {
+  return access !== "none" && access !== "banned"
+}
+
 
 /** Attendee capacity: how often one person may post, and how many posts the
  *  event may hold before new ones are refused. Both are the ceiling that keeps
@@ -46,7 +125,21 @@ export async function vibezAccess(
   userId: string | null,
   userEmail: string | null,
   /** Set when the person is a guest holding a redeemed ticket. */
-  guestSubjectId: string | null = null
+  guestSubjectId: string | null = null,
+  /**
+   * QR spot ids this browser has unlocked, from the signed spot cookie.
+   *
+   * Passed in rather than read from the cookie here, because this function is
+   * called from the UploadThing middleware as well as from route handlers, and
+   * both must reach the same answer. `resolveViewer` is the one place that
+   * reads cookies.
+   */
+  spotIds: string[] = [],
+  /**
+   * The event's access mode, read by the caller. Passed in for the same reason
+   * as spotIds: one decision, one caller-provided set of facts.
+   */
+  accessMode: VibezAccessMode = "ticket"
 ): Promise<VibezAccess> {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
@@ -64,6 +157,45 @@ export async function vibezAccess(
   }
 
   const subject = userId ?? guestSubjectId
+
+  // A ban is scoped to one event and keyed on the subject, so it catches a guest
+  // as readily as an account holder.
+  if (await isBanned(eventId, subject)) return "banned"
+
+  // 'link' is the open door: anyone who has the URL. Checked before the ticket
+  // lookups because it makes them irrelevant, and because a ban still has to
+  // apply — an event that opens its feed to the world can still bar someone from
+  // it, and the moderator UI would be lying otherwise.
+  if (accessMode === "link") {
+    return subject ? "attendee" : "public"
+  }
+
+  // A scanned sticker. The ids come from a signed cookie but are re-checked here
+  // against this event's spots, so a cookie that survived the deletion of a
+  // sticker — or one naming another event's spot — proves nothing.
+  //
+  // Under 'ticket' a scan is not enough on its own (anyone can photograph a
+  // sticker); under 'ticket_or_qr' it is exactly as good as a ticket.
+  if (spotIds.length > 0 && accessMode !== "ticket") {
+    const spot = await prisma.vibezSpot.findFirst({
+      where: { eventId, id: { in: spotIds } },
+      select: { id: true },
+    })
+    if (spot) {
+      // Still needs a subject: authorship, self-removal and bans are all keyed
+      // on one, and an anonymous attendee can neither be banned nor take their
+      // own photo down.
+      return subject ? "attendee" : "public"
+    }
+  }
+
+  // In 'qr' mode a ticket is deliberately not enough, for anybody. An organizer
+  // who walls the feed to the physical room is saying "not just anyone who
+  // bought a ticket in March" — they want the person who is standing here now,
+  // and a forwarded link cannot be that. This gate sits *above* every ticket
+  // branch, including the guest-token ones below, so the setting means the same
+  // thing whether or not the person happens to have an account.
+  if (accessMode === "qr") return "none"
 
   // A guest's ticket is redeemed to prove attendance, but the row is still the
   // truth: if it was cancelled or refunded since, the proof is void. Checked on
@@ -133,18 +265,23 @@ export async function vibezAccess(
   return "none"
 }
 
-async function bannedOr(
-  eventId: string,
-  subject: string | null
-): Promise<VibezAccess> {
+async function isBanned(eventId: string, subject: string | null): Promise<boolean> {
   // A ban is scoped to one event and keyed on the subject, so it catches a guest
-  // as readily as an account holder.
-  if (!subject) return "attendee"
+  // as readily as an account holder. The `userId` arm is for rows written before
+  // VibezBan.subject existed.
+  if (!subject) return false
   const ban = await prisma.vibezBan.findFirst({
     where: { eventId, OR: [{ subject }, { userId: subject }] },
     select: { id: true },
   })
-  return ban ? "banned" : "attendee"
+  return !!ban
+}
+
+async function bannedOr(
+  eventId: string,
+  subject: string | null
+): Promise<VibezAccess> {
+  return (await isBanned(eventId, subject)) ? "banned" : "attendee"
 }
 
 /** May this person remove posts, ban people, and read the triage queue? */
@@ -153,6 +290,10 @@ export function canModerate(access: VibezAccess): boolean {
 }
 
 export function canPost(access: VibezAccess): boolean {
+  // 'public' is deliberately excluded: someone who has only scanned a sticker
+  // has no subject, so there would be nothing to record as the author, nothing
+  // to ban, and nothing to let them delete later. The camera prompts for a name
+  // and issues a guest token before a post is ever created.
   return access === "attendee" || access === "staff"
 }
 
@@ -164,19 +305,26 @@ export function canPost(access: VibezAccess): boolean {
 export async function postBudget(
   eventId: string,
   userId: string,
-  subject?: string | null
+  subject?: string | null,
+  /** Per-event limits. Read by the caller so the three counts below can go out
+   *  in one round trip with everything else the request needs. */
+  limits?: { perGuestPerHour?: number; perHour?: number; total?: number }
 ): Promise<{ allowed: boolean; reason?: string }> {
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000)
   // Keyed on the subject, not the account id, so a guest is rate-limited by
   // exactly the same ceilings as a signed-in attendee.
   const who = { OR: [{ authorSubject: subject ?? undefined }, { userId }] }
 
+  const perGuest = limits?.perGuestPerHour ?? VIBEZ_POSTS_PER_HOUR
+  const perRoom = limits?.perHour ?? VIBEZ_MAX_POSTS_PER_EVENT_PER_HOUR
+  const totalCap = limits?.total ?? VIBEZ_MAX_POSTS_PER_EVENT
+
   const [mine, everyone] = await Promise.all([
     prisma.vibezPost.count({ where: { eventId, ...who, createdAt: { gte: hourAgo } } }),
     prisma.vibezPost.count({ where: { eventId, createdAt: { gte: hourAgo } } }),
   ])
 
-  if (mine >= VIBEZ_POSTS_PER_HOUR) {
+  if (mine >= perGuest) {
     return { allowed: false, reason: "You've posted a lot already — try again later." }
   }
 
@@ -185,12 +333,12 @@ export async function postBudget(
   // the event's lifetime ceiling, which meant a popular event hit the wall at
   // 500 posts *in an hour* and then refused everyone for the rest of the night
   // while the lifetime count sat at 500 and never cleared.
-  if (everyone >= VIBEZ_MAX_POSTS_PER_EVENT_PER_HOUR) {
+  if (everyone >= perRoom) {
     return { allowed: false, reason: "This feed is busy right now. Try again shortly." }
   }
 
   const total = await prisma.vibezPost.count({ where: { eventId, removedAt: null } })
-  if (total >= VIBEZ_MAX_POSTS_PER_EVENT) {
+  if (total >= totalCap) {
     return { allowed: false, reason: "This feed is full. Ask an organizer about it." }
   }
 
@@ -201,7 +349,8 @@ export async function postBudget(
 export async function uploadBudget(
   eventId: string,
   userId: string,
-  subject?: string | null
+  subject?: string | null,
+  limits?: { perGuestPerHour?: number }
 ): Promise<{ allowed: boolean; reason?: string }> {
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000)
   const mine = await prisma.vibezPost.count({
@@ -211,7 +360,7 @@ export async function uploadBudget(
       createdAt: { gte: hourAgo },
     },
   })
-  if (mine >= VIBEZ_POSTS_PER_HOUR) {
+  if (mine >= (limits?.perGuestPerHour ?? VIBEZ_POSTS_PER_HOUR)) {
     return { allowed: false, reason: "You've posted a lot already — try again later." }
   }
   return { allowed: true }

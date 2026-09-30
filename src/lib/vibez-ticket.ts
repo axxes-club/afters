@@ -1,4 +1,4 @@
-import { createHmac, randomUUID } from "node:crypto"
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto"
 
 /**
  * Tickets are signed with the app's own secret, so the upload middleware can
@@ -64,3 +64,68 @@ export function verifyTicket(
     return false;
   }
 }
+
+/**
+ * Spot cookies: the QR spots this browser has unlocked, for one event.
+ *
+ * A different shape from the upload ticket and the guest token, so it gets its
+ * own mint/verify rather than being bent into one of them: it carries a *list*
+ * of ids and is scoped to a single event, which neither of the others is.
+ *
+ * Signing proves we issued the list. It does not prove the spots still exist —
+ * `vibezAccess` re-checks every id against the database, so deleting a sticker
+ * actually revokes it.
+ */
+const SPOT_TTL_MS = 14 * 24 * 60 * 60 * 1000 // a fortnight covers a whole festival run
+
+export type SpotTicket = {
+  eventId: string
+  spots: string[]
+}
+
+/** Mint "issuedAt.eventId.nonce.ids.signature". */
+export function mintSpotToken(eventId: string, spots: string[]): string | null {
+  const key = secret()
+  if (!key) return null
+  const issuedAt = Date.now()
+  const nonce = randomUUID()
+  // Sorted and de-duplicated so the same set always mints the same body: two
+  // taps on the same sticker produce an identical cookie instead of churning a
+  // new Set-Cookie header on every scan.
+  const ids = [...new Set(spots)].sort()
+  const body = `${issuedAt}.${eventId}.${nonce}.${ids.join(",")}`
+  const mac = createHmac("sha256", key).update(body).digest("base64url")
+  return Buffer.from(`${body}.${mac}`).toString("base64url")
+}
+
+/** Verify and return the spot list, or null when this is not ours / is stale. */
+export function verifySpotToken(
+  token: string | null | undefined,
+  eventId: string
+): SpotTicket | null {
+  const key = secret()
+  if (!key || !token) return null
+  try {
+    const raw = Buffer.from(token, "base64url").toString("utf8")
+    const parts = raw.split(".")
+    if (parts.length !== 5) return null
+    const [issuedAt, ticketEvent, nonce, ids, mac] = parts
+
+    const expected = createHmac("sha256", key)
+      .update(`${issuedAt}.${ticketEvent}.${nonce}.${ids}`)
+      .digest("base64url")
+
+    // Constant-time: this is a credential.
+    const a = Buffer.from(mac)
+    const b = Buffer.from(expected)
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null
+
+    if (ticketEvent !== eventId) return null
+    if (Date.now() - Number(issuedAt) > SPOT_TTL_MS) return null
+
+    return { eventId, spots: ids ? ids.split(",").filter(Boolean) : [] }
+  } catch {
+    return null
+  }
+}
+
