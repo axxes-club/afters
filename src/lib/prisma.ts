@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -33,7 +34,15 @@ function createPrismaClient(): PrismaClient {
     throw new Error('DATABASE_URL is not set')
   }
   
-  const adapter = new PrismaNeon({ connectionString })
+  const usesNeon = new URL(connectionString).hostname.endsWith('.neon.tech')
+  const adapter = usesNeon
+    ? new PrismaNeon({ connectionString, max: 2 })
+    : new PrismaPg({
+        connectionString,
+        max: 2,
+        connectionTimeoutMillis: 10_000,
+        idleTimeoutMillis: 30_000,
+      })
   return new PrismaClient({ adapter })
 }
 
