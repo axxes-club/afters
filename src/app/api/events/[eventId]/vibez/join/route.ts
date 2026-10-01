@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { mintGuestToken, VIBEZ_GUEST_COOKIE } from "@/lib/vibez-guest"
+import { mintGuestToken, newSpotGuestRef, verifyGuestToken, VIBEZ_GUEST_COOKIE } from "@/lib/vibez-guest"
 import { mintSpotToken, verifySpotToken } from "@/lib/vibez-ticket"
 import { VIBEZ_SPOT_COOKIE, spotCookieOptions } from "@/lib/vibez-spots"
 import {
@@ -123,6 +123,21 @@ export async function POST(
 
         if (token) {
           res.cookies.set(VIBEZ_SPOT_COOKIE, token, spotCookieOptions(14 * 24 * 60 * 60))
+          // A sticker proves the person is in the room, but posting is keyed on a
+          // subject. Give an anonymous scanner one, unless they already hold a
+          // guest token (a ticket or guestlist proof outranks an anonymous one).
+          if (!verifyGuestToken(req.cookies.get(VIBEZ_GUEST_COOKIE)?.value, eventId)) {
+            const guest = mintGuestToken(newSpotGuestRef(), eventId)
+            if (guest) {
+              res.cookies.set(VIBEZ_GUEST_COOKIE, guest, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: process.env.NODE_ENV === "production",
+                path: "/",
+                maxAge: 12 * 60 * 60,
+              })
+            }
+          }
           await prisma.vibezSpot
             .update({ where: { id: spot.id }, data: { scans: { increment: 1 } } })
             .catch(() => {

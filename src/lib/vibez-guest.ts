@@ -33,9 +33,27 @@ function secret(): string | null {
   return process.env.VIBEZ_UPLOAD_SECRET || process.env.WALLET_LINK_SECRET || null
 }
 
-/** Stable, opaque identity for whoever holds this ticket. */
-export function guestSubject(ticketId: string): string {
-  return `tkt_${ticketId}`
+/**
+ * Stable, opaque identity for this guest.
+ *
+ * A bought ticket becomes `tkt_<ticketId>`. Two other proofs already carry their
+ * own prefix and keep it, so vibezAccess can recognise them:
+ * - `gl_<entryId>`: a guestlist or comp line, which has no Ticket row;
+ * - `spot_<uuid>`: an anonymous guest who scanned a QR sticker in the room.
+ *   The sticker is the proof of attendance; the subject only gives them an
+ *   identity for authorship, self-removal and bans.
+ *
+ * Before this, every proof was wrapped as `tkt_…`, so a guestlist guest became
+ * `tkt_gl_…` (matched neither check) and a sticker scanner had no subject at
+ * all — neither could ever post.
+ */
+export function guestSubject(ref: string): string {
+  return ref.startsWith("gl_") || ref.startsWith("spot_") ? ref : `tkt_${ref}`
+}
+
+/** A new anonymous identity for someone who scanned a sticker. */
+export function newSpotGuestRef(): string {
+  return `spot_${randomUUID().replace(/-/g, "")}`
 }
 
 /** Mint "<issuedAt>.<ticketId>.<nonce>.<hmac>". */
