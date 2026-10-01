@@ -17,7 +17,6 @@ import {
   ArrowLeft,
   Info,
   Palette,
-  Plus,
   MoreHorizontal,
 } from "lucide-react";
 // Clerk account management is now in Settings > Security
@@ -29,6 +28,8 @@ import {
   AftieKeyboardListener,
   AftieConsentDialog,
 } from "@/components/aftie";
+import { AllAppsSwitcher } from "@/components/all-apps-switcher";
+import { OrganizerSwitcher } from "@/components/layout/OrganizerSwitcher";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { useUIPreferences } from "@/components/providers";
 import { APP_VERSION_DISPLAY } from "@/lib/constants";
@@ -422,6 +423,9 @@ export default function DashboardLayout({
           {/* Spacer to push footer to bottom when in settings */}
           {isInSettings && <div className="flex-1" />}
 
+          <div className="px-2 pb-2 font-mono text-white/60"><AllAppsSwitcher compact={sidebarCompact} /></div>
+          <OrganizerSwitcher compact={sidebarCompact} />
+
           {/* Status Footer */}
           <div
             className={`${sidebarCompact ? "py-3" : "px-3 py-4"} border-t border-white/5`}
@@ -533,6 +537,8 @@ export default function DashboardLayout({
                 );
               },
             )}
+            <div className="font-mono text-white/60"><AllAppsSwitcher compact /></div>
+            <OrganizerSwitcher compact />
             {/* More menu for overflow items */}
             {(isInSettings ? mobileSettingsOverflow : mobileOverflowNav)
               .length > 0 && (

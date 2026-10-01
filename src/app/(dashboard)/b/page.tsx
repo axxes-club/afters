@@ -1,4 +1,6 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { getOrganizerContext, organizerWhere } from "@/lib/organizer-context";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -19,11 +21,13 @@ import {
 import { formatCents } from "@/lib/stripe";
 
 export default async function OverviewPage() {
-  const { userId } = await auth();
+  const userId = await getEffectiveUserId();
   if (!userId) redirect("/sign-in");
 
+  const selected = await getOrganizerContext();
+  if (selected && !selected.isOwner && !await getOrganizerContext("finance.view")) redirect("/b/events");
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere("finance.view"),
     include: {
       events: {
         include: {
@@ -44,6 +48,7 @@ export default async function OverviewPage() {
   if (!activeProfile) {
     // Get user info from Clerk (handles race condition where webhook hasn't fired yet)
     const clerkUser = await currentUser();
+    if (!clerkUser || clerkUser.id !== userId) redirect("/b/events");
 
     // Ensure User record exists in DB before creating profile
     const user = await prisma.user.upsert({

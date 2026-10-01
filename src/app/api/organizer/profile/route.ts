@@ -1,10 +1,12 @@
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
+    const userId = await getEffectiveUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -123,7 +125,7 @@ export async function POST(request: Request) {
 
 async function updateProfile(request: Request) {
   try {
-    const { userId } = await auth();
+    const userId = await getEffectiveUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -147,7 +149,7 @@ async function updateProfile(request: Request) {
 
     // Check if user has organizer profile
     const existingProfile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
     });
 
     if (!existingProfile) {
@@ -171,7 +173,7 @@ async function updateProfile(request: Request) {
     }
 
     const updatedProfile = await prisma.organizerProfile.update({
-      where: { userId },
+      where: await organizerWhere("owner"),
       data: {
         displayName,
         slug,
@@ -209,13 +211,13 @@ export async function PATCH(request: Request) {
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const userId = await getEffectiveUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
       include: {
         events: {
           orderBy: { startsAt: "desc" },
@@ -246,14 +248,14 @@ export async function GET() {
 
 export async function DELETE() {
   try {
-    const { userId } = await auth();
+    const userId = await getEffectiveUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if user has organizer profile
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
       include: {
         events: {
           select: { id: true },
@@ -281,7 +283,7 @@ export async function DELETE() {
 
     // Delete the organizer profile (this will cascade delete related data)
     await prisma.organizerProfile.delete({
-      where: { userId },
+      where: { id: profile.id },
     });
 
     // Reset user role to USER

@@ -1,5 +1,6 @@
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/prisma"
 
 // GET /api/events/[eventId]/analytics - Get event analytics
@@ -8,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -17,7 +18,7 @@ export async function GET(
     
     // Get organizer profile
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("analytics.view"),
     })
     
     if (!profile) {

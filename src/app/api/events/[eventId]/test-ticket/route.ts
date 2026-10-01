@@ -1,6 +1,7 @@
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@clerk/nextjs/server"
 
 // GET or create a test ticket for an event
 export async function GET(
@@ -8,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -17,7 +18,7 @@ export async function GET(
 
     // Get organizer profile for the current user
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
     })
 
     if (!profile) {
@@ -163,7 +164,7 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     const { eventId } = await params
 
     if (!userId) {
@@ -172,7 +173,7 @@ export async function POST(
 
     // Get organizer profile for the current user
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
     })
 
     if (!profile) {

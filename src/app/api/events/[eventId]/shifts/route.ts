@@ -1,3 +1,4 @@
+import { getOrganizerContext } from "@/lib/organizer-context";
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getEffectiveUserId } from "@/lib/auth-utils"
@@ -19,7 +20,8 @@ export async function GET(
       include: { organizer: true },
     })
 
-    if (!event || event.organizer.userId !== userId) {
+    const workspace = await getOrganizerContext("staff.manage");
+    if (!event || event.organizerId !== workspace?.profile.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 

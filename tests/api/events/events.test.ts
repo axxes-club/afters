@@ -27,6 +27,10 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: mockAuth,
 }))
 
+vi.mock("@/lib/auth-utils", () => ({ getEffectiveUserId: async () => (await mockAuth()).userId }))
+
+vi.mock("@/lib/organizer-context", () => ({ organizerWhere: vi.fn(async () => ({ id: "organizer-1" })) }))
+
 import { GET, POST } from "@/app/api/events/route"
 
 describe("Events API", () => {

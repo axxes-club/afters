@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -30,7 +31,7 @@ function stripeLookupKey(plan: Plan): string {
 
 // POST - Create checkout session for Signature subscription
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
+  const userId = await getEffectiveUserId();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
   }
 
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere("owner"),
     include: { user: { select: { email: true } }, subscription: true },
   });
 
@@ -198,12 +199,12 @@ export async function POST(req: NextRequest) {
 
 // GET - Get current subscription status
 export async function GET() {
-  const { userId } = await auth();
+  const userId = await getEffectiveUserId();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const profile = await prisma.organizerProfile.findUnique({
-    where: { userId },
+    where: await organizerWhere("owner"),
     include: { subscription: true },
   });
 

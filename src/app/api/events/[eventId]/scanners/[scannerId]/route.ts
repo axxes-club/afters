@@ -1,3 +1,4 @@
+import { getOrganizerContext } from "@/lib/organizer-context";
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getEffectiveUserId } from "@/lib/auth-utils"
@@ -27,10 +28,12 @@ async function verifyScanner(
     where: { id: scannerId },
     include: { event: { include: { organizer: true } } },
   })
+  const workspace = await getOrganizerContext("staff.manage");
   if (
     !scanner ||
+    workspace?.userId !== userId ||
     scanner.eventId !== eventId ||
-    scanner.event.organizer.userId !== userId
+    scanner.event.organizerId !== workspace?.profile.id
   ) {
     return null
   }

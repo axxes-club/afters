@@ -1,10 +1,11 @@
-import { auth } from "@clerk/nextjs/server"
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
 
     // Verify the scanner has access to this event
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("tickets.scan"),
     })
 
     // Only the event organizer can check in tickets

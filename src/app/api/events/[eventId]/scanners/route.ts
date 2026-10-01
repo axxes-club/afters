@@ -1,3 +1,4 @@
+import { getOrganizerContext } from "@/lib/organizer-context";
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getEffectiveUserId } from "@/lib/auth-utils"
@@ -24,7 +25,8 @@ async function verifyEventOwnership(eventId: string, userId: string) {
     where: { id: eventId },
     include: { organizer: true },
   })
-  if (!event || event.organizer.userId !== userId) return null
+  const workspace = await getOrganizerContext("staff.manage");
+  if (!event || workspace?.userId !== userId || event.organizerId !== workspace.profile.id) return null
   return event
 }
 

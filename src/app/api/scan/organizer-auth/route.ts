@@ -1,5 +1,6 @@
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/prisma"
 import {
   createScannerToken,
@@ -10,13 +11,13 @@ import {
 // Get organizer's events for scanner selection
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return NextResponse.json({ authenticated: false, events: [] })
     }
 
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("tickets.scan"),
       include: {
         events: {
           where: {
@@ -70,7 +71,7 @@ export async function GET() {
 // Create scanner session for organizer
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return NextResponse.json(
         { error: "Not authenticated", valid: false },
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
 
     // Verify organizer owns this event
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("tickets.scan"),
       include: {
         events: {
           where: { id: eventId },

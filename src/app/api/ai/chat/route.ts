@@ -1,5 +1,6 @@
+import { getEffectiveUserId } from "@/lib/auth-utils";
+import { organizerWhere } from "@/lib/organizer-context";
 import { generateText, tool, stepCountIs } from "ai"
-import { auth } from "@clerk/nextjs/server"
 import { AI_MODEL, AFTIE_SYSTEM_PROMPT } from "@/lib/ai"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
@@ -12,14 +13,14 @@ export async function POST(req: Request) {
       return new Response("AI service not configured", { status: 503 })
     }
 
-    const { userId } = await auth()
+    const userId = await getEffectiveUserId()
     if (!userId) {
       return new Response("Unauthorized", { status: 401 })
     }
 
     // Get user's organizer profile
     const profile = await prisma.organizerProfile.findUnique({
-      where: { userId },
+      where: await organizerWhere("owner"),
     })
 
     if (!profile) {
