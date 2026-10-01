@@ -7,4 +7,4 @@ export function fileKeyFromUrl(url:string):string|null {
  }catch{return null;}
 }
 // The authenticated purge job calls this only after the restore retention window.
-export async function purgeStoredFile(url:string):Promise<boolean>{const{deleteStoredUrls}=await import("@/lib/gcs/server");return await deleteStoredUrls([url])>0;}
+export async function purgeStoredFile(url:string):Promise<boolean>{const{purgeVibezUpload}=await import("@/lib/gcs/server");return await purgeVibezUpload(url);}

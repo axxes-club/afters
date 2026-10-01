@@ -321,7 +321,8 @@ export function VibezFeed({ eventId, accentColor }: VibezFeedProps) {
                 <div className="p-2 flex items-center gap-2">
                   {post.authorImageUrl ? (
                     <Image
-                      src={post.authorImageUrl}
+                      src={localProxyUrl(post.authorImageUrl)}
+                      unoptimized={post.authorImageUrl.includes("/api/assets/gcp?")}
                       alt=""
                       width={20}
                       height={20}

@@ -20,6 +20,9 @@ export async function authorizeAssetRead(
           ...urls.map((url: string) => ({
             gallery: { array_contains: [url] },
           })),
+          ...urls.map((url: string) => ({
+            lineup: { array_contains: [{ imageUrl: url }] },
+          })),
         ],
       },
     }));
@@ -32,6 +35,32 @@ export async function authorizeAssetRead(
       },
     }));
   if (branding) return true;
+  if (!privateReceipt) {
+    const avatar = await prisma.user.findFirst({
+      where: { imageUrl: { in: urls } },
+      select: { id: true },
+    });
+    if (avatar) {
+      const user = await getSessionUser();
+      if (user?.id === avatar.id || (await isSuperAdmin())) return true;
+      if (user) {
+        const { getOrganizerContext } = await import("@/lib/organizer-context");
+        const context = await getOrganizerContext("staff.manage");
+        if (
+          context &&
+          (await prisma.staffMember.findFirst({
+            where: {
+              userId: avatar.id,
+              organizerProfileId: context.profile.id,
+              status: "ACTIVE",
+            },
+            select: { id: true },
+          }))
+        )
+          return true;
+      }
+    }
+  }
   const feedback = await prisma.feedback.findFirst({
     where: { screenshotUrl: { in: urls } },
   });
@@ -48,7 +77,7 @@ export async function authorizeAssetRead(
   }
   const post = await prisma.vibezPost.findFirst({
     where: {
-      imageUrl: { in: urls },
+      OR: [{ imageUrl: { in: urls } }, { authorImageUrl: { in: urls } }],
       filePurgedAt: null,
       ...(record?.route === "vibezPost"
         ? { eventId: record.metadata.eventId }

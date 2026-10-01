@@ -66,7 +66,7 @@ export const ourFileRouter = {
   // ticket is short-lived, single-event, and useless to anyone else.
   vibezPost: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .input(z.object({ eventId: z.string().min(1), ticket: z.string().min(1) }))
-    .middleware(async ({ input }) => {
+    .middleware(async ({ input, phase }) => {
       // The validated `input` is used, not `req.formData()`. Reading the
       // multipart body here consumed the stream before UploadThing could hand
       // the file to storage, and it also meant the values were unvalidated
@@ -84,7 +84,7 @@ export const ourFileRouter = {
         throw new UploadThingError("Unauthorized")
       }
 
-      if (!verifyTicket(ticket, viewer.subject, eventId)) {
+      if (phase === "init" && !verifyTicket(ticket, viewer.subject, eventId)) {
         throw new UploadThingError("Upload ticket is invalid or expired")
       }
 
@@ -109,10 +109,13 @@ export const ourFileRouter = {
         throw new UploadThingError("Only attendees can post to the VIBEZ feed")
       }
 
+      if (phase === "init") {
       const budget = await uploadBudget(eventId, viewer.userId ?? "", viewer.subject, {
         perGuestPerHour: settings.maxPerGuestPerHour,
       })
       if (!budget.allowed) throw new UploadThingError(budget.reason ?? "Too many uploads")
+
+      }
 
       return { subject: viewer.subject, eventId, spotId: viewer.spotId }
     })

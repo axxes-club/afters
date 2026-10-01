@@ -54,6 +54,14 @@ export async function GET(req: Request) {
   let skipped = 0
 
   for (const post of stale) {
+    // Shared image URLs may be reused by the same subject. Retain bytes while
+    // any other post remains live or inside its restore retention window.
+    const referenced = await prisma.vibezPost.findFirst({
+      where: { id: { not: post.id }, imageUrl: post.imageUrl, filePurgedAt: null,
+        OR: [{ removedAt: null }, { removedAt: { gt: cutoff } }] },
+      select: { id: true },
+    })
+    if (referenced) { skipped++; continue }
     let deleted = false
     try {
       deleted = await purgeStoredFile(post.imageUrl)

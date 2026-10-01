@@ -145,3 +145,20 @@ export async function isOwnedStoredUpload(
     registry: adapter.registry,
   });
 }
+
+// Authenticated retention job only. A durable receipt proves a missing object
+// was this app's completed Vibez upload, so DB-flag retries can finish safely.
+export async function purgeVibezUpload(url: string) {
+  if (!storageEnabled()) return false;
+  const { purgeCompletedUpload } = await import("./purge-upload.mjs");
+  const adapter = storageAdapter();
+  return purgeCompletedUpload({
+    url,
+    bucket,
+    origins,
+    app: "afters",
+    route: "vibezPost",
+    store: adapter.store,
+    registry: adapter.registry,
+  });
+}
