@@ -5,8 +5,8 @@ import { resolveViewer } from "@/lib/vibez-identity";
 import { canView, vibezAccess } from "@/lib/vibez";
 import { getVibezSettings, type VibezAccessMode } from "@/lib/vibez-settings";
 export async function authorizeAssetRead(
-  _request: Request,
-  { record, urls }: any,
+  _request: Request | null,
+  { record, urls }: {key?:string;record: import("./contracts.mjs").Receipt|null;urls:string[]},
 ) {
   const privateReceipt =
     record && ["feedbackScreenshot", "vibezPost"].includes(record.route);

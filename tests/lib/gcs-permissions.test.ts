@@ -1,14 +1,16 @@
+type PostQuery = {where:{OR:unknown[];filePurgedAt:null}};
+type EventQuery = {where:{isPublished?:boolean;OR:unknown[]}};
 import { it, expect, vi } from "vitest";
 const state = vi.hoisted(() => ({
-  session: null as any,
-  post: null as any,
+  session: null as {id:string;role:string}|null,
+  post: null as {eventId:string;moderationStatus:string;removedAt:Date|null;authorSubject:string}|null,
   access: "guest",
   super: false,
-  queries: [] as any[],
-  staffContext: null as any,
+  queries: [] as PostQuery[],
+  staffContext: null as {profile:{id:string}}|null,
   staffActive: false,
   publishedLineup: false,
-  eventQueries: [] as any[],
+  eventQueries: [] as EventQuery[],
 }));
 vi.mock("@/lib/auth-utils", () => ({
   isSuperAdmin: async () => state.super,
@@ -23,7 +25,7 @@ vi.mock("@clerk/nextjs/server", () => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     event: {
-      findFirst: async (query: any) => {
+      findFirst: async (query: EventQuery) => {
         state.eventQueries.push(query);
         return state.publishedLineup && query.where.isPublished === true
           ? { id: "published" }
@@ -37,7 +39,7 @@ vi.mock("@/lib/prisma", () => ({
     feedback: { findFirst: async () => null },
     user: { findFirst: async () => ({ id: "avatar-owner" }) },
     vibezPost: {
-      findFirst: async (query: any) => {
+      findFirst: async (query: PostQuery) => {
         state.queries.push(query);
         return state.post;
       },
@@ -77,7 +79,7 @@ it("copied user avatars require self/admin or readable feed reference", async ()
     authorSubject: "other",
   };
   expect(await authorizeAssetRead(request, context)).toBe(true);
-  expect(state.queries.at(-1).where.OR).toContainEqual({
+  expect(state.queries.at(-1)!.where.OR).toContainEqual({
     authorImageUrl: { in: ["synthetic-avatar"] },
   });
   state.access = "banned";
@@ -103,8 +105,8 @@ it("staff avatar requires current staff.manage workspace and active membership; 
   state.session = null;
   state.publishedLineup = true;
   expect(await authorizeAssetRead(request, context)).toBe(true);
-  expect(state.eventQueries.at(-1).where).toMatchObject({ isPublished: true });
-  expect(state.eventQueries.at(-1).where.OR).toContainEqual({
+  expect(state.eventQueries.at(-1)!.where).toMatchObject({ isPublished: true });
+  expect(state.eventQueries.at(-1)!.where.OR).toContainEqual({
     lineup: { array_contains: [{ imageUrl: "synthetic-avatar" }] },
   });
   state.publishedLineup = false;

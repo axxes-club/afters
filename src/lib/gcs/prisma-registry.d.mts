@@ -1,4 +1,8 @@
-export class PrismaRegistry {
-  constructor(options?: any, status?: number);
-  [key: string]: any;
+import type {PrismaClient} from '@prisma/client';
+import type {Registry,Receipt,UploadedFile} from './contracts.mjs';
+export class PrismaRegistry implements Registry {
+ constructor(prisma:PrismaClient);
+ create(record:Receipt):Promise<void>;get(id:string):Promise<Receipt|null>;
+ renewOnce(id:string,owner:string,run:(record:Receipt,transaction:unknown)=>Promise<unknown>):Promise<unknown>;
+ completeOnce(id:string,owner:string,run:(record:Receipt,transaction:unknown)=>Promise<UploadedFile>):Promise<UploadedFile>;
 }

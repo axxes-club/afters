@@ -32,7 +32,7 @@ const aliases = loadAliases({
 export function storageEnabled() {
   return process.env.GCS_STORAGE_ENABLED === "true";
 }
-let instance: any;
+let instance: Adapter | undefined;
 export function storageAdapter() {
   if (!instance) {
     const routePolicies = policies.afters;
@@ -96,7 +96,7 @@ export function storageHandlers() {
       if (!key) throw new StorageError("Unknown asset", 404);
       return key;
     },
-    authorizeRead: async (request: Request, key: string, file: any) => {
+    authorizeRead: async (request: Request | null, key: string, file: import("./contracts.mjs").StoredFile) => {
       const id = file.metadata?.uploadId ?? file.metadata?.uploadid;
       const record = id ? await adapter.registry.get(id) : null;
       return authorizeAssetRead(request, {
