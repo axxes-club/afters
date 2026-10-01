@@ -4,7 +4,7 @@ name: E2E Tests
 # ║ REQUIRED SECRETS - Add these in GitHub repo Settings > Secrets > Actions:   ║
 # ║                                                                              ║
 # ║ Required:                                                                    ║
-# ║   DATABASE_URL          - Neon PostgreSQL connection string                  ║
+# ║   E2E_DATABASE_URL      - isolated test PostgreSQL connection string                  ║
 # ║   CLERK_SECRET_KEY_TEST - Clerk secret key for test environment              ║
 # ║   CLERK_PUBLISHABLE_KEY_TEST - Clerk publishable key for test environment   ║
 # ║                                                                              ║
@@ -61,7 +61,7 @@ jobs:
       - name: Check if required secrets are configured
         id: check
         env:
-          HAS_DATABASE_URL: ${{ secrets.DATABASE_URL != '' }}
+          HAS_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL != '' }}
           HAS_CLERK_SECRET: ${{ secrets.CLERK_SECRET_KEY_TEST != '' }}
           HAS_CLERK_PUBLISHABLE: ${{ secrets.CLERK_PUBLISHABLE_KEY_TEST != '' }}
         run: |
@@ -129,7 +129,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Get Playwright version
@@ -144,7 +144,7 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}-${{ matrix.browser }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: rm -f pnpm-workspace.yaml && pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -176,10 +176,10 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_TEST }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY_TEST }}
 
-          # Neon test branch
+          # Isolated test database
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
 
           # App secrets
           E2E_AUTH_BYPASS_TOKEN: ${{ secrets.E2E_AUTH_BYPASS_TOKEN }}
