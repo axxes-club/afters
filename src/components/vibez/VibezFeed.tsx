@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Camera, Loader2, User, Flag, Trash2, RotateCcw } from "lucide-react";
 import { VibezCamera } from "./VibezCamera";
+import { localProxyUrl } from "@/lib/gcs/local-proxy-url.mjs";
 
 export interface VibezPostType {
   id: string;
@@ -260,12 +261,12 @@ export function VibezFeed({ eventId, accentColor }: VibezFeedProps) {
                     </div>
                   ) : (
                     <Image
-                      src={post.imageUrl}
+                      src={localProxyUrl(post.imageUrl)}
                       alt=""
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 50vw, 33vw"
-                      unoptimized={post.imageUrl.startsWith("blob:")}
+                      unoptimized={post.imageUrl.startsWith("blob:") || post.imageUrl.includes("/api/assets/gcp?")}
                     />
                   )}
 
@@ -320,7 +321,8 @@ export function VibezFeed({ eventId, accentColor }: VibezFeedProps) {
                 <div className="p-2 flex items-center gap-2">
                   {post.authorImageUrl ? (
                     <Image
-                      src={post.authorImageUrl}
+                      src={localProxyUrl(post.authorImageUrl)}
+                      unoptimized={post.authorImageUrl.includes("/api/assets/gcp?")}
                       alt=""
                       width={20}
                       height={20}

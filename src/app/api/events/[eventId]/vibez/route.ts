@@ -157,7 +157,12 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : null;
 
-    if (!imageUrl || !isOurImage(imageUrl)) {
+    let hosted = !!imageUrl && isOurImage(imageUrl);
+    if(imageUrl && process.env.GCS_STORAGE_ENABLED === "true"){
+      const {isOwnedStoredUpload} = await import("@/lib/gcs/server");
+      hosted = await isOwnedStoredUpload(imageUrl,"vibezPost",{eventId,subject:viewer.subject});
+    }
+    if (!imageUrl || !hosted) {
       return NextResponse.json(
         { message: "That image could not be used" },
         { status: 400 }

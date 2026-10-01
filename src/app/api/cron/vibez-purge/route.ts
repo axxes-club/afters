@@ -54,17 +54,27 @@ export async function GET(req: Request) {
   let skipped = 0
 
   for (const post of stale) {
+    // Shared image URLs may be reused by the same subject. Retain bytes while
+    // any other post remains live or inside its restore retention window.
+    const referenced = await prisma.vibezPost.findFirst({
+      where: { id: { not: post.id }, imageUrl: post.imageUrl, filePurgedAt: null,
+        OR: [{ removedAt: null }, { removedAt: { gt: cutoff } }] },
+      select: { id: true },
+    })
+    if (referenced) { skipped++; continue }
+    let deleted = false
     try {
-      const deleted = await purgeStoredFile(post.imageUrl)
+      deleted = await purgeStoredFile(post.imageUrl)
       if (deleted) purged++
       else skipped++
     } catch (error) {
-      console.error("VIBEZ purge failed for post", post.id, error)
+      console.error("VIBEZ storage purge failed; retained for retry")
       skipped++
     }
 
-    // Stamped either way. A URL whose key we cannot parse will never parse, and
-    // retrying it every hour forever is how a job becomes invisible.
+    // Failed, unmigrated or retained shared objects stay retryable. A database
+    // flag must never claim that bytes were purged when storage retained them.
+    if (!deleted) continue
     await prisma.vibezPost.update({
       where: { id: post.id },
       data: { filePurgedAt: new Date() },

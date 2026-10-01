@@ -1,6 +1,6 @@
-import { createUploadthing, type FileRouter } from "uploadthing/next"
+import { createUploadthing, type FileRouter } from "@/lib/gcs/router.mjs"
 import { z } from "zod"
-import { UploadThingError, UTApi } from "uploadthing/server"
+import { UploadThingError } from "@/lib/gcs/router.mjs"
 import { auth } from "@clerk/nextjs/server"
 import { requireOrganizer } from "@/lib/auth-utils"
 import { canPost, uploadBudget, vibezAccess } from "@/lib/vibez"
@@ -34,7 +34,6 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ file }) => {
       // v7 uses 'url', older versions used 'ufsUrl'
       const fileUrl = file.url || file.ufsUrl
-      console.log("Uploaded event flyer:", fileUrl)
       return { url: fileUrl }
     }),
   // Event gallery images
@@ -42,7 +41,6 @@ export const ourFileRouter = {
     .middleware(organizerMiddleware)
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl
-      console.log("Uploaded gallery image:", fileUrl)
       return { url: fileUrl }
     }),
   // Feedback screenshots
@@ -50,7 +48,6 @@ export const ourFileRouter = {
     .middleware(authMiddleware)
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl
-      console.log("Uploaded feedback screenshot:", fileUrl)
       return { url: fileUrl }
     }),
   // Custom logo for sidebar
@@ -58,7 +55,6 @@ export const ourFileRouter = {
     .middleware(organizerMiddleware)
     .onUploadComplete(async ({ file }) => {
       const fileUrl = file.url || file.ufsUrl
-      console.log("Uploaded custom logo:", fileUrl)
       return { url: fileUrl }
     }),
   // VIBEZ (BETA): attendee feed images.
@@ -70,7 +66,7 @@ export const ourFileRouter = {
   // ticket is short-lived, single-event, and useless to anyone else.
   vibezPost: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .input(z.object({ eventId: z.string().min(1), ticket: z.string().min(1) }))
-    .middleware(async ({ input }) => {
+    .middleware(async ({ input, phase }) => {
       // The validated `input` is used, not `req.formData()`. Reading the
       // multipart body here consumed the stream before UploadThing could hand
       // the file to storage, and it also meant the values were unvalidated
@@ -88,7 +84,7 @@ export const ourFileRouter = {
         throw new UploadThingError("Unauthorized")
       }
 
-      if (!verifyTicket(ticket, viewer.subject, eventId)) {
+      if (phase === "init" && !verifyTicket(ticket, viewer.subject, eventId)) {
         throw new UploadThingError("Upload ticket is invalid or expired")
       }
 
@@ -113,10 +109,13 @@ export const ourFileRouter = {
         throw new UploadThingError("Only attendees can post to the VIBEZ feed")
       }
 
+      if (phase === "init") {
       const budget = await uploadBudget(eventId, viewer.userId ?? "", viewer.subject, {
         perGuestPerHour: settings.maxPerGuestPerHour,
       })
       if (!budget.allowed) throw new UploadThingError(budget.reason ?? "Too many uploads")
+
+      }
 
       return { subject: viewer.subject, eventId, spotId: viewer.spotId }
     })
@@ -127,6 +126,3 @@ export const ourFileRouter = {
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter
-
-// Server-side API for uploading from URLs
-export const utapi = new UTApi()

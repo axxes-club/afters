@@ -1,107 +1,33 @@
-# Production Dockerfile for Afters
-# Multi-stage build for optimized production image
-
-# ============================================
-# Stage 1: Dependencies
-# ============================================
-FROM node:20-alpine AS deps
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Install dependencies for native modules
-RUN apk add --no-cache \
-    libc6-compat \
-    openssl \
-    openssl-dev \
-    python3 \
-    make \
-    g++ \
-    git
-
+# syntax=docker/dockerfile:1
+# AXXES Next.js image for Cloud Run (standalone output, glibc for sharp/Prisma).
+# Build-time env (NEXT_PUBLIC_* etc.) comes from .env.production, written by
+# Cloud Build from Secret Manager; it never reaches the final image.
+FROM node:24-slim AS build
 WORKDIR /app
-
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY prisma ./prisma/
-
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
-
-# Generate Prisma client
-RUN pnpm prisma generate
-
-# ============================================
-# Stage 2: Builder
-# ============================================
-FROM node:20-alpine AS builder
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-RUN apk add --no-cache libc6-compat openssl openssl-dev
-
-WORKDIR /app
-
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY prisma ./prisma/
-
-# Install all dependencies (needed for build)
-RUN pnpm install --frozen-lockfile
-
-# Generate Prisma client
-RUN pnpm prisma generate
-
-# Copy source code
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 COPY . .
-
-# Set environment for build
-ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV SKIP_ENV_VALIDATION=1
+# pnpm 9 rejects the pnpm 12-only allowBuilds placeholder file (no packages field).
+# This is a single-package app; ignore that incompatible workspace file in the image.
+RUN rm -f pnpm-workspace.yaml
+RUN if [ -f package-lock.json ]; then npm ci; \
+    else corepack enable && corepack prepare pnpm@9 --activate && pnpm install --frozen-lockfile; fi
+RUN mkdir -p public && if [ -d prisma ]; then npx prisma generate; fi
+# Matches the Vercel build (vercel.json) minus migrations, which run from migrate.yml.
+RUN --mount=type=secret,id=build-env,target=/app/.env.production pnpm exec next build --webpack \
+  && rm -f .next/standalone/.env .next/standalone/.env.*
 
-# Build the application
-RUN pnpm build
-
-# ============================================
-# Stage 3: Runner (Production)
-# ============================================
-FROM node:20-alpine AS runner
-
-RUN apk add --no-cache libc6-compat openssl
-
+FROM node:24-slim
 WORKDIR /app
-
-# Set environment
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy built application
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-# Copy Prisma files for runtime
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/prisma ./prisma
-
-# Copy production dependencies
-COPY --from=deps /app/node_modules ./node_modules
-
-# Set proper ownership
-RUN chown -R nextjs:nodejs /app
-
-USER nextjs
-
-EXPOSE 3000
-
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-# Start the application
-CMD ["node", "server.js"]
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=8080
+COPY --from=build --chown=node:node /app/.next/standalone ./
+COPY --from=build --chown=node:node /app/.next/static ./.next/static
+COPY --from=build --chown=node:node /app/public ./public
+RUN rm -f .env .env.* && mkdir -p .next/cache && chown -R node:node .next
+USER node
+EXPOSE 8080
+# Runtime secrets: Cloud Run mounts the app's Secret Manager dotenv at /secrets/env.
+CMD ["sh", "-c", "if [ -f /secrets/env ]; then exec node --env-file=/secrets/env server.js; else exec node server.js; fi"]

@@ -6,11 +6,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
  */
 
 vi.mock("@/lib/prisma", () => ({
-  prisma: { vibezPost: { findMany: vi.fn().mockResolvedValue([]), update: vi.fn() } },
+  prisma: { vibezPost: { findMany: vi.fn().mockResolvedValue([]), findFirst: vi.fn().mockResolvedValue(null), update: vi.fn() } },
 }))
 vi.mock("@/lib/vibez-storage", () => ({
   purgeStoredFile: vi.fn().mockResolvedValue(true),
 }))
+
+import { prisma } from "@/lib/prisma"
+import { purgeStoredFile } from "@/lib/vibez-storage"
 
 import { GET } from "@/app/api/cron/vibez-purge/route"
 
@@ -25,6 +28,10 @@ function req(auth?: string) {
 
 describe("vibez purge auth", () => {
   beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(prisma.vibezPost.findMany).mockResolvedValue([])
+    vi.mocked(prisma.vibezPost.findFirst).mockResolvedValue(null)
+    vi.mocked(purgeStoredFile).mockResolvedValue(true)
     process.env.CRON_SECRET = SECRET
   })
   afterEach(() => {
@@ -35,6 +42,23 @@ describe("vibez purge auth", () => {
   it("accepts the bearer token Vercel Cron sends", async () => {
     const res = await GET(req(`Bearer ${SECRET}`))
     expect(res.status).toBe(200)
+  })
+
+  it("does not mark a retained or failed object as purged", async () => {
+    vi.mocked(prisma.vibezPost.findMany).mockResolvedValue([{id:"synthetic-post",imageUrl:"https://afters.am/api/assets/gcp?key=imports%2Fsynthetic"}] as never)
+    vi.mocked(purgeStoredFile).mockResolvedValue(false)
+    const res = await GET(req(`Bearer ${SECRET}`))
+    expect(await res.json()).toMatchObject({purged:0,skipped:1})
+    expect(prisma.vibezPost.update).not.toHaveBeenCalled()
+  })
+
+  it("retains bytes referenced by another live or restorable post", async () => {
+    vi.mocked(prisma.vibezPost.findMany).mockResolvedValue([{id:"removed",imageUrl:"https://afters.am/api/assets/gcp?key=uploads%2Fsynthetic"}] as never)
+    vi.mocked(prisma.vibezPost.findFirst).mockResolvedValue({id:"live"} as never)
+    const res=await GET(req(`Bearer ${SECRET}`))
+    expect(await res.json()).toMatchObject({purged:0,skipped:1})
+    expect(purgeStoredFile).not.toHaveBeenCalled()
+    expect(prisma.vibezPost.update).not.toHaveBeenCalled()
   })
 
   it("refuses a request with no token", async () => {

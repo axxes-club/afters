@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { clerkClient } from "@clerk/nextjs/server"
 import { COOKIE_PATH, STATE_COOKIE, VERIFIER_COOKIE, exchangeCode, safeEqual } from "@/lib/axxes"
+import { publicOrigin } from "@/lib/public-origin"
 
 export const dynamic = "force-dynamic"
 
 /** Back to the sign-in page with a reason it can explain. */
 function fail(req: NextRequest, reason: string) {
-  const res = NextResponse.redirect(new URL(`/sign-in?axxes=${reason}`, req.url))
+  const res = NextResponse.redirect(new URL(`/sign-in?axxes=${reason}`, publicOrigin(req)))
   res.cookies.set(STATE_COOKIE, "", { path: COOKIE_PATH, maxAge: 0 })
   res.cookies.set(VERIFIER_COOKIE, "", { path: COOKIE_PATH, maxAge: 0 })
   return res
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
   const verifier = req.cookies.get(VERIFIER_COOKIE)?.value
   if (!code || !state || !expected || !verifier || !safeEqual(state, expected)) return fail(req, "expired")
 
-  const identity = await exchangeCode(code, verifier, req.nextUrl.origin).catch(error => {
+  const identity = await exchangeCode(code, verifier, publicOrigin(req)).catch(error => {
     console.error("AXXES sign-in failed", error)
     return null
   })
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
     }
 
     const ticket = await clerk.signInTokens.createSignInToken({ userId: user.id, expiresInSeconds: 120 })
-    const res = NextResponse.redirect(new URL(`/sign-in?__clerk_ticket=${encodeURIComponent(ticket.token)}`, req.url))
+    const res = NextResponse.redirect(new URL(`/sign-in?__clerk_ticket=${encodeURIComponent(ticket.token)}`, publicOrigin(req)))
     res.cookies.set(STATE_COOKIE, "", { path: COOKIE_PATH, maxAge: 0 })
     res.cookies.set(VERIFIER_COOKIE, "", { path: COOKIE_PATH, maxAge: 0 })
     return res

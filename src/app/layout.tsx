@@ -7,9 +7,6 @@ import { getMessages, getLocale } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { GhostBanner } from "@/components/GhostBanner";
 import { UIPreferencesProvider } from "@/components/providers";
-import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
-import { extractRouterConfig } from "uploadthing/server";
-import { ourFileRouter } from "@/lib/uploadthing";
 import Script from "next/script";
 import "./globals.css";
 
@@ -87,7 +84,6 @@ export default async function RootLayout({
   const bodyContent = (
     <html lang={locale}>
       <head>
-        <link rel="preconnect" href="https://utfs.io" />
         <link rel="dns-prefetch" href="https://clerk.afters.am" />
         <link rel="dns-prefetch" href="https://api.stripe.com" />
       </head>
@@ -96,7 +92,6 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <UIPreferencesProvider>
-            <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
             <GhostBanner />
             <RedirectHandler />
             {children}

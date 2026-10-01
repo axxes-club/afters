@@ -40,6 +40,7 @@ import {
   Github,
 } from "lucide-react"
 import Image from "next/image"
+import {localProxyUrl} from "@/lib/gcs/local-proxy-url.mjs"
 import Link from "next/link"
 
 interface FeedbackUser {
@@ -388,7 +389,8 @@ export default function FeedbackManagementPage() {
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                   {selectedFeedback.user.imageUrl && (
                     <Image
-                      src={selectedFeedback.user.imageUrl}
+                      src={localProxyUrl(selectedFeedback.user.imageUrl)}
+                      unoptimized={selectedFeedback.user.imageUrl.includes("/api/assets/gcp?")}
                       alt=""
                       width={40}
                       height={40}
@@ -451,7 +453,8 @@ export default function FeedbackManagementPage() {
                         className="aspect-video relative bg-muted/50 rounded-lg overflow-hidden hover:ring-2 hover:ring-[#ff1493] transition-all"
                       >
                         <Image
-                          src={url}
+                          src={localProxyUrl(url)}
+                          unoptimized={url.includes("/api/assets/gcp?")}
                           alt={`Screenshot ${i + 1}`}
                           fill
                           className="object-cover"
@@ -556,7 +559,8 @@ export default function FeedbackManagementPage() {
           {selectedImage && (
             <div className="relative aspect-video w-full">
               <Image
-                src={selectedImage}
+                src={localProxyUrl(selectedImage)}
+                unoptimized={selectedImage.includes("/api/assets/gcp?")}
                 alt="Screenshot"
                 fill
                 className="object-contain"
