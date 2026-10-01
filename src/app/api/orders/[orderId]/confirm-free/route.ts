@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { formatInTimezone } from "@/lib/utils"
 import { generateTicketPDF } from "@/lib/pdf-ticket"
 import { getWalletPassUrl, isAppleWalletConfigured } from "@/lib/apple-wallet"
 import { sendEmail, generateTicketEmailHtml, generateOrganizerSaleEmailHtml } from "@/lib/email"
 import { notifyTicketSale } from "@/lib/push"
-import { waitUntil } from "@vercel/functions"
 
 export async function POST(
   req: Request,
@@ -153,12 +152,12 @@ export async function POST(
       })
     }
 
-    // Generate PDF and send email in background using waitUntil
+    // Generate PDF and send email after the response using the Next.js lifecycle
     // This allows us to return a response immediately while the email sends
     const venueAddress = `${updatedOrder.event?.venueAddress ?? ''}, ${updatedOrder.event?.city ?? ''}${updatedOrder.event?.state ? `, ${updatedOrder.event.state}` : ''}`
 
-    waitUntil(
-      (async () => {
+    after(
+      async () => {
         try {
           const pdfBuffer = await generateTicketPDF(createdTickets)
 
@@ -236,7 +235,7 @@ export async function POST(
         } catch (emailError) {
           console.error('Failed to send ticket email:', emailError)
         }
-      })()
+      }
     )
 
     // Return immediately - email sends in background

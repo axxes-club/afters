@@ -1,5 +1,5 @@
 import { headers } from "next/headers"
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
@@ -8,7 +8,6 @@ import { generateTicketPDF } from "@/lib/pdf-ticket"
 import { getWalletPassUrl, isAppleWalletConfigured } from "@/lib/apple-wallet"
 import { sendEmail, generateTicketEmailHtml, generateOrganizerSaleEmailHtml } from "@/lib/email"
 import { notifyTicketSale } from "@/lib/push"
-import { waitUntil } from "@vercel/functions"
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
           },
         })
 
-        const createdTickets = []
+        const createdTickets: Parameters<typeof generateTicketPDF>[0] = []
 
         // Generate tickets for each order item
         for (const item of order.items) {
@@ -112,8 +111,8 @@ export async function POST(req: Request) {
         }
 
         // Generate PDF and send email in background
-        waitUntil(
-          (async () => {
+        after(
+          async () => {
             try {
               const pdfBuffer = await generateTicketPDF(createdTickets)
               
@@ -191,7 +190,7 @@ export async function POST(req: Request) {
             } catch (emailError) {
               console.error('Failed to send ticket email:', emailError)
             }
-          })()
+          }
         )
       }
       break
