@@ -12,6 +12,9 @@ vi.mock("@/lib/vibez-storage", () => ({
   purgeStoredFile: vi.fn().mockResolvedValue(true),
 }))
 
+import { prisma } from "@/lib/prisma"
+import { purgeStoredFile } from "@/lib/vibez-storage"
+
 import { GET } from "@/app/api/cron/vibez-purge/route"
 
 const SECRET = "test-cron-secret"
@@ -25,6 +28,9 @@ function req(auth?: string) {
 
 describe("vibez purge auth", () => {
   beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(prisma.vibezPost.findMany).mockResolvedValue([])
+    vi.mocked(purgeStoredFile).mockResolvedValue(true)
     process.env.CRON_SECRET = SECRET
   })
   afterEach(() => {
@@ -35,6 +41,14 @@ describe("vibez purge auth", () => {
   it("accepts the bearer token Vercel Cron sends", async () => {
     const res = await GET(req(`Bearer ${SECRET}`))
     expect(res.status).toBe(200)
+  })
+
+  it("does not mark a retained or failed object as purged", async () => {
+    vi.mocked(prisma.vibezPost.findMany).mockResolvedValue([{id:"synthetic-post",imageUrl:"https://afters.am/api/assets/gcp?key=imports%2Fsynthetic"}] as never)
+    vi.mocked(purgeStoredFile).mockResolvedValue(false)
+    const res = await GET(req(`Bearer ${SECRET}`))
+    expect(await res.json()).toMatchObject({purged:0,skipped:1})
+    expect(prisma.vibezPost.update).not.toHaveBeenCalled()
   })
 
   it("refuses a request with no token", async () => {

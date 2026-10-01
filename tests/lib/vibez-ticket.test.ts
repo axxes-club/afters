@@ -88,8 +88,8 @@ describe("vibez upload tickets", () => {
 
 describe("vibez storage keys", () => {
   it("reads the file key out of an UploadThing URL", () => {
-    expect(fileKeyFromUrl("https://abc123.ufs.sh/f/xyz_image.jpg")).toBe("xyz_image.jpg")
-    expect(fileKeyFromUrl("https://utfs.io/f/abc/photo.png")).toBe("abc/photo.png")
+    expect(fileKeyFromUrl("https://abc123.ufs.sh/f/xyz_image.jpg")).toBe("imports/uploadthing/xyz_image.jpg")
+    expect(fileKeyFromUrl("https://utfs.io/f/abc/photo.png")).toBeNull()
   })
 
   it("refuses to guess at a key from someone else's host", () => {

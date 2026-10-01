@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { UploadThingError } from "uploadthing/server"
+import { UploadThingError } from "@/lib/gcs/router.mjs"
 
 // Hoist mocks before any imports
 const { mockAuth, mockRequireOrganizer } = vi.hoisted(() => ({

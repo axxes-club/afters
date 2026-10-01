@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   
   images: {
     remotePatterns: [
+      {protocol:"https",hostname:"afters.am",pathname:"/api/assets/gcp"},
+      {protocol:"https",hostname:"**.axxes.club",pathname:"/api/assets/gcp"},
+
       {
         protocol: "https",
         hostname: "**.mzstatic.com",

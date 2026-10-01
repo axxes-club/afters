@@ -54,17 +54,19 @@ export async function GET(req: Request) {
   let skipped = 0
 
   for (const post of stale) {
+    let deleted = false
     try {
-      const deleted = await purgeStoredFile(post.imageUrl)
+      deleted = await purgeStoredFile(post.imageUrl)
       if (deleted) purged++
       else skipped++
     } catch (error) {
-      console.error("VIBEZ purge failed for post", post.id, error)
+      console.error("VIBEZ storage purge failed; retained for retry")
       skipped++
     }
 
-    // Stamped either way. A URL whose key we cannot parse will never parse, and
-    // retrying it every hour forever is how a job becomes invisible.
+    // Failed, unmigrated or retained shared objects stay retryable. A database
+    // flag must never claim that bytes were purged when storage retained them.
+    if (!deleted) continue
     await prisma.vibezPost.update({
       where: { id: post.id },
       data: { filePurgedAt: new Date() },

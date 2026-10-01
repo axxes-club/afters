@@ -1,45 +1,10 @@
-import { utapi } from "@/lib/uploadthing"
-
-/**
- * Delete a VIBEZ photo from storage.
- *
- * UploadThing's deleteFiles takes a file key, not a public URL, so the key has
- * to be recovered from the URL we stored. VIBEZ URLs look like:
- *
- *   https://<id>.ufs.sh/f/<fileKey>
- *   https://utfs.io/f/<fileKey>
- *
- * Anything we can't parse a key out of is left alone: the post is already out
- * of the feed, and a wrong guess at a key could delete someone else's file.
- */
-export function fileKeyFromUrl(url: string): string | null {
-  try {
-    const parsed = new URL(url)
-    if (!/^(.+\.)?ufs\.sh$/i.test(parsed.hostname) && parsed.hostname !== "utfs.io") {
-      return null
-    }
-    const key = parsed.pathname.replace(/^\/+/, "").replace(/^f\//, "")
-    return key.length > 0 ? key : null
-  } catch {
-    return null
-  }
+import { objectKeyFromUrl } from "@/lib/gcs/core.mjs";
+// An isolated syntactic helper; imports are NOT authorized by parsing alone.
+export function fileKeyFromUrl(url:string):string|null {
+ try { const parsed=new URL(url); if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.port)return null;
+ if((parsed.hostname==="utfs.io"||/^[a-z0-9-]+\.ufs\.sh$/.test(parsed.hostname))&&/^\/f\/[A-Za-z0-9_.-]+$/.test(parsed.pathname)){const key=parsed.pathname.slice(3);if(key==="."||key==="..")return null;return "imports/uploadthing/"+key;}
+ return objectKeyFromUrl(url,{bucket:process.env.GCS_ASSETS_BUCKET||"gravy-meta-axxes-production-assets",origins:[process.env.GCS_ASSETS_PUBLIC_ORIGIN||"https://afters.am"]});
+ }catch{return null;}
 }
-
-/**
- * Delete a VIBEZ photo from storage, and say whether it actually went.
- *
- * Deliberately NOT called when a post is removed. It used to be, and the restore
- * endpoint then put the row back with its file already gone — a broken image in
- * the middle of the feed, which is worse than the thing the moderator was trying
- * to undo. Removal hides the row; this runs later, from the purge job, once the
- * removal is old enough to be treated as final.
- *
- * Returns false for a URL whose key cannot be parsed. A wrong guess at a file key
- * would delete somebody else's photo, so an unrecognised URL is left alone.
- */
-export async function purgeStoredFile(url: string): Promise<boolean> {
-  const key = fileKeyFromUrl(url)
-  if (!key) return false
-  await utapi.deleteFiles(key)
-  return true
-}
+// The authenticated purge job calls this only after the restore retention window.
+export async function purgeStoredFile(url:string):Promise<boolean>{const{deleteStoredUrls}=await import("@/lib/gcs/server");return await deleteStoredUrls([url])>0;}

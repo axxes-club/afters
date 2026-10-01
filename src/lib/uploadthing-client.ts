@@ -1,4 +1,2 @@
-import { generateReactHelpers } from "@uploadthing/react"
-import type { OurFileRouter } from "@/lib/uploadthing"
-
-export const { useUploadThing, uploadFiles } = generateReactHelpers<OurFileRouter>()
+"use client";
+export { useUploadThing, uploadFiles } from "@/lib/gcs/client";
