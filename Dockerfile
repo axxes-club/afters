@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # AXXES Next.js image for Cloud Run (standalone output, glibc for sharp/Prisma).
 # Build-time env (NEXT_PUBLIC_* etc.) comes from .env.production, written by
 # Cloud Build from Secret Manager; it never reaches the final image.
@@ -14,7 +15,8 @@ RUN if [ -f package-lock.json ]; then npm ci; \
     else corepack enable && corepack prepare pnpm@9 --activate && pnpm install --frozen-lockfile; fi
 RUN mkdir -p public && if [ -d prisma ]; then npx prisma generate; fi
 # Matches the Vercel build (vercel.json) minus migrations, which run from migrate.yml.
-RUN pnpm exec next build --webpack
+RUN --mount=type=secret,id=build-env,target=/app/.env.production pnpm exec next build --webpack \
+  && rm -f .next/standalone/.env .next/standalone/.env.*
 
 FROM node:24-slim
 WORKDIR /app
