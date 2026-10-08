@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateApiKey, API_SCOPES, type ApiScope } from "@/lib/api-keys"
@@ -6,7 +6,7 @@ import { generateApiKey, API_SCOPES, type ApiScope } from "@/lib/api-keys"
 // GET /api/api-keys - List user's API keys
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
@@ -42,7 +42,7 @@ export async function GET() {
 // POST /api/api-keys - Create a new API key
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })

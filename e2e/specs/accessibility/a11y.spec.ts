@@ -49,7 +49,7 @@ test.describe('Accessibility', () => {
     test.beforeEach(async () => {
       // These tests require authentication
       // Skip if not configured
-      if (!process.env.CLERK_TESTING_TOKEN) {
+      if (!process.env.E2E_AUTH_BYPASS_TOKEN) {
         test.skip();
       }
     });

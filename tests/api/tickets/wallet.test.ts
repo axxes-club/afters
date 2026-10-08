@@ -11,7 +11,7 @@ const { mockPrisma, mockAuth } = vi.hoisted(() => ({
 }))
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }))
-vi.mock("@clerk/nextjs/server", () => ({ auth: mockAuth }))
+vi.mock("@/lib/auth/session", () => ({ getUserId: async () => (await mockAuth())?.userId ?? null }))
 
 import { GET } from "@/app/api/tickets/[ticketId]/wallet/route"
 import { createWalletToken, verifyWalletToken, getAppleWalletConfig } from "@/lib/apple-wallet"

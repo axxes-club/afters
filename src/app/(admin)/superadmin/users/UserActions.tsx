@@ -127,10 +127,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
     setLoading(true)
     const result = await sendPasswordResetEmail(userId)
     if (result.success) {
-      toast.success(`Password reset info for: ${result.email}`, {
-        description: "Direct the user to the forgot password page",
-        duration: 10000
-      })
+      toast.success(result.message)
     } else {
       toast.error(result.error || "Failed to initiate password reset")
     }
@@ -427,38 +424,38 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
                 </Button>
               </div>
 
-              {/* Clerk Info */}
+              {/* Sign-in account */}
               <div className="border rounded-lg p-4 space-y-2">
-                <h4 className="font-semibold">Authentication (Clerk)</h4>
+                <h4 className="font-semibold">Sign-in</h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-muted-foreground">Status:</span>
-                    <span className={`ml-2 ${userDetails.clerk?.banned ? 'text-red-500' : 'text-green-500'}`}>
-                      {userDetails.clerk?.banned ? 'Banned' : 'Active'}
+                    <span className={`ml-2 ${userDetails.auth?.banned ? 'text-red-500' : 'text-green-500'}`}>
+                      {userDetails.auth?.banned ? 'Banned' : 'Active'}
                     </span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Last Sign In:</span>
                     <span className="ml-2">
-                      {userDetails.clerk?.lastSignInAt 
-                        ? new Date(userDetails.clerk.lastSignInAt).toLocaleString()
+                      {userDetails.auth?.lastSignInAt 
+                        ? new Date(userDetails.auth.lastSignInAt).toLocaleString()
                         : 'Never'}
                     </span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Created:</span>
                     <span className="ml-2">
-                      {userDetails.clerk?.createdAt 
-                        ? new Date(userDetails.clerk.createdAt).toLocaleString()
+                      {userDetails.auth?.createdAt 
+                        ? new Date(userDetails.auth.createdAt).toLocaleString()
                         : 'Unknown'}
                     </span>
                   </div>
                 </div>
-                {userDetails.clerk?.emailAddresses?.length > 0 && (
+                {userDetails.auth && userDetails.auth.emailAddresses.length > 0 && (
                   <div>
                     <span className="text-muted-foreground text-xs">Email Addresses:</span>
                     <ul className="text-xs mt-1">
-                      {userDetails.clerk.emailAddresses.map((e, i: number) => (
+                      {userDetails.auth.emailAddresses.map((e, i: number) => (
                         <li key={i} className="flex items-center gap-2">
                           {e.email}
                           {e.verified && <span className="text-green-500">(verified)</span>}
@@ -467,16 +464,17 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
                     </ul>
                   </div>
                 )}
-                {userDetails.clerk?.externalAccounts?.length > 0 && (
+                {userDetails.auth && (
                   <div>
-                    <span className="text-muted-foreground text-xs">Connected Accounts:</span>
-                    <ul className="text-xs mt-1">
-                      {userDetails.clerk.externalAccounts.map((e, i: number) => (
-                        <li key={i}>{e.provider}: {e.email}</li>
-                      ))}
-                    </ul>
+                    <span className="text-muted-foreground text-xs">Signs in with:</span>
+                    <span className="text-xs ml-2">
+                      {userDetails.auth.signInMethods
+                        .map((m) => (m === "credential" ? "password" : m === "axxes" ? "AXXES" : m))
+                        .join(", ") || "email code"}
+                    </span>
                   </div>
                 )}
+                {!userDetails.auth && <p className="text-xs text-muted-foreground">No sign-in account (this user cannot sign in).</p>}
               </div>
 
               {/* Database Info */}
@@ -532,7 +530,7 @@ export function UserActions({ userId, email, firstName, lastName, username, isFl
             <AlertDialogTitle>Delete User</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete <strong>{email}</strong>? This action cannot be undone.
-              This will remove the user from both Clerk and the database, including all their data.
+              This will remove the user&apos;s sign-in account and afters record, including all their data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

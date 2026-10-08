@@ -19,8 +19,8 @@ vi.mock("@/lib/auth-utils", () => ({
 vi.mock("@/lib/organizer-context", () => ({
   getOrganizerContext: async () => state.staffContext,
 }));
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: async () => ({ userId: null }),
+vi.mock("@/lib/auth/session", () => ({
+  getUserId: async () => null,
 }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {

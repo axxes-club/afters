@@ -7,7 +7,7 @@ const { mockAuth, mockRequireOrganizer } = vi.hoisted(() => ({
   mockRequireOrganizer: vi.fn(),
 }))
 
-vi.mock("@clerk/nextjs/server", () => ({ auth: mockAuth }))
+vi.mock("@/lib/auth/session", () => ({ getUserId: async () => (await mockAuth())?.userId ?? null }))
 vi.mock("@/lib/auth-utils", () => ({ requireOrganizer: mockRequireOrganizer }))
 // Stub UTApi to avoid build-time errors in test env
 vi.mock("uploadthing/server", async (importOriginal) => {

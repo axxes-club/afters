@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import {
   buildTicketPass,
@@ -59,7 +59,7 @@ export async function GET(
 
     let authorized = verifyWalletToken(ticket.id, token)
     if (!authorized) {
-      const { userId } = await auth()
+      const userId = await getUserId()
       authorized = !!userId && (ticket.userId === userId || ticket.order.userId === userId)
     }
     if (!authorized) {

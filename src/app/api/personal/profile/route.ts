@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getUserId, currentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
 // Get current user's personal profile
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const userId = await getUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -26,7 +26,7 @@ export async function GET() {
 // Create or update personal profile
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -81,9 +81,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      // Fetch user data from Clerk and create in our database
-      const clerkUser = await currentUser();
-      if (!clerkUser) {
+      // Create the afters row from the sign-in profile
+      const authUser = await currentUser();
+      if (!authUser) {
         return NextResponse.json(
           {
             error:
@@ -93,9 +93,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const primaryEmail = clerkUser.emailAddresses.find(
-        (e) => e.id === clerkUser.primaryEmailAddressId,
-      )?.emailAddress;
+      const primaryEmail = authUser.email;
 
       if (!primaryEmail) {
         return NextResponse.json(
@@ -108,9 +106,9 @@ export async function POST(request: NextRequest) {
         data: {
           id: userId,
           email: primaryEmail,
-          firstName: clerkUser.firstName,
-          lastName: clerkUser.lastName,
-          imageUrl: clerkUser.imageUrl,
+          firstName: authUser.firstName,
+          lastName: authUser.lastName,
+          imageUrl: authUser.imageUrl,
         },
       });
     }
@@ -157,7 +155,7 @@ export async function POST(request: NextRequest) {
 // Delete personal profile
 export async function DELETE() {
   try {
-    const { userId } = await auth();
+    const userId = await getUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -42,45 +42,35 @@ vi.mock("next/headers", () => ({
   })),
 }));
 
-// Mock Clerk
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(() => ({ userId: "test-user-id" })),
-  currentUser: vi.fn(() => ({
+// Mock sign-in (src/lib/auth)
+vi.mock("@/lib/auth/session", () => ({
+  getSession: vi.fn(async () => null),
+  getUserId: vi.fn(async () => "test-user-id"),
+  currentUser: vi.fn(async () => ({
     id: "test-user-id",
-    emailAddresses: [
-      {
-        id: "email-id",
-        emailAddress: "test@example.com",
-      },
-    ],
-    primaryEmailAddressId: "email-id",
+    email: "test@example.com",
+    emailVerified: true,
     firstName: "Test",
     lastName: "User",
     imageUrl: "https://example.com/avatar.jpg",
   })),
 }));
 
-vi.mock("@clerk/nextjs", () => ({
+vi.mock("@/lib/auth/client", () => ({
+  authClient: {},
+  signOut: vi.fn(),
+  useAuth: vi.fn(() => ({ isLoaded: true, isSignedIn: true, userId: "test-user-id" })),
   useUser: vi.fn(() => ({
-    user: {
-      id: "test-user-id",
-      emailAddresses: [
-        {
-          id: "email-id",
-          emailAddress: "test@example.com",
-        },
-      ],
-      firstName: "Test",
-      lastName: "User",
-      fullName: "Test User",
-      imageUrl: "https://example.com/avatar.jpg",
-    },
     isLoaded: true,
     isSignedIn: true,
+    user: {
+      id: "test-user-id",
+      email: "test@example.com",
+      firstName: "Test",
+      lastName: "User",
+      imageUrl: "https://example.com/avatar.jpg",
+    },
   })),
-  SignIn: vi.fn(),
-  SignUp: vi.fn(),
-  UserButton: vi.fn(),
 }));
 
 // Mock next-intl

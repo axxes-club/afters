@@ -1,11 +1,11 @@
-import { currentUser } from "@clerk/nextjs/server"
+import { currentUser } from "@/lib/auth/session"
 import { prisma } from "./prisma"
 
 /**
- * Ensures the authenticated Clerk user exists in our database.
+ * Ensures the signed-in person has an afters `User` row (same id as their sign-in account).
  * Handles:
  * 1. Brand new users (creates DB record)
- * 2. Dev→prod migration (matches by email, updates Clerk ID)
+ * 2. An older row with the same (verified) email but another id: it takes the sign-in id
  * 3. Existing users (no-op, fast path)
  *
  * Call this from getSessionUser() or middleware-like flows.
@@ -15,60 +15,57 @@ import { prisma } from "./prisma"
 // In-memory set of known-synced user IDs (cleared on cold start / redeploy)
 const syncedUsers = new Set<string>()
 
-export async function ensureUserSynced(clerkUserId: string) {
+export async function ensureUserSynced(authUserId: string) {
   // Fast path — already confirmed this session
-  if (syncedUsers.has(clerkUserId)) return
+  if (syncedUsers.has(authUserId)) return
 
-  // Check if user exists by Clerk ID
+  // Check if user exists by id
   const existing = await prisma.user.findUnique({
-    where: { id: clerkUserId },
+    where: { id: authUserId },
     select: { id: true },
   })
 
   if (existing) {
-    syncedUsers.add(clerkUserId)
+    syncedUsers.add(authUserId)
     return
   }
 
-  // User doesn't exist by ID — fetch Clerk profile for email
-  const clerkUser = await currentUser()
-  if (!clerkUser) return
+  // User doesn't exist by ID — read the sign-in profile for the email
+  const authUser = await currentUser()
+  // Only a verified email may claim an existing row.
+  if (!authUser || authUser.id !== authUserId || !authUser.emailVerified) return
 
-  const email = clerkUser.emailAddresses.find(
-    (e) => e.id === clerkUser.primaryEmailAddressId
-  )?.emailAddress
+  const email = authUser.email
 
-  if (!email) return
-
-  // Check if a user with this email exists (dev→prod migration)
+  // Check if a user with this email exists under another id
   const existingByEmail = await prisma.user.findUnique({
     where: { email },
   })
 
-  if (existingByEmail && existingByEmail.id !== clerkUserId) {
-    // Migrate: update old ID to new production Clerk ID
+  if (existingByEmail && existingByEmail.id !== authUserId) {
+    // Move the row to the sign-in id (foreign keys follow: ON UPDATE CASCADE)
     await prisma.user.update({
       where: { email },
       data: {
-        id: clerkUserId,
-        firstName: clerkUser.firstName ?? existingByEmail.firstName,
-        lastName: clerkUser.lastName ?? existingByEmail.lastName,
-        imageUrl: clerkUser.imageUrl ?? existingByEmail.imageUrl,
+        id: authUserId,
+        firstName: authUser.firstName ?? existingByEmail.firstName,
+        lastName: authUser.lastName ?? existingByEmail.lastName,
+        imageUrl: authUser.imageUrl ?? existingByEmail.imageUrl,
       },
     })
   } else if (!existingByEmail) {
     // Brand new user — create DB record as ORGANIZER by default
     await prisma.user.create({
       data: {
-        id: clerkUserId,
+        id: authUserId,
         email,
-        firstName: clerkUser.firstName,
-        lastName: clerkUser.lastName,
-        imageUrl: clerkUser.imageUrl,
+        firstName: authUser.firstName,
+        lastName: authUser.lastName,
+        imageUrl: authUser.imageUrl,
         role: "ORGANIZER",
       },
     })
   }
 
-  syncedUsers.add(clerkUserId)
+  syncedUsers.add(authUserId)
 }

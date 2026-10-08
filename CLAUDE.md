@@ -40,7 +40,7 @@ npx prisma studio     # Open Prisma Studio
 
 ### Core Libraries
 - **Prisma + Neon** - PostgreSQL database (`src/lib/prisma.ts`)
-- **Clerk** - Authentication (`src/lib/auth-utils.ts`)
+- **Better Auth** - Sign-in (`src/lib/auth/`; roles in `src/lib/auth-utils.ts`). Email + password, email codes, "Continue with AXXES"
 - **Stripe** - Payments and Connect for organizers (`src/lib/stripe.ts`, `src/lib/subscription.ts`)
 - **UploadThing** - File uploads (`src/lib/uploadthing.ts`)
 - **next-intl** - i18n with locales: en, es-ES, es-LA, pt-BR (messages in `/messages/*.json`)
@@ -60,10 +60,10 @@ Events support two modes:
 Features: hidden addresses until purchase, lineup management, custom themes, guestlist, QR scanner check-in.
 
 ### Scanner Authentication
-Events have `EventScanner` records with codes. Scanner auth uses JWT tokens (`src/lib/scanner-auth.ts`) - separate from Clerk user auth.
+Events have `EventScanner` records with codes. Scanner auth uses JWT tokens (`src/lib/scanner-auth.ts`) - separate from user sign-in.
 
 ### Testing
-Vitest with happy-dom. Test setup mocks Next.js navigation, Clerk, next-intl, and Prisma (`tests/setup.ts`). Run individual tests with:
+Vitest with happy-dom. Test setup mocks Next.js navigation, sign-in (`@/lib/auth/session`), next-intl, and Prisma (`tests/setup.ts`). Run individual tests with:
 ```bash
 pnpm test src/path/to/file.test.ts
 ```

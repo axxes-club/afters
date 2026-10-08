@@ -25,7 +25,7 @@ import {
  * account was simply "signed out", and the feed said no. Resolving the viewer once,
  * here, is what makes a guest a first-class attendee rather than an accident.
  *
- * A viewer is a Clerk session, or a redeemed guest ticket, or neither.
+ * A viewer is a signed-in session, or a redeemed guest ticket, or neither.
  */
 export type VibezIdentity = {
   /** Stable identity for authorship, self-removal and bans. Null when anonymous. */
@@ -73,8 +73,8 @@ async function readSpotIds(eventId: string): Promise<string[]> {
 }
 
 export async function resolveViewer(eventId: string): Promise<VibezIdentity> {
-  const { auth, currentUser } = await import("@clerk/nextjs/server")
-  const { userId } = await auth()
+  const { getUserId, currentUser } = await import("@/lib/auth/session")
+  const userId = await getUserId()
   const spotIds = await readSpotIds(eventId)
 
   if (userId) {
@@ -82,7 +82,7 @@ export async function resolveViewer(eventId: string): Promise<VibezIdentity> {
     return {
       subject: userId,
       userId,
-      email: user?.emailAddresses?.[0]?.emailAddress ?? null,
+      email: user?.email ?? null,
       isGuest: false,
       hasSpot: spotIds.length > 0,
       spotId: spotIds[0] ?? null,

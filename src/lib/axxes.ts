@@ -2,9 +2,9 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
 
 /**
  * "Continue with AXXES" — afters is an OIDC client of Handshake
- * (handshake.axxes.club), which holds the AXXES account. afters keeps Clerk for
- * its own sessions: the AXXES identity is matched to a Clerk user by verified
- * email, and Clerk signs them in with a one-time sign-in token.
+ * (handshake.axxes.club), which holds the AXXES account. The sign-in itself runs
+ * inside Better Auth (src/lib/auth/axxes-plugin.ts), which matches the AXXES
+ * identity to an afters account by verified email and starts the session.
  *
  * Authorization-code flow with PKCE, the same shape as qortr's client
  * (qortr/src/lib/axxes.ts). The callback URL is derived from the host the

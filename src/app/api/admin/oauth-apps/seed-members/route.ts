@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { isSuperAdmin } from "@/lib/auth-utils"
@@ -7,7 +7,7 @@ import { generateClientId, generateClientSecret, hashSecret } from "@/lib/oauth"
 // POST - Seed the Members Portal OAuth app
 export async function POST() {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -40,7 +40,7 @@ export async function POST() {
     // Find AXXES owner user (or use current superadmin)
     let ownerId = user.id
     const axxesUser = await prisma.user.findFirst({
-      where: { email: "hello@axxes.com" },
+      where: { email: "viscasillas@me.com" },
     })
     if (axxesUser) {
       ownerId = axxesUser.id

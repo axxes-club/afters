@@ -19,7 +19,7 @@ import {
   Palette,
   MoreHorizontal,
 } from "lucide-react";
-// Clerk account management is now in Settings > Security
+// Account management is in Settings > Security
 import {
   AftieProvider,
   AftieChat,

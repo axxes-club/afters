@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/lib/auth/client";
 import { useAccentColor } from "@/hooks/useAccentColor";
 import { Sparkles, ExternalLink, Clock } from "lucide-react";
 import { VibezFeed } from "@/components/vibez/VibezFeed";

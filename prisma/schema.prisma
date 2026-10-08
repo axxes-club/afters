@@ -592,14 +592,14 @@ model GuestlistEntry {
 //
 // Most people at a night never made an account, so the feed must not require
 // one. `userId` is the account link and is often null; `authorSubject` is the
-// identity that is actually checked, and it is either a Clerk id or a guest
+// identity that is actually checked, and it is either an account id or a guest
 // subject derived from a redeemed ticket. Everything that asks "is this mine?"
 // asks about authorSubject, never about userId.
 model VibezPost {
   id          String   @id @default(cuid())
   eventId     String
   userId      String?  // Account link, when the author happens to have one
-  /// Clerk user id, or a guest subject (see src/lib/vibez-guest.ts). The one
+  /// account id, or a guest subject (see src/lib/vibez-guest.ts). The one
   /// identity used for authorship, self-removal and bans.
   authorSubject String
   authorName  String   // Display name (from user profile or the guest's own name)
@@ -610,7 +610,7 @@ model VibezPost {
   /// A moderator removed this. The row stays so the removal is auditable and
   /// reversible; the file is purged later, once nobody is likely to want it back.
   removedAt   DateTime?
-  removedBy   String?  // Clerk user id of whoever removed it
+  removedBy   String?  // account id of whoever removed it
   removedReason String?
   /// Set when the image has actually been deleted from storage. A post whose
   /// file is gone can still be restored as a row, but not as a working image,
@@ -658,7 +658,7 @@ model VibezPost {
 model VibezReport {
   id         String   @id @default(cuid())
   postId     String
-  /// Clerk id or guest subject, matching VibezPost.authorSubject.
+  /// account id or guest subject, matching VibezPost.authorSubject.
   reporterId String
   reason     String   @default("other")
   note       String?
@@ -674,11 +674,11 @@ model VibezReport {
 model VibezBan {
   id        String   @id @default(cuid())
   eventId   String
-  userId    String   // Clerk user id of the banned person
+  userId    String   // account id of the banned person
   /// The same identity VibezPost.authorSubject uses, so a guest can be barred
   /// as well as an account holder.
   subject   String
-  bannedBy  String   // Clerk user id of the moderator
+  bannedBy  String   // account id of the moderator
   reason    String?
   createdAt DateTime @default(now())
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -1224,4 +1224,79 @@ model OAuthConnection {
 
   @@unique([appId, userId])
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Sign-in (Better Auth). These four tables hold credentials and sessions only;
+// the person's afters profile stays in `User`, which shares the same id.
+// Accounts moved over from Clerk kept their Clerk ids (`user_…`).
+// Created by scripts/auth/001-auth-tables.sql (additive; no other table changes).
+// ---------------------------------------------------------------------------
+
+model AuthUser {
+  id            String        @id
+  name          String
+  email         String        @unique
+  emailVerified Boolean       @default(false)
+  image         String?
+  /// Kept from Clerk for the record. There is no SMS sign-in yet.
+  phoneNumber   String?
+  /// A banned person cannot start a session (checked in src/lib/auth/index.ts).
+  banned        Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  sessions      AuthSession[]
+  accounts      AuthAccount[]
+
+  @@map("auth_user")
+}
+
+model AuthSession {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_session")
+}
+
+model AuthAccount {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  AuthUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  /// Better Auth's scrypt hash, a bcrypt hash imported from Clerk, or
+  /// `clerk:<user id>` until the person's first password sign-in moves it here.
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@unique([providerId, accountId])
+  @@map("auth_account")
+}
+
+model AuthVerification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("auth_verification")
 }

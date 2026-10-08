@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 
 // Helper to get or create settings singleton
 async function getSettings() {
@@ -20,7 +20,7 @@ async function getSettings() {
 // GET /api/admin/settings - Get current site settings (superadmin only)
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -49,7 +49,7 @@ export async function GET() {
 // PATCH /api/admin/settings - Update site settings (superadmin only)
 export async function PATCH() {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

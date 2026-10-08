@@ -4,8 +4,7 @@ import { test as setup } from '@playwright/test';
  * Auth setup - runs before all tests to establish authentication state.
  *
  * This setup file:
- * 1. Configures the Clerk testing token for the test session
- * 2. Ensures the test environment is ready
+ * 1. Ensures the test environment is ready
  *
  * Note: Individual tests use the `authenticateAs` fixture to set up
  * specific user sessions as needed.

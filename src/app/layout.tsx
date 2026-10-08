@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
@@ -79,12 +77,9 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
-  const isDummyKey = !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === "YOUR_PUBLISHABLE_KEY" || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_test_Y2xlc");
-
-  const bodyContent = (
+  return (
     <html lang={locale}>
       <head>
-        <link rel="dns-prefetch" href="https://clerk.afters.am" />
         <link rel="dns-prefetch" href="https://api.stripe.com" />
       </head>
       <body
@@ -100,75 +95,6 @@ export default async function RootLayout({
         </NextIntlClientProvider>
       </body>
     </html>
-  );
-
-  if (isDummyKey) {
-    return bodyContent;
-  }
-
-  return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-        variables: {
-          colorPrimary: "#ff1493",
-          colorBackground: "#000000",
-          colorInputBackground: "#0a0a0a",
-          colorInputText: "#ffffff",
-          colorTextOnPrimaryBackground: "#000000",
-          colorTextSecondary: "#888888",
-          borderRadius: "0px",
-          fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace",
-        },
-        elements: {
-          // Card and layout
-          rootBox: "w-full",
-          card: "bg-black border border-white/10 shadow-2xl shadow-[#ff1493]/5 rounded-none",
-          cardBox: "bg-black",
-          // Header
-          headerTitle: "text-white font-mono text-xl tracking-wider",
-          headerSubtitle: "text-white/50 font-mono text-sm",
-          // Social buttons
-          socialButtonsBlockButton: "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#ff1493]/30 transition-all font-mono rounded-none",
-          socialButtonsBlockButtonText: "text-white font-mono",
-          socialButtonsIconButton: "bg-white/5 border border-white/10 hover:bg-white/10 rounded-none",
-          // Divider
-          dividerLine: "bg-white/10",
-          dividerText: "text-white/30 font-mono text-xs",
-          // Form fields
-          formFieldLabel: "text-white/50 font-mono text-xs uppercase tracking-wider",
-          formFieldInput: "bg-black border-white/10 text-white font-mono focus:border-[#ff1493] focus:ring-[#ff1493]/20 rounded-none",
-          formFieldInputShowPasswordButton: "text-white/30 hover:text-white",
-          // Buttons
-          formButtonPrimary: "bg-[#ff1493] hover:bg-[#ff1493]/90 text-black font-mono font-bold uppercase tracking-wider rounded-none",
-          formButtonReset: "text-[#ff1493] hover:text-[#ff1493]/80 font-mono",
-          // Links
-          footerActionLink: "text-[#ff1493] hover:text-[#ff1493]/80 font-mono",
-          footerActionText: "text-white/40 font-mono",
-          identityPreviewEditButton: "text-[#ff1493]",
-          formFieldAction: "text-[#ff1493] font-mono text-xs",
-          // Alerts
-          alert: "bg-red-500/10 border border-red-500/30 rounded-none",
-          alertText: "text-red-400 font-mono text-sm",
-          // OTP
-          otpCodeFieldInput: "bg-black border-white/20 text-white font-mono rounded-none",
-          // User button
-          userButtonBox: "rounded-none",
-          userButtonTrigger: "rounded-none",
-          userButtonPopoverCard: "bg-black border border-white/10 rounded-none",
-          userButtonPopoverActionButton: "hover:bg-white/5 font-mono",
-          userButtonPopoverActionButtonText: "text-white/70 font-mono",
-          userButtonPopoverFooter: "border-white/10",
-          // Avatar
-          avatarBox: "rounded-none",
-          // Modal
-          modalBackdrop: "bg-black/80",
-          modalContent: "bg-black border border-white/10 rounded-none",
-        },
-      }}
-    >
-      {bodyContent}
-    </ClerkProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateClientId, generateClientSecret, hashSecret, OAUTH_SCOPES } from '@/lib/oauth'
@@ -6,7 +6,7 @@ import { generateClientId, generateClientSecret, hashSecret, OAUTH_SCOPES } from
 // List user's OAuth apps
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -48,7 +48,7 @@ export async function GET() {
 // Create new OAuth app
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

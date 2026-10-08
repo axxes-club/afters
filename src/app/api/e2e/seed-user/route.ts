@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
  * E2E Test User Seeding API
  *
  * This endpoint allows E2E tests to directly create users and organizer profiles
- * without going through the Clerk OAuth flow. It's protected by a bypass token
+ * without going through the sign-in flow. It's protected by a bypass token
  * and only works in non-production environments.
  *
  * Usage:

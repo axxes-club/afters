@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { SignedIn, SignedOut, useClerk, useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@/components/auth/session";
+import { signOut, useUser } from "@/lib/auth/client";
 import {
   Menu,
   ShieldCheck,
@@ -19,7 +20,6 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isGhosting, setIsGhosting] = useState(false);
-  const { signOut } = useClerk();
   const { user } = useUser();
 
   useEffect(() => {
@@ -113,12 +113,12 @@ export function Header() {
                   <div
                     className="w-6 h-6 flex items-center justify-center text-xs font-bold bg-primary/20 text-primary"
                   >
-                    {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
+                    {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase()}
                   </div>
                   <span className="text-xs text-white/70">{user?.firstName || 'Account'}</span>
                 </Link>
                 <button
-                  onClick={() => signOut({ redirectUrl: "/" })}
+                  onClick={() => signOut("/")}
                   className="p-2 text-white/30 hover:text-white/60 transition-colors"
                   title="Sign Out"
                 >
@@ -196,7 +196,7 @@ export function Header() {
                   <button
                     onClick={() => {
                       closeMenu();
-                      signOut({ redirectUrl: "/" });
+                      signOut("/");
                     }}
                     className="flex items-center gap-3 w-full h-11 px-3 text-xs tracking-wider text-red-400 hover:bg-red-500/10 transition-colors uppercase"
                   >

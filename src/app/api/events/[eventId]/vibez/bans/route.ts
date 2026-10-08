@@ -38,7 +38,7 @@ export async function GET(
  * Bar someone from this event's feed. Scoped to the event: a ban here does not
  * follow them to the next one. Moderators only.
  *
- * The target is a *subject* — a Clerk id or `tkt_<id>` for a guest. The unique
+ * The target is a *subject* — an account id or `tkt_<id>` for a guest. The unique
  * key stays (eventId, userId) because that is the column the existing index and
  * the moderator UI address, and because a guest ban still has to be idempotent.
  */

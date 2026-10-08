@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
 // Events listing is superadmin only - guests access events via direct links
 export default async function EventsPage() {
-  const { userId } = await auth();
+  const userId = await getUserId();
   
   if (!userId) {
     redirect("/sign-in");

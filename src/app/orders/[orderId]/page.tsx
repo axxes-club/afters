@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { headers } from "next/headers"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { getWalletPassPath, isAppleWalletConfigured } from "@/lib/apple-wallet"
 import { verifyOrderAccessToken } from "@/lib/order-access"
 import { CheckCircle, XCircle, Clock, CalendarDays, MapPin, Ticket, ArrowLeft, Mail, Wallet } from "lucide-react"
@@ -63,7 +63,7 @@ export default async function OrderConfirmationPage({
 
   // Guests need the signed token from checkout; signed-in buyers can view their own orders
   if (!verifyOrderAccessToken(order.id, token)) {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId || order.userId !== userId) {
       notFound()
     }

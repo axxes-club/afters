@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "@/lib/auth/session";
 import { createSpot, deleteSpot, listSpots, spotUrl } from "@/lib/vibez-spots";
 
 /** Where the printed codes point. Read from the deployment, not hardcoded, so a
@@ -15,7 +15,7 @@ function baseUrl() {
 /** Organizer or their active staff. A printed code is a credential, so minting
  *  one is an organizer action, not an attendee one. */
 async function requireOrganizer(eventId: string) {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return false;
 
   const event = await prisma.event.findUnique({

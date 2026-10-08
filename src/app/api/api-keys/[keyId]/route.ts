@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
@@ -7,7 +7,7 @@ type RouteContext = { params: Promise<{ keyId: string }> }
 // DELETE /api/api-keys/[keyId] - Revoke an API key
 export async function DELETE(req: Request, context: RouteContext) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
@@ -61,7 +61,7 @@ export async function DELETE(req: Request, context: RouteContext) {
 // PATCH /api/api-keys/[keyId] - Update API key (name only)
 export async function PATCH(req: Request, context: RouteContext) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })

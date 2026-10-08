@@ -26,8 +26,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: mockPrisma,
 }));
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: mockAuth,
+vi.mock("@/lib/auth/session", () => ({
+  getUserId: async () => (await mockAuth())?.userId ?? null,
   currentUser: mockCurrentUser,
 }));
 
@@ -55,8 +55,8 @@ describe("Organizer Profile API", () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockCurrentUser.mockResolvedValue({
         id: "user-123",
-        emailAddresses: [{ id: "email-1", emailAddress: "test@example.com" }],
-        primaryEmailAddressId: "email-1",
+        email: "test@example.com",
+        emailVerified: true,
         firstName: "Test",
         lastName: "User",
         imageUrl: "https://example.com/avatar.jpg",
@@ -234,12 +234,12 @@ describe("Organizer Profile API", () => {
       expect(data.error).toContain("already taken");
     });
 
-    it("should create user from Clerk if not in database", async () => {
+    it("should create the afters user from the sign-in profile if not in database", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockCurrentUser.mockResolvedValue({
         id: "user-123",
-        emailAddresses: [{ id: "email-1", emailAddress: "test@example.com" }],
-        primaryEmailAddressId: "email-1",
+        email: "test@example.com",
+        emailVerified: true,
         firstName: "Test",
         lastName: "User",
         imageUrl: "https://example.com/avatar.jpg",
@@ -281,7 +281,7 @@ describe("Organizer Profile API", () => {
       expect(data.slug).toBe("test");
     });
 
-    it("should return 404 if Clerk user not found", async () => {
+    it("should return 404 if there is no sign-in profile", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockCurrentUser.mockResolvedValue(null);
 
@@ -309,12 +309,11 @@ describe("Organizer Profile API", () => {
       expect(data.error).toContain("Unable to fetch user data");
     });
 
-    it("should return 400 if Clerk user has no primary email", async () => {
+    it("should return 400 if the sign-in profile has no email", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockCurrentUser.mockResolvedValue({
         id: "user-123",
-        emailAddresses: [{ id: "email-1", emailAddress: "test@example.com" }],
-        primaryEmailAddressId: "different-email-id", // No matching email
+        email: "",
         firstName: "Test",
         lastName: "User",
       } as any);

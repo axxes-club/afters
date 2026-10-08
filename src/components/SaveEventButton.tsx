@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Bookmark, BookmarkCheck, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { useAuth } from "@clerk/nextjs"
+import { useAuth } from "@/lib/auth/client"
 import { cn } from "@/lib/utils"
 
 interface SaveEventButtonProps {
