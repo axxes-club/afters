@@ -45,7 +45,7 @@ function reserve() {
 }
 function paid(orderId: string) {
   const body = JSON.stringify({ id: "evt_fixture", object: "event", type: "payment_intent.succeeded", livemode: false,
-    account: "acct_fixture", data: { object: { id: "pi_" + orderId, amount: 1199, amount_received: 1199,
+    account: "acct_fixture_" + eventId, data: { object: { id: "pi_" + orderId, amount: 1199, amount_received: 1199,
       currency: "usd", latest_charge: "ch_fixture", metadata: { orderId } } },
   })
   const signature = Stripe.webhooks.generateTestHeaderString({ payload: body, secret: "whsec_fixture" })
@@ -87,7 +87,7 @@ describe.skipIf(!state.databaseUrl)("paid tickets with real Postgres transaction
     const order = await (await reserve()).json()
     await prisma.order.update({ where: { id: order.id }, data: { stripePaymentIntentId: "pi_" + order.id } })
     const event = await prisma.event.findUniqueOrThrow({ where: { id: eventId } })
-    await prisma.organizerProfile.update({ where: { id: event.organizerId }, data: { stripeAccountId: "acct_fixture" } })
+    await prisma.organizerProfile.update({ where: { id: event.organizerId }, data: { stripeAccountId: "acct_fixture_" + eventId } })
     const responses = await Promise.all(Array.from({ length: 6 }, () => paid(order.id)))
     expect(responses.map(r => r.status)).toEqual([200, 200, 200, 200, 200, 200])
     expect(await prisma.ticket.count({ where: { orderId: order.id } })).toBe(1)
@@ -100,7 +100,7 @@ describe.skipIf(!state.databaseUrl)("paid tickets with real Postgres transaction
     const first = await (await reserve()).json()
     await prisma.order.update({ where: { id: first.id }, data: { stripePaymentIntentId: "pi_" + first.id } })
     const event = await prisma.event.findUniqueOrThrow({ where: { id: eventId } })
-    await prisma.organizerProfile.update({ where: { id: event.organizerId }, data: { stripeAccountId: "acct_fixture" } })
+    await prisma.organizerProfile.update({ where: { id: event.organizerId }, data: { stripeAccountId: "acct_fixture_" + eventId } })
     const [confirmation, second] = await Promise.all([paid(first.id), reserve()])
     expect(confirmation.status).toBe(200)
     expect(second.status).toBe(200)
