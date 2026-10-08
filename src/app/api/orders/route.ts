@@ -1,3 +1,5 @@
+import {securityRateLimit} from "@/lib/security-rate-limit";
+import {securityClientKey} from "@/lib/security-client-key";
 import { getUserId, currentUser } from "@/lib/auth/session"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
@@ -50,6 +52,10 @@ export async function POST(req: Request) {
       seenTiers.add(item.ticketTierId)
     }
 
+    if(!(await securityRateLimit("orders-global",600,60000)).allowed)return NextResponse.json({message:"Too many reservations. Try again later."},{status:429});
+    const admission=await securityRateLimit(`order:${userId??securityClientKey(req)}:${eventId}`,5,60000);
+    const buyer=await securityRateLimit(`buyer:${userId??String(email).toLowerCase()}:${eventId}`,10,3600000);
+    if(!admission.allowed || !buyer.allowed)return NextResponse.json({message:"Too many reservations. Try again later."},{status:429});
     return await prisma.$transaction(async (tx) => {
       // Serialize reservations for this event. Pending orders hold inventory until
       // paid or cancelled; the checkout endpoint enforces a one-hour lifetime.

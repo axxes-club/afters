@@ -1,3 +1,4 @@
+import {securityClientKey} from "@/lib/security-client-key";
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import {
@@ -20,8 +21,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Rate limiting by IP
-    const ip = req.headers.get("x-forwarded-for") || "unknown"
-    if (!checkRateLimit(`find-code-${ip}`, 10, 60000)) {
+    const ip = securityClientKey(req)
+    if (!await checkRateLimit(`find-code-${ip}`, 10, 60000)) {
       return NextResponse.json(
         { error: "Too many attempts. Please try again later.", valid: false },
         { status: 429 }

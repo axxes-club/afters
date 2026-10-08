@@ -11,8 +11,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # pnpm 9 rejects the pnpm 12-only allowBuilds placeholder file (no packages field).
 # This is a single-package app; ignore that incompatible workspace file in the image.
 RUN rm -f pnpm-workspace.yaml
-RUN if [ -f package-lock.json ]; then npm ci; \
-    else corepack enable && corepack prepare pnpm@9 --activate && pnpm install --frozen-lockfile; fi
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --frozen-lockfile
 RUN mkdir -p public && if [ -d prisma ]; then npx prisma generate; fi
 # Matches the Vercel build (vercel.json) minus migrations, which run from migrate.yml.
 RUN --mount=type=secret,id=build-env,target=/app/.env.production pnpm exec next build --webpack \

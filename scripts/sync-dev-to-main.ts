@@ -7,7 +7,7 @@ import 'dotenv/config';
 const utapi = new UTApi();
 
 async function main() {
-  const sourceUrl = 'postgresql://neondb_owner:npg_6CG9YBgUPFpy@ep-steep-frost-aed2xpf8-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require';
+  const sourceUrl = (() => { const value = process.env.SOURCE_DATABASE_URL; if (!value || !/^postgres(?:ql)?:\/\//.test(value)) throw new Error("Set SOURCE_DATABASE_URL to a PostgreSQL connection URL"); return value; })();
   const destUrl = process.env.DATABASE_URL;
 
   if (!destUrl) {

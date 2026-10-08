@@ -1,3 +1,4 @@
+import { securityRateLimit } from "./security-rate-limit";
 import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
@@ -83,26 +84,6 @@ export async function clearScannerSession(): Promise<void> {
   cookieStore.delete(SCANNER_SESSION_COOKIE)
 }
 
-// Simple in-memory rate limiting
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-
-export function checkRateLimit(
-  identifier: string,
-  maxAttempts = 10,
-  windowMs = 60000
-): boolean {
-  const now = Date.now()
-  const record = rateLimitMap.get(identifier)
-
-  if (!record || now > record.resetAt) {
-    rateLimitMap.set(identifier, { count: 1, resetAt: now + windowMs })
-    return true
-  }
-
-  if (record.count >= maxAttempts) {
-    return false
-  }
-
-  record.count++
-  return true
+export async function checkRateLimit(identifier: string, maxAttempts=10, windowMs=60000): Promise<boolean> {
+ return (await securityRateLimit(`scanner:${identifier}`,maxAttempts,windowMs)).allowed;
 }

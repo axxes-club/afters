@@ -1,3 +1,4 @@
+import { securityRateLimit } from "./security-rate-limit";
 import { createHash, randomBytes } from "crypto"
 import { prisma } from "./prisma"
 
@@ -111,37 +112,6 @@ export function hasAllScopes(scopes: string[], requiredScopes: ApiScope[]): bool
   return requiredScopes.every((scope) => scopes.includes(scope))
 }
 
-// Rate limiting for API keys (in-memory, similar to scanner-auth)
-const apiRateLimitMap = new Map<string, { count: number; resetAt: number }>()
-
-export function checkApiRateLimit(
-  keyId: string,
-  maxRequests = 100,
-  windowMs = 60000
-): { allowed: boolean; remaining: number; resetAt: number } {
-  const now = Date.now()
-  const record = apiRateLimitMap.get(keyId)
-
-  if (!record || now > record.resetAt) {
-    const newRecord = { count: 1, resetAt: now + windowMs }
-    apiRateLimitMap.set(keyId, newRecord)
-    return { allowed: true, remaining: maxRequests - 1, resetAt: newRecord.resetAt }
-  }
-
-  if (record.count >= maxRequests) {
-    return { allowed: false, remaining: 0, resetAt: record.resetAt }
-  }
-
-  record.count++
-  return { allowed: true, remaining: maxRequests - record.count, resetAt: record.resetAt }
+export async function checkApiRateLimit(keyId: string,maxRequests=100,windowMs=60000) {
+ return securityRateLimit(`api:${keyId}`,maxRequests,windowMs);
 }
-
-// Clean up old rate limit entries periodically
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, record] of apiRateLimitMap.entries()) {
-    if (now > record.resetAt) {
-      apiRateLimitMap.delete(key)
-    }
-  }
-}, 60000) // Clean up every minute
