@@ -222,6 +222,35 @@ export async function POST(req: Request) {
         break
       }
 
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge
+        // Partial refunds can be goodwill adjustments; only a full refund voids
+        // the entire order. Handle refunds before success as well (out-of-order delivery).
+        if (!charge.refunded || charge.amount_refunded !== charge.amount) break
+        const intentId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id
+        if (!intentId) break
+        await prisma.$transaction(async tx => {
+          const order = await tx.order.findUnique({
+            where: { stripePaymentIntentId: intentId },
+            include: { event: { include: { organizer: true } } },
+          })
+          if (!order || !["PENDING", "PAID"].includes(order.status)) return
+          if (charge.amount !== order.total ||
+              (event.account && event.account !== order.event.organizer.stripeAccountId)) {
+            throw new Error("Refund does not match its ticket order")
+          }
+          await tx.$queryRaw`SELECT "id" FROM "Event" WHERE "id" = ${order.eventId} FOR UPDATE`
+          const claimed = await tx.order.updateMany({
+            where: { id: order.id, status: { in: ["PENDING", "PAID"] }, stripePaymentIntentId: intentId },
+            data: { status: "REFUNDED" },
+          })
+          if (claimed.count === 1) await tx.ticket.updateMany({
+            where: { orderId: order.id }, data: { status: "REFUNDED" },
+          })
+        })
+        break
+      }
+
       case "payment_intent.payment_failed": {
         // A card decline is retryable on the same PaymentIntent. It does not cancel
         // the order, and a late failure must never undo a successful payment.

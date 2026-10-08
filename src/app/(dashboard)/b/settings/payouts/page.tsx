@@ -4,6 +4,8 @@ import { Suspense, useCallback, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Check, Landmark, Loader2, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { PayoutFinancialScreens } from "@/components/orders/payout-financial-screens"
 
 type Status = {
   connected: boolean
@@ -22,6 +24,7 @@ type Status = {
  */
 function Payouts() {
   const params = useSearchParams()
+  const router = useRouter()
   const [status, setStatus] = useState<Status | null>(null)
   const [loading, setLoading] = useState(true)
   const [opening, setOpening] = useState(false)
@@ -45,6 +48,10 @@ function Payouts() {
   }, [params])
 
   async function openSetup() {
+    if (status?.detailsSubmitted) {
+      router.push("/b/settings/payouts?view=account")
+      return
+    }
     setOpening(true)
     try {
       const res = await fetch("/api/stripe/connect/onboarding", { method: "POST" })
@@ -117,6 +124,10 @@ function Payouts() {
           )}
         </div>
       </div>
+
+      {status?.isOwner && status.connected && (
+        <PayoutFinancialScreens view={params.get("view")} />
+      )}
 
       <div className="border border-white/10 bg-white/[0.02]">
         <div className="px-4 py-2 border-b border-white/10">

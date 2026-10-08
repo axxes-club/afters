@@ -108,6 +108,27 @@ describe.skipIf(!state.databaseUrl)("paid tickets with real Postgres transaction
     expect((await prisma.ticketTier.findUniqueOrThrow({ where: { id: tierId } })).quantitySold).toBe(1)
     expect(await prisma.order.count({ where: { eventId, status: "PENDING" } })).toBe(1)
   })
+  it("voids all tickets when full refunds race payment fulfillment", async () => {
+    await prisma.ticketTier.update({ where: { id: tierId }, data: { quantity: 12 } })
+    const event = await prisma.event.findUniqueOrThrow({ where: { id: eventId } })
+    await prisma.organizerProfile.update({ where: { id: event.organizerId }, data: { stripeAccountId: "acct_fixture_" + eventId } })
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const order = await (await reserve()).json()
+      await prisma.order.update({ where: { id: order.id }, data: { stripePaymentIntentId: "pi_" + order.id } })
+      const body = JSON.stringify({ id: "evt_refund_" + order.id, type: "charge.refunded", livemode: false,
+        account: "acct_fixture_" + eventId, data: { object: { payment_intent: "pi_" + order.id,
+          amount: 1199, amount_refunded: 1199, refunded: true } },
+      })
+      const signature = Stripe.webhooks.generateTestHeaderString({ payload: body, secret: "whsec_fixture" })
+      const refund = () => webhook(new Request("https://afters.am/api/webhooks/stripe", {
+        method: "POST", body, headers: { "stripe-signature": signature },
+      }))
+      const responses = await Promise.all(attempt % 2 ? [refund(), paid(order.id)] : [paid(order.id), refund()])
+      expect(responses.every(response => response.status === 200)).toBe(true)
+      expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("REFUNDED")
+      expect(await prisma.ticket.count({ where: { orderId: order.id, status: { not: "REFUNDED" } } })).toBe(0)
+    }
+  })
   it("issues a free order once when its confirmation requests race", async () => {
     await prisma.ticketTier.update({ where: { id: tierId }, data: { price: 0 } })
     const order = await (await reserve()).json()

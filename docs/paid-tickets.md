@@ -39,7 +39,7 @@ its existing buyer service fee (10% + $0.99 per ticket) as an application fee.
 Both destinations use `https://afters.am/api/webhooks/stripe`:
 
 - Connected accounts: `payment_intent.succeeded`,
-  `payment_intent.payment_failed`, `account.updated`.
+  `payment_intent.payment_failed`, `charge.refunded`, `account.updated`.
   Signing secret: `STRIPE_CONNECT_WEBHOOK_SECRET`.
 - Platform: ticket payment events (legacy) and subscription created/updated/deleted.
   Signing secret: `STRIPE_WEBHOOK_SECRET`.
@@ -60,5 +60,14 @@ under `~/Developer/_gcp/_cutover/`. Never commit signing secrets.
 - Stripe account inventory at setup: zero connected accounts. Organizers must
   complete identity/bank verification before paid tickets can sell. No real card
   purchase has been performed.
-- Remaining verification: full suite, Linux CI including Postgres concurrency,
-  production deployment and signed webhook smoke checks.
+- First patch: 327 tests passed in Linux CI, including four real PostgreSQL
+  concurrency cases. Production revision `afters-00054-qib` serves all traffic.
+  Both signed webhook destinations returned 200; invalid signatures returned 400.
+- Browser E2E is skipped because its repository credentials are not configured.
+- Financial-screen follow-up adds owner-only Stripe sessions and six embedded
+  components: notification banner, account management (including bank edits),
+  balances, payouts, payments/refunds/disputes, and documents. Stripe Connect
+  site links must point to their corresponding `b/settings/payouts?view=...` URLs.
+- Full refunds atomically mark orders and tickets REFUNDED, even when refund and
+  payment-success events race or arrive out of order. Partial refunds retain tickets.
+  Refunded tickets do not automatically return sold capacity to inventory.

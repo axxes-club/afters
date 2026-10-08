@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({
   sold: 0,
   tasks: [] as Array<() => Promise<unknown>>,
   failTicket: false,
+  successWhileWaiting: false,
   signature: "",
 }))
 vi.mock("next/server", async (original) => ({
@@ -20,18 +21,18 @@ vi.mock("@/lib/stripe", async () => {
 })
 vi.mock("@/lib/prisma", () => {
   const db = {
-    $queryRaw: async () => [],
+    $queryRaw: async () => { if (state.successWhileWaiting) { state.order.status = "PAID"; state.tickets.push({ status: "VALID" }); state.successWhileWaiting = false }; return [] },
     order: {
-      findUnique: async () => state.order,
+      findUnique: async () => structuredClone(state.order),
       update: async ({ data }: { data: Record<string, unknown> }) => Object.assign(state.order, data),
       updateMany: async ({ where, data }: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
-        if (state.order.id !== where.id || state.order.status !== where.status ||
+        if (state.order.id !== where.id || !(typeof where.status === "object" ? (where.status as { in: unknown[] }).in.includes(state.order.status) : state.order.status === where.status) ||
           (where.stripePaymentIntentId && state.order.stripePaymentIntentId !== where.stripePaymentIntentId)) return { count: 0 }
         Object.assign(state.order, data)
         return { count: 1 }
       },
     },
-    ticket: { create: async ({ data }: { data: Record<string, unknown> }) => {
+    ticket: { updateMany: async () => { state.tickets.forEach(ticket => { ticket.status = "REFUNDED" }); return { count: state.tickets.length } }, create: async ({ data }: { data: Record<string, unknown> }) => {
       if (state.failTicket) throw new Error("ticket write failed")
       const ticket = { ...data, id: `ticket-${state.tickets.length + 1}` }
       state.tickets.push(ticket)
@@ -91,6 +92,7 @@ beforeEach(() => {
   state.sold = 0
   state.tasks = []
   state.failTicket = false
+  state.successWhileWaiting = false
   state.signature = ""
 })
 
@@ -139,6 +141,7 @@ describe("paid ticket webhook", () => {
     expect(state.order.status).toBe("PENDING")
     expect(state.sold).toBe(0)
     state.failTicket = false
+  state.successWhileWaiting = false
     expect((await deliver()).status).toBe(200)
     expect(state.tickets).toHaveLength(2)
   })
@@ -151,4 +154,29 @@ describe("paid ticket webhook", () => {
   it("rejects an unsigned request", async () => {
     expect((await POST(new Request("https://afters.am/api/webhooks/stripe", { method: "POST", body: "{}" }))).status).toBe(400)
   })
+})
+
+function refunded() {
+  return { id: "evt_refund", object: "event", type: "charge.refunded", livemode: false, account: "acct_organizer",
+    data: { object: { id: "ch_order", payment_intent: "pi_order", amount: 1299, amount_refunded: 1299, refunded: true } },
+  }
+}
+it("voids tickets and marks a full refund once", async () => {
+  await deliver()
+  expect((await deliver(refunded() as unknown as ReturnType<typeof paymentEvent>)).status).toBe(200)
+  expect(state.order.status).toBe("REFUNDED")
+  expect(state.tickets.every(ticket => ticket.status === "REFUNDED")).toBe(true)
+})
+it("does not issue tickets if a full refund webhook arrives before payment success", async () => {
+  await deliver(refunded() as unknown as ReturnType<typeof paymentEvent>)
+  await deliver()
+  expect(state.order.status).toBe("REFUNDED")
+  expect(state.tickets).toHaveLength(0)
+})
+
+it("voids tickets when payment succeeds while the refund waits for the event lock", async () => {
+  state.successWhileWaiting = true
+  await deliver(refunded() as unknown as ReturnType<typeof paymentEvent>)
+  expect(state.order.status).toBe("REFUNDED")
+  expect(state.tickets.every(ticket => ticket.status === "REFUNDED")).toBe(true)
 })

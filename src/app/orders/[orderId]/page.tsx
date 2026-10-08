@@ -120,6 +120,8 @@ export default async function OrderConfirmationPage({
                 <h1 className="text-xl font-bold uppercase tracking-wider mb-1">
                   {isPaid
                     ? "ORDER CONFIRMED"
+                    : order.status === "REFUNDED"
+                    ? "ORDER REFUNDED"
                     : isFailed
                     ? "PAYMENT FAILED"
                     : "PROCESSING"}
@@ -127,6 +129,8 @@ export default async function OrderConfirmationPage({
                 <p className="text-sm text-white/50">
                   {isPaid
                     ? `Thanks ${buyerName}! Your tickets have been sent to ${order.email}`
+                    : order.status === "REFUNDED"
+                    ? "Your payment was refunded. These tickets are no longer valid."
                     : isFailed
                     ? "Your payment could not be processed. Please try again."
                     : "Please wait while we confirm your payment..."}
