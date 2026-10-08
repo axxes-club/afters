@@ -226,6 +226,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
       if (isFreeOrder) {
         const confirmRes = await fetch(`/api/orders/${order.id}/confirm-free`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: guestEmail }),
         })
 
         if (!confirmRes.ok) {
@@ -250,6 +252,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
       }
 
       const payment = await paymentRes.json()
+      if (["succeeded", "processing"].includes(payment.paymentStatus)) {
+        router.push(orderPath(order.id, order.accessToken ?? null))
+        return
+      }
       setStripeAccount(payment.stripeAccount)
       setClientSecret(payment.clientSecret)
     } catch (error) {

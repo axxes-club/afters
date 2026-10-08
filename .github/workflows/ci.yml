@@ -124,6 +124,21 @@ jobs:
     timeout-minutes: 15
     needs: quality
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: afters_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d afters_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -145,9 +160,15 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Create disposable ticket concurrency schema
+        run: pnpm exec prisma db push
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/afters_test
+
       - name: Run tests with coverage
         run: pnpm test:coverage
         env:
+          AFTERS_TEST_DATABASE_URL: postgresql://test:test@localhost:5432/afters_test
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           BETTER_AUTH_SECRET: ci-only-better-auth-secret-not-a-runtime-credential
           SCANNER_JWT_SECRET: test-scanner-jwt-secret

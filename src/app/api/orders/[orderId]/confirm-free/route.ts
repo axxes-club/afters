@@ -61,96 +61,92 @@ export async function POST(
     }
 
     // Verify order total is $0 (free tickets only)
-    if (order.total !== 0) {
+    if (order.total !== 0 || order.items.some(item => item.unitPrice !== 0 || !Number.isSafeInteger(item.quantity) || item.quantity < 1)) {
       return NextResponse.json(
         { message: "This endpoint is only for free orders" },
         { status: 400 }
       )
     }
 
-    // Update order to PAID status
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: "PAID",
-        paidAt: new Date(),
-      },
-      include: {
-        items: {
-          include: {
-            ticketTier: true,
-          },
-        },
-        event: true,
-        user: true,
-      },
-    })
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Event" WHERE "id" = ${order.eventId} FOR UPDATE`
+      const claimed = await tx.order.updateMany({
+        where: { id: order.id, status: "PENDING", total: 0 },
+        data: { status: "PAID", paidAt: new Date() },
+      })
+      if (claimed.count !== 1) return null
+      const updatedOrder = order
 
-    const createdTickets: Array<{
-      ticketNumber: string
-      ticketId: string
-      tierName: string
-      eventTitle: string
-      eventDate: string
-      venueName: string
-      venueAddress: string
-      holderName?: string
-      isTestTicket: boolean
-    }> = []
+      const createdTickets: Array<{
+        ticketNumber: string
+        ticketId: string
+        tierName: string
+        eventTitle: string
+        eventDate: string
+        venueName: string
+        venueAddress: string
+        holderName?: string
+        isTestTicket: boolean
+      }> = []
 
-    // Generate tickets for each order item
-    for (const item of updatedOrder.items) {
-      for (let i = 0; i < item.quantity; i++) {
-        const ticketNumber = `AFT-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+      // Generate tickets for each order item
+      for (const item of updatedOrder.items) {
+        for (let i = 0; i < item.quantity; i++) {
+          const ticketNumber = `AFT-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`
 
-        const ticket = await prisma.ticket.create({
+          const ticket = await tx.ticket.create({
+            data: {
+              ticketNumber,
+              orderId: updatedOrder.id,
+              eventId: updatedOrder.eventId,
+              ticketTierId: item.ticketTierId,
+              userId: updatedOrder.userId || null, // null for guest orders
+            },
+          })
+
+          // Determine holder name - use guest name or user name
+          const holderName = updatedOrder.guestName
+            || (updatedOrder.user?.firstName && updatedOrder.user?.lastName
+              ? `${updatedOrder.user.firstName} ${updatedOrder.user.lastName}`
+              : undefined)
+
+          const venueAddress = `${updatedOrder.event?.venueAddress ?? ''}, ${updatedOrder.event?.city ?? ''}${updatedOrder.event?.state ? `, ${updatedOrder.event.state}` : ''}`
+
+          createdTickets.push({
+            ticketNumber: ticket.ticketNumber,
+            ticketId: ticket.id,
+            tierName: item.ticketTier?.name ?? 'General Admission',
+            eventTitle: updatedOrder.event?.title ?? 'Event',
+            eventDate: formatInTimezone(new Date(updatedOrder.event?.startsAt ?? Date.now()), updatedOrder.event?.timezone, {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            }),
+            venueName: updatedOrder.event?.venueName ?? 'TBD',
+            venueAddress,
+            holderName,
+            isTestTicket: false,
+          })
+        }
+
+        // Update ticket tier sold count
+        await tx.ticketTier.update({
+          where: { id: item.ticketTierId },
           data: {
-            ticketNumber,
-            orderId: updatedOrder.id,
-            eventId: updatedOrder.eventId,
-            ticketTierId: item.ticketTierId,
-            userId: updatedOrder.userId || null, // null for guest orders
+            quantitySold: {
+              increment: item.quantity,
+            },
           },
-        })
-
-        // Determine holder name - use guest name or user name
-        const holderName = updatedOrder.guestName
-          || (updatedOrder.user?.firstName && updatedOrder.user?.lastName
-            ? `${updatedOrder.user.firstName} ${updatedOrder.user.lastName}`
-            : undefined)
-
-        const venueAddress = `${updatedOrder.event?.venueAddress ?? ''}, ${updatedOrder.event?.city ?? ''}${updatedOrder.event?.state ? `, ${updatedOrder.event.state}` : ''}`
-
-        createdTickets.push({
-          ticketNumber: ticket.ticketNumber,
-          ticketId: ticket.id,
-          tierName: item.ticketTier?.name ?? 'General Admission',
-          eventTitle: updatedOrder.event?.title ?? 'Event',
-          eventDate: formatInTimezone(new Date(updatedOrder.event?.startsAt ?? Date.now()), updatedOrder.event?.timezone, {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-          }),
-          venueName: updatedOrder.event?.venueName ?? 'TBD',
-          venueAddress,
-          holderName,
-          isTestTicket: false,
         })
       }
 
-      // Update ticket tier sold count
-      await prisma.ticketTier.update({
-        where: { id: item.ticketTierId },
-        data: {
-          quantitySold: {
-            increment: item.quantity,
-          },
-        },
-      })
-    }
+      return { updatedOrder, createdTickets }
+    }, { timeout: 15000 })
+    if (!result) return NextResponse.json({ message: "Order already processed" }, { status: 409 })
+    const { updatedOrder, createdTickets } = result
 
     // Generate PDF and send email after the response using the Next.js lifecycle
     // This allows us to return a response immediately while the email sends
@@ -196,7 +192,7 @@ export async function POST(
 
           // Notify organizer of the RSVP (push + email)
           const organizer = await prisma.organizerProfile.findFirst({
-            where: { userId: updatedOrder.event?.organizerId },
+            where: { id: updatedOrder.event?.organizerId },
             include: { user: true },
           })
 

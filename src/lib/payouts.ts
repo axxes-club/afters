@@ -73,12 +73,17 @@ export async function ensurePayoutAccount(profile: Profile): Promise<string> {
     business_profile: { name: profile.displayName, product_description: "Event tickets sold on afters.am" },
     capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
     metadata: { organizerProfileId: profile.id, source: "afters" },
-  })
-  await prisma.organizerProfile.update({
-    where: { id: profile.id },
+  }, { idempotencyKey: `afters-payout:${profile.id}:${profile.stripeAccountId ?? "new"}` })
+  const assigned = await prisma.organizerProfile.updateMany({
+    where: { id: profile.id, stripeAccountId: profile.stripeAccountId },
     data: { stripeAccountId: created.id, stripeOnboardingComplete: false, stripeChargesEnabled: false, stripePayoutsEnabled: false },
   })
-  return created.id
+  if (assigned.count === 1) return created.id
+  // Another setup request won the assignment. Always return the stored account
+  // so every onboarding link points at the account afters will actually charge.
+  const current = await prisma.organizerProfile.findUnique({ where: { id: profile.id }, select: { stripeAccountId: true } })
+  if (!current?.stripeAccountId) throw new Error("Payout account assignment failed")
+  return current.stripeAccountId
 }
 
 const settingsUrls = (base: string) => ({

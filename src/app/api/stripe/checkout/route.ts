@@ -60,11 +60,13 @@ export async function POST(req: Request) {
 
     // A retry (back button, double click) reuses the order's payment instead of making a second one.
     if (order.stripePaymentIntentId) {
-      const existing = await stripe.paymentIntents
-        .retrieve(order.stripePaymentIntentId, {}, { stripeAccount })
-        .catch(() => null)
-      if (existing && existing.amount === order.total && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(existing.status)) {
-        return NextResponse.json({ clientSecret: existing.client_secret, stripeAccount })
+      // A network error cannot justify another charge: the first may have succeeded.
+      const existing = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId, {}, { stripeAccount })
+      if (existing.amount !== order.total) {
+        return NextResponse.json({ message: "Payment amount does not match this order" }, { status: 409 })
+      }
+      if (existing.status !== "canceled") {
+        return NextResponse.json({ clientSecret: existing.client_secret, stripeAccount, paymentStatus: existing.status })
       }
     }
 
@@ -86,10 +88,22 @@ export async function POST(req: Request) {
       { stripeAccount, idempotencyKey: `afters-order:${order.id}:${order.stripePaymentIntentId ?? "first"}` }
     )
 
-    await prisma.order.update({
-      where: { id: orderId },
+    const assigned = await prisma.order.updateMany({
+      where: {
+        id: orderId, status: "PENDING", stripePaymentIntentId: order.stripePaymentIntentId,
+        createdAt: { gte: new Date(Date.now() - ONE_HOUR) },
+      },
       data: { stripePaymentIntentId: paymentIntent.id },
     })
+    if (assigned.count !== 1) {
+      const current = await prisma.order.findUnique({ where: { id: orderId } })
+      if (current?.stripePaymentIntentId !== paymentIntent.id || !["PENDING", "PAID"].includes(current.status)) {
+        // Expiration can race a slow Stripe create. Never expose its client secret
+        // once the reservation has been released.
+        await stripe.paymentIntents.cancel(paymentIntent.id, {}, { stripeAccount })
+        return NextResponse.json({ message: "Order has expired. Please create a new order." }, { status: 409 })
+      }
+    }
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret, stripeAccount })
   } catch (error) {
