@@ -2,6 +2,21 @@ import { getEffectiveUserId } from "@/lib/auth-utils";
 import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { canSellPaidTickets } from "@/lib/payouts"
+
+const MAX_PRICE_CENTS = 1_000_000 // $10,000
+
+/**
+ * A ticket price in cents: 0 for free, otherwise $1.00 to $10,000.00. A paid
+ * price needs a payout account that can take charges, or nobody could buy it.
+ */
+function priceProblem(price: unknown, profile: { stripeAccountId: string | null; stripeChargesEnabled: boolean }): string | null {
+  if (typeof price !== "number" || !Number.isInteger(price) || price < 0) return "Price must be a whole number of cents"
+  if (price > 0 && price < 100) return "Paid tickets cost at least $1.00"
+  if (price > MAX_PRICE_CENTS) return "Ticket price can't be more than $10,000"
+  if (price > 0 && !canSellPaidTickets(profile)) return "Set up payouts in Settings → Payouts before selling paid tickets"
+  return null
+}
 
 export async function GET(
   req: Request,
@@ -112,6 +127,10 @@ export async function POST(
         { status: 400 }
       )
     }
+    const invalidPrice = priceProblem(price, profile)
+    if (invalidPrice) {
+      return NextResponse.json({ message: invalidPrice }, { status: 400 })
+    }
 
     // Get next sort order
     const lastTier = await prisma.ticketTier.findFirst({
@@ -124,7 +143,7 @@ export async function POST(
         eventId,
         name,
         description,
-        price: 0, // Free during beta - ignore provided price
+        price,
         quantity,
         salesStartAt: salesStartAt ? new Date(salesStartAt) : null,
         salesEndAt: salesEndAt ? new Date(salesEndAt) : null,
@@ -184,7 +203,7 @@ export async function PUT(
     }
 
     // Allowlist updatable fields to prevent mass assignment
-    // Explicitly exclude: price (beta), quantitySold, id, eventId, createdAt, updatedAt
+    // Explicitly exclude: quantitySold, id, eventId, createdAt, updatedAt
     const {
       name,
       description,
@@ -195,6 +214,7 @@ export async function PUT(
       minPerOrder,
       maxPerOrder,
       sortOrder,
+      price,
     } = body
 
     // Build update data only from allowed fields that are present
@@ -208,7 +228,18 @@ export async function PUT(
     if (minPerOrder !== undefined) updateData.minPerOrder = minPerOrder
     if (maxPerOrder !== undefined) updateData.maxPerOrder = maxPerOrder
     if (sortOrder !== undefined) updateData.sortOrder = sortOrder
-    // price changes disabled during beta - intentionally not included
+    if (price !== undefined) {
+      const invalidPrice = priceProblem(price, profile)
+      if (invalidPrice) {
+        return NextResponse.json({ message: invalidPrice }, { status: 400 })
+      }
+      // Once a tier has sold, its price is what those buyers paid; changing it would misstate their orders.
+      const current = await prisma.ticketTier.findFirst({ where: { id, eventId }, select: { price: true, quantitySold: true } })
+      if (current && current.price !== price && current.quantitySold > 0) {
+        return NextResponse.json({ message: "This tier has sales, so its price can't change. Add a new tier instead." }, { status: 400 })
+      }
+      updateData.price = price
+    }
 
     const tier = await prisma.ticketTier.update({
       where: { id, eventId },

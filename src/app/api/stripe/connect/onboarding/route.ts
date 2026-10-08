@@ -1,75 +1,34 @@
-import { getEffectiveUserId } from "@/lib/auth-utils";
-import { organizerWhere } from "@/lib/organizer-context";
+import { getEffectiveUserId } from "@/lib/auth-utils"
+import { organizerWhere } from "@/lib/organizer-context"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { stripe } from "@/lib/stripe"
+import { onboardingLink } from "@/lib/payouts"
+import { publicOrigin } from "@/lib/public-origin"
 
-export async function POST() {
+/**
+ * POST /api/stripe/connect/onboarding — Stripe's verification form for the
+ * organizer's payout account (identity and bank). Owner only: payouts decide
+ * where the money goes.
+ */
+export async function POST(req: Request) {
   try {
     const userId = await getEffectiveUserId()
-
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    let profile = await prisma.organizerProfile.findUnique({
+    const profile = await prisma.organizerProfile.findUnique({
       where: await organizerWhere("owner"),
-      include: { user: { select: { email: true } } },
+      select: { id: true, displayName: true, stripeAccountId: true, user: { select: { email: true } } },
     })
-
     if (!profile) {
-      return NextResponse.json(
-        { message: "Organizer profile not found" },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: "Only the organizer's owner can set up payouts" }, { status: 403 })
     }
 
-    // Create Stripe account if it doesn't exist
-    let stripeAccountId = profile.stripeAccountId
-    if (!stripeAccountId) {
-      const stripeAccount = await stripe.accounts.create({
-        type: "express",
-        country: "US",
-        email: profile.user.email,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-        business_type: "individual",
-        settings: {
-          payouts: {
-            schedule: {
-              interval: "daily",
-            },
-          },
-        },
-      })
-      
-      stripeAccountId = stripeAccount.id
-      
-      // Update profile with the new Stripe account ID
-      profile = await prisma.organizerProfile.update({
-        where: await organizerWhere("owner"),
-        data: { stripeAccountId },
-        include: { user: { select: { email: true } } },
-      })
-    }
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-
-    const accountLink = await stripe.accountLinks.create({
-      account: stripeAccountId,
-      refresh_url: `${baseUrl}/d/settings/payouts?refresh=true`,
-      return_url: `${baseUrl}/d/settings/payouts?success=true`,
-      type: "account_onboarding",
-    })
-
-    return NextResponse.json({ url: accountLink.url })
+    const url = await onboardingLink(profile, publicOrigin(req))
+    return NextResponse.json({ url })
   } catch (error) {
-    console.error("Error creating account link:", error)
-    return NextResponse.json(
-      { message: "Failed to create onboarding link" },
-      { status: 500 }
-    )
+    console.error("Error creating payout onboarding link:", error)
+    return NextResponse.json({ message: "Couldn't open payout setup. Try again." }, { status: 500 })
   }
 }
