@@ -1,3 +1,4 @@
+import { PendingOrderRefresh } from "@/components/orders/pending-order-refresh"
 import { notFound } from "next/navigation"
 import { headers } from "next/headers"
 import Link from "next/link"
@@ -71,7 +72,7 @@ export default async function OrderConfirmationPage({
 
   const accentColor = order.event.accentColor || '#ff1493'
   const isPaid = order.status === "PAID"
-  const isFailed = redirect_status === "failed"
+  const isFailed = !isPaid && (redirect_status === "failed" || order.status === "CANCELLED" || order.status === "REFUNDED")
   const isFreeOrder = order.total === 0
   const buyerName = order.guestName || "there"
   // .pkpass files are useless on Android, so only offer them elsewhere
@@ -133,6 +134,8 @@ export default async function OrderConfirmationPage({
               </div>
             </div>
           </div>
+
+          <PendingOrderRefresh pending={order.status === "PENDING" && !isFailed} />
 
           {/* Email Notice */}
           {isPaid && (

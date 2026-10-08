@@ -18,6 +18,7 @@ import {
   Info,
   Palette,
   MoreHorizontal,
+  Landmark,
 } from "lucide-react";
 // Account management is in Settings > Security
 import {
@@ -67,6 +68,12 @@ const settingsNavItems = [
         },
       ]
     : []),
+  {
+    href: "/b/settings/payouts",
+    label: "PAYOUTS",
+    icon: Landmark,
+    exact: false,
+  },
   {
     href: "/b/settings/notifications",
     label: "NOTIFICATIONS",

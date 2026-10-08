@@ -1,52 +1,26 @@
-import { getEffectiveUserId } from "@/lib/auth-utils";
-import { organizerWhere } from "@/lib/organizer-context";
+import { getEffectiveUserId } from "@/lib/auth-utils"
+import { getOrganizerContext } from "@/lib/organizer-context"
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { stripe } from "@/lib/stripe"
+import { syncPayoutAccount } from "@/lib/payouts"
 
-// Sync Stripe account status from Stripe API
-export async function POST() {
+/** GET or POST /api/stripe/connect/status — the payout account's state, read from Stripe now. */
+async function handler() {
   try {
     const userId = await getEffectiveUserId()
-
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
-
-    const profile = await prisma.organizerProfile.findUnique({
-      where: await organizerWhere("owner"),
-    })
-
-    if (!profile?.stripeAccountId) {
-      return NextResponse.json(
-        { message: "No Stripe account found" },
-        { status: 400 }
-      )
+    const context = await getOrganizerContext()
+    if (!context) {
+      return NextResponse.json({ message: "Organizer profile not found" }, { status: 404 })
     }
-
-    // Fetch current status from Stripe
-    const account = await stripe.accounts.retrieve(profile.stripeAccountId)
-
-    // Update our database with the latest status
-    const updatedProfile = await prisma.organizerProfile.update({
-      where: await organizerWhere("owner"),
-      data: {
-        stripeOnboardingComplete: account.details_submitted ?? false,
-        stripeChargesEnabled: account.charges_enabled ?? false,
-        stripePayoutsEnabled: account.payouts_enabled ?? false,
-      },
-    })
-
-    return NextResponse.json({
-      stripeOnboardingComplete: updatedProfile.stripeOnboardingComplete,
-      stripeChargesEnabled: updatedProfile.stripeChargesEnabled,
-      stripePayoutsEnabled: updatedProfile.stripePayoutsEnabled,
-    })
+    const status = await syncPayoutAccount(context.profile.id)
+    return NextResponse.json({ ...status, isOwner: context.isOwner })
   } catch (error) {
-    console.error("Error syncing Stripe status:", error)
-    return NextResponse.json(
-      { message: "Failed to sync Stripe status" },
-      { status: 500 }
-    )
+    console.error("Error syncing payout status:", error)
+    return NextResponse.json({ message: "Couldn't read payout status" }, { status: 500 })
   }
 }
+
+export const GET = handler
+export const POST = handler

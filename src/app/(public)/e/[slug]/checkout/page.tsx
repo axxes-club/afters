@@ -9,7 +9,15 @@ import { ArrowLeft, Minus, Plus, Ticket, Lock, Calendar, MapPin, Loader2, Mail, 
 import Link from "next/link"
 import Image from "next/image"
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Ticket payments are direct charges on the organizer's payout account, so Stripe.js
+// is loaded for that account (one instance per account).
+const stripeByAccount = new Map<string, ReturnType<typeof loadStripe>>()
+function stripeFor(stripeAccount: string) {
+  if (!stripeByAccount.has(stripeAccount)) {
+    stripeByAccount.set(stripeAccount, loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, { stripeAccount }))
+  }
+  return stripeByAccount.get(stripeAccount)!
+}
 
 interface TicketTier {
   id: string
@@ -113,6 +121,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
   const [loading, setLoading] = useState(true)
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [stripeAccount, setStripeAccount] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
   const [orderAccessToken, setOrderAccessToken] = useState<string | null>(null)
   const [checkingOut, setCheckingOut] = useState(false)
@@ -217,6 +226,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
       if (isFreeOrder) {
         const confirmRes = await fetch(`/api/orders/${order.id}/confirm-free`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: guestEmail }),
         })
 
         if (!confirmRes.ok) {
@@ -232,7 +243,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
       const paymentRes = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: order.id }),
+        body: JSON.stringify({ orderId: order.id, email: guestEmail }),
       })
 
       if (!paymentRes.ok) {
@@ -240,8 +251,13 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
         throw new Error(error.message)
       }
 
-      const { clientSecret } = await paymentRes.json()
-      setClientSecret(clientSecret)
+      const payment = await paymentRes.json()
+      if (["succeeded", "processing"].includes(payment.paymentStatus)) {
+        router.push(orderPath(order.id, order.accessToken ?? null))
+        return
+      }
+      setStripeAccount(payment.stripeAccount)
+      setClientSecret(payment.clientSecret)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Checkout failed")
       setCheckingOut(false)
@@ -355,7 +371,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ slug: strin
                   </div>
 
                   <Elements
-                    stripe={stripePromise}
+                    stripe={stripeAccount ? stripeFor(stripeAccount) : null}
                     options={{
                       clientSecret,
                       appearance: {

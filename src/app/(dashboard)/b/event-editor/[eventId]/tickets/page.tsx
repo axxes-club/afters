@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useAccentColor } from "@/hooks/useAccentColor";
 import { Plus, Ticket, Trash2 } from "lucide-react";
@@ -21,8 +22,21 @@ export default function TicketsPage() {
   const [showTierDialog, setShowTierDialog] = useState(false);
   const [tierLoading, setTierLoading] = useState(false);
   const uiAccent = useAccentColor();
+  // Paid tiers need a payout account that can take charges; null while loading.
+  const [canCharge, setCanCharge] = useState<boolean | null>(null);
+  const [priceInput, setPriceInput] = useState("0");
+
+  useEffect(() => {
+    fetch("/api/stripe/connect/status")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((status) => setCanCharge(Boolean(status?.chargesEnabled)))
+      .catch(() => setCanCharge(false));
+  }, []);
 
   if (!event) return null;
+
+  const priceCents = Math.round((parseFloat(priceInput) || 0) * 100);
+  const paidBlocked = priceCents > 0 && canCharge === false;
 
   async function createTier(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,7 +46,7 @@ export default function TicketsPage() {
     const data = {
       name: formData.get("name"),
       description: formData.get("description"),
-      price: 0, // Free during beta
+      price: priceCents, // cents
       quantity: parseInt(formData.get("quantity") as string),
     };
 
@@ -46,9 +60,11 @@ export default function TicketsPage() {
       if (res.ok) {
         toast.success("Ticket tier created");
         setShowTierDialog(false);
+        setPriceInput("0");
         refetch();
       } else {
-        toast.error("Failed to create tier");
+        const body = await res.json().catch(() => null);
+        toast.error(body?.message || "Failed to create tier");
       }
     } catch {
       toast.error("Failed to create tier");
@@ -79,6 +95,21 @@ export default function TicketsPage() {
 
   return (
     <div className="space-y-6">
+      {canCharge === false && (
+        <div className="border border-primary/30 bg-primary/5 p-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs font-mono text-white/70">
+            To sell paid tickets, connect where your money goes. Free tiers work now.
+          </p>
+          <Link
+            href="/b/settings/payouts"
+            className="px-3 py-1.5 text-black text-[10px] font-mono font-bold tracking-wider"
+            style={{ backgroundColor: uiAccent }}
+          >
+            SET UP PAYOUTS
+          </Link>
+        </div>
+      )}
+
       {/* Ticket Tiers */}
       <div className="border border-white/10">
         <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
@@ -117,7 +148,7 @@ export default function TicketsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
                       <p className="font-mono font-medium">{tier.name}</p>
-                      <span className="text-xs font-mono text-green-400">{formatCents(tier.price)}</span>
+                      <span className="text-xs font-mono text-green-400">{tier.price === 0 ? "FREE" : formatCents(tier.price)}</span>
                     </div>
                     {tier.description && (
                       <p className="text-xs text-white/40 font-mono mt-0.5">{tier.description}</p>
@@ -196,13 +227,27 @@ export default function TicketsPage() {
                   id="price"
                   name="price"
                   type="number"
+                  inputMode="decimal"
                   step="0.01"
                   min="0"
-                  value="0"
-                  disabled
-                  className="bg-white/[0.02] border-white/10 font-mono opacity-50 cursor-not-allowed"
+                  max="10000"
+                  value={priceInput}
+                  onChange={(e) => setPriceInput(e.target.value)}
+                  className="bg-white/[0.02] border-white/10 font-mono focus:border-primary"
                 />
-                <p className="text-[10px] font-mono text-primary/60">Free during beta</p>
+                {paidBlocked ? (
+                  <p className="text-[10px] font-mono text-primary">
+                    <Link href="/b/settings/payouts" className="underline">Set up payouts</Link> to sell paid tickets
+                  </p>
+                ) : priceCents > 0 && priceCents < 100 ? (
+                  <p className="text-[10px] font-mono text-primary">Paid tickets cost at least $1.00</p>
+                ) : priceCents > 0 ? (
+                  <p className="text-[10px] font-mono text-white/40">
+                    Buyers pay {formatCents(priceCents)} + {formatCents(Math.round(priceCents * 0.1) + 99)} service fee
+                  </p>
+                ) : (
+                  <p className="text-[10px] font-mono text-white/40">0 = free</p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="quantity" className="text-xs font-mono text-white/50">
@@ -222,7 +267,7 @@ export default function TicketsPage() {
             <button
               type="submit"
               className="w-full py-2.5 bg-primary text-black font-mono font-bold hover:bg-primary/90 transition-all"
-              disabled={tierLoading}
+              disabled={tierLoading || paidBlocked || (priceCents > 0 && priceCents < 100)}
             >
               {tierLoading ? "Creating..." : "Create Tier"}
             </button>
