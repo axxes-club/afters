@@ -1,7 +1,7 @@
 import {createHash,randomUUID} from "node:crypto";
 import {readFileSync} from "node:fs";
 import assert from "node:assert/strict";
-import {securityRateLimit} from "../src/lib/security-rate-limit";
+import {securityRateLimit,securityAdmission} from "../src/lib/security-rate-limit";
 import {prisma} from "../src/lib/prisma";
 async function main(){
  const url=new URL(process.env.DATABASE_URL??"");
@@ -21,6 +21,20 @@ async function main(){
  const key=randomUUID();
  const results=await Promise.all(Array.from({length:50},()=>securityRateLimit(key,3,60000)));
  assert.equal(results.filter(r=>r.allowed).length,3,"a shared counter must admit exactly three concurrent callers");
+ const prefix=randomUUID();const global=prefix+':global';const caller=prefix+':caller';
+ const budgets=[{key:global,limit:3},{key:caller,limit:1}];
+ assert.equal(await securityAdmission(budgets),true);
+ for(let n=0;n<10;n++)assert.equal(await securityAdmission(budgets),false);
+ const globalHash=createHash("sha256").update(global).digest("hex");
+ const [{count}]=await prisma.$queryRawUnsafe<Array<{count:number}>>("SELECT count FROM afters_security_rate_limits WHERE key=$1",globalHash);
+ assert.equal(count,1,"rejected caller must not consume shared global quota");
+ await prisma.$executeRawUnsafe("UPDATE afters_security_rate_limits SET count=3 WHERE key=$1",globalHash);
+ const before=await prisma.$queryRawUnsafe<Array<{total:bigint}>>("SELECT count(*) AS total FROM afters_security_rate_limits");
+ for(let n=0;n<10;n++)assert.equal(await securityAdmission([{key:global,limit:3},{key:prefix+':new:'+n,limit:1}]),false);
+ const [{total}]=await prisma.$queryRawUnsafe<Array<{total:bigint}>>("SELECT count(*) AS total FROM afters_security_rate_limits WHERE key <> $1 AND key <> $2",globalHash,createHash("sha256").update(caller).digest("hex"));
+ assert.equal(Number(total),Number(before[0].total)-2,"global denial creates no caller keys");
+ const race=randomUUID();const admitted=await Promise.all(Array.from({length:20},(_,n)=>securityAdmission([{key:race,limit:3},{key:race+':'+n,limit:1}])));
+ assert.equal(admitted.filter(Boolean).length,3,"composite budgets preserve concurrent global cap");
  await prisma.$disconnect();console.log("Postgres concurrency: exactly 3 of 50 admitted");
 }
 main().catch(error=>{console.error(error.name,error.message);process.exitCode=1;});
