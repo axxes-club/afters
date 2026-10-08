@@ -5,14 +5,11 @@ name: E2E Tests
 # ║                                                                              ║
 # ║ Required:                                                                    ║
 # ║   E2E_DATABASE_URL      - isolated test PostgreSQL connection string                  ║
-# ║   CLERK_SECRET_KEY_TEST - Clerk secret key for test environment              ║
-# ║   CLERK_PUBLISHABLE_KEY_TEST - Clerk publishable key for test environment   ║
+# ║   E2E_AUTH_BYPASS_TOKEN - Token for the test-only sign-in route              ║
 # ║                                                                              ║
 # ║ Optional (for full functionality):                                           ║
-# ║   CLERK_TESTING_TOKEN   - Clerk testing token for auth bypass                ║
 # ║   NEON_API_KEY          - Neon API key for branch management                 ║
 # ║   NEON_PROJECT_ID       - Neon project ID                                    ║
-# ║   E2E_AUTH_BYPASS_TOKEN - Token for E2E auth bypass                          ║
 # ║   STRIPE_SECRET_KEY_TEST - Stripe test mode secret key                       ║
 # ║   STRIPE_PUBLISHABLE_KEY_TEST - Stripe test mode publishable key             ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -62,8 +59,7 @@ jobs:
         id: check
         env:
           HAS_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL != '' }}
-          HAS_CLERK_SECRET: ${{ secrets.CLERK_SECRET_KEY_TEST != '' }}
-          HAS_CLERK_PUBLISHABLE: ${{ secrets.CLERK_PUBLISHABLE_KEY_TEST != '' }}
+          HAS_BYPASS_TOKEN: ${{ secrets.E2E_AUTH_BYPASS_TOKEN != '' }}
         run: |
           echo "### 🔐 Secret Check Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -77,18 +73,11 @@ jobs:
             echo "✅ DATABASE_URL - Configured" >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [ "$HAS_CLERK_SECRET" != "true" ]; then
-            echo "❌ CLERK_SECRET_KEY_TEST - Not configured" >> $GITHUB_STEP_SUMMARY
-            MISSING="${MISSING}CLERK_SECRET_KEY_TEST "
+          if [ "$HAS_BYPASS_TOKEN" != "true" ]; then
+            echo "❌ E2E_AUTH_BYPASS_TOKEN - Not configured" >> $GITHUB_STEP_SUMMARY
+            MISSING="${MISSING}E2E_AUTH_BYPASS_TOKEN "
           else
-            echo "✅ CLERK_SECRET_KEY_TEST - Configured" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ "$HAS_CLERK_PUBLISHABLE" != "true" ]; then
-            echo "❌ CLERK_PUBLISHABLE_KEY_TEST - Not configured" >> $GITHUB_STEP_SUMMARY
-            MISSING="${MISSING}CLERK_PUBLISHABLE_KEY_TEST "
-          else
-            echo "✅ CLERK_PUBLISHABLE_KEY_TEST - Configured" >> $GITHUB_STEP_SUMMARY
+            echo "✅ E2E_AUTH_BYPASS_TOKEN - Configured" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -171,10 +160,9 @@ jobs:
           
           pnpm test:e2e --project=${{ matrix.browser }} $SHARD_ARG $DEBUG_ARG
         env:
-          # Clerk test credentials
-          CLERK_TESTING_TOKEN: ${{ secrets.CLERK_TESTING_TOKEN }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY_TEST }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY_TEST }}
+          # Sign-in (Better Auth); a throwaway secret for the test server only
+          BETTER_AUTH_SECRET: e2e-only-better-auth-secret-not-a-runtime-credential
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
 
           # Isolated test database
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
@@ -240,14 +228,11 @@ jobs:
           echo "| Secret | Description |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------------|" >> $GITHUB_STEP_SUMMARY
           echo "| \`DATABASE_URL\` | Neon PostgreSQL connection string |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`CLERK_SECRET_KEY_TEST\` | Clerk secret key (test environment) |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`CLERK_PUBLISHABLE_KEY_TEST\` | Clerk publishable key (test environment) |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`E2E_AUTH_BYPASS_TOKEN\` | Token for the test-only sign-in route |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### Optional Secrets:" >> $GITHUB_STEP_SUMMARY
           echo "| Secret | Description |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| \`CLERK_TESTING_TOKEN\` | Clerk testing token for auth bypass |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`E2E_AUTH_BYPASS_TOKEN\` | Custom E2E auth bypass token |" >> $GITHUB_STEP_SUMMARY
           echo "| \`NEON_API_KEY\` | Neon API key for branch management |" >> $GITHUB_STEP_SUMMARY
           echo "| \`NEON_PROJECT_ID\` | Neon project ID |" >> $GITHUB_STEP_SUMMARY
           echo "| \`STRIPE_SECRET_KEY_TEST\` | Stripe test mode secret key |" >> $GITHUB_STEP_SUMMARY

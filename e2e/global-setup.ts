@@ -3,25 +3,18 @@ import { execSync } from 'child_process';
 import { createBranchManager } from './utils/neon-branch';
 import * as fs from 'fs';
 import * as path from 'path';
-import { clerkSetup } from '@clerk/testing/playwright';
 
 /**
  * Global setup for E2E tests.
  *
  * This runs once before all tests and:
- * 1. Sets up Clerk testing environment
- * 2. Creates a Neon test branch (if configured)
- * 3. Runs Prisma migrations on the test branch
- * 4. Seeds base test data
- * 5. Stores branch info for global teardown
+ * 1. Creates a Neon test branch (if configured)
+ * 2. Runs Prisma migrations on the test branch
+ * 3. Seeds base test data
+ * 4. Stores branch info for global teardown
  */
 async function globalSetup(_config: FullConfig) {
   console.log('\n🚀 E2E Global Setup Starting...\n');
-
-  // Set up Clerk testing - MUST be called before any tests use setupClerkTestingToken
-  console.log('🔐 Setting up Clerk testing environment...');
-  await clerkSetup();
-  console.log('✅ Clerk testing environment ready\n');
 
   const branchManager = createBranchManager();
 

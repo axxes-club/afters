@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
+import { getUserId, currentUser } from "@/lib/auth/session"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { createOrderAccessToken } from "@/lib/order-access"
@@ -7,7 +7,7 @@ import { calculateFees } from "@/lib/stripe"
 export async function POST(req: Request) {
   try {
     // Try to get authenticated user, but don't require it
-    const { userId } = await auth()
+    const userId = await getUserId()
     const user = userId ? await currentUser() : null
 
     const { eventId, items, email: guestEmail, guestName } = await req.json()
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     // Always use the email provided in checkout (guestEmail)
     // This is what the customer entered, regardless of auth status
-    const email = guestEmail || user?.emailAddresses[0]?.emailAddress
+    const email = guestEmail || user?.email
 
     if (!email) {
       return NextResponse.json(

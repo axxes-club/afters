@@ -149,8 +149,7 @@ jobs:
         run: pnpm test:coverage
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
-          CLERK_SECRET_KEY: test-clerk-secret
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: test-clerk-publishable
+          BETTER_AUTH_SECRET: ci-only-better-auth-secret-not-a-runtime-credential
           SCANNER_JWT_SECRET: test-scanner-jwt-secret
           RESEND_API_KEY: re_test_key
 
@@ -212,8 +211,7 @@ jobs:
         env:
           # Minimal env vars for build
           DATABASE_URL: postgresql://build:build@localhost:5432/build
-          CLERK_SECRET_KEY: sk_test_build
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_build
+          BETTER_AUTH_SECRET: ci-only-better-auth-secret-not-a-runtime-credential
           NEXT_PUBLIC_APP_URL: http://localhost:3000
 
       - name: Upload build artifacts

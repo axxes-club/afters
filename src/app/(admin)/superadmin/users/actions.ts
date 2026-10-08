@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma"
 import { requireSuperAdmin } from "@/lib/auth-utils"
 import { UserRole } from "@prisma/client"
 import { revalidatePath } from "next/cache"
-import { clerkClient } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 
 // Only this email can have the SUPERADMIN role
-const ALLOWED_SUPERADMIN_EMAIL = "hello@axxes.club"
+const ALLOWED_SUPERADMIN_EMAIL = "viscasillas@me.com"
 
 export async function updateUserRole(userId: string, role: UserRole) {
   await requireSuperAdmin()
@@ -37,17 +37,11 @@ export async function updateUserRole(userId: string, role: UserRole) {
 
 export async function deleteUser(userId: string) {
   await requireSuperAdmin()
-  
-  // Delete from Clerk first
-  try {
-    const clerk = await clerkClient()
-    await clerk.users.deleteUser(userId)
-  } catch (error) {
-    console.error("Failed to delete user from Clerk:", error)
-    // Continue to delete from database even if Clerk fails
-  }
-  
-  // Delete from our database
+
+  // The sign-in account (and its sessions) and the afters row share the id.
+  await prisma.authUser.delete({ where: { id: userId } }).catch(() => {
+    // Rows such as seeded demo users never had a sign-in account
+  })
   await prisma.user.delete({
     where: { id: userId }
   })
@@ -56,11 +50,13 @@ export async function deleteUser(userId: string) {
 }
 
 export async function banUser(userId: string) {
-  await requireSuperAdmin()
-  
+  const admin = await requireSuperAdmin()
+  if (admin.id === userId) return { error: "You can't ban yourself" }
+
   try {
-    const clerk = await clerkClient()
-    await clerk.users.banUser(userId)
+    await prisma.authUser.update({ where: { id: userId }, data: { banned: true } })
+    // Signed out everywhere now; src/lib/auth refuses new sessions while banned.
+    await prisma.authSession.deleteMany({ where: { userId } })
     return { success: true }
   } catch (error) {
     console.error("Failed to ban user:", error)
@@ -70,10 +66,9 @@ export async function banUser(userId: string) {
 
 export async function unbanUser(userId: string) {
   await requireSuperAdmin()
-  
+
   try {
-    const clerk = await clerkClient()
-    await clerk.users.unbanUser(userId)
+    await prisma.authUser.update({ where: { id: userId }, data: { banned: false } })
     return { success: true }
   } catch (error) {
     console.error("Failed to unban user:", error)
@@ -83,39 +78,20 @@ export async function unbanUser(userId: string) {
 
 export async function sendPasswordResetEmail(userId: string) {
   await requireSuperAdmin()
-  
+
   try {
-    // Get user email from our database
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true }
-    })
-    
-    if (!user?.email) {
-      return { error: "User email not found" }
+    const account = await prisma.authUser.findUnique({ where: { id: userId }, select: { email: true } })
+    if (!account) {
+      return { error: "This user has no sign-in account" }
     }
 
-    // Get Clerk user to find primary email ID
-    const clerk = await clerkClient()
-    const clerkUser = await clerk.users.getUser(userId)
-    
-    const primaryEmail = clerkUser.emailAddresses.find(
-      e => e.id === clerkUser.primaryEmailAddressId
-    )
-    
-    if (!primaryEmail) {
-      return { error: "User has no primary email" }
-    }
+    // Emails the person a code they can use on "Forgot password?".
+    await auth.api.requestPasswordResetEmailOTP({ body: { email: account.email } })
 
-    // Create a password reset token - user will receive email
-    // Note: Clerk doesn't have a direct "send reset email" API for admins
-    // Instead we can use the sign-in token approach or direct them to forgot password
-    
-    // For now, return the email so admin can manually send instructions
-    return { 
-      success: true, 
-      email: user.email,
-      message: `Password reset link: User should visit the forgot password page with email ${user.email}`
+    return {
+      success: true,
+      email: account.email,
+      message: `Reset code sent to ${account.email}`
     }
   } catch (error) {
     console.error("Failed to initiate password reset:", error)
@@ -131,14 +107,6 @@ export async function updateUserMetadata(userId: string, data: {
   await requireSuperAdmin()
   
   try {
-    // Update in Clerk
-    const clerk = await clerkClient()
-    await clerk.users.updateUser(userId, {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      username: data.username,
-    })
-    
     // Update in our database
     await prisma.user.update({
       where: { id: userId },
@@ -149,6 +117,12 @@ export async function updateUserMetadata(userId: string, data: {
       }
     })
     
+    // Keep the sign-in name in step
+    const name = [data.firstName, data.lastName].filter(Boolean).join(" ")
+    if (name) {
+      await prisma.authUser.updateMany({ where: { id: userId }, data: { name } })
+    }
+
     revalidatePath("/superadmin/users")
     return { success: true }
   } catch (error) {
@@ -159,11 +133,16 @@ export async function updateUserMetadata(userId: string, data: {
 
 export async function getUserDetails(userId: string) {
   await requireSuperAdmin()
-  
+
   try {
-    const clerk = await clerkClient()
-    const clerkUser = await clerk.users.getUser(userId)
-    
+    const account = await prisma.authUser.findUnique({
+      where: { id: userId },
+      include: {
+        accounts: { select: { providerId: true } },
+        sessions: { select: { createdAt: true }, orderBy: { createdAt: "desc" }, take: 1 },
+      },
+    })
+
     const dbUser = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -179,23 +158,20 @@ export async function getUserDetails(userId: string) {
         }
       }
     })
-    
+
     return {
-      clerk: {
-        id: clerkUser.id,
-        banned: clerkUser.banned,
-        createdAt: clerkUser.createdAt,
-        lastSignInAt: clerkUser.lastSignInAt,
-        imageUrl: clerkUser.imageUrl,
-        emailAddresses: clerkUser.emailAddresses.map(e => ({
-          email: e.emailAddress,
-          verified: e.verification?.status === "verified"
-        })),
-        externalAccounts: clerkUser.externalAccounts.map(e => ({
-          provider: e.provider,
-          email: e.emailAddress
-        }))
-      },
+      auth: account
+        ? {
+            id: account.id,
+            banned: account.banned,
+            createdAt: account.createdAt.getTime(),
+            lastSignInAt: account.sessions[0]?.createdAt.getTime() ?? null,
+            imageUrl: account.image,
+            emailAddresses: [{ email: account.email, verified: account.emailVerified }],
+            // How this person can sign in: credential = password, axxes = Continue with AXXES
+            signInMethods: account.accounts.map((a) => a.providerId),
+          }
+        : null,
       db: dbUser
     }
   } catch (error) {
@@ -218,18 +194,14 @@ export async function impersonateUser(userId: string) {
       return { error: "User email not found" }
     }
 
-    // For impersonation, we'll create a sign-in link using Clerk's magic link feature
-    // This requires the admin to manually confirm, which is safer
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://afters.crativo.xyz'
     
-    // Note: True impersonation requires Clerk's Actor Token feature which needs 
-    // specific Clerk plan features. For now, we'll provide a way to view as user.
-    // The admin can use this to understand the user's view.
+    // Ghost mode (src/lib/auth-utils.ts) is the real way to see what a user sees.
     
     return { 
       success: true, 
       url: `${appUrl}/dashboard?viewAs=${userId}`,
-      message: `To fully impersonate, use Clerk Dashboard: https://dashboard.clerk.com`,
+      message: `Use Ghost mode to see afters as this user`,
       email: user.email
     }
   } catch (error) {

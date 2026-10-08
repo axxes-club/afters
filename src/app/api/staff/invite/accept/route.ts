@@ -1,9 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "@/lib/auth/session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId)
     return NextResponse.json(
       { error: "Must be logged in" },

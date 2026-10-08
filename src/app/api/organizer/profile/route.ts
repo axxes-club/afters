@@ -1,7 +1,7 @@
 import { getEffectiveUserId } from "@/lib/auth-utils";
 import { organizerWhere } from "@/lib/organizer-context";
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -63,9 +63,9 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      // Fetch user data from Clerk and create in our database
-      const clerkUser = await currentUser();
-      if (!clerkUser) {
+      // Create the afters row from the sign-in profile
+      const authUser = await currentUser();
+      if (!authUser) {
         return NextResponse.json(
           {
             error:
@@ -75,9 +75,7 @@ export async function POST(request: Request) {
         );
       }
 
-      const primaryEmail = clerkUser.emailAddresses.find(
-        (e) => e.id === clerkUser.primaryEmailAddressId,
-      )?.emailAddress;
+      const primaryEmail = authUser.email;
 
       if (!primaryEmail) {
         return NextResponse.json(
@@ -90,9 +88,9 @@ export async function POST(request: Request) {
         data: {
           id: userId,
           email: primaryEmail,
-          firstName: clerkUser.firstName,
-          lastName: clerkUser.lastName,
-          imageUrl: clerkUser.imageUrl,
+          firstName: authUser.firstName,
+          lastName: authUser.lastName,
+          imageUrl: authUser.imageUrl,
         },
       });
     }

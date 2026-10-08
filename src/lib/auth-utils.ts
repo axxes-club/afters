@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "@/lib/auth/session";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { UserRole } from "@prisma/client";
@@ -139,7 +139,7 @@ export async function clearGhostUser(): Promise<void> {
 
 // Get the effective user ID (ghost user if ghosting, real user otherwise)
 export async function getEffectiveUserId(): Promise<string | null> {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return null;
 
   // Check if ghosting - if so, return the ghost user instead
@@ -148,10 +148,10 @@ export async function getEffectiveUserId(): Promise<string | null> {
 }
 
 export async function getSessionUser() {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return null;
 
-  // Auto-sync: ensure this Clerk user exists in our DB
+  // Auto-sync: ensure this person has an afters User row
   await ensureUserSynced(userId);
 
   // Check if ghosting - if so, return the ghost user instead
@@ -173,10 +173,10 @@ export async function getSessionUser() {
 // Get the actual authenticated user (ignoring ghost mode)
 // Use this for permission checks that should always use the real admin
 export async function getRealSessionUser() {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return null;
 
-  // Auto-sync: ensure this Clerk user exists in our DB
+  // Auto-sync: ensure this person has an afters User row
   await ensureUserSynced(userId);
 
   const user = await prisma.user.findUnique({

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "@/lib/auth/session";
 import {
   ensureVibezSettings,
   getVibezSettings,
@@ -16,7 +16,7 @@ import {
  * from managing the event they organize.
  */
 async function requireOrganizer(eventId: string) {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) return null;
 
   const event = await prisma.event.findUnique({

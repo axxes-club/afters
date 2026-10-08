@@ -17,8 +17,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: mockPrisma,
 }))
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: mockAuth,
+vi.mock("@/lib/auth/session", () => ({
+  getUserId: async () => (await mockAuth())?.userId ?? null,
 }))
 
 import { POST, DELETE } from "@/app/api/user/notifications/push-subscription/route"

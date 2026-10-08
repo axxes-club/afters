@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import QRCodeStyling from "qr-code-styling"
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ ticketId: string }> }
 ) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     const { ticketId } = await params
     const { searchParams } = new URL(req.url)
     const size = parseInt(searchParams.get("size") || "300")

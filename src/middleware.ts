@@ -1,15 +1,13 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveVibezAlias } from "@/lib/vbz-alias";
 
 // Routes that require authentication
 // Note: "/d(.*)" would also match /demo and /developers, so match /d exactly.
 // /orders is not listed: guest buyers reach it with a signed token (see src/lib/order-access.ts).
-const isProtectedRoute = createRouteMatcher([
-  "/d",
-  "/d/(.*)",
-  "/superadmin(.*)",
-]);
+function isProtectedRoute(pathname: string): boolean {
+  return pathname === "/d" || pathname.startsWith("/d/") || pathname.startsWith("/superadmin");
+}
 
 function rewriteVibezHost(request: NextRequest): NextResponse | null {
   const target = resolveVibezAlias(
@@ -24,7 +22,7 @@ function rewriteVibezHost(request: NextRequest): NextResponse | null {
 // Set ENABLE_AUTH_IN_DEV=true in .env.local if you need auth locally
 const skipAuthInDev = process.env.NODE_ENV === "development" && process.env.ENABLE_AUTH_IN_DEV !== "true";
 
-export default clerkMiddleware(async (auth, req) => {
+export default async function middleware(req: NextRequest) {
   // The alias is resolved first and unconditionally, including in development,
   // so `vbz.localhost:3000/foo` behaves the same as it will in production.
   const aliased = rewriteVibezHost(req);
@@ -35,10 +33,17 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next();
   }
 
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+  // A cookie check only, to send signed-out visitors to sign-in early. Every
+  // page and route still verifies the session itself (src/lib/auth/session.ts).
+  if (isProtectedRoute(req.nextUrl.pathname) && !getSessionCookie(req)) {
+    const signIn = req.nextUrl.clone();
+    signIn.pathname = "/sign-in";
+    signIn.search = "";
+    return NextResponse.redirect(signIn);
   }
-});
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

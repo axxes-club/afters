@@ -4,7 +4,7 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto"
  * Guest access to VIBEZ.
  *
  * Why this exists: most people at a night bought a ticket as a guest and never
- * made an account. The feed as it stood required a Clerk session, so it served
+ * made an account. The feed as it stood required a signed-in session, so it served
  * the people least likely to be in the room and locked out most of the people who
  * were. A guest proves attendance with the ticket they already hold, gets a
  * short-lived signed token, and is identified from then on by a *subject* that

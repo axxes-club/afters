@@ -15,7 +15,7 @@ export interface VibezPostType {
   imageUrl: string;
   createdAt: string;
   caption?: string | null;
-  /** Clerk id or `tkt_…` for a guest. The identity "mine" is decided on this. */
+  /** account id or `tkt_…` for a guest. The identity "mine" is decided on this. */
   authorSubject?: string | null;
   removedAt?: string | null;
   removedBy?: string | null;

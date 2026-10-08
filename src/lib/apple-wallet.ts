@@ -61,7 +61,7 @@ export function isAppleWalletConfigured(): boolean {
 }
 
 // ─── Signed download links ───
-// Most buyers check out as guests (no Clerk session), so wallet links in emails and on
+// Most buyers check out as guests (no account session), so wallet links in emails and on
 // the order page carry an HMAC of the ticket ID instead of relying on sign-in.
 
 function getLinkSecret(): string | undefined {

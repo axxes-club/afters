@@ -7,7 +7,7 @@ import { mintTicket } from "@/lib/vibez-ticket";
  * "May I upload here, right now?" Answered before any bytes move, so a
  * non-attendee never spends our bandwidth finding out they cannot post.
  *
- * The ticket is bound to a *subject*, not to a Clerk id, so a guest holding a
+ * The ticket is bound to a *subject*, not to an account id, so a guest holding a
  * redeemed ticket gets one too. The upload middleware re-checks that subject.
  */
 export async function POST(

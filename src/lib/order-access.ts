@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto"
 
 // Signed access to the order confirmation page. Most buyers check out as guests,
-// so the checkout flow carries this token instead of relying on a Clerk session.
+// so the checkout flow carries this token instead of relying on a signed-in session.
 
 function getSecret(): string | undefined {
   return process.env.WALLET_LINK_SECRET || process.env.SCANNER_JWT_SECRET || undefined

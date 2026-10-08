@@ -1,11 +1,11 @@
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateRedirectUri, validateScopes, parseScopes } from '@/lib/oauth'
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required', loginUrl: `/sign-in?redirect_url=${encodeURIComponent('/oauth/authorize' + request.nextUrl.search)}` },

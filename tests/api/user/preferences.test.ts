@@ -20,8 +20,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: mockPrisma,
 }));
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: mockAuth,
+vi.mock("@/lib/auth/session", () => ({
+  getUserId: async () => (await mockAuth())?.userId ?? null,
 }));
 
 import { GET, PUT } from "@/app/api/user/preferences/route";

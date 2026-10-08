@@ -1,6 +1,6 @@
 import { getEffectiveUserId } from "@/lib/auth-utils";
 import { getOrganizerContext, organizerWhere } from "@/lib/organizer-context";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -46,9 +46,9 @@ export default async function OverviewPage() {
   // Auto-create profile if it doesn't exist
   let activeProfile = profile;
   if (!activeProfile) {
-    // Get user info from Clerk (handles race condition where webhook hasn't fired yet)
-    const clerkUser = await currentUser();
-    if (!clerkUser || clerkUser.id !== userId) redirect("/b/events");
+    // The sign-in profile, for the first visit before the afters row exists
+    const authUser = await currentUser();
+    if (!authUser || authUser.id !== userId) redirect("/b/events");
 
     // Ensure User record exists in DB before creating profile
     const user = await prisma.user.upsert({
@@ -56,10 +56,10 @@ export default async function OverviewPage() {
       update: {},
       create: {
         id: userId,
-        email: clerkUser?.emailAddresses[0]?.emailAddress || "",
-        firstName: clerkUser?.firstName,
-        lastName: clerkUser?.lastName,
-        imageUrl: clerkUser?.imageUrl,
+        email: authUser.email || "",
+        firstName: authUser.firstName,
+        lastName: authUser.lastName,
+        imageUrl: authUser.imageUrl,
         role: "ORGANIZER",
       },
     });

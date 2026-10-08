@@ -109,7 +109,7 @@ export const VIBEZ_MAX_POSTS_PER_EVENT_PER_HOUR = 120
  * Who is asking, as far as the feed is concerned.
  *
  * `subject` is the identity that authorship, self-removal and bans are keyed on.
- * It is a Clerk id for an account, or `tkt_<id>` for a guest who redeemed a
+ * It is an account id for an account, or `tkt_<id>` for a guest who redeemed a
  * ticket. `email` is only ever an input to the attendee lookup — it is never
  * stored on a post and never used as an identity, because two people can share
  * an address and an email is not a secret.

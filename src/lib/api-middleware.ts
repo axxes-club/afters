@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import {
   validateApiKey,
   checkApiRateLimit,
@@ -16,7 +16,7 @@ export interface ApiContext {
 
 interface WithApiAuthOptions {
   requiredScopes?: ApiScope[]
-  allowSession?: boolean // Allow Clerk session auth in addition to API key
+  allowSession?: boolean // Allow a signed-in session in addition to API key
 }
 
 // Helper to extract API key from request
@@ -104,7 +104,7 @@ export function withApiAuth(
 
     // Try session auth if allowed
     if (allowSession) {
-      const { userId } = await auth()
+      const userId = await getUserId()
 
       if (userId) {
         return handler(req, {

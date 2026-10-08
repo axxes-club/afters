@@ -155,7 +155,7 @@ export default function SettingsSystemPage() {
           </div>
           <div className="flex items-center justify-between py-2 border-b border-white/5">
             <span className="text-white/40">Auth</span>
-            <span className="text-white/60">Clerk</span>
+            <span className="text-white/60">Better Auth + AXXES</span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-white/5">
             <span className="text-white/40">Payments</span>

@@ -1,7 +1,7 @@
 import { createUploadthing, type FileRouter } from "@/lib/gcs/router.mjs"
 import { z } from "zod"
 import { UploadThingError } from "@/lib/gcs/router.mjs"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { requireOrganizer } from "@/lib/auth-utils"
 import { canPost, uploadBudget, vibezAccess } from "@/lib/vibez"
 import { resolveViewer } from "@/lib/vibez-identity"
@@ -23,7 +23,7 @@ export async function organizerMiddleware() {
 }
 
 export async function authMiddleware() {
-  const { userId } = await auth()
+  const userId = await getUserId()
   if (!userId) throw new UploadThingError("Unauthorized")
   return { userId }
 }
@@ -77,7 +77,7 @@ export const ourFileRouter = {
       }
 
       // A guest holding a redeemed ticket is an attendee, so this no longer
-      // requires a Clerk session. resolveViewer is the same resolver the feed
+      // requires a signed-in session. resolveViewer is the same resolver the feed
       // API uses, which is the point: one definition of "who is asking".
       const viewer = await resolveViewer(eventId)
       if (!viewer.subject) {

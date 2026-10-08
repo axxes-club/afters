@@ -16,7 +16,7 @@ interface VibezPageClientProps {
 /**
  * The public feed page.
  *
- * It no longer asks Clerk who you are, and it no longer fetches /api/me to
+ * It no longer asks the sign-in service who you are, and it no longer fetches /api/me to
  * guess. Both were answers to the wrong question: they could only ever say
  * whether an account exists, never whether the person is at this event. VibezFeed
  * asks the feed API, which is the only thing that actually knows.

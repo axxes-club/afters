@@ -1,5 +1,5 @@
 import { isSuperAdmin, getSessionUser } from "@/lib/auth-utils";
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { resolveViewer } from "@/lib/vibez-identity";
 import { canView, vibezAccess } from "@/lib/vibez";
@@ -65,7 +65,7 @@ export async function authorizeAssetRead(
     where: { screenshotUrl: { in: urls } },
   });
   if (feedback || record?.route === "feedbackScreenshot") {
-    const { userId } = await auth();
+    const userId = await getUserId();
     return (
       (await isSuperAdmin()) ||
       (!!userId &&

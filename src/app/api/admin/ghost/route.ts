@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { setGhostUser, clearGhostUser, getGhostUserPayload } from "@/lib/auth-utils"
 
 // Start ghosting a user
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

@@ -1,11 +1,11 @@
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { isSuperAdmin } from "@/lib/auth-utils"
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth()
+    const userId = await getUserId()
     const body = await req.json()
 
     const {

@@ -10,7 +10,7 @@ import {
   ChevronLeft,
   Settings,
 } from "lucide-react"
-import { UserButton, SignedIn } from "@clerk/nextjs"
+import { UserButton, SignedIn } from "@/components/auth/session"
 import { FeedbackButton } from "@/components/FeedbackButton"
 import { APP_VERSION_DISPLAY } from "@/lib/constants"
 
@@ -142,13 +142,7 @@ export default function ScanLayout({
           <div className="p-3 border-t border-white/5">
             <div className="flex items-center gap-3" suppressHydrationWarning>
               <div className="flex-shrink-0">
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8",
-                    }
-                  }}
-                />
+                <UserButton />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-mono text-white/30 truncate">OPERATOR</p>

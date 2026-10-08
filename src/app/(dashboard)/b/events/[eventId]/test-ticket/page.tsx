@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { TestTicketClient } from "@/app/(public)/e/[slug]/test-ticket/TestTicketClient"
 
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ eventId: 
 }
 
 export default async function DashboardTestTicketPage({ params }: { params: Promise<{ eventId: string }> }) {
-  const { userId } = await auth()
+  const userId = await getUserId()
   if (!userId) {
     notFound()
   }

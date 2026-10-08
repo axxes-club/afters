@@ -16,8 +16,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: mockPrisma,
 }));
 
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: mockAuth,
+vi.mock("@/lib/auth/session", () => ({
+  getUserId: async () => (await mockAuth())?.userId ?? null,
 }));
 
 vi.mock("@/lib/api-keys", () => ({

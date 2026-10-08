@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useUser } from "@clerk/nextjs"
+import { useUser } from "@/lib/auth/client"
 import { usePathname } from "next/navigation"
 import { MessageSquarePlus, X, Send, Loader2, Upload } from "lucide-react"
 import {
@@ -255,7 +255,7 @@ export function FeedbackButton() {
             {user && (
               <div className="flex items-center gap-2 text-[10px] font-mono text-white/30 p-2 bg-white/5 border border-white/10">
                 <span>Submitting as</span>
-                <span className="text-white/50">{user.emailAddresses[0]?.emailAddress}</span>
+                <span className="text-white/50">{user.email}</span>
               </div>
             )}
 

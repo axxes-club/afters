@@ -5,7 +5,7 @@ import { OnboardingPage } from '../pages/OnboardingPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EventCreatePage } from '../pages/EventCreatePage';
 import { EventEditPage } from '../pages/EventEditPage';
-import { setupClerkTestSession } from '../utils/clerk-test-helpers';
+import { setupTestSession } from '../utils/test-session';
 
 // ─── Test Data Types ───
 
@@ -166,8 +166,8 @@ export const test = base.extend<Fixtures>({
       user: TestUser,
       options?: { skipOnboarding?: boolean }
     ) => {
-      // Set up Clerk test session
-      await setupClerkTestSession(page, {
+      // Sign in through the test-only route
+      await setupTestSession(page, {
         userId: user.userId,
         email: user.email,
         firstName: user.firstName,

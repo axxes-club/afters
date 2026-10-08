@@ -42,7 +42,7 @@ function viewerPayload(access: VibezAccess, subject: string | null, isGuest: boo
  * event has started and the organizer has turned the feed on.
  *
  * A guest holding a redeemed ticket is an attendee. Previously the only way in
- * was a Clerk session, so the people most likely to be standing in the room —
+ * was a signed-in session, so the people most likely to be standing in the room —
  * the ones who bought a ticket as a guest and never signed up — were the ones
  * the feed refused.
  */

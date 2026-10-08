@@ -1,13 +1,13 @@
 import { generateText } from "ai"
 import { AI_MODEL, SUMMARIZE_SYSTEM_PROMPT } from "@/lib/ai"
-import { auth } from "@clerk/nextjs/server"
+import { getUserId } from "@/lib/auth/session"
 
 const MAX_INPUT_LENGTH = 10000 // 10k character limit to prevent abuse
 
 export async function POST(req: Request) {
   try {
     // Require authentication to prevent anonymous API credit burn
-    const { userId } = await auth()
+    const userId = await getUserId()
     if (!userId) {
       return Response.json({ error: "Unauthorized" }, { status: 401 })
     }
