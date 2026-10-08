@@ -23,7 +23,7 @@ import { applySignatureSnapshot, planFromSnapshot } from "@/lib/signature-billin
 
 const SECRET = "e".repeat(64);
 const snap = (patch: Partial<SubscriptionSnapshot> = {}): SubscriptionSnapshot => ({
-  id: "sub_new12345", status: "active", product: "afters", reference: "org_1", price: "price_x", interval: "month", interval_count: 1,
+  id: "sub_new12345", status: "active", product: "afters", reference: "org_1", price: "price_x", lookup_key: null, interval: "month", interval_count: 1,
   current_period_end: 1_900_000_000, cancel_at_period_end: false, trial_end: null, canceled_at: null, ended_at: null, ...patch,
 });
 

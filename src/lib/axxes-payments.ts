@@ -22,6 +22,7 @@ export type SubscriptionSnapshot = {
   product: string
   reference: string
   price: string | null
+  lookup_key: string | null
   interval: "day" | "week" | "month" | "year" | null
   interval_count: number | null
   current_period_end: number | null
@@ -104,6 +105,12 @@ export function getCheckout(id: string) {
 export function getSubscription(id: string) {
   if (!/^sub_[A-Za-z0-9]{8,250}$/.test(id)) throw new PaymentsError(400, "Invalid subscription")
   return call<SubscriptionSnapshot & { mode: PaymentsMode }>(`/api/v1/subscriptions/${id}?mode=${paymentsMode()}`)
+}
+
+/** This product's subscriptions for one of its references, newest first (Stripe search; may lag ~1 minute). */
+export async function listSubscriptions(reference: string) {
+  const query = new URLSearchParams({ reference, mode: paymentsMode() })
+  return (await call<{ data: SubscriptionSnapshot[] }>(`/api/v1/subscriptions?${query}`)).data
 }
 
 /** Billing portal link (update card, cancel). Check the signed-in user owns the subscription first. */
