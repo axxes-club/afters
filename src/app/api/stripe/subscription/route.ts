@@ -2,52 +2,29 @@ import { getEffectiveUserId } from "@/lib/auth-utils";
 import { organizerWhere } from "@/lib/organizer-context";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
-import {
-  isSignaturePlan,
-  PLAN_LABELS,
-  PLAN_STRIPE_INTERVAL,
-  PLAN_PRICES,
-} from "@/lib/subscription";
+import { isSignaturePlan, PLAN_LABELS } from "@/lib/subscription";
+import { createCheckout, PaymentsError } from "@/lib/axxes-payments";
+import { SIGNATURE_LOOKUP_KEYS, signatureSalesOpen } from "@/lib/signature-billing";
+import { publicOrigin } from "@/lib/public-origin";
 import { Plan } from "@prisma/client";
 
-// Helper to get the app base URL from the request
-function getBaseUrl(req: NextRequest): string {
-  const vercelUrl = process.env.VERCEL_URL;
-  if (vercelUrl) return `https://${vercelUrl}`;
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (appUrl && !appUrl.includes("localhost")) return appUrl;
-
-  const host = req.headers.get("host") || "localhost:3000";
-  const proto = req.headers.get("x-forwarded-proto") || "http";
-  return `${proto}://${host}`;
-}
-
-// Map from our plan enum to a Stripe lookup key
-function stripeLookupKey(plan: Plan): string {
-  return `afters_signature_${plan.toLowerCase()}`;
-}
-
-// POST - Create checkout session for Signature subscription
+// POST - Start a Signature subscription on AXXES Payments (payments.axxes.app)
 export async function POST(req: NextRequest) {
   const userId = await getEffectiveUserId();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!signatureSalesOpen())
+    return NextResponse.json({ error: "Signature is free during beta" }, { status: 403 });
 
-  // Which plan? Default to 30-day (monthly) with trial
   let body: { plan?: string } = {};
   try {
     body = await req.json();
   } catch {
     // empty body = default plan
   }
-
   const requestedPlan = (body.plan as Plan) || "SIGNATURE_30D";
-
-  // Validate plan
-  const validPlans: Plan[] = ["SIGNATURE_30D", "SIGNATURE_180D", "SIGNATURE_360D"];
-  if (!validPlans.includes(requestedPlan)) {
+  const lookupKey = SIGNATURE_LOOKUP_KEYS[requestedPlan];
+  if (!lookupKey) {
     return NextResponse.json(
       { error: "Invalid plan. Use SIGNATURE_30D, SIGNATURE_180D, or SIGNATURE_360D" },
       { status: 400 }
@@ -58,142 +35,37 @@ export async function POST(req: NextRequest) {
     where: await organizerWhere("owner"),
     include: { user: { select: { email: true } }, subscription: true },
   });
-
   if (!profile) {
-    return NextResponse.json(
-      { error: "Organizer profile required" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Organizer profile required" }, { status: 404 });
   }
-
-  // Already on an active Signature plan?
   if (
     profile.subscription &&
     isSignaturePlan(profile.subscription.plan) &&
-    (profile.subscription.status === "ACTIVE" ||
-      profile.subscription.status === "TRIALING")
+    ["ACTIVE", "TRIALING", "PAST_DUE"].includes(profile.subscription.status)
   ) {
-    return NextResponse.json(
-      { error: "Already on a Signature plan" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Already on a Signature plan" }, { status: 400 });
   }
 
+  // One 7-day trial per organizer, monthly plan only.
+  const hadTrial = profile.subscription?.plan === "SIGNATURE_TRIAL_7D" || !!profile.subscription?.trialEndsAt;
+  const trialDays = requestedPlan === "SIGNATURE_30D" && !hadTrial ? 7 : undefined;
+
   try {
-    // Get or create Stripe customer
-    let customerId = profile.subscription?.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: profile.user.email,
-        metadata: {
-          organizerProfileId: profile.id,
-          userId,
-        },
-      });
-      customerId = customer.id;
-    }
-
-    // Get or create the Stripe price for this plan
-    const lookupKey = stripeLookupKey(requestedPlan);
-    const intervalConfig = PLAN_STRIPE_INTERVAL[requestedPlan];
-    const unitAmount = PLAN_PRICES[requestedPlan];
-
-    if (!intervalConfig || !unitAmount) {
-      return NextResponse.json({ error: "Plan config missing" }, { status: 500 });
-    }
-
-    // Try env var first (e.g. STRIPE_PRICE_SIGNATURE_30D)
-    const envKey = `STRIPE_PRICE_${requestedPlan}`;
-    let priceId = process.env[envKey];
-
-    if (!priceId) {
-      // Search by lookup key
-      const existingPrices = await stripe.prices.list({
-        lookup_keys: [lookupKey],
-        active: true,
-        limit: 1,
-      });
-
-      if (existingPrices.data.length > 0) {
-        priceId = existingPrices.data[0].id;
-      }
-    }
-
-    if (!priceId) {
-      // Find or create product
-      const existingProducts = await stripe.products.search({
-        query: "name:'Afters Signature'",
-      });
-
-      let productId: string;
-      if (existingProducts.data.length > 0) {
-        productId = existingProducts.data[0].id;
-      } else {
-        const product = await stripe.products.create({
-          name: "Afters Signature",
-          description:
-            "Priority placement, reduced fees, staff management, and more",
-        });
-        productId = product.id;
-      }
-
-      // Create price with lookup key
-      const price = await stripe.prices.create({
-        product: productId,
-        unit_amount: unitAmount,
-        currency: "usd",
-        recurring: {
-          interval: intervalConfig.interval,
-          interval_count: intervalConfig.interval_count,
-        },
-        lookup_key: lookupKey,
-      });
-
-      priceId = price.id;
-      console.log(
-        `Created Stripe Price: ${price.id} for ${requestedPlan} (${lookupKey})`
-      );
-    }
-
-    // Check if this user has ever had a trial before
-    const hadTrial = profile.subscription?.plan === "SIGNATURE_TRIAL_7D" ||
-      (profile.subscription?.trialEndsAt !== null && profile.subscription?.trialEndsAt !== undefined);
-
-    const baseUrl = getBaseUrl(req);
-
-    const sessionConfig = {
-      customer: customerId,
-      payment_method_types: ["card" as const],
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: "subscription" as const,
-      subscription_data: {
-        metadata: {
-          organizerProfileId: profile.id,
-          plan: requestedPlan,
-        },
-        // Only offer 7-day trial for monthly plan and if they haven't had one
-        ...(requestedPlan === "SIGNATURE_30D" && !hadTrial
-          ? { trial_period_days: 7 }
-          : {}),
-      },
-      success_url: `${baseUrl}/d/settings?subscription=success`,
-      cancel_url: `${baseUrl}/d/settings?subscription=cancelled`,
-      metadata: {
-        organizerProfileId: profile.id,
-        userId,
-        plan: requestedPlan,
-      },
-    };
-
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-
-    return NextResponse.json({ url: session.url });
+    const checkout = await createCheckout({
+      product: "afters",
+      purchase: "subscription",
+      lookupKey,
+      trialDays,
+      reference: profile.id,
+      // A fresh key per attempt; Payments checkouts expire on their own if abandoned.
+      idempotencyKey: `afters-sig-${profile.id}-${requestedPlan}-${Date.now()}`.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 100),
+      returnUrl: `${publicOrigin(req)}/api/axxes-payments/return`,
+      email: profile.user.email ?? undefined,
+    });
+    return NextResponse.json({ url: checkout.checkout_url });
   } catch (error) {
-    console.error("Stripe subscription error:", error);
-    return NextResponse.json(
-      { error: "Failed to create checkout session" },
-      { status: 500 }
-    );
+    console.error("Signature checkout failed:", error instanceof PaymentsError ? error.status : error);
+    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 502 });
   }
 }
 
@@ -225,5 +97,6 @@ export async function GET() {
     trialEndsAt: sub?.trialEndsAt,
     currentPeriodEnd: sub?.currentPeriodEnd,
     cancelAtPeriodEnd: sub?.cancelAtPeriodEnd || false,
+    salesOpen: signatureSalesOpen(),
   });
 }
