@@ -65,6 +65,7 @@ function SignatureBilling() {
   }
 
   if (!status) return null
+  if (!status.salesOpen && !status.isSignature) return <BetaPlan />
   const manageable = status.isSignature && ["SIGNATURE_30D", "SIGNATURE_180D", "SIGNATURE_360D", "SIGNATURE_TRIAL_7D"].includes(status.plan)
   return (
     <>
@@ -99,6 +100,9 @@ function SignatureBilling() {
         </div>
       )}
       {!status.isSignature && status.salesOpen && (
+        <p className="text-sm font-mono text-white/50">Current plan: Free</p>
+      )}
+      {!status.isSignature && status.salesOpen && (
         <div className="border border-white/10 bg-white/[0.02]">
           <div className="px-4 py-2 border-b border-white/10">
             <span className="text-[10px] font-mono text-white/40 tracking-widest">AFTERS SIGNATURE</span>
@@ -128,19 +132,10 @@ function SignatureBilling() {
   )
 }
 
-export default function BillingPage() {
+/** Shown while Signature sales are closed: afters.am is free in beta. */
+function BetaPlan() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">BILLING</h1>
-        <p className="text-white/40 text-sm font-mono mt-1">Subscription & payments</p>
-      </div>
-
-      <Suspense fallback={null}>
-        <SignatureBilling />
-      </Suspense>
-
+    <>
       {/* Current Plan */}
       <div className="border border-primary/30 bg-white/[0.02]">
         <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
@@ -191,6 +186,23 @@ export default function BillingPage() {
           <p className="text-white/20 text-xs mt-1">Available when beta ends</p>
         </div>
       </div>
+    </>
+  )
+}
+
+export default function BillingPage() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">BILLING</h1>
+        <p className="text-white/40 text-sm font-mono mt-1">Subscription & payments</p>
+      </div>
+
+      <Suspense fallback={null}>
+        <SignatureBilling />
+      </Suspense>
+
     </div>
   )
 }
