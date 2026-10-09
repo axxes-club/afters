@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
 
 /**
- * How every organizer's payout account is set up (same model as AXXES Pay /
- * Tollbooth, owner decision 2026-10-08).
+ * How every organizer's payout account is set up (same model as Tollbooth,
+ * owner decision 2026-10-08).
  *
  * The organizer never sees Stripe: no Stripe dashboard (`none`), afters is the
  * whole interface. Stripe carries the risk: it bills its processing fee to the

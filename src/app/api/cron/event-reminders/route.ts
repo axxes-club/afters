@@ -11,7 +11,8 @@ export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) return NextResponse.json({error:"Reminder cron is not configured"},{status:503});
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -54,9 +55,14 @@ export async function GET(req: Request) {
     twentyFourHour: { sent: 0, failed: 0 },
   }
 
+  async function claim(id:string,startsAt:Date,hours:number){
+    const rows=await prisma.$queryRawUnsafe<Array<{key:string}>>("INSERT INTO afters_security_reminders(key) VALUES ($1) ON CONFLICT(key) DO NOTHING RETURNING key",`${id}:${startsAt.toISOString()}:${hours}`);
+    return rows.length===1;
+  }
   // Send 1-hour reminders
   for (const event of oneHourEvents) {
     try {
+      if(!await claim(event.id,event.startsAt,1))continue;
       const prefs = await prisma.notificationPreference.findUnique({
         where: { userId: event.organizerId },
       })
@@ -99,6 +105,7 @@ export async function GET(req: Request) {
   // Send 24-hour reminders
   for (const event of twentyFourHourEvents) {
     try {
+      if(!await claim(event.id,event.startsAt,24))continue;
       const prefs = await prisma.notificationPreference.findUnique({
         where: { userId: event.organizerId },
       })

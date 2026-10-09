@@ -32,7 +32,7 @@ import 'dotenv/config';
 import { neon } from '@neondatabase/serverless';
 import { UTApi } from 'uploadthing/server';
 
-const DB_URL = 'postgresql://neondb_owner:npg_6CG9YBgUPFpy@ep-steep-frost-aed2xpf8-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require';
+const DB_URL = (() => { const value = process.env.DATABASE_URL; if (!value || !/^postgres(?:ql)?:\/\//.test(value)) throw new Error("Set DATABASE_URL to a PostgreSQL connection URL"); return value; })();
 const sql = neon(DB_URL);
 const ut = new UTApi({ token: process.env.UPLOADTHING_TOKEN });
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';

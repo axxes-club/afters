@@ -1,3 +1,4 @@
+import {securityClientKey} from "@/lib/security-client-key";
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { Resend } from "resend"
@@ -22,8 +23,8 @@ export async function POST(
     const { eventId } = await params
 
     // Rate limit by IP
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown"
-    if (!checkRsvpRateLimit(ip)) {
+    const ip = securityClientKey(req)
+    if (!await checkRsvpRateLimit(ip)) {
       return NextResponse.json(
         { message: "Too many requests. Please try again later." },
         { status: 429 }

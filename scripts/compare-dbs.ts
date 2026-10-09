@@ -4,7 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import 'dotenv/config';
 
 async function main() {
-  const devUrl = 'postgresql://neondb_owner:npg_6CG9YBgUPFpy@ep-steep-frost-aed2xpf8-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require';
+  const devUrl = (() => { const value = process.env.DEV_DATABASE_URL; if (!value || !/^postgres(?:ql)?:\/\//.test(value)) throw new Error("Set DEV_DATABASE_URL to a PostgreSQL connection URL"); return value; })();
   const devPool = new Pool({ connectionString: devUrl });
 
   const mainPool = new Pool({ connectionString: process.env.DATABASE_URL })

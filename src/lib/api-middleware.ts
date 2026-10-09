@@ -58,7 +58,7 @@ export function withApiAuth(
       }
 
       // Check rate limit
-      const rateLimit = checkApiRateLimit(result.keyId!)
+      const rateLimit = await checkApiRateLimit(result.keyId!)
       if (!rateLimit.allowed) {
         return NextResponse.json(
           {

@@ -54,6 +54,7 @@ function paid(orderId: string) {
 
 describe.skipIf(!state.databaseUrl)("paid tickets with real Postgres transactions", () => {
   beforeEach(async () => {
+    await prisma.$executeRawUnsafe("CREATE TABLE IF NOT EXISTS afters_security_rate_limits(key TEXT PRIMARY KEY,count INTEGER NOT NULL,reset_at TIMESTAMPTZ NOT NULL)");
     vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_fixture")
     vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fixture")
     state.scheduled = []
@@ -113,6 +114,8 @@ describe.skipIf(!state.databaseUrl)("paid tickets with real Postgres transaction
     const event = await prisma.event.findUniqueOrThrow({ where: { id: eventId } })
     await prisma.organizerProfile.update({ where: { id: event.organizerId }, data: { stripeAccountId: "acct_fixture_" + eventId } })
     for (let attempt = 0; attempt < 12; attempt++) {
+      // Each iteration is an independent refund-race fixture in the validated disposable database.
+      await prisma.$executeRawUnsafe("TRUNCATE afters_security_rate_limits");
       const order = await (await reserve()).json()
       await prisma.order.update({ where: { id: order.id }, data: { stripePaymentIntentId: "pi_" + order.id } })
       const body = JSON.stringify({ id: "evt_refund_" + order.id, type: "charge.refunded", livemode: false,

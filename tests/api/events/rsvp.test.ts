@@ -14,6 +14,7 @@ const { mockPrisma, mockVerifyTurnstile, mockResend } = vi.hoisted(() => {
       create: vi.fn(),
     },
     $transaction: vi.fn(),
+    $queryRawUnsafe: vi.fn(),
   }
   const mockVerifyTurnstile = vi.fn()
   const mockResend = {
@@ -39,12 +40,12 @@ vi.mock("resend", () => ({
 }))
 
 import { POST } from "@/app/api/events/[eventId]/rsvp/route"
-import { rsvpRateLimitMap } from "@/lib/rate-limit"
 
 describe("RSVP API", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    rsvpRateLimitMap.clear()
+    let admissionCount = 0
+    mockPrisma.$queryRawUnsafe.mockImplementation(async () => [{ count: ++admissionCount, reset_at: new Date(Date.now() + 60000) }])
     mockVerifyTurnstile.mockResolvedValue(true)
     mockResend.emails.send.mockResolvedValue({ id: "email-1" })
   })

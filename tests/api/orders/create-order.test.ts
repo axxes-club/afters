@@ -11,6 +11,7 @@ vi.mock("@/lib/auth/session", () => ({ getUserId: async () => null, currentUser:
 vi.mock("@/lib/prisma", () => {
   const db = {
     $queryRaw: async () => [{ id: "event-1" }],
+    $queryRawUnsafe: async () => [{ count: 1, reset_at: new Date(Date.now()+60000) }],
     event: { findUnique: async () => ({ id: "event-1", isPublished: true,
       organizer: { stripeAccountId: "acct_organizer" },
       ticketTiers: [{ id: "tier-1", name: "General", price: 1000, quantity: 2, quantitySold: 0, minPerOrder: 1, maxPerOrder: 2, isVisible: true }],
