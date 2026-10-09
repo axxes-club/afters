@@ -1,6 +1,6 @@
 import {it,expect,vi,beforeEach} from 'vitest';
-const state=vi.hoisted(()=>({events:[] as any[],claimed:new Set<string>(),send:vi.fn(),push:vi.fn()}));
-vi.mock('@/lib/prisma',()=>({prisma:{event:{findMany:async(args:any)=>args.where.startsAt.gte.getTime()<Date.now()+2*3600000?state.events:[]},notificationPreference:{findUnique:async()=>null},$queryRawUnsafe:async(_sql:string,key:string)=>{if(state.claimed.has(key))return [];state.claimed.add(key);return [{key}];}}}));
+const state=vi.hoisted(()=>({events:[] as Array<Record<string,unknown>>,claimed:new Set<string>(),send:vi.fn(),push:vi.fn()}));
+vi.mock('@/lib/prisma',()=>({prisma:{event:{findMany:async(args:{where:{startsAt:{gte:Date}}})=>args.where.startsAt.gte.getTime()<Date.now()+2*3600000?state.events:[]},notificationPreference:{findUnique:async()=>null},$queryRawUnsafe:async(_sql:string,key:string)=>{if(state.claimed.has(key))return [];state.claimed.add(key);return [{key}];}}}));
 vi.mock('@/lib/push',()=>({notifyEventReminder:state.push}));
 vi.mock('@/lib/email',()=>({sendEmail:state.send,generateEventReminderEmailHtml:()=>''}));
 import {GET} from '@/app/api/cron/event-reminders/route';
