@@ -43,8 +43,11 @@ export async function verifyScannerToken(
   token: string
 ): Promise<ScannerSession | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecret())
-    return payload as unknown as ScannerSession
+    const { payload } = await jwtVerify(token, getSecret(), { algorithms: ["HS256"] })
+    if (typeof payload.scannerId !== "string" || !payload.scannerId ||
+        typeof payload.eventId !== "string" || !payload.eventId ||
+        typeof payload.name !== "string") return null
+    return { scannerId: payload.scannerId, eventId: payload.eventId, name: payload.name }
   } catch {
     return null
   }
@@ -60,6 +63,13 @@ export async function getScannerSession(): Promise<ScannerSession | null> {
     const userId = session.scannerId.slice("organizer-".length)
     const event = await prisma.event.findUnique({ where: { id: session.eventId }, select: { organizerId: true } })
     if (!event || !await hasPermission(userId, event.organizerId, "tickets.scan")) return null
+  } else {
+    // A signed cookie is not authority after the scanner is removed or disabled.
+    const scanner = await prisma.eventScanner.findUnique({
+      where: { id: session.scannerId },
+      select: { eventId: true, isActive: true },
+    })
+    if (!scanner || !scanner.isActive || scanner.eventId !== session.eventId) return null
   }
   return session
 }
